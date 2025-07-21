@@ -245,12 +245,19 @@ namespace Content.Client.Viewport
 
             _curRenderScale = renderScale;
 
+            var sample = new TextureSampleParameters
+            {
+                Filter = StretchMode switch
+                {
+                    ScalingViewportStretchMode.Bilinear => SampleFilterMode.Bilinear,
+                    ScalingViewportStretchMode.PointSampling => SampleFilterMode.PointSampling,
+                    ScalingViewportStretchMode.Nearest => SampleFilterMode.Nearest
+                },
+            };
+
             _viewport = _clyde.CreateViewport(
                 ViewportSize * renderScale,
-                new TextureSampleParameters
-                {
-                    Filter = StretchMode == ScalingViewportStretchMode.Bilinear,
-                });
+                sample);
 
             _viewport.RenderScale = new Vector2(renderScale, renderScale);
 
@@ -359,6 +366,11 @@ namespace Content.Client.Viewport
         ///     Nearest neighbor sampling is used.
         /// </summary>
         Nearest,
+
+        /// <summary>
+        ///     Point sampling is used.
+        /// </summary>
+        PointSampling
     }
 
     /// <summary>

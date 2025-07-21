@@ -37,7 +37,7 @@ namespace Content.Client.Hands
                 new RenderTargetFormatParameters(RenderTargetColorFormat.Rgba8Srgb, true),
                 new TextureSampleParameters
                 {
-                    Filter = true
+                    Filter = SampleFilterMode.Bilinear
                 }, nameof(ShowHandItemOverlay));
         }
 
