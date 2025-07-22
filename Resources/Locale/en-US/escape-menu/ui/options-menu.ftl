@@ -95,7 +95,7 @@ ui-options-vp-integer-scaling-tooltip = If this option is enabled, the viewport 
 ui-options-filter-label = Scaling filter:
 ui-options-filter-nearest = Nearest (no smoothing)
 ui-options-filter-bilinear = Bilinear (smoothed)
-ui-options-filter-bilinear = Point Sampling (sharp edges)
+ui-options-filter-pointsampling = Point Sampling (sharp edges)
 ui-options-vp-vertical-fit = Vertical viewport fitting
 ui-options-vp-vertical-fit-tooltip = When enabled, the main viewport will ignore the horizontal axis entirely when
                                      fitting to your screen. If your screen is smaller than the viewport, then this
