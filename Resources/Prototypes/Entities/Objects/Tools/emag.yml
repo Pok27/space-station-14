@@ -20,5 +20,8 @@
   components:
   - type: LimitedCharges
   - type: AutoRecharge
+  - type: ChargeItemStatus
+    chargeName: "uses"
+    showRechargeTimer: true
   - type: StaticPrice
     price: 2500
