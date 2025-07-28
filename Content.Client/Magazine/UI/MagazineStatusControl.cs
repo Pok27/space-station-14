@@ -1,4 +1,3 @@
-using Content.Client.Magazine.Components;
 using Content.Client.Items.UI;
 using Content.Client.Message;
 using Content.Client.Stylesheets;
@@ -8,17 +7,17 @@ using Robust.Client.UserInterface.Controls;
 namespace Content.Client.Magazine.UI;
 
 /// <summary>
-/// Displays magazine ammunition information for <see cref="MagazineItemStatusComponent"/>.
+/// Displays magazine ammunition information for entities with BallisticAmmoProviderComponent.
 /// </summary>
 /// <seealso cref="MagazineItemStatusSystem"/>
 public sealed class MagazineStatusControl : PollingItemStatusControl<MagazineStatusControl.Data>
 {
-    private readonly Entity<MagazineItemStatusComponent> _parent;
+    private readonly Entity<BallisticAmmoProviderComponent> _parent;
     private readonly IEntityManager _entityManager;
     private readonly RichTextLabel _label;
 
     public MagazineStatusControl(
-        Entity<MagazineItemStatusComponent> parent,
+        Entity<BallisticAmmoProviderComponent> parent,
         IEntityManager entityManager)
     {
         _parent = parent;
@@ -29,12 +28,8 @@ public sealed class MagazineStatusControl : PollingItemStatusControl<MagazineSta
 
     protected override Data PollData()
     {
-        // Try to get ballistic ammo provider component
-        if (!_entityManager.TryGetComponent(_parent.Owner, out BallisticAmmoProviderComponent? ammoProvider))
-            return default;
-
-        var currentRounds = ammoProvider.Count;
-        var maxRounds = ammoProvider.Capacity;
+        var currentRounds = _parent.Comp.Count;
+        var maxRounds = _parent.Comp.Capacity;
 
         return new Data(currentRounds, maxRounds);
     }
