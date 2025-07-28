@@ -154,10 +154,17 @@ tank-status-closed = [color=red]Closed[/color]
 
 Для создания нового типа статуса:
 
-1. Создайте компонент в `Content.Client/Items/Components/`
-2. Создайте UI контрол в `Content.Client/Items/UI/`
-3. Создайте систему в `Content.Client/Items/EntitySystems/`
+1. Создайте компонент в тематической папке (например, `Content.Client/Power/Components/` для батарей)
+2. Создайте UI контрол в соответствующей UI папке (например, `Content.Client/Power/UI/`)
+3. Создайте систему в папке EntitySystems соответствующей темы (например, `Content.Client/Power/EntitySystems/`)
 4. Добавьте компонент в `Content.Server/Entry/IgnoredComponents.cs`
 5. Добавьте строки локализации в соответствующий .ftl файл
+
+**Тематические папки:**
+- `Content.Client/Power/` - для компонентов связанных с батареями
+- `Content.Client/Charges/` - для компонентов с ограниченными зарядами
+- `Content.Client/Atmos/` - для компонентов газовых систем
+- `Content.Client/Chemistry/` - для компонентов растворов
+- Следуйте существующей структуре папок для других типов
 
 Используйте существующие компоненты как примеры для реализации.

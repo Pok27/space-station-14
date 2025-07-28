@@ -1,7 +1,7 @@
-using Content.Client.Items.EntitySystems;
-using Content.Client.Items.UI;
+using Content.Client.Charges.EntitySystems;
+using Content.Client.Charges.UI;
 
-namespace Content.Client.Items.Components;
+namespace Content.Client.Charges.Components;
 
 /// <summary>
 /// Exposes limited charges information via item status control.

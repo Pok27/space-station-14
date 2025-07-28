@@ -1,7 +1,7 @@
-using Content.Client.Items.EntitySystems;
-using Content.Client.Items.UI;
+using Content.Client.Atmos.EntitySystems;
+using Content.Client.Atmos.UI;
 
-namespace Content.Client.Items.Components;
+namespace Content.Client.Atmos.Components;
 
 /// <summary>
 /// Exposes gas tank pressure information via item status control.

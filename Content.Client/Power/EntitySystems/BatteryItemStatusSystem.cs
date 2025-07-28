@@ -1,7 +1,7 @@
-using Content.Client.Items.Components;
-using Content.Client.Items.UI;
+using Content.Client.Power.Components;
+using Content.Client.Power.UI;
 
-namespace Content.Client.Items.EntitySystems;
+namespace Content.Client.Power.EntitySystems;
 
 /// <summary>
 /// Wires up item status logic for <see cref="BatteryItemStatusComponent"/>.

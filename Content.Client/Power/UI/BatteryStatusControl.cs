@@ -1,4 +1,4 @@
-using Content.Client.Items.Components;
+using Content.Client.Power.Components;
 using Content.Client.Items.UI;
 using Content.Client.Message;
 using Content.Client.Stylesheets;
@@ -6,7 +6,7 @@ using Content.Shared.Item.ItemToggle.Components;
 using Content.Shared.Power;
 using Robust.Client.UserInterface.Controls;
 
-namespace Content.Client.Items.UI;
+namespace Content.Client.Power.UI;
 
 /// <summary>
 /// Displays battery charge information for <see cref="BatteryItemStatusComponent"/>.

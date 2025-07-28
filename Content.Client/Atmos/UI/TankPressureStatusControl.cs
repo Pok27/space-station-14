@@ -1,4 +1,4 @@
-using Content.Client.Items.Components;
+using Content.Client.Atmos.Components;
 using Content.Client.Items.UI;
 using Content.Client.Message;
 using Content.Client.Stylesheets;
@@ -6,7 +6,7 @@ using Content.Shared.Atmos;
 using Content.Shared.Atmos.Components;
 using Robust.Client.UserInterface.Controls;
 
-namespace Content.Client.Items.UI;
+namespace Content.Client.Atmos.UI;
 
 /// <summary>
 /// Displays gas tank pressure information for <see cref="TankPressureItemStatusComponent"/>.

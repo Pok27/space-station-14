@@ -1,8 +1,8 @@
-using Content.Client.Items.Components;
-using Content.Client.Items.UI;
+using Content.Client.Charges.Components;
+using Content.Client.Charges.UI;
 using Content.Shared.Charges.Systems;
 
-namespace Content.Client.Items.EntitySystems;
+namespace Content.Client.Charges.EntitySystems;
 
 /// <summary>
 /// Wires up item status logic for <see cref="ChargeItemStatusComponent"/>.

@@ -1,7 +1,7 @@
-using Content.Client.Items.EntitySystems;
-using Content.Client.Items.UI;
+using Content.Client.Power.EntitySystems;
+using Content.Client.Power.UI;
 
-namespace Content.Client.Items.Components;
+namespace Content.Client.Power.Components;
 
 /// <summary>
 /// Exposes a battery's charge information via item status control.

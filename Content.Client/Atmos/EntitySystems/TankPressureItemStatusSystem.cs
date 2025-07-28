@@ -1,7 +1,7 @@
-using Content.Client.Items.Components;
-using Content.Client.Items.UI;
+using Content.Client.Atmos.Components;
+using Content.Client.Atmos.UI;
 
-namespace Content.Client.Items.EntitySystems;
+namespace Content.Client.Atmos.EntitySystems;
 
 /// <summary>
 /// Wires up item status logic for <see cref="TankPressureItemStatusComponent"/>.

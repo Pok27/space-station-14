@@ -5,46 +5,46 @@
 ## Добавленные компоненты
 
 ### 1. BatteryItemStatusComponent
-- **Файл:** `Content.Client/Items/Components/BatteryItemStatusComponent.cs`
+- **Файл:** `Content.Client/Power/Components/BatteryItemStatusComponent.cs`
 - **Назначение:** Отображает процент заряда батареи и состояние On/Off
 - **Зависимости:** BatteryComponent или PowerCellSlotComponent, опционально ItemToggleComponent
 
 ### 2. ChargeItemStatusComponent  
-- **Файл:** `Content.Client/Items/Components/ChargeItemStatusComponent.cs`
+- **Файл:** `Content.Client/Charges/Components/ChargeItemStatusComponent.cs`
 - **Назначение:** Отображает ограниченные заряды и таймер перезарядки
 - **Зависимости:** LimitedChargesComponent, опционально AutoRechargeComponent
 
 ### 3. TankPressureItemStatusComponent
-- **Файл:** `Content.Client/Items/Components/TankPressureItemStatusComponent.cs`
+- **Файл:** `Content.Client/Atmos/Components/TankPressureItemStatusComponent.cs`
 - **Назначение:** Отображает давление газа в баллоне и состояние клапана
 - **Зависимости:** GasTankComponent
 
 ## Добавленные UI контролы
 
 ### 1. BatteryStatusControl
-- **Файл:** `Content.Client/Items/UI/BatteryStatusControl.cs`
+- **Файл:** `Content.Client/Power/UI/BatteryStatusControl.cs`
 - **Отображает:** Заряд батареи в процентах, состояние On/Off
 
 ### 2. ChargeStatusControl
-- **Файл:** `Content.Client/Items/UI/ChargeStatusControl.cs`
+- **Файл:** `Content.Client/Charges/UI/ChargeStatusControl.cs`
 - **Отображает:** Текущие заряды / максимальные заряды, таймер восстановления
 
 ### 3. TankPressureStatusControl
-- **Файл:** `Content.Client/Items/UI/TankPressureStatusControl.cs`
+- **Файл:** `Content.Client/Atmos/UI/TankPressureStatusControl.cs`
 - **Отображает:** Давление в kPa, состояние клапана Open/Closed
 
 ## Добавленные системы
 
 ### 1. BatteryItemStatusSystem
-- **Файл:** `Content.Client/Items/EntitySystems/BatteryItemStatusSystem.cs`
+- **Файл:** `Content.Client/Power/EntitySystems/BatteryItemStatusSystem.cs`
 - **Назначение:** Регистрация BatteryStatusControl
 
 ### 2. ChargeItemStatusSystem
-- **Файл:** `Content.Client/Items/EntitySystems/ChargeItemStatusSystem.cs`
+- **Файл:** `Content.Client/Charges/EntitySystems/ChargeItemStatusSystem.cs`
 - **Назначение:** Регистрация ChargeStatusControl
 
 ### 3. TankPressureItemStatusSystem
-- **Файл:** `Content.Client/Items/EntitySystems/TankPressureItemStatusSystem.cs`
+- **Файл:** `Content.Client/Atmos/EntitySystems/TankPressureItemStatusSystem.cs`
 - **Назначение:** Регистрация TankPressureStatusControl
 
 ### 4. BatteryInfoSystem (Server)
