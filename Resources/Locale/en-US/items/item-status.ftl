@@ -2,6 +2,7 @@
 battery-status-charge = Charge: [color=#5E7C16]{$percent}[/color] %
 battery-status-on = [color=green]On[/color]
 battery-status-off = [color=red]Off[/color]
+battery-status-mode = Mode: {$state}
 
 # Charge Status
 charge-status-count = {$name}: [color=white]{$current}/{$max}[/color]

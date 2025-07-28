@@ -69,10 +69,12 @@ public sealed class BatteryStatusControl : PollingItemStatusControl<BatteryStatu
 
         if (data.ToggleState.HasValue)
         {
-            var toggleText = data.ToggleState.Value
+            var stateText = data.ToggleState.Value
                 ? Loc.GetString("battery-status-on")
                 : Loc.GetString("battery-status-off");
-            markup += "\n" + toggleText;
+
+            var modeLine = Loc.GetString("battery-status-mode", ("state", stateText));
+            markup += "\n" + modeLine;
         }
 
         _label.SetMarkup(markup);
