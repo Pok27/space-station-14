@@ -45,30 +45,18 @@ public sealed class BatteryStatusControl : PollingItemStatusControl<BatteryStatu
             // Fallback: some devices (e.g., Radio Jammer) indicate activation via a dedicated component.
             else
             {
-                // Generic fallback: If entity has any component whose type name starts with "Active"
-                // (e.g. ActiveFlashComponent, ActiveRadioJammerComponent, etc.) assume On.
-                // Otherwise, if it has a matching non-active component (e.g. RadioJammerComponent) assume Off.
-                bool hasActive = false;
-                bool hasInactive = false;
-
+                // Generic fallback: presence of any component whose type name begins with "Active"
+                // indicates the item is currently toggled ON. Otherwise treat as OFF.
                 foreach (var comp in _entityManager.GetComponents(_parent.Owner))
                 {
-                    var name = comp.GetType().Name;
-                    if (name.StartsWith("Active"))
+                    if (comp.GetType().Name.StartsWith("Active"))
                     {
-                        hasActive = true;
+                        toggleState = true;
                         break;
-                    }
-                    if (name.EndsWith("JammerComponent") || name.EndsWith("FlashComponent") || name.EndsWith("StunbatonComponent"))
-                    {
-                        hasInactive = true;
                     }
                 }
 
-                if (hasActive)
-                    toggleState = true;
-                else if (hasInactive)
-                    toggleState = false;
+                toggleState ??= false;
             }
         }
 
