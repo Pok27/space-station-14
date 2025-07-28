@@ -159,6 +159,9 @@ namespace Content.Server.Atmos.EntitySystems
                 return;
 
             var pressure = component.Air.Pressure;
+            
+            // Update networked pressure for client-side display
+            component.NetworkedPressure = pressure;
 
             if (pressure > component.TankFragmentPressure && _maxExplosionRange > 0)
             {
@@ -169,6 +172,8 @@ namespace Content.Server.Atmos.EntitySystems
                 }
 
                 pressure = component.Air.Pressure;
+                // Update networked pressure again after reactions
+                component.NetworkedPressure = pressure;
                 var range = MathF.Sqrt((pressure - component.TankFragmentPressure) / component.TankFragmentScale);
 
                 // Let's cap the explosion, yeah?

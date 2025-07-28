@@ -17,6 +17,7 @@ namespace Content.Server.Entry
             "BatteryItemStatus",
             "ChargeItemStatus",
             "TankPressureItemStatus",
+            "SharedBatteryState",
             "UIFragment",
             "PdaBorderColor",
             "InventorySlots",

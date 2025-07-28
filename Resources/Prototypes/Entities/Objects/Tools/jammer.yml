@@ -38,6 +38,7 @@
         startingItem: PowerCellMedium
   - type: BatteryItemStatus
     showToggleState: true
+  - type: SharedBatteryState
   - type: Appearance
   - type: GenericVisualizer
     visuals:

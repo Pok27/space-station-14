@@ -52,6 +52,7 @@
     startingCharge: 1000
   - type: BatteryItemStatus
     showToggleState: true
+  - type: SharedBatteryState
   - type: UseDelay
   - type: Item
     heldPrefix: off

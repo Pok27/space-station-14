@@ -36,6 +36,12 @@ public sealed partial class GasTankComponent : Component, IGasMixtureHolder
     public GasMixture Air { get; set; } = new();
 
     /// <summary>
+    /// Networked pressure value for client-side display.
+    /// </summary>
+    [ViewVariables, AutoNetworkedField]
+    public float NetworkedPressure;
+
+    /// <summary>
     ///     Pressure at which tank should be considered 'low' such as for internals.
     /// </summary>
     [DataField]

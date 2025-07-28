@@ -30,23 +30,38 @@ public sealed class BatteryStatusControl : PollingItemStatusControl<BatteryStatu
 
     protected override Data PollData()
     {
-        // Get battery info using the shared event
+        // Try to get shared battery state component first
+        if (_entityManager.TryGetComponent(_parent.Owner, out SharedBatteryStateComponent? sharedState) && sharedState.HasBattery)
+        {
+            var chargePercent = (int)(sharedState.ChargePercent * 100);
+            
+            // Check if item has toggle state (like stun baton)
+            bool? toggleState = null;
+            if (_parent.Comp.ShowToggleState && _entityManager.TryGetComponent(_parent.Owner, out ItemToggleComponent? toggle))
+            {
+                toggleState = toggle.Activated;
+            }
+
+            return new Data(chargePercent, toggleState);
+        }
+
+        // Fallback to event-based approach if shared state is not available
         var batteryEvent = new GetBatteryInfoEvent();
         _entityManager.EventBus.RaiseLocalEvent(_parent.Owner, ref batteryEvent);
 
         if (!batteryEvent.HasBattery)
             return default;
 
-        var chargePercent = (int)(batteryEvent.ChargePercent * 100);
+        var eventChargePercent = (int)(batteryEvent.ChargePercent * 100);
 
         // Check if item has toggle state (like stun baton)
-        bool? toggleState = null;
-        if (_parent.Comp.ShowToggleState && _entityManager.TryGetComponent(_parent.Owner, out ItemToggleComponent? toggle))
+        bool? eventToggleState = null;
+        if (_parent.Comp.ShowToggleState && _entityManager.TryGetComponent(_parent.Owner, out ItemToggleComponent? eventToggle))
         {
-            toggleState = toggle.Activated;
+            eventToggleState = eventToggle.Activated;
         }
 
-        return new Data(chargePercent, toggleState);
+        return new Data(eventChargePercent, eventToggleState);
     }
 
     protected override void Update(in Data data)
