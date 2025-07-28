@@ -19,7 +19,4 @@ tank-status-open = [color=red]Open[/color]
 tank-status-closed = [color=green]Closed[/color]
 
 # Magazine Status
-magazine-status-rounds = {$name}: [color=yellow]{$current}/{$max}[/color]
-magazine-status-name-rounds = Rounds
-magazine-status-name-shells = Shells
-magazine-status-name-shots = Shots
+magazine-status-rounds = Rounds: [color=yellow]{$current}/{$max}[/color]

@@ -14,10 +14,4 @@ namespace Content.Client.Magazine.Components;
 [RegisterComponent]
 public sealed partial class MagazineItemStatusComponent : Component
 {
-    /// <summary>
-    /// Optional descriptive name for what the ammunition represents (e.g., "rounds", "shells", "shots").
-    /// If not set, defaults to "rounds".
-    /// </summary>
-    [DataField, ViewVariables(VVAccess.ReadWrite)]
-    public string AmmoName = "magazine-status-name-rounds";
 }
