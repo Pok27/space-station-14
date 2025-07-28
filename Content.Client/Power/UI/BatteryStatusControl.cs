@@ -1,9 +1,8 @@
-using Content.Client.Power.Components;
+using Content.Shared.Power.Components;
 using Content.Client.Items.UI;
 using Content.Client.Message;
 using Content.Client.Stylesheets;
 using Content.Shared.Item.ItemToggle.Components;
-using Content.Shared.Power;
 using Robust.Client.UserInterface.Controls;
 
 namespace Content.Client.Power.UI;
@@ -30,14 +29,8 @@ public sealed class BatteryStatusControl : PollingItemStatusControl<BatteryStatu
 
     protected override Data PollData()
     {
-        // Get battery info using the shared event
-        var batteryEvent = new GetBatteryInfoEvent();
-        _entityManager.EventBus.RaiseLocalEvent(_parent.Owner, ref batteryEvent);
-
-        if (!batteryEvent.HasBattery)
-            return default;
-
-        var chargePercent = (int)(batteryEvent.ChargePercent * 100);
+        // Use the networked value from the status component
+        var chargePercent = _parent.Comp.ChargePercent;
 
         // Check if item has toggle state (like stun baton)
         bool? toggleState = null;
