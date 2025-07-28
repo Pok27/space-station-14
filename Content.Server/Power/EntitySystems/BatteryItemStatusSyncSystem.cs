@@ -1,5 +1,6 @@
 using Content.Shared.Power.Components;
 using Content.Shared.Power;
+using Content.Shared.Item.ItemToggle.Components;
 
 namespace Content.Server.Power.EntitySystems;
 
@@ -25,9 +26,28 @@ public sealed class BatteryItemStatusSyncSystem : EntitySystem
 
             int percent = (int)(infoEvent.ChargePercent * 100);
 
-            if (percent != status.ChargePercent)
+            bool toggleOn = false;
+
+            if (TryComp<ItemToggleComponent>(uid, out var itemToggle))
+            {
+                toggleOn = itemToggle.Activated;
+            }
+            else
+            {
+                foreach (var comp in EntityManager.GetComponents(uid))
+                {
+                    if (comp is IActiveItemMarker)
+                    {
+                        toggleOn = true;
+                        break;
+                    }
+                }
+            }
+
+            if (percent != status.ChargePercent || toggleOn != status.ToggleOn)
             {
                 status.ChargePercent = percent;
+                status.ToggleOn = toggleOn;
                 Dirty(uid, status);
             }
         }

@@ -20,4 +20,10 @@ public sealed partial class BatteryItemStatusComponent : Component
     /// </summary>
     [DataField, AutoNetworkedField]
     public int ChargePercent;
+
+    /// <summary>
+    /// Whether the item is currently toggled on (if ShowToggleState is true).
+    /// </summary>
+    [DataField, AutoNetworkedField]
+    public bool ToggleOn;
 }

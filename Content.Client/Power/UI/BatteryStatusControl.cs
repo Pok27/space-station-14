@@ -2,8 +2,6 @@ using Content.Shared.Power.Components;
 using Content.Client.Items.UI;
 using Content.Client.Message;
 using Content.Client.Stylesheets;
-using Content.Shared.Item.ItemToggle.Components;
-using Content.Shared.Radio.Components;
 using Robust.Client.UserInterface.Controls;
 
 namespace Content.Client.Power.UI;
@@ -33,32 +31,7 @@ public sealed class BatteryStatusControl : PollingItemStatusControl<BatteryStatu
         // Use the networked value from the status component
         var chargePercent = _parent.Comp.ChargePercent;
 
-        // Check if item has toggle state (like stun baton)
-        bool? toggleState = null;
-        if (_parent.Comp.ShowToggleState)
-        {
-            // Prefer generic item toggle if available.
-            if (_entityManager.TryGetComponent(_parent.Owner, out ItemToggleComponent? toggle))
-            {
-                toggleState = toggle.Activated;
-            }
-            // Fallback: some devices (e.g., Radio Jammer) indicate activation via a dedicated component.
-            else
-            {
-                // Generic fallback: presence of any component whose type name begins with "Active"
-                // indicates the item is currently toggled ON. Otherwise treat as OFF.
-                foreach (var comp in _entityManager.GetComponents(_parent.Owner))
-                {
-                    if (comp.GetType().Name.StartsWith("Active"))
-                    {
-                        toggleState = true;
-                        break;
-                    }
-                }
-
-                toggleState ??= false;
-            }
-        }
+        bool? toggleState = _parent.Comp.ShowToggleState ? _parent.Comp.ToggleOn : null;
 
         return new Data(chargePercent, toggleState);
     }
