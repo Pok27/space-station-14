@@ -43,7 +43,8 @@ public sealed class MagazineStatusControl : PollingItemStatusControl<MagazineSta
     {
         var markup = Loc.GetString("magazine-status-rounds",
             ("current", data.CurrentRounds),
-            ("max", data.MaxRounds));
+            ("max", data.MaxRounds),
+            ("name", Loc.GetString(data.AmmoName)));
 
         _label.SetMarkup(markup);
     }
