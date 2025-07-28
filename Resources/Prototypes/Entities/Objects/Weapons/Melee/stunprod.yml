@@ -45,6 +45,8 @@
   - type: Battery
     maxCharge: 360
     startingCharge: 360
+  - type: BatteryItemStatus
+    showToggleState: true
   - type: UseDelay
   - type: Item
     heldPrefix: off

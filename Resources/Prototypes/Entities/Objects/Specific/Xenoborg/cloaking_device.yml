@@ -29,3 +29,5 @@
         startingItem: PowerCellSmallNuclear
         disableEject: true
         swap: false
+  - type: BatteryItemStatus
+    showToggleState: true
