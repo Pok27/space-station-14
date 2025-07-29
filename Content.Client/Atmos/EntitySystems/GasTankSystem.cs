@@ -1,3 +1,6 @@
+using Content.Client.Atmos.Components;
+using Content.Client.Atmos.UI;
+using Content.Client.Items;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Atmos.EntitySystems;
 
@@ -9,6 +12,8 @@ public sealed class GasTankSystem : SharedGasTankSystem
     {
         base.Initialize();
         SubscribeLocalEvent<GasTankComponent, AfterAutoHandleStateEvent>(OnGasTankState);
+        Subs.ItemStatus<TankPressureItemStatusComponent>(
+            entity => new TankPressureStatusControl(entity, EntityManager));
     }
 
     private void OnGasTankState(Entity<GasTankComponent> ent, ref AfterAutoHandleStateEvent args)
