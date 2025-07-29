@@ -10,6 +10,7 @@ namespace Content.Client.Explosion.UI;
 /// <summary>
 /// Displays timer delay information for <see cref="TimerTriggerItemStatusComponent"/>.
 /// </summary>
+/// <seealso cref="TimerTriggerItemStatusSyncSystem"/>
 public sealed class TimerTriggerStatusControl : PollingItemStatusControl<TimerTriggerStatusControl.Data>
 {
     private readonly Entity<TimerTriggerItemStatusComponent> _parent;

@@ -8,6 +8,8 @@ namespace Content.Shared.Anomaly;
 /// Shared system that updates <see cref="AnomalyItemStatusComponent"/> with current anomaly core status
 /// so that it can be displayed on the client item status panel.
 /// </summary>
+/// <seealso cref="AnomalyItemStatusComponent"/>
+/// <seealso cref="AnomalyStatusControl"/>
 public abstract class SharedAnomalyItemStatusSyncSystem : EntitySystem
 {
     [Dependency] protected readonly ItemSlotsSystem ItemSlots = default!;
