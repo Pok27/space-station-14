@@ -22,11 +22,12 @@ public sealed class BatteryInfoSystem : EntitySystem
     private void OnGetBatteryInfo(Entity<BatteryComponent> entity, ref GetBatteryInfoEvent args)
     {
         var battery = entity.Comp;
-        if (battery.MaxCharge <= 0)
-            return;
-
-        args.ChargePercent = battery.CurrentCharge / battery.MaxCharge;
         args.HasBattery = true;
+        
+        if (battery.MaxCharge > 0)
+        {
+            args.ChargePercent = battery.CurrentCharge / battery.MaxCharge;
+        }
     }
 
     private void OnGetPowerCellInfo(Entity<PowerCellSlotComponent> entity, ref GetBatteryInfoEvent args)
@@ -34,10 +35,11 @@ public sealed class BatteryInfoSystem : EntitySystem
         if (!_powerCell.TryGetBatteryFromSlot(entity.Owner, out var battery, entity.Comp))
             return;
 
-        if (battery.MaxCharge <= 0)
-            return;
-
-        args.ChargePercent = battery.CurrentCharge / battery.MaxCharge;
         args.HasBattery = true;
+        
+        if (battery.MaxCharge > 0)
+        {
+            args.ChargePercent = battery.CurrentCharge / battery.MaxCharge;
+        }
     }
 }
