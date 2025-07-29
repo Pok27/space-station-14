@@ -3,7 +3,6 @@ using Content.Server.Power.Components;
 using Content.Shared.PowerCell.Components;
 using Content.Shared.Item;
 using Content.Shared.Power;
-using Robust.Shared.Containers;
 
 namespace Content.Server.Power.EntitySystems;
 
@@ -27,8 +26,8 @@ public sealed class BatteryItemStatusAutoSystem : EntitySystem
         // Also handle when ItemComponent is added to entities that already have batteries
         SubscribeLocalEvent<ItemComponent, MapInitEvent>(OnItemMapInit);
         
-        // Handle power cell insertion into slots
-        SubscribeLocalEvent<PowerCellSlotComponent, EntInsertedIntoContainerMessage>(OnCellInserted);
+        // Note: We don't need to handle EntInsertedIntoContainerMessage for PowerCellSlotComponent
+        // as it's already handled by SharedPowerCellSystem, and we update battery status in our Update method
     }
 
     public override void Update(float frameTime)
@@ -68,12 +67,6 @@ public sealed class BatteryItemStatusAutoSystem : EntitySystem
 
     private void OnItemMapInit(EntityUid uid, ItemComponent component, MapInitEvent args)
     {
-        TryAddBatteryStatus(uid);
-    }
-
-    private void OnCellInserted(EntityUid uid, PowerCellSlotComponent component, EntInsertedIntoContainerMessage args)
-    {
-        // When a power cell is inserted, ensure the host has battery status
         TryAddBatteryStatus(uid);
     }
 

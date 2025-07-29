@@ -41,8 +41,7 @@
 - `MapInitEvent` для `BatteryComponent` - когда предмет с батареей инициализируется
 - `MapInitEvent` для `PowerCellSlotComponent` - когда предмет со слотом для батареи инициализируется  
 - `MapInitEvent` для `ItemComponent` - когда предмет инициализируется (проверяет наличие батарей)
-- `EntInsertedIntoContainerMessage` для `PowerCellSlotComponent` - когда батарея вставляется в слот
-- `GetBatteryInfoEvent` - для получения информации о заряде батареи
+- `GetBatteryInfoEvent` - для получения информации о заряде батареи (в методе Update)
 
 ### 6. Удалены устаревшие компоненты и системы:
 
