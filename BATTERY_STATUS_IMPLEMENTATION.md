@@ -14,9 +14,9 @@
 - `ChargePercent` - процент заряда батареи (0-100)
 - `ShowToggleState` - показывать ли состояние включения/выключения
 
-### 2. Упрощена система: `BatteryItemStatusAutoSystem`
+### 2. Упрощена система: `BatteryItemStatusSyncSystem`
 
-**Файл:** `Content.Server/Power/EntitySystems/BatteryItemStatusAutoSystem.cs`
+**Файл:** `Content.Server/Power/EntitySystems/BatteryItemStatusSyncSystem.cs`
 
 Система значительно упрощена и теперь:
 - Подписывается только на `MapInitEvent` для `ItemComponent`
@@ -46,7 +46,7 @@
 ### 6. Удалены устаревшие компоненты и системы:
 
 - `BatteryItemStatusComponent` - заменён на `SharedBatteryItemComponent`
-- `BatteryItemStatusSyncSystem` - функциональность интегрирована в `BatteryItemStatusAutoSystem`
+- `BatteryItemStatusComponent` и старая система синхронизации - заменены на новую упрощённую `BatteryItemStatusSyncSystem`
 
 ### 7. Удалены ручные добавления компонента
 

@@ -12,7 +12,7 @@ namespace Content.Server.Power.EntitySystems;
 /// making battery status visible when examining items.
 /// Also handles syncing battery charge information from server to client.
 /// </summary>
-public sealed class BatteryItemStatusAutoSystem : EntitySystem
+public sealed class BatteryItemStatusSyncSystem : EntitySystem
 {
     public override void Initialize()
     {
@@ -51,7 +51,7 @@ public sealed class BatteryItemStatusAutoSystem : EntitySystem
         }
     }
 
-    private void OnItemMapInit(EntityUid uid, ItemComponent component, MapInitEvent args)
+    private void OnItemMapInit(EntityUid uid, ItemComponent _, MapInitEvent __)
     {
         // Only add to items that don't already have the component
         if (HasComp<SharedBatteryItemComponent>(uid))
