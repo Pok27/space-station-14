@@ -12,6 +12,7 @@ public sealed class GasTankSystem : SharedGasTankSystem
     {
         base.Initialize();
         SubscribeLocalEvent<GasTankComponent, AfterAutoHandleStateEvent>(OnGasTankState);
+        // Wire up item status logic for gas tank pressure display
         Subs.ItemStatus<TankPressureItemStatusComponent>(
             entity => new TankPressureStatusControl(entity, EntityManager));
     }
