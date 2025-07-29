@@ -3,6 +3,7 @@ using Content.Client.Message;
 using Content.Client.Stylesheets;
 using Content.Shared.Explosion;
 using Robust.Client.UserInterface.Controls;
+using System;
 
 namespace Content.Client.Explosion.UI;
 
@@ -15,8 +16,7 @@ public sealed class TimerTriggerStatusControl : PollingItemStatusControl<TimerTr
     private readonly RichTextLabel _label;
 
     public TimerTriggerStatusControl(
-        Entity<TimerTriggerItemStatusComponent> parent,
-        IEntityManager entityManager)
+        Entity<TimerTriggerItemStatusComponent> parent)
     {
         _parent = parent;
         _label = new RichTextLabel { StyleClasses = { StyleNano.StyleClassItemStatus } };
@@ -30,9 +30,9 @@ public sealed class TimerTriggerStatusControl : PollingItemStatusControl<TimerTr
 
     protected override void Update(in Data data)
     {
-        var markup = Loc.GetString("timer-trigger-status-delay", ("delay", data.Delay));
+        var markup = Loc.GetString("timer-trigger-status-delay", ("delay", data.Delay.TotalSeconds));
         _label.SetMarkup(markup);
     }
 
-    public readonly record struct Data(float Delay);
+    public readonly record struct Data(TimeSpan Delay);
 }

@@ -4,6 +4,7 @@ using Content.Shared.Atmos.Components;
 using Content.Shared.Atmos.EntitySystems;
 using Content.Shared.Cargo;
 using Content.Shared.Throwing;
+using Content.Shared.Hands.Components;
 using JetBrains.Annotations;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio;
@@ -99,7 +100,8 @@ namespace Content.Server.Atmos.EntitySystems
                 }
 
                 // Update and network internal pressure for client UI.
-                if (comp.Air != null)
+                // Only update if the tank is being held by a player to avoid unnecessary network spam
+                if (comp.Air != null && HasComp<HandsComponent>(uid))
                 {
                     var newPressure = comp.Air.Pressure;
                     if (!MathHelper.CloseTo(newPressure, comp.InternalPressure, 0.1f))

@@ -10,8 +10,8 @@ namespace Content.Shared.Explosion;
 public sealed partial class TimerTriggerItemStatusComponent : Component
 {
     /// <summary>
-    /// Current set delay in seconds.
+    /// Current set delay.
     /// </summary>
     [DataField, AutoNetworkedField]
-    public float Delay;
+    public TimeSpan Delay;
 }
