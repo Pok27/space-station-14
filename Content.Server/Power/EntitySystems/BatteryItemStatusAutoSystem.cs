@@ -2,13 +2,15 @@ using Content.Shared.Power.Components;
 using Content.Server.Power.Components;
 using Content.Shared.PowerCell.Components;
 using Content.Shared.Item;
+using Content.Shared.Power;
 using Robust.Shared.Containers;
 
 namespace Content.Server.Power.EntitySystems;
 
 /// <summary>
-/// Automatically adds BatteryItemStatusComponent to items that have batteries,
+/// Automatically adds SharedBatteryItemComponent to items that have batteries,
 /// making battery status visible when examining items.
+/// Also handles syncing battery charge information from server to client.
 /// </summary>
 public sealed class BatteryItemStatusAutoSystem : EntitySystem
 {
@@ -27,6 +29,31 @@ public sealed class BatteryItemStatusAutoSystem : EntitySystem
         
         // Handle power cell insertion into slots
         SubscribeLocalEvent<PowerCellSlotComponent, EntInsertedIntoContainerMessage>(OnCellInserted);
+    }
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        // Update battery charge information for all items with SharedBatteryItemComponent
+        var enumerator = EntityQueryEnumerator<SharedBatteryItemComponent>();
+        while (enumerator.MoveNext(out var uid, out var batteryItem))
+        {
+            // Retrieve battery info using the existing GetBatteryInfoEvent infrastructure
+            var infoEvent = new GetBatteryInfoEvent();
+            RaiseLocalEvent(uid, ref infoEvent);
+
+            if (!infoEvent.HasBattery)
+                continue;
+
+            int percent = (int)(infoEvent.ChargePercent * 100);
+
+            if (percent != batteryItem.ChargePercent)
+            {
+                batteryItem.ChargePercent = percent;
+                Dirty(uid, batteryItem);
+            }
+        }
     }
 
     private void OnBatteryMapInit(EntityUid uid, BatteryComponent component, MapInitEvent args)
@@ -57,13 +84,13 @@ public sealed class BatteryItemStatusAutoSystem : EntitySystem
             return;
 
         // Don't add if already has the component
-        if (HasComp<BatteryItemStatusComponent>(uid))
+        if (HasComp<SharedBatteryItemComponent>(uid))
             return;
 
         // Check if the entity has a battery or power cell slot
         if (!HasComp<BatteryComponent>(uid) && !HasComp<PowerCellSlotComponent>(uid))
             return;
 
-        EnsureComp<BatteryItemStatusComponent>(uid);
+        EnsureComp<SharedBatteryItemComponent>(uid);
     }
 }
