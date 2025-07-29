@@ -3,6 +3,7 @@ using Content.Server.Power.Components;
 using Content.Shared.PowerCell.Components;
 using Content.Shared.Item;
 using Content.Shared.Power;
+using Content.Shared.Weapons.Ranged.Components;
 
 namespace Content.Server.Power.EntitySystems;
 
@@ -17,17 +18,8 @@ public sealed class BatteryItemStatusAutoSystem : EntitySystem
     {
         base.Initialize();
         
-        // Add battery status component when BatteryComponent is properly initialized
-        SubscribeLocalEvent<BatteryComponent, MapInitEvent>(OnBatteryMapInit);
-        
-        // Add battery status component when PowerCellSlotComponent is properly initialized
-        SubscribeLocalEvent<PowerCellSlotComponent, MapInitEvent>(OnPowerCellSlotMapInit);
-        
-        // Also handle when ItemComponent is added to entities that already have batteries
+        // Only need to handle MapInitEvent for ItemComponent - this covers all cases
         SubscribeLocalEvent<ItemComponent, MapInitEvent>(OnItemMapInit);
-        
-        // Note: We don't need to handle EntInsertedIntoContainerMessage for PowerCellSlotComponent
-        // as it's already handled by SharedPowerCellSystem, and we update battery status in our Update method
     }
 
     public override void Update(float frameTime)
@@ -38,12 +30,16 @@ public sealed class BatteryItemStatusAutoSystem : EntitySystem
         var enumerator = EntityQueryEnumerator<SharedBatteryItemComponent>();
         while (enumerator.MoveNext(out var uid, out var batteryItem))
         {
-            // Retrieve battery info using the existing GetBatteryInfoEvent infrastructure
+            // Use GetBatteryInfoEvent to check if item has battery and get charge
             var infoEvent = new GetBatteryInfoEvent();
             RaiseLocalEvent(uid, ref infoEvent);
 
+            // If no battery found, remove the component (shouldn't happen normally)
             if (!infoEvent.HasBattery)
+            {
+                RemComp<SharedBatteryItemComponent>(uid);
                 continue;
+            }
 
             int percent = (int)(infoEvent.ChargePercent * 100);
 
@@ -55,35 +51,24 @@ public sealed class BatteryItemStatusAutoSystem : EntitySystem
         }
     }
 
-    private void OnBatteryMapInit(EntityUid uid, BatteryComponent component, MapInitEvent args)
-    {
-        TryAddBatteryStatus(uid);
-    }
-
-    private void OnPowerCellSlotMapInit(EntityUid uid, PowerCellSlotComponent component, MapInitEvent args)
-    {
-        TryAddBatteryStatus(uid);
-    }
-
     private void OnItemMapInit(EntityUid uid, ItemComponent component, MapInitEvent args)
     {
-        TryAddBatteryStatus(uid);
-    }
-
-    private void TryAddBatteryStatus(EntityUid uid)
-    {
-        // Only add to items (things that can be examined)
-        if (!HasComp<ItemComponent>(uid))
-            return;
-
-        // Don't add if already has the component
+        // Only add to items that don't already have the component
         if (HasComp<SharedBatteryItemComponent>(uid))
             return;
 
-        // Check if the entity has a battery or power cell slot
-        if (!HasComp<BatteryComponent>(uid) && !HasComp<PowerCellSlotComponent>(uid))
+        // Don't add if item has AmmoCounterComponent (weapons show ammo, not battery)
+        if (HasComp<SharedAmmoCounterComponent>(uid))
             return;
 
-        EnsureComp<SharedBatteryItemComponent>(uid);
+        // Use GetBatteryInfoEvent to check if item has a battery
+        var infoEvent = new GetBatteryInfoEvent();
+        RaiseLocalEvent(uid, ref infoEvent);
+
+        // If has battery, add the component
+        if (infoEvent.HasBattery)
+        {
+            EnsureComp<SharedBatteryItemComponent>(uid);
+        }
     }
 }
