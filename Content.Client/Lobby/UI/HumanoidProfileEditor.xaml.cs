@@ -750,7 +750,7 @@ namespace Content.Client.Lobby.UI
         /// </summary>
         public void SetProfile(HumanoidCharacterProfile? profile, int? slot)
         {
-            Profile = profile?.Clone();
+            Profile = profile?.Clone() as HumanoidCharacterProfile;
             CharacterSlot = slot;
             IsDirty = false;
             JobOverride = null;
@@ -984,7 +984,7 @@ namespace Content.Client.Lobby.UI
 
                             // Clone so we don't modify the underlying loadout.
                             Profile?.Loadouts.TryGetValue(LoadoutSystem.GetJobPrototype(job.ID), out loadout);
-                            loadout = loadout?.Clone();
+                            loadout = loadout?.Clone() as RoleLoadout;
 
                             if (loadout == null)
                             {

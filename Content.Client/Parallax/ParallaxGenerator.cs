@@ -34,7 +34,7 @@ namespace Content.Client.Parallax
             {
                 cancel.ThrowIfCancellationRequested();
                 layer.Apply(image);
-                debugLayerDump?.Add(image.Clone());
+                debugLayerDump?.Add(image.Clone() as Image<Rgba32>);
                 sawmill.Debug("Layer {0} done!", count++);
             }
 

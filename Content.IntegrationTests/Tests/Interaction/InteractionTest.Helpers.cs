@@ -657,7 +657,7 @@ public abstract partial class InteractionTest
         bool failOnExcess = true,
         LookupFlags flags = LookupFlags.Uncontained)
     {
-        var expected = collection.Clone();
+        var expected = (EntitySpecifierCollection)collection.Clone();
         var entities = await DoEntityLookup(flags);
         var found = ToEntityCollection(entities);
         expected.Remove(found);
