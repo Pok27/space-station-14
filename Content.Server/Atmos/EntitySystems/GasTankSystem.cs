@@ -5,6 +5,7 @@ using Content.Shared.Atmos.EntitySystems;
 using Content.Shared.Cargo;
 using Content.Shared.Throwing;
 using Content.Shared.Hands.Components;
+using Content.Shared.Hands.EntitySystems;
 using JetBrains.Annotations;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio;
@@ -26,6 +27,7 @@ namespace Content.Server.Atmos.EntitySystems
         [Dependency] private readonly IRobustRandom _random = default!;
         [Dependency] private readonly ThrowingSystem _throwing = default!;
         [Dependency] private readonly IConfigurationManager _cfg = default!;
+        [Dependency] private readonly SharedHandsSystem _hands = default!;
 
         private const float TimerDelay = 0.5f;
         private float _timer = 0f;
@@ -101,13 +103,17 @@ namespace Content.Server.Atmos.EntitySystems
 
                 // Update and network internal pressure for client UI.
                 // Only update if the tank is being held by a player to avoid unnecessary network spam
-                if (comp.Air != null && HasComp<HandsComponent>(uid))
+                if (comp.Air != null)
                 {
-                    var newPressure = comp.Air.Pressure;
-                    if (!MathHelper.CloseTo(newPressure, comp.InternalPressure, 0.1f))
+                    var parent = Transform(uid).ParentUid;
+                    if (parent.IsValid() && _hands.IsHolding(parent, uid))
                     {
-                        comp.InternalPressure = newPressure;
-                        Dirty(uid, comp);
+                        var newPressure = comp.Air.Pressure;
+                        if (!MathHelper.CloseTo(newPressure, comp.InternalPressure, 0.1f))
+                        {
+                            comp.InternalPressure = newPressure;
+                            Dirty(uid, comp);
+                        }
                     }
                 }
 
