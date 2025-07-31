@@ -118,28 +118,15 @@ public partial class SeedData
     #region General traits
 
     [DataField] public float Endurance = 100f;
-
     [DataField] public int Yield;
     [DataField] public float Lifespan;
     [DataField] public float Maturation;
     [DataField] public float Production;
     [DataField] public int GrowthStages = 6;
-
     [DataField] public HarvestType HarvestRepeat = HarvestType.NoRepeat;
-
     [DataField] public float Potency = 1f;
-
-    /// <summary>
-    ///     If true, cannot be harvested for seeds. Balances hybrids and
-    ///     mutations.
-    /// </summary>
     [DataField] public bool Seedless = false;
-
-    /// <summary>
-    ///     If true, a sharp tool is required to harvest this plant.
-    /// </summary>
     [DataField] public bool Ligneous;
-
     #endregion
 
     #region Cosmetics
