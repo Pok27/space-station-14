@@ -10,6 +10,8 @@ using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototy
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype.List;
 using Robust.Shared.Utility;
 using Robust.Shared.Log;
+using Robust.Shared.Serialization;
+using Robust.Shared.IoC;
 
 namespace Content.Server.Botany;
 
@@ -17,6 +19,25 @@ namespace Content.Server.Botany;
 public sealed partial class SeedPrototype : SeedData, IPrototype
 {
     [IdDataField] public string ID { get; private set; } = default!;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        
+        // Temporary debug logging
+        Log.Info($"SeedPrototype {ID} loaded with {GrowthComponents.Count} growth components");
+        foreach(var g in GrowthComponents)
+        {
+            if (g is BasicGrowthComponent basic)
+            {
+                Log.Info($"  BasicGrowthComponent: WaterConsumption={basic.WaterConsumption}, NutrientConsumption={basic.NutrientConsumption}");
+            }
+            else if (g is AtmosphericGrowthComponent atmos)
+            {
+                Log.Info($"  AtmosphericGrowthComponent: IdealHeat={atmos.IdealHeat}, HeatTolerance={atmos.HeatTolerance}");
+            }
+        }
+    }
 }
 
 public enum HarvestType : byte
@@ -128,25 +149,8 @@ public partial class SeedData
     /// </summary>
     [DataField]
     public LogImpact? PlantLogImpact;
-
-    public virtual void Initialize()
-    {
-        // Debug logging for prototype loading
-        Log.Info($"Loading seed data {Name} with {GrowthComponents.Count} growth components");
-        foreach(var g in GrowthComponents)
-        {
-            if (g is BasicGrowthComponent basic)
-            {
-                Log.Info($"  BasicGrowthComponent: WaterConsumption={basic.WaterConsumption}, NutrientConsumption={basic.NutrientConsumption}");
-            }
-            else if (g is AtmosphericGrowthComponent atmos)
-            {
-                Log.Info($"  AtmosphericGrowthComponent: IdealHeat={atmos.IdealHeat}, HeatTolerance={atmos.HeatTolerance}");
-            }
-        }
-    }
-        //TODO: the mutation system should add the missing components when they mutate.
-        //This would be done with EnsureComp<>
+    //TODO: the mutation system should add the missing components when they mutate.
+    //This would be done with EnsureComp<>
 
     public SeedData Clone()
     {
@@ -196,18 +200,9 @@ public partial class SeedData
         // Deep copy growth components
         foreach (var component in GrowthComponents)
         {
-            var newComponent = component.DupeComponent();
+            // Use serialization manager for proper deep copying
+            var newComponent = IoCManager.Resolve<ISerializationManager>().CreateCopy(component, notNullableOverride: true);
             newSeed.GrowthComponents.Add(newComponent);
-            
-            // Debug logging
-            if (component is BasicGrowthComponent basic)
-            {
-                Log.Info($"Cloning BasicGrowthComponent: WaterConsumption={basic.WaterConsumption} -> {((BasicGrowthComponent)newComponent).WaterConsumption}, NutrientConsumption={basic.NutrientConsumption} -> {((BasicGrowthComponent)newComponent).NutrientConsumption}");
-            }
-            else if (component is AtmosphericGrowthComponent atmos)
-            {
-                Log.Info($"Cloning AtmosphericGrowthComponent: IdealHeat={atmos.IdealHeat} -> {((AtmosphericGrowthComponent)newComponent).IdealHeat}");
-            }
         }
 
         newSeed.Mutations.AddRange(Mutations);
@@ -281,7 +276,9 @@ public partial class SeedData
         // Deep copy growth components from the new species
         foreach (var component in other.GrowthComponents)
         {
-            newSeed.GrowthComponents.Add(component.DupeComponent());
+            // Use serialization manager for proper deep copying
+            var newComponent = IoCManager.Resolve<ISerializationManager>().CreateCopy(component, notNullableOverride: true);
+            newSeed.GrowthComponents.Add(newComponent);
         }
 
         return newSeed;

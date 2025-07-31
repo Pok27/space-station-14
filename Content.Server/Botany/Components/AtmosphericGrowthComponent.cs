@@ -17,10 +17,4 @@ public sealed partial class AtmosphericGrowthComponent : PlantGrowthComponent
 
     [DataField]
     public float HighPressureTolerance = 121f;
-
-    public override void Initialize()
-    {
-        base.Initialize();
-        Log.Info($"AtmosphericGrowthComponent initialized: IdealHeat={IdealHeat}, HeatTolerance={HeatTolerance}");
-    }
 }

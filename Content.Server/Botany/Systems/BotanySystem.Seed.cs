@@ -111,21 +111,6 @@ public sealed partial class BotanySystem : EntitySystem
         
         // Clone the seed to make it unique and ensure growth components are properly copied
         seedComp.Seed = proto.Clone();
-        
-        // Debug logging to check growth components
-        Log.Info($"Creating seed packet for {proto.Name} with {proto.GrowthComponents.Count} growth components");
-        foreach(var g in proto.GrowthComponents)
-        {
-            if (g is BasicGrowthComponent basic)
-            {
-                Log.Info($"BasicGrowthComponent: WaterConsumption={basic.WaterConsumption}, NutrientConsumption={basic.NutrientConsumption}");
-            }
-            else if (g is AtmosphericGrowthComponent atmos)
-            {
-                Log.Info($"AtmosphericGrowthComponent: IdealHeat={atmos.IdealHeat}, HeatTolerance={atmos.HeatTolerance}");
-            }
-        }
-        
         seedComp.HealthOverride = healthOverride;
 
         var name = Loc.GetString(proto.Name);

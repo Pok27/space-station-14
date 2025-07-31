@@ -17,10 +17,4 @@ public sealed partial class BasicGrowthComponent : PlantGrowthComponent
     /// </summary>
     [DataField]
     public float NutrientConsumption = 0.75f;
-
-    public override void Initialize()
-    {
-        base.Initialize();
-        Log.Info($"BasicGrowthComponent initialized: WaterConsumption={WaterConsumption}, NutrientConsumption={NutrientConsumption}");
-    }
 }

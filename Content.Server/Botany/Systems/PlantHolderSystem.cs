@@ -208,20 +208,6 @@ public sealed class PlantHolderSystem : EntitySystem
                 foreach(var g in existingGrowthComponents)
                     EntityManager.RemoveComponent(uid, g);
 
-                // Debug logging to check growth components
-                Log.Info($"Planting seed {seed.Name} with {seed.GrowthComponents.Count} growth components");
-                foreach(var g in seed.GrowthComponents)
-                {
-                    if (g is BasicGrowthComponent basic)
-                    {
-                        Log.Info($"BasicGrowthComponent: WaterConsumption={basic.WaterConsumption}, NutrientConsumption={basic.NutrientConsumption}");
-                    }
-                    else if (g is AtmosphericGrowthComponent atmos)
-                    {
-                        Log.Info($"AtmosphericGrowthComponent: IdealHeat={atmos.IdealHeat}, HeatTolerance={atmos.HeatTolerance}");
-                    }
-                }
-
                 foreach(var g in seed.GrowthComponents)
                     EntityManager.AddComponent(uid, _copier.CreateCopy(g, notNullableOverride: true), overwrite: true);
 

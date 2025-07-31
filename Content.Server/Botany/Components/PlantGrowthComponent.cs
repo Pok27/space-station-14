@@ -1,4 +1,8 @@
 using System.Security.Policy;
+using Robust.Shared.Serialization.Manager;
+using Robust.Shared.Serialization.Markdown.Mapping;
+using Robust.Shared.Serialization.Markdown.Value;
+using Robust.Shared.Serialization.TypeSerializers.Implementations;
 
 namespace Content.Server.Botany.Components;
 
@@ -10,6 +14,7 @@ public partial class PlantGrowthComponent : Component {
     /// </summary>
     public PlantGrowthComponent DupeComponent()
     {
+        // Use MemberwiseClone for now, but this might need to be improved
         return (PlantGrowthComponent)this.MemberwiseClone();
     }
 }
