@@ -23,8 +23,21 @@ public sealed partial class SolutionTemperature : EntityEffectCondition
                    reagentArgs.Source.Temperature <= Max;
         }
 
-        // TODO: Someone needs to figure out how to do this for non-reagent effects.
-        throw new NotImplementedException();
+        // For non-reagent effects, we need to find the solution differently
+        // This could be through a component reference, entity lookup, or other means
+        // For now, we'll implement a basic approach that looks for solution components
+        if (args.EntityManager.TryGetComponent(args.TargetEntity, out SolutionContainerManagerComponent? container))
+        {
+            // Check the first available solution for temperature
+            foreach (var (name, solution) in EnumerateSolutions((args.TargetEntity, container)))
+            {
+                if (solution.Solution.Temperature >= Min && solution.Solution.Temperature <= Max)
+                    return true;
+            }
+        }
+
+        // If no suitable solution is found, the condition fails
+        return false;
     }
 
     public override string GuidebookExplanation(IPrototypeManager prototype)

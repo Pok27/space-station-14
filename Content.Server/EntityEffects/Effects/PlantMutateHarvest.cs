@@ -25,6 +25,6 @@ public sealed partial class PlantMutateHarvest : EntityEffect
 
     protected override string? ReagentEffectGuidebookText(IPrototypeManager prototype, IEntitySystemManager entSys)
     {
-        return "TODO";
+        return Loc.GetString("reagent-effect-guidebook-plant-mutate-harvest");
     }
 }

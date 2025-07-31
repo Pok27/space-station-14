@@ -49,6 +49,15 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
         if (holder == null || holder.Seed == null || holder.Dead)
             return;
 
+        // Check if the plant is viable
+        if (holder.Seed.Viable == false)
+        {
+            holder.Health -= _random.Next(5, 10) * HydroponicsSpeedMultiplier;
+            if (holder.DrawWarnings)
+                holder.UpdateSpriteAfterUpdate = true;
+            return;
+        }
+
         // Advance plant age here.
         if (holder.SkipAging > 0)
             holder.SkipAging--;
@@ -138,7 +147,5 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
                 holder.Health -= healthMod;
             }
         }
-
-        //TODO: put Viable back on seed and check it here, or split it off to a separate system and check there?
     }
 }
