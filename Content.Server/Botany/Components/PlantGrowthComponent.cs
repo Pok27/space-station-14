@@ -8,7 +8,7 @@ namespace Content.Server.Botany.Components;
 
 [RegisterComponent]
 [DataDefinition]
-public partial class PlantGrowthComponent : Component {
+public abstract partial class PlantGrowthComponent : Component {
     /// <summary>
     /// Creates a copy of this component.
     /// </summary>
