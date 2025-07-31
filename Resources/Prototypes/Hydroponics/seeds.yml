@@ -16,7 +16,7 @@
   potency: 5
   idealLight: 8
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -47,7 +47,7 @@
   potency: 5
   idealLight: 8
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -78,7 +78,7 @@
   potency: 5
   idealLight: 8
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -111,10 +111,10 @@
   yield: 2
   idealLight: 9
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 298
 
   chemicals:
@@ -144,10 +144,10 @@
   yield: 2
   idealLight: 9
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 298
 
   chemicals:
@@ -177,7 +177,7 @@
   potency: 10
   growthStages: 3
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -216,7 +216,7 @@
   idealLight: 8
   harvestRepeat: Repeat
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -256,7 +256,7 @@
   potency: 10
   idealLight: 8
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -288,7 +288,7 @@
   potency: 1
   idealLight: 8
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -323,7 +323,7 @@
   potency: 10
   idealLight: 8
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -359,7 +359,7 @@
   potency: 10
   idealLight: 8
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -391,7 +391,7 @@
   potency: 10
   idealLight: 8
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -428,7 +428,7 @@
   idealLight: 8
   growthStages: 3
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -463,7 +463,7 @@
   potency: 10
   growthStages: 4
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -497,10 +497,10 @@
   potency: 10
   growthStages: 3
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 298
 
   chemicals:
@@ -528,10 +528,10 @@
   growthStages: 5
   idealLight: 9
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 298
 
   chemicals:
@@ -559,10 +559,10 @@
   growthStages: 3
 
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 298
 
 
@@ -586,10 +586,10 @@
   growthStages: 3
 
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 288
 
 
@@ -611,10 +611,10 @@
   growthStages: 3
 
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 288
 
 
@@ -639,10 +639,10 @@
   idealLight: 8
   splatPrototype: PuddleSplatter
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 298
 
   chemicals:
@@ -678,10 +678,10 @@
   idealLight: 8
   splatPrototype: PuddleSplatter
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 298
 
   chemicals:
@@ -719,10 +719,10 @@
   idealLight: 8
   splatPrototype: PuddleSplatter
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 298
 
   chemicals:
@@ -757,10 +757,10 @@
   growthStages: 2
   splatPrototype: PuddleSplatter
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 298
 
   chemicals:
@@ -794,10 +794,10 @@
   growthStages: 3
   idealLight: 9
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 298
 
   chemicals:
@@ -827,7 +827,7 @@
   potency: 10
   growthStages: 1
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -858,7 +858,7 @@
   potency: 25
   growthStages: 3
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -896,7 +896,7 @@
   potency: 10
   idealLight: 6
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -928,7 +928,7 @@
   potency: 10
   idealLight: 6
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -964,10 +964,10 @@
   growthStages: 3
   idealLight: 8
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 298
 
   chemicals:
@@ -1000,10 +1000,10 @@
   growthStages: 3
   idealLight: 8
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 298
 
   chemicals:
@@ -1038,10 +1038,10 @@
   growthStages: 3
   idealLight: 8
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 298
 
   chemicals:
@@ -1075,10 +1075,10 @@
   potency: 1
   growthStages: 3
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 288
 
   chemicals:
@@ -1105,10 +1105,10 @@
   potency: 20
   idealLight: 9
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 298
 
   chemicals:
@@ -1138,10 +1138,10 @@
   growthStages: 3
   idealLight: 9
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 298
 
   chemicals:
@@ -1169,10 +1169,10 @@
   growthStages: 3
   idealLight: 9
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 298
 
   chemicals:
@@ -1220,10 +1220,10 @@
   growthStages: 3
   idealLight: 9
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 298
 
   chemicals:
@@ -1252,10 +1252,10 @@
   growthStages: 5
   idealLight: 8
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 298
 
   chemicals:
@@ -1284,10 +1284,10 @@
   growthStages: 5
   idealLight: 8
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 298
 
   chemicals:
@@ -1320,10 +1320,10 @@
   potency: 20
   idealLight: 9
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 298
 
   chemicals:
@@ -1358,10 +1358,10 @@
   potency: 20
   idealLight: 9
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 298
 
   chemicals:
@@ -1397,7 +1397,7 @@
   potency: 10
   growthStages: 3
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -1428,7 +1428,7 @@
   potency: 10
   growthStages: 5
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -1461,7 +1461,7 @@
   potency: 10
   growthStages: 3
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -1492,7 +1492,7 @@
   potency: 10
   growthStages: 3
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -1525,7 +1525,7 @@
   potency: 10
   growthStages: 6
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -1568,7 +1568,7 @@
   potency: 10
   growthStages: 6
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -1609,7 +1609,7 @@
   potency: 10
   growthStages: 3
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -1636,7 +1636,7 @@
   potency: 10
   growthStages: 3
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -1663,7 +1663,7 @@
   potency: 10
   growthStages: 2
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -1698,7 +1698,7 @@
   growthStages: 2
   idealLight: 6
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -1730,7 +1730,7 @@
   growthStages: 2
   idealLight: 6
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -1762,7 +1762,7 @@
   growthStages: 2
   idealLight: 6
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -1794,7 +1794,7 @@
   growthStages: 4
   idealLight: 5
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -1828,7 +1828,7 @@
   potency: 5
   idealLight: 7
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -1855,7 +1855,7 @@
   yield: 2
   potency: 10
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -1887,7 +1887,7 @@
   potency: 5
   idealLight: 7
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -1918,7 +1918,7 @@
   potency: 10
   growthStages: 2
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -1951,7 +1951,7 @@
   potency: 1
   idealLight: 8
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -1986,7 +1986,7 @@
   potency: 1
   idealLight: 8
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -2021,10 +2021,10 @@
   yield: 6
   idealLight: 7
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 298
 
   chemicals:
@@ -2054,7 +2054,7 @@
   yield: 4
   idealLight: 7
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -2087,10 +2087,10 @@
   idealLight: 8
   growthStages: 4
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 298
 
   chemicals:
@@ -2124,7 +2124,7 @@
   idealLight: 8
   harvestRepeat: Repeat
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -2157,7 +2157,7 @@
   idealLight: 8
   harvestRepeat: Repeat
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -2194,10 +2194,10 @@
   potency: 10
   growthStages: 3
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 288
 
   chemicals:
@@ -2227,10 +2227,10 @@
   potency: 10
   growthStages: 3
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
-    - type: AtmosphericGrowthComponent
+    - type: Content.Server.Botany.Components.AtmosphericGrowthComponent
       IdealHeat: 288
 
   chemicals:
@@ -2267,7 +2267,7 @@
   idealLight: 8
   growthStages: 3
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -2295,7 +2295,7 @@
   idealLight: 8
   growthStages: 3
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -2327,7 +2327,7 @@
   potency: 10
   idealLight: 6
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
@@ -2358,7 +2358,7 @@
   potency: 10
   growthStages: 2
   growthComponents:
-    - type: BasicGrowthComponent
+    - type: Content.Server.Botany.Components.BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
 
