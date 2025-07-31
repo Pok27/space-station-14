@@ -1,3 +1,5 @@
+using Robust.Shared.Serialization.Manager.Attributes;
+
 namespace Content.Server.Botany.Components;
 
 [RegisterComponent]
