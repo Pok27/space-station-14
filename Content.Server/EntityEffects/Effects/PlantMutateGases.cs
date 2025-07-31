@@ -26,13 +26,13 @@ public sealed partial class PlantMutateExudeGasses : EntityEffect
         // Add a random amount of a random gas to this gas dictionary
         float amount = random.NextFloat(MinValue, MaxValue);
         Gas gas = random.Pick(Enum.GetValues(typeof(Gas)).Cast<Gas>().ToList());
-        if (gasses.ExudeGases.ContainsKey(gas))
+        if (gasses.ExudeGasses.ContainsKey(gas))
         {
-            gasses.ExudeGases[gas] += amount;
+            gasses.ExudeGasses[gas] += amount;
         }
         else
         {
-            gasses.ExudeGases.Add(gas, amount);
+            gasses.ExudeGasses.Add(gas, amount);
         }
     }
 
@@ -62,13 +62,13 @@ public sealed partial class PlantMutateConsumeGasses : EntityEffect
         // Add a random amount of a random gas to this gas dictionary
         float amount = random.NextFloat(MinValue, MaxValue);
         Gas gas = random.Pick(Enum.GetValues(typeof(Gas)).Cast<Gas>().ToList());
-        if (gasses.ConsumeGases.ContainsKey(gas))
+        if (gasses.ConsumeGasses.ContainsKey(gas))
         {
-            gasses.ConsumeGases[gas] += amount;
+            gasses.ConsumeGasses[gas] += amount;
         }
         else
         {
-            gasses.ConsumeGases.Add(gas, amount);
+            gasses.ConsumeGasses.Add(gas, amount);
         }
     }
 

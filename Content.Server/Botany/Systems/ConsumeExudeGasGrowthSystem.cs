@@ -24,7 +24,7 @@ public sealed class ConsumeExudeGasGrowthSystem : PlantGrowthSystem
         var environment = _atmosphere.GetContainingMixture(uid, true, true) ?? GasMixture.SpaceGas;
 
         // Consume gases
-        foreach (var (gas, amount) in component.ConsumeGases)
+        foreach (var (gas, amount) in component.ConsumeGasses)
         {
             if (environment.GetMoles(gas) >= amount)
             {
@@ -33,7 +33,7 @@ public sealed class ConsumeExudeGasGrowthSystem : PlantGrowthSystem
         }
 
         // Exude gases
-        foreach (var (gas, amount) in component.ExudeGases)
+        foreach (var (gas, amount) in component.ExudeGasses)
         {
             environment.AdjustMoles(gas, amount);
         }
