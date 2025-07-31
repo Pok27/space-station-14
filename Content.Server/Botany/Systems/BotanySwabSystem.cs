@@ -75,8 +75,11 @@ public sealed class BotanySwabSystem : EntitySystem
                 swab.components = new List<PlantGrowthComponent>();
                 foreach (var component in plant.Seed.GrowthComponents)
                 {
-                    var copiedComponent = component.DupeComponent();
-                    swab.components.Add(copiedComponent);
+                    if (component is PlantGrowthComponent growthComponent)
+                    {
+                        var copiedComponent = growthComponent.DupeComponent();
+                        swab.components.Add(copiedComponent);
+                    }
                 }
             }
 
@@ -100,8 +103,11 @@ public sealed class BotanySwabSystem : EntitySystem
                 swab.components = new List<PlantGrowthComponent>();
                 foreach (var component in old.GrowthComponents)
                 {
-                    var copiedComponent = component.DupeComponent();
-                    swab.components.Add(copiedComponent);
+                    if (component is PlantGrowthComponent growthComponent)
+                    {
+                        var copiedComponent = growthComponent.DupeComponent();
+                        swab.components.Add(copiedComponent);
+                    }
                 }
             }
 
