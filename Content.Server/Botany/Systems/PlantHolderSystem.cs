@@ -188,7 +188,8 @@ public sealed class PlantHolderSystem : EntitySystem
                     ("seedName", name),
                     ("seedNoun", noun)), args.User, PopupType.Medium);
 
-                component.Seed = seed;
+                // Clone the seed to make it unique and ensure growth components are properly copied
+                component.Seed = seed.Clone();
                 component.Dead = false;
                 component.Age = 1;
                 if (seeds.HealthOverride != null)

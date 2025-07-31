@@ -104,7 +104,9 @@ public sealed partial class BotanySystem : EntitySystem
     {
         var seed = Spawn(proto.PacketPrototype, coords);
         var seedComp = EnsureComp<SeedComponent>(seed);
-        seedComp.Seed = proto;
+        
+        // Clone the seed to make it unique and ensure growth components are properly copied
+        seedComp.Seed = proto.Clone();
         seedComp.HealthOverride = healthOverride;
 
         var name = Loc.GetString(proto.Name);
@@ -176,7 +178,8 @@ public sealed partial class BotanySystem : EntitySystem
 
             var produce = EnsureComp<ProduceComponent>(entity);
 
-            produce.Seed = proto;
+            // Clone the seed to make it unique and ensure growth components are properly copied
+            produce.Seed = proto.Clone();
             ProduceGrown(entity, produce);
 
             _appearance.SetData(entity, ProduceVisuals.Potency, proto.Potency);
