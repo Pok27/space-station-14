@@ -17,8 +17,7 @@
   idealLight: 8
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.5
-      NutrientConsumption: 0.4
+      NutrientConsumption: 0.40
   chemicals:
     Nutriment:
       Min: 1
@@ -28,6 +27,10 @@
       Min: 5
       Max: 20
       PotencyDivisor: 20
+
+
+
+
 
 - type: seed
   id: meatwheat
@@ -46,8 +49,7 @@
   idealLight: 8
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.5
-      NutrientConsumption: 0.4
+      NutrientConsumption: 0.40
   chemicals:
     Nutriment:
       Min: 1
@@ -57,6 +59,10 @@
       Min: 5
       Max: 20
       PotencyDivisor: 20
+
+
+
+
 
 - type: seed
   id: oat
@@ -75,8 +81,7 @@
   idealLight: 8
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.5
-      NutrientConsumption: 0.4
+      NutrientConsumption: 0.40
   chemicals:
     Nutriment:
       Min: 1
@@ -86,6 +91,10 @@
       Min: 5
       Max: 20
       PotencyDivisor: 20
+
+
+
+
 
 - type: seed
   id: banana
@@ -104,11 +113,11 @@
   production: 6
   yield: 2
   idealLight: 9
-  idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.6
-      NutrientConsumption: 0.75
+      WaterConsumption: 0.60
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 298
   chemicals:
     Vitamin:
       Min: 1
@@ -118,6 +127,10 @@
       Min: 1
       Max: 2
       PotencyDivisor: 50
+
+
+
+
 
 - type: seed
   id: mimana
@@ -134,11 +147,11 @@
   production: 6
   yield: 2
   idealLight: 9
-  idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.6
-      NutrientConsumption: 0.75
+      WaterConsumption: 0.60
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 298
   chemicals:
     MuteToxin:
       Min: 1
@@ -148,6 +161,10 @@
       Min: 1
       Max: 2
       PotencyDivisor: 50
+
+
+
+
 
 - type: seed
   id: carrots
@@ -166,8 +183,7 @@
   growthStages: 3
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.6
-      NutrientConsumption: 0.75
+      WaterConsumption: 0.60
   chemicals:
     JuiceCarrot:
       Min: 1
@@ -181,6 +197,10 @@
       Min: 1
       Max: 4
       PotencyDivisor: 25
+
+
+
+
 
 - type: seed
   id: laughinPea
@@ -203,8 +223,8 @@
   harvestRepeat: Repeat
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.6
       NutrientConsumption: 0.6
+      WaterConsumption: 0.6
   chemicals:
     Nutriment:
       Min: 1
@@ -218,6 +238,10 @@
       Min: 1
       Max: 10
       PotencyDivisor: 5
+
+
+
+
 
 - type: seed
   id: lemon
@@ -253,6 +277,10 @@
       Max: 4
       PotencyDivisor: 25
 
+
+
+
+
 - type: seed
   id: lemoon
   name: seeds-lemoon-name
@@ -282,6 +310,10 @@
       Min: 8
       Max: 20
       PotencyDivisor: 5
+
+
+
+
 
 - type: seed
   id: lime
@@ -315,6 +347,10 @@
       Min: 1
       Max: 4
       PotencyDivisor: 25
+
+
+
+
 
 - type: seed
   id: orange
@@ -350,6 +386,10 @@
       Max: 4
       PotencyDivisor: 25
 
+
+
+
+
 - type: seed
   id: extradimensionalOrange
   name: seeds-extradimensionalorange-name
@@ -383,6 +423,10 @@
       Min: 1
       Max: 4
       PotencyDivisor: 25
+
+
+
+
 
 - type: seed
   id: pineapple
@@ -419,6 +463,10 @@
       Max: 2
       PotencyDivisor: 50
 
+
+
+
+
 - type: seed
   id: potato
   name: seeds-potato-name
@@ -436,8 +484,7 @@
   growthStages: 4
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.6
-      NutrientConsumption: 0.75
+      WaterConsumption: 0.60
   chemicals:
     Nutriment:
       Min: 1
@@ -447,6 +494,10 @@
       Min: 1
       Max: 4
       PotencyDivisor: 25
+
+
+
+
 
 - type: seed
   id: sugarcane
@@ -466,16 +517,21 @@
   yield: 3
   potency: 10
   growthStages: 3
-  idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 298
   chemicals:
     Sugar:
       Min: 4
       Max: 5
       PotencyDivisor: 5
+
+
+
+
 
 - type: seed
   id: teaPlant
@@ -494,16 +550,20 @@
   potency: 20
   growthStages: 5
   idealLight: 9
-  idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
       WaterConsumption: 0.6
-      NutrientConsumption: 0.75
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 298
   chemicals:
     Vitamin:
       Min: 1
       Max: 5
       PotencyDivisor: 20
+
+
+
+
 
 - type: seed
   id: papercane
@@ -521,7 +581,17 @@
   yield: 3
   potency: 10
   growthStages: 3
-  idealHeat: 298
+
+  growthComponents:
+    - type: BasicGrowthComponent
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.75
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 298
+
+
+
+
 
 - type: seed
   id: towercap
@@ -541,8 +611,17 @@
   yield: 5
   potency: 1
   growthStages: 3
-  lightTolerance: 6
-  idealHeat: 288
+
+  growthComponents:
+    - type: BasicGrowthComponent
+      WaterConsumption: 0.60
+      NutrientConsumption: 0.50
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 288
+
+
+
+
 
 - type: seed
   id: steelcap
@@ -560,8 +639,17 @@
   yield: 3
   potency: 1
   growthStages: 3
-  lightTolerance: 6
-  idealHeat: 288
+
+  growthComponents:
+    - type: BasicGrowthComponent
+      WaterConsumption: 0.60
+      NutrientConsumption: 0.80
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 288
+
+
+
+
 
 - type: seed
   id: tomato
@@ -582,12 +670,13 @@
   yield: 2
   potency: 10
   idealLight: 8
-  idealHeat: 298
   splatPrototype: PuddleSplatter
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.6
-      NutrientConsumption: 0.4
+      WaterConsumption: 0.60
+      NutrientConsumption: 0.40
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 298
   chemicals:
     Nutriment:
       Min: 1
@@ -601,6 +690,10 @@
       Min: 1
       Max: 4
       PotencyDivisor: 25
+
+
+
+
 
 - type: seed
   id: blueTomato
@@ -618,12 +711,13 @@
   yield: 2
   potency: 10
   idealLight: 8
-  idealHeat: 298
   splatPrototype: PuddleSplatter
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.6
-      NutrientConsumption: 0.7
+      WaterConsumption: 0.60
+      NutrientConsumption: 0.70
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 298
   chemicals:
     Nutriment:
       Min: 1
@@ -637,6 +731,10 @@
       Min: 1
       Max: 4
       PotencyDivisor: 25
+
+
+
+
 
 - type: seed
   id: bloodTomato
@@ -656,12 +754,13 @@
   yield: 2
   potency: 10
   idealLight: 8
-  idealHeat: 298
   splatPrototype: PuddleSplatter
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.6
-      NutrientConsumption: 0.7
+      WaterConsumption: 0.60
+      NutrientConsumption: 0.70
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 298
   chemicals:
     Blood:
       Min: 1
@@ -671,6 +770,10 @@
       Min: 1
       Max: 4
       PotencyDivisor: 25
+
+
+
+
 
 - type: seed
   id: killerTomato
@@ -690,13 +793,14 @@
   yield: 2
   potency: 10
   idealLight: 8
-  idealHeat: 298
   growthStages: 2
   splatPrototype: PuddleSplatter
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.6
-      NutrientConsumption: 0.7
+      WaterConsumption: 0.60
+      NutrientConsumption: 0.70
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 298
   chemicals:
     Blood:
       Min: 1
@@ -706,6 +810,10 @@
       Min: 1
       Max: 4
       PotencyDivisor: 25
+
+
+
+
 
 - type: seed
   id: eggplant
@@ -726,11 +834,12 @@
   potency: 20
   growthStages: 3
   idealLight: 9
-  idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 298
   chemicals:
     Nutriment:
       Min: 1
@@ -740,6 +849,10 @@
       Min: 1
       Max: 4
       PotencyDivisor: 25
+
+
+
+
 
 - type: seed
   id: cabbage
@@ -769,6 +882,10 @@
       Min: 1
       Max: 4
       PotencyDivisor: 25
+
+
+
+
 
 - type: seed
   id: garlic
@@ -803,6 +920,10 @@
       Max: 8
       PotencyDivisor: 25
 
+
+
+
+
 - type: seed
   id: apple
   name: seeds-apple-name
@@ -834,6 +955,10 @@
       Min: 1
       Max: 4
       PotencyDivisor: 25
+
+
+
+
 
 - type: seed
   id: goldenApple
@@ -869,6 +994,10 @@
       Max: 13
       PotencyDivisor: 10
 
+
+
+
+
 - type: seed
   id: corn
   name: seeds-corn-name
@@ -885,11 +1014,11 @@
   potency: 20
   growthStages: 3
   idealLight: 8
-  idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.6
-      NutrientConsumption: 0.75
+      WaterConsumption: 0.60
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 298
   chemicals:
     Nutriment:
       Min: 1
@@ -899,6 +1028,10 @@
       Min: 5
       Max: 15
       PotencyDivisor: 10
+
+
+
+
 
 - type: seed
   id: onion
@@ -918,11 +1051,11 @@
   potency: 20
   growthStages: 3
   idealLight: 8
-  idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.6
-      NutrientConsumption: 0.75
+      WaterConsumption: 0.60
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 298
   chemicals:
     Nutriment:
       Min: 1
@@ -936,6 +1069,10 @@
       Min: 1
       Max: 4
       PotencyDivisor: 25
+
+
+
+
 
 - type: seed
   id: onionred
@@ -953,11 +1090,11 @@
   potency: 20
   growthStages: 3
   idealLight: 8
-  idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.6
-      NutrientConsumption: 0.75
+      WaterConsumption: 0.60
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 298
   chemicals:
     Nutriment:
       Min: 1
@@ -971,6 +1108,10 @@
       Min: 1
       Max: 4
       PotencyDivisor: 25
+
+
+
+
 
 - type: seed
   id: chanterelle
@@ -987,17 +1128,21 @@
   yield: 5
   potency: 1
   growthStages: 3
-  lightTolerance: 6
-  idealHeat: 288
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.6
-      NutrientConsumption: 0.5
+      WaterConsumption: 0.60
+      NutrientConsumption: 0.50
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 288
   chemicals:
     Nutriment:
       Min: 1
       Max: 25
       PotencyDivisor: 25
+
+
+
+
 
 - type: seed
   id: eggy
@@ -1015,16 +1160,20 @@
   yield: 2
   potency: 20
   idealLight: 9
-  idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.5
-      NutrientConsumption: 0.5
+      NutrientConsumption: 0.50
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 298
   chemicals:
     Egg:
       Min: 4
       Max: 12
       PotencyDivisor: 10
+
+
+
+
 
 - type: seed
   id: cannabis
@@ -1045,16 +1194,20 @@
   potency: 20
   growthStages: 3
   idealLight: 9
-  idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.4
-      NutrientConsumption: 0.75
+      WaterConsumption: 0.40
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 298
   chemicals:
     THC:
       Min: 1
       Max: 10
       PotencyDivisor: 10
+
+
+
+
 
 - type: seed
   id: rainbowCannabis
@@ -1073,11 +1226,11 @@
   potency: 20
   growthStages: 3
   idealLight: 9
-  idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.4
-      NutrientConsumption: 0.75
+      WaterConsumption: 0.40
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 298
   chemicals:
     SpaceDrugs:
       Min: 1
@@ -1104,6 +1257,10 @@
       Max: 5
       PotencyDivisor: 33
 
+
+
+
+
 - type: seed
   id: tobacco
   name: seeds-tobacco-name
@@ -1121,16 +1278,20 @@
   potency: 20
   growthStages: 3
   idealLight: 9
-  idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.4
-      NutrientConsumption: 0.75
+      WaterConsumption: 0.40
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 298
   chemicals:
     Nicotine:
       Min: 1
       Max: 10
       PotencyDivisor: 10
+
+
+
+
 
 - type: seed
   id: nettle
@@ -1150,16 +1311,20 @@
   potency: 20
   growthStages: 5
   idealLight: 8
-  idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.6
-      NutrientConsumption: 0.75
+      WaterConsumption: 0.60
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 298
   chemicals:
     Histamine:
       Min: 1
       Max: 25
       PotencyDivisor: 4
+
+
+
+
 
 - type: seed
   id: deathNettle
@@ -1179,11 +1344,12 @@
   potency: 20
   growthStages: 5
   idealLight: 8
-  idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.7
-      NutrientConsumption: 0.8
+      WaterConsumption: 0.70
+      NutrientConsumption: 0.80
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 298
   chemicals:
     SulfuricAcid:
       Min: 1
@@ -1193,6 +1359,10 @@
       Min: 1
       Max: 15
       PotencyDivisor: 6
+
+
+
+
 
 - type: seed
   id: chili
@@ -1212,11 +1382,12 @@
   yield: 2
   potency: 20
   idealLight: 9
-  idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 298
   chemicals:
     CapsaicinOil:
       Min: 1
@@ -1230,6 +1401,10 @@
       Min: 1
       Max: 4
       PotencyDivisor: 25
+
+
+
+
 
 - type: seed
   id: chilly
@@ -1247,11 +1422,12 @@
   yield: 2
   potency: 20
   idealLight: 9
-  idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 298
   chemicals:
     FrostOil:
       Min: 1
@@ -1265,6 +1441,10 @@
       Min: 1
       Max: 4
       PotencyDivisor: 25
+
+
+
+
 
 - type: seed
   id: poppy
@@ -1285,8 +1465,7 @@
   growthStages: 3
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.6
-      NutrientConsumption: 0.75
+      WaterConsumption: 0.60
   chemicals:
     Nutriment:
       Min: 1
@@ -1296,6 +1475,10 @@
       Min: 1
       Max: 20
       PotencyDivisor: 5
+
+
+
+
 
 - type: seed
   id: aloe
@@ -1314,8 +1497,7 @@
   growthStages: 5
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.6
-      NutrientConsumption: 0.75
+      WaterConsumption: 0.60
   chemicals:
     Aloe:
       Min: 1
@@ -1325,6 +1507,10 @@
       Min: 1
       Max: 10
       PotencyDivisor: 10
+
+
+
+
 
 - type: seed
   id: lily
@@ -1345,8 +1531,7 @@
   growthStages: 3
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.6
-      NutrientConsumption: 0.75
+      WaterConsumption: 0.60
   chemicals:
     Nutriment:
       Min: 1
@@ -1356,6 +1541,10 @@
       Min: 1
       Max: 20
       PotencyDivisor: 5
+
+
+
+
 
 - type: seed
   id: lingzhi
@@ -1374,8 +1563,7 @@
   growthStages: 3
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.6
-      NutrientConsumption: 0.75
+      WaterConsumption: 0.60
   chemicals:
     Ultravasculine:
       Min: 1
@@ -1385,6 +1573,10 @@
       Min: 1
       Max: 20
       PotencyDivisor: 5
+
+
+
+
 
 - type: seed
   id: ambrosiaVulgaris
@@ -1405,8 +1597,7 @@
   growthStages: 6
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.6
-      NutrientConsumption: 0.75
+      WaterConsumption: 0.60
   chemicals:
     Nutriment:
       Min: 1
@@ -1429,6 +1620,10 @@
       Max: 2
       PotencyDivisor: 50
 
+
+
+
+
 - type: seed
   id: ambrosiaDeus
   name: seeds-ambrosiadeus-name
@@ -1446,8 +1641,7 @@
   growthStages: 6
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.6
-      NutrientConsumption: 0.75
+      WaterConsumption: 0.60
   chemicals:
     Nutriment:
       Min: 1
@@ -1465,6 +1659,10 @@
       Min: 1
       Max: 10
       PotencyDivisor: 10
+
+
+
+
 
 - type: seed
   id: galaxythistle
@@ -1485,13 +1683,16 @@
   growthStages: 3
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.6
-      NutrientConsumption: 0.75
+      WaterConsumption: 0.60
   chemicals:
     Stellibinin:
       Min: 1
       Max: 25
       PotencyDivisor: 4
+
+
+
+
 
 - type: seed
   id: glasstle
@@ -1511,12 +1712,15 @@
   growthComponents:
     - type: BasicGrowthComponent
       WaterConsumption: 0.5
-      NutrientConsumption: 0.75
   chemicals:
     Razorium:
       Min: 1
       Max: 25
       PotencyDivisor: 4
+
+
+
+
 
 - type: seed
   id: flyAmanita
@@ -1535,8 +1739,8 @@
   growthStages: 2
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.6
-      NutrientConsumption: 0.5
+      WaterConsumption: 0.60
+      NutrientConsumption: 0.50
   chemicals:
     Amatoxin:
       Min: 1
@@ -1546,6 +1750,10 @@
       Min: 1
       Max: 5
       PotencyDivisor: 20
+
+
+
+
 
 - type: seed
   id: gatfruit
@@ -1580,6 +1788,10 @@
       Max: 5
       PotencyDivisor: 20
 
+
+
+
+
 - type: seed
   id: fakeCapfruit
   name: seeds-capfruit-name
@@ -1609,6 +1821,10 @@
       Min: 1
       Max: 5
       PotencyDivisor: 20
+
+
+
+
 
 - type: seed
   id: realCapfruit
@@ -1640,6 +1856,10 @@
       Max: 5
       PotencyDivisor: 20
 
+
+
+
+
 - type: seed
   id: rice
   name: seeds-rice-name
@@ -1658,8 +1878,8 @@
   idealLight: 5
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.6
-      NutrientConsumption: 0.4
+      NutrientConsumption: 0.40
+      WaterConsumption: 0.60
   chemicals:
     Nutriment:
       Min: 1
@@ -1669,6 +1889,10 @@
       Min: 5
       Max: 20
       PotencyDivisor: 20
+
+
+
+
 
 - type: seed
   id: soybeans
@@ -1690,13 +1914,16 @@
   idealLight: 7
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.5
-      NutrientConsumption: 0.4
+      NutrientConsumption: 0.40
   chemicals:
     Nutriment:
       Min: 1
       Max: 2
       PotencyDivisor: 50
+
+
+
+
 
 - type: seed
   id: spacemansTrumpet
@@ -1715,8 +1942,7 @@
   potency: 10
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.6
-      NutrientConsumption: 0.75
+      WaterConsumption: 0.60
   chemicals:
     Nutriment:
       Min: 1
@@ -1726,6 +1952,10 @@
       Min: 1
       Max: 15
       PotencyDivisor: 5
+
+
+
+
 
 - type: seed
   id: koibean
@@ -1745,8 +1975,7 @@
   idealLight: 7
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.5
-      NutrientConsumption: 0.4
+      NutrientConsumption: 0.40
   chemicals:
     Nutriment:
       Min: 1
@@ -1756,6 +1985,10 @@
       Min: 1
       Max: 4
       PotencyDivisor: 30
+
+
+
+
 
 - type: seed
   id: grape
@@ -1785,6 +2018,10 @@
       Min: 1
       Max: 4
       PotencyDivisor: 25
+
+
+
+
 
 - type: seed
   id: watermelon
@@ -1821,6 +2058,10 @@
       Max: 5
       PotencyDivisor: 20
 
+
+
+
+
 - type: seed
   id: holymelon
   name: seeds-holymelon-name
@@ -1854,6 +2095,10 @@
       Max: 5
       PotencyDivisor: 20
 
+
+
+
+
 - type: seed
   id: cocoa
   name: seeds-cocoa-name
@@ -1869,11 +2114,12 @@
   production: 6
   yield: 6
   idealLight: 7
-  idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 1.0
+      WaterConsumption: 1
       NutrientConsumption: 0.8
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 298
   chemicals:
     Vitamin:
       Min: 1
@@ -1883,6 +2129,10 @@
       Min: 1
       Max: 2
       PotencyDivisor: 50
+
+
+
+
 
 - type: seed
   id: berries
@@ -1901,7 +2151,6 @@
   idealLight: 7
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.5
       NutrientConsumption: 0.6
   chemicals:
     Nutriment:
@@ -1912,6 +2161,10 @@
       Min: 1
       Max: 4
       PotencyDivisor: 40
+
+
+
+
 
 - type: seed
   id: bungo
@@ -1929,12 +2182,12 @@
   potency: 10
   yield: 3
   idealLight: 8
-  idealHeat: 298
   growthStages: 4
   growthComponents:
     - type: BasicGrowthComponent
       WaterConsumption: 0.6
-      NutrientConsumption: 0.75
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 298
   chemicals:
     Nutriment:
       Min: 5
@@ -1944,6 +2197,10 @@
       Min: 5
       Max: 10
       PotencyDivisor: 20
+
+
+
+
 
 - type: seed
   id: pea
@@ -1966,8 +2223,8 @@
   harvestRepeat: Repeat
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.5
       NutrientConsumption: 0.5
+      WaterConsumption: 0.5
   chemicals:
     Nutriment:
       Min: 1
@@ -1977,6 +2234,10 @@
       Min: 1
       Max: 2
       PotencyDivisor: 50
+
+
+
+
 
 - type: seed
   id: worldPea
@@ -1997,8 +2258,8 @@
   harvestRepeat: Repeat
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.5
       NutrientConsumption: 0.5
+      WaterConsumption: 0.5
   chemicals:
     Happiness:
       Min: 1
@@ -2012,6 +2273,10 @@
       Min: 1
       Max: 2
       PotencyDivisor: 50
+
+
+
+
 
 - type: seed
   id: pumpkin
@@ -2029,12 +2294,13 @@
   production: 4
   yield: 2
   potency: 10
-  idealHeat: 288
   growthStages: 3
   growthComponents:
     - type: BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 288
   chemicals:
     PumpkinFlesh:
       Min: 1
@@ -2044,6 +2310,10 @@
       Min: 1
       Max: 5
       PotencyDivisor: 20
+
+
+
+
 
 - type: seed
   id: bluePumpkin
@@ -2059,12 +2329,13 @@
   production: 4
   yield: 2
   potency: 10
-  idealHeat: 288
   growthStages: 3
   growthComponents:
     - type: BasicGrowthComponent
       WaterConsumption: 0.5
       NutrientConsumption: 0.75
+    - type: AtmosphericGrowthComponent
+      IdealHeat: 288
   chemicals:
     Ammonia:
       Min: 1
@@ -2078,6 +2349,10 @@
       Min: 1
       Max: 10
       PotencyDivisor: 3
+
+
+
+
 
 - type: seed
   id: cotton
@@ -2099,13 +2374,16 @@
   growthStages: 3
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.6
-      NutrientConsumption: 0.75
+      WaterConsumption: 0.60
   chemicals:
     Fiber:
       Min: 5
       Max: 10
       PotencyDivisor: 20
+
+
+
+
 
 - type: seed
   id: pyrotton
@@ -2125,8 +2403,7 @@
   growthStages: 3
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.8
-      NutrientConsumption: 0.75
+      WaterConsumption: 0.80
   chemicals:
     Fiber:
       Min: 5
@@ -2136,6 +2413,10 @@
       Min: 4
       Max: 8
       PotencyDivisor: 30
+
+
+
+
 
 - type: seed
   id: cherry
@@ -2167,6 +2448,10 @@
       Max: 3
       PotencyDivisor: 40
 
+
+
+
+
 - type: seed
   id: anomalyBerry
   name: seeds-anomaly-berry-name
@@ -2184,8 +2469,8 @@
   growthStages: 2
   growthComponents:
     - type: BasicGrowthComponent
-      WaterConsumption: 0.6
-      NutrientConsumption: 0.5
+      WaterConsumption: 0.60
+      NutrientConsumption: 0.50
   chemicals:
     Artifexium:
       Min: 1
