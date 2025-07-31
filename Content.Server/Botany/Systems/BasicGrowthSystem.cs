@@ -7,12 +7,10 @@ namespace Content.Server.Botany.Systems;
 
 // TODO: make CO2Boost (add potency if the plant can eat an increasing amount of CO2). separate PR post-merge
 // TODO: make GrowLight (run bonus ticks if theres a grow light nearby). separate PR post-merge.
-public sealed class BasicGrowthSystem : EntitySystem
+public sealed class BasicGrowthSystem : PlantGrowthSystem
 {
     [Dependency] private readonly BotanySystem _botany = default!;
     [Dependency] private readonly PlantHolderSystem _plantHolder = default!;
-    [Dependency] private readonly PlantGrowthSystem _plantGrowth = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
 
     public override void Initialize()
     {
@@ -54,7 +52,7 @@ public sealed class BasicGrowthSystem : EntitySystem
         // Check if the plant is viable
         if (holder.Seed.Viable == false)
         {
-            holder.Health -= _random.Next(5, 10) * PlantGrowthSystem.HydroponicsSpeedMultiplier;
+            holder.Health -= _random.Next(5, 10) * HydroponicsSpeedMultiplier;
             if (holder.DrawWarnings)
                 holder.UpdateSpriteAfterUpdate = true;
             return;
@@ -67,14 +65,14 @@ public sealed class BasicGrowthSystem : EntitySystem
         {
             if (_random.Prob(0.8f))
             {
-                holder.Age += (int)(1 * PlantGrowthSystem.HydroponicsSpeedMultiplier);
+                holder.Age += (int)(1 * HydroponicsSpeedMultiplier);
                 holder.UpdateSpriteAfterUpdate = true;
             }
         }
 
         if (holder.Age > holder.Seed.Lifespan)
         {
-            holder.Health -= _random.Next(3, 5) * PlantGrowthSystem.HydroponicsSpeedMultiplier;
+            holder.Health -= _random.Next(3, 5) * HydroponicsSpeedMultiplier;
             if (holder.DrawWarnings)
                 holder.UpdateSpriteAfterUpdate = true;
         }
@@ -112,7 +110,7 @@ public sealed class BasicGrowthSystem : EntitySystem
         if (component.WaterConsumption > 0 && holder.WaterLevel > 0 && _random.Prob(0.75f))
         {
             holder.WaterLevel -= MathF.Max(0f,
-                component.WaterConsumption * PlantGrowthSystem.HydroponicsConsumptionMultiplier * PlantGrowthSystem.HydroponicsSpeedMultiplier);
+                component.WaterConsumption * HydroponicsConsumptionMultiplier * HydroponicsSpeedMultiplier);
             if (holder.DrawWarnings)
                 holder.UpdateSpriteAfterUpdate = true;
         }
@@ -120,12 +118,12 @@ public sealed class BasicGrowthSystem : EntitySystem
         if (component.NutrientConsumption > 0 && holder.NutritionLevel > 0 && _random.Prob(0.75f))
         {
             holder.NutritionLevel -= MathF.Max(0f,
-                component.NutrientConsumption * PlantGrowthSystem.HydroponicsConsumptionMultiplier * PlantGrowthSystem.HydroponicsSpeedMultiplier);
+                component.NutrientConsumption * HydroponicsConsumptionMultiplier * HydroponicsSpeedMultiplier);
             if (holder.DrawWarnings)
                 holder.UpdateSpriteAfterUpdate = true;
         }
 
-        var healthMod = _random.Next(1, 3) * PlantGrowthSystem.HydroponicsSpeedMultiplier;
+        var healthMod = _random.Next(1, 3) * HydroponicsSpeedMultiplier;
         if (holder.SkipAging < 10)
         {
             // Make sure the plant is not thirsty.
@@ -135,7 +133,7 @@ public sealed class BasicGrowthSystem : EntitySystem
             }
             else
             {
-                _plantGrowth.AffectGrowth(-1, holder);
+                AffectGrowth(-1, holder);
                 holder.Health -= healthMod;
             }
 
@@ -145,7 +143,7 @@ public sealed class BasicGrowthSystem : EntitySystem
             }
             else
             {
-                _plantGrowth.AffectGrowth(-1, holder);
+                AffectGrowth(-1, holder);
                 holder.Health -= healthMod;
             }
         }

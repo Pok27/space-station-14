@@ -1,13 +1,11 @@
 using Content.Server.Atmos.EntitySystems;
 using Content.Server.Botany.Components;
 using Content.Shared.Atmos;
-using Robust.Shared.Random;
 
 namespace Content.Server.Botany.Systems;
-public sealed class ConsumeExudeGasGrowthSystem : EntitySystem
+public sealed class ConsumeExudeGasGrowthSystem : PlantGrowthSystem
 {
     [Dependency] private readonly AtmosphereSystem _atmosphere = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
 
     public override void Initialize()
     {

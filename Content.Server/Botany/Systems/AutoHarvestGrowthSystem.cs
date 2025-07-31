@@ -1,11 +1,8 @@
 using Content.Server.Botany.Components;
-using Robust.Shared.Random;
 
 namespace Content.Server.Botany.Systems;
-public sealed class AutoHarvestGrowthSystem : EntitySystem
+public sealed class AutoHarvestGrowthSystem : PlantGrowthSystem
 {
-    [Dependency] private readonly IRobustRandom _random = default!;
-
     public override void Initialize()
     {
         base.Initialize();
