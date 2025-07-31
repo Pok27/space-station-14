@@ -492,10 +492,10 @@ entities:
         pestTolerance: 5
         toxinsTolerance: 4
         growthComponentData:
-          - type: BasicGrowth
+          - type: BasicGrowthComponentData
             WaterConsumption: 0.4
             NutrientConsumption: 0.75
-          - type: AtmosphericGrowth
+          - type: AtmosphericGrowthComponentData
             IdealHeat: 298
             HeatTolerance: 10
             LowPressureTolerance: 81
@@ -563,10 +563,10 @@ entities:
         pestTolerance: 5
         toxinsTolerance: 4
         growthComponentData:
-          - type: BasicGrowth
+          - type: BasicGrowthComponentData
             WaterConsumption: 0.6
             NutrientConsumption: 0.75
-          - type: AtmosphericGrowth
+          - type: AtmosphericGrowthComponentData
             IdealHeat: 293
             HeatTolerance: 10
             LowPressureTolerance: 81

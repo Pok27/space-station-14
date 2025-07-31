@@ -51,10 +51,22 @@ public partial struct SeedChemQuantity
 }
 
 /// <summary>
+/// Interface for growth component data that can be serialized from YAML.
+/// </summary>
+[ImplicitDataDefinitionForInheritors]
+public partial interface IGrowthComponentData
+{
+    /// <summary>
+    /// Creates a component instance from this data.
+    /// </summary>
+    PlantGrowthComponent CreateComponent();
+}
+
+/// <summary>
 /// Data for BasicGrowthComponent that can be serialized from YAML.
 /// </summary>
 [DataDefinition]
-public partial struct BasicGrowth
+public partial struct BasicGrowthComponentData : IGrowthComponentData
 {
     [DataField("WaterConsumption")]
     public float WaterConsumption = 0.5f;
@@ -62,7 +74,7 @@ public partial struct BasicGrowth
     [DataField("NutrientConsumption")]
     public float NutrientConsumption = 0.75f;
 
-    public BasicGrowthComponent CreateComponent()
+    public PlantGrowthComponent CreateComponent()
     {
         return new BasicGrowthComponent
         {
@@ -76,7 +88,7 @@ public partial struct BasicGrowth
 /// Data for AtmosphericGrowthComponent that can be serialized from YAML.
 /// </summary>
 [DataDefinition]
-public partial struct AtmosphericGrowth
+public partial struct AtmosphericGrowthComponentData : IGrowthComponentData
 {
     [DataField("IdealHeat")]
     public float IdealHeat = 293f;
@@ -90,7 +102,7 @@ public partial struct AtmosphericGrowth
     [DataField("HighPressureTolerance")]
     public float HighPressureTolerance = 121f;
 
-    public AtmosphericGrowthComponent CreateComponent()
+    public PlantGrowthComponent CreateComponent()
     {
         return new AtmosphericGrowthComponent
         {
@@ -229,7 +241,7 @@ public partial class SeedData
     /// The growth component data that will be used to create components for this seed.
     /// </summary>
     [DataField]
-    public List<object> GrowthComponentData = new();
+    public List<IGrowthComponentData> GrowthComponentData = new();
 
     /// <summary>
     /// The actual growth components created from the data.
@@ -263,14 +275,7 @@ public partial class SeedData
         GrowthComponents.Clear();
         foreach (var componentData in GrowthComponentData)
         {
-            if (componentData is BasicGrowth basicGrowth)
-            {
-                GrowthComponents.Add(basicGrowth.CreateComponent());
-            }
-            else if (componentData is AtmosphericGrowth atmosphericGrowth)
-            {
-                GrowthComponents.Add(atmosphericGrowth.CreateComponent());
-            }
+            GrowthComponents.Add(componentData.CreateComponent());
         }
     }
 
@@ -280,7 +285,7 @@ public partial class SeedData
 
         var newSeed = new SeedData
         {
-            GrowthComponentData = new List<object>(GrowthComponentData),
+            GrowthComponentData = new List<IGrowthComponentData>(GrowthComponentData),
             GrowthComponents = new List<PlantGrowthComponent>(),
             Viable = Viable,
             HarvestLogImpact = HarvestLogImpact,
@@ -335,7 +340,7 @@ public partial class SeedData
     {
         var newSeed = new SeedData
         {
-            GrowthComponentData = new List<object>(other.GrowthComponentData),
+            GrowthComponentData = new List<IGrowthComponentData>(other.GrowthComponentData),
             GrowthComponents = new List<PlantGrowthComponent>(),
             Viable = other.Viable,
             HarvestLogImpact = other.HarvestLogImpact,
