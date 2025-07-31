@@ -1,4 +1,5 @@
 using Content.Server.Botany.Components;
+using Robust.Shared.Random;
 
 namespace Content.Server.Botany.Systems;
 public sealed class AutoHarvestGrowthSystem : PlantGrowthSystem

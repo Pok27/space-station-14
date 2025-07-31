@@ -38,6 +38,10 @@ public sealed class ConsumeExudeGasGrowthSystem : PlantGrowthSystem
             environment.AdjustMoles(gas, amount);
         }
 
-        _atmosphere.Merge(environment, _atmosphere.GetContainingMixture(uid, true, true));
+        var containingMixture = _atmosphere.GetContainingMixture(uid, true, true);
+        if (containingMixture != null)
+        {
+            _atmosphere.Merge(containingMixture, environment);
+        }
     }
 }
