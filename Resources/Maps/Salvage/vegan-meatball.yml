@@ -491,11 +491,11 @@ entities:
         weedTolerance: 5
         pestTolerance: 5
         toxinsTolerance: 4
-        growthComponentData:
-          - type: BasicGrowthComponentData
+        growthComponents:
+          - type: BasicGrowthComponent
             WaterConsumption: 0.4
             NutrientConsumption: 0.75
-          - type: AtmosphericGrowthComponentData
+          - type: AtmosphericGrowthComponent
             IdealHeat: 298
             HeatTolerance: 10
             LowPressureTolerance: 81
@@ -562,11 +562,11 @@ entities:
         weedTolerance: 5
         pestTolerance: 5
         toxinsTolerance: 4
-        growthComponentData:
-          - type: BasicGrowthComponentData
+        growthComponents:
+          - type: BasicGrowthComponent
             WaterConsumption: 0.6
             NutrientConsumption: 0.75
-          - type: AtmosphericGrowthComponentData
+          - type: AtmosphericGrowthComponent
             IdealHeat: 293
             HeatTolerance: 10
             LowPressureTolerance: 81

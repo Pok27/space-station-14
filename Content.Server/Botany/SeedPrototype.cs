@@ -50,70 +50,6 @@ public partial struct SeedChemQuantity
     [DataField("Inherent")] public bool Inherent = true;
 }
 
-/// <summary>
-/// Interface for growth component data that can be serialized from YAML.
-/// </summary>
-[DataDefinition]
-public partial interface IGrowthComponentData
-{
-    /// <summary>
-    /// Creates a component instance from this data.
-    /// </summary>
-    PlantGrowthComponent CreateComponent();
-}
-
-/// <summary>
-/// Data for BasicGrowthComponent that can be serialized from YAML.
-/// </summary>
-[DataDefinition]
-public partial struct BasicGrowthComponentData : IGrowthComponentData
-{
-    [DataField("WaterConsumption")]
-    public float WaterConsumption = 0.5f;
-
-    [DataField("NutrientConsumption")]
-    public float NutrientConsumption = 0.75f;
-
-    public PlantGrowthComponent CreateComponent()
-    {
-        return new BasicGrowthComponent
-        {
-            WaterConsumption = WaterConsumption,
-            NutrientConsumption = NutrientConsumption
-        };
-    }
-}
-
-/// <summary>
-/// Data for AtmosphericGrowthComponent that can be serialized from YAML.
-/// </summary>
-[DataDefinition]
-public partial struct AtmosphericGrowthComponentData : IGrowthComponentData
-{
-    [DataField("IdealHeat")]
-    public float IdealHeat = 293f;
-
-    [DataField("HeatTolerance")]
-    public float HeatTolerance = 10f;
-
-    [DataField("LowPressureTolerance")]
-    public float LowPressureTolerance = 81f;
-
-    [DataField("HighPressureTolerance")]
-    public float HighPressureTolerance = 121f;
-
-    public PlantGrowthComponent CreateComponent()
-    {
-        return new AtmosphericGrowthComponent
-        {
-            IdealHeat = IdealHeat,
-            HeatTolerance = HeatTolerance,
-            LowPressureTolerance = LowPressureTolerance,
-            HighPressureTolerance = HighPressureTolerance
-        };
-    }
-}
-
 // TODO reduce the number of friends to a reasonable level. Requires ECS-ing things like plant holder component.
 [Virtual, DataDefinition]
 [Access(typeof(BotanySystem), typeof(PlantHolderSystem), typeof(SeedExtractorSystem), typeof(PlantHolderComponent), typeof(EntityEffectSystem), typeof(MutationSystem))]
@@ -238,16 +174,10 @@ public partial class SeedData
     public List<string> MutationPrototypes = new();
 
     /// <summary>
-    /// The growth component data that will be used to create components for this seed.
+    /// The growth components used by this seed.
     /// </summary>
     [DataField]
-    public List<IGrowthComponentData> GrowthComponentData = new();
-
-    /// <summary>
-    /// The actual growth components created from the data.
-    /// </summary>
-    [ViewVariables]
-    public List<PlantGrowthComponent> GrowthComponents = new();
+    public List<object> GrowthComponents = new();
 
     /// <summary>
     /// Whether this seed is viable for growth.
@@ -267,26 +197,13 @@ public partial class SeedData
     [DataField]
     public LogImpact? PlantLogImpact;
 
-    /// <summary>
-    /// Initializes the growth components from the component data.
-    /// </summary>
-    public void InitializeGrowthComponents()
-    {
-        GrowthComponents.Clear();
-        foreach (var componentData in GrowthComponentData)
-        {
-            GrowthComponents.Add(componentData.CreateComponent());
-        }
-    }
-
     public SeedData Clone()
     {
         DebugTools.Assert(!Immutable, "There should be no need to clone an immutable seed.");
 
         var newSeed = new SeedData
         {
-            GrowthComponentData = new List<IGrowthComponentData>(GrowthComponentData),
-            GrowthComponents = new List<PlantGrowthComponent>(),
+            GrowthComponents = new List<object>(GrowthComponents),
             Viable = Viable,
             HarvestLogImpact = HarvestLogImpact,
             PlantLogImpact = PlantLogImpact,
@@ -325,13 +242,13 @@ public partial class SeedData
             Unique = true,
         };
 
-        // Initialize growth components from data
-        newSeed.InitializeGrowthComponents();
-
         // Deep copy growth components
         foreach (var component in GrowthComponents)
         {
-            newSeed.GrowthComponents.Add(component.DupeComponent());
+            if (component is PlantGrowthComponent growthComponent)
+            {
+                newSeed.GrowthComponents.Add(growthComponent.DupeComponent());
+            }
         }
 
         newSeed.Mutations.AddRange(Mutations);
@@ -346,8 +263,7 @@ public partial class SeedData
     {
         var newSeed = new SeedData
         {
-            GrowthComponentData = new List<IGrowthComponentData>(other.GrowthComponentData),
-            GrowthComponents = new List<PlantGrowthComponent>(),
+            GrowthComponents = new List<object>(other.GrowthComponents),
             Viable = other.Viable,
             HarvestLogImpact = other.HarvestLogImpact,
             PlantLogImpact = other.PlantLogImpact,
@@ -388,9 +304,6 @@ public partial class SeedData
             Unique = true,
         };
 
-        // Initialize growth components from data
-        newSeed.InitializeGrowthComponents();
-
         // Adding the new chemicals from the new species.
         foreach (var otherChem in other.Chemicals)
         {
@@ -409,7 +322,10 @@ public partial class SeedData
         // Deep copy growth components from the new species
         foreach (var component in other.GrowthComponents)
         {
-            newSeed.GrowthComponents.Add(component.DupeComponent());
+            if (component is PlantGrowthComponent growthComponent)
+            {
+                newSeed.GrowthComponents.Add(growthComponent.DupeComponent());
+            }
         }
 
         return newSeed;
