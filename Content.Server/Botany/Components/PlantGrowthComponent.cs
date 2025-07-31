@@ -3,7 +3,6 @@ using System.Security.Policy;
 namespace Content.Server.Botany.Components;
 
 [RegisterComponent]
-[ImplicitDataDefinitionForInheritors]
 public abstract partial class PlantGrowthComponent : Component {
     /// <summary>
     /// Creates a copy of this component.
