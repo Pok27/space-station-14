@@ -17,8 +17,8 @@
   idealLight: 8
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.4
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.4
   chemicals:
     Nutriment:
       Min: 1
@@ -46,8 +46,8 @@
   idealLight: 8
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.4
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.4
   chemicals:
     Nutriment:
       Min: 1
@@ -75,8 +75,8 @@
   idealLight: 8
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.4
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.4
   chemicals:
     Nutriment:
       Min: 1
@@ -107,8 +107,8 @@
   idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.75
   chemicals:
     Vitamin:
       Min: 1
@@ -137,8 +137,8 @@
   idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.75
   chemicals:
     MuteToxin:
       Min: 1
@@ -166,8 +166,8 @@
   growthStages: 3
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.75
   chemicals:
     JuiceCarrot:
       Min: 1
@@ -203,8 +203,8 @@
   harvestRepeat: Repeat
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.6
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.6
   chemicals:
     Nutriment:
       Min: 1
@@ -241,8 +241,8 @@
   idealLight: 8
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.75
   chemicals:
     Nutriment:
       Min: 1
@@ -271,8 +271,8 @@
   idealLight: 8
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.75
   chemicals:
     Vitamin:
       Min: 1
@@ -304,8 +304,8 @@
   idealLight: 8
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.75
   chemicals:
     Nutriment:
       Min: 1
@@ -338,8 +338,8 @@
   idealLight: 8
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.75
   chemicals:
     Nutriment:
       Min: 1
@@ -368,8 +368,8 @@
   idealLight: 8
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.75
   chemicals:
     Haloperidol:
       Min: 1
@@ -403,8 +403,8 @@
   growthStages: 3
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.75
   chemicals:
     Nutriment:
       Min: 1
@@ -436,8 +436,8 @@
   growthStages: 4
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.75
   chemicals:
     Nutriment:
       Min: 1
@@ -469,8 +469,8 @@
   idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.75
   chemicals:
     Sugar:
       Min: 4
@@ -497,8 +497,8 @@
   idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.75
   chemicals:
     Vitamin:
       Min: 1
@@ -586,8 +586,8 @@
   splatPrototype: PuddleSplatter
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.4
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.4
   chemicals:
     Nutriment:
       Min: 1
@@ -622,8 +622,8 @@
   splatPrototype: PuddleSplatter
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.7
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.7
   chemicals:
     Nutriment:
       Min: 1
@@ -660,8 +660,8 @@
   splatPrototype: PuddleSplatter
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.7
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.7
   chemicals:
     Blood:
       Min: 1
@@ -695,8 +695,8 @@
   splatPrototype: PuddleSplatter
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.7
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.7
   chemicals:
     Blood:
       Min: 1
@@ -729,8 +729,8 @@
   idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.75
   chemicals:
     Nutriment:
       Min: 1
@@ -758,8 +758,8 @@
   growthStages: 1
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.75
   chemicals:
     Nutriment:
       Min: 1
@@ -787,8 +787,8 @@
   growthStages: 3
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.75
   chemicals:
     Nutriment:
       Min: 1
@@ -823,8 +823,8 @@
   idealLight: 6
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.75
   chemicals:
     Nutriment:
       Min: 1
@@ -853,8 +853,8 @@
   idealLight: 6
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.75
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.75
+      NutrientConsumption: 0.75
   chemicals:
     Nutriment:
       Min: 1
@@ -888,8 +888,8 @@
   idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.75
   chemicals:
     Nutriment:
       Min: 1
@@ -921,8 +921,8 @@
   idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.75
   chemicals:
     Nutriment:
       Min: 1
@@ -956,8 +956,8 @@
   idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.75
   chemicals:
     Nutriment:
       Min: 1
@@ -991,8 +991,8 @@
   idealHeat: 288
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.5
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.5
   chemicals:
     Nutriment:
       Min: 1
@@ -1018,8 +1018,8 @@
   idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.5
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.5
   chemicals:
     Egg:
       Min: 4
@@ -1048,8 +1048,8 @@
   idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.4
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.4
+      NutrientConsumption: 0.75
   chemicals:
     THC:
       Min: 1
@@ -1076,8 +1076,8 @@
   idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.4
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.4
+      NutrientConsumption: 0.75
   chemicals:
     SpaceDrugs:
       Min: 1
@@ -1124,8 +1124,8 @@
   idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.4
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.4
+      NutrientConsumption: 0.75
   chemicals:
     Nicotine:
       Min: 1
@@ -1153,8 +1153,8 @@
   idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.75
   chemicals:
     Histamine:
       Min: 1
@@ -1182,8 +1182,8 @@
   idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.7
-      nutrientConsumption: 0.8
+      WaterConsumption: 0.7
+      NutrientConsumption: 0.8
   chemicals:
     SulfuricAcid:
       Min: 1
@@ -1215,8 +1215,8 @@
   idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.75
   chemicals:
     CapsaicinOil:
       Min: 1
@@ -1250,8 +1250,8 @@
   idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.75
   chemicals:
     FrostOil:
       Min: 1
@@ -1285,8 +1285,8 @@
   growthStages: 3
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.75
   chemicals:
     Nutriment:
       Min: 1
@@ -1314,8 +1314,8 @@
   growthStages: 5
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.75
   chemicals:
     Aloe:
       Min: 1
@@ -1345,8 +1345,8 @@
   growthStages: 3
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.75
   chemicals:
     Nutriment:
       Min: 1
@@ -1374,8 +1374,8 @@
   growthStages: 3
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.75
   chemicals:
     Ultravasculine:
       Min: 1
@@ -1405,8 +1405,8 @@
   growthStages: 6
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.75
   chemicals:
     Nutriment:
       Min: 1
@@ -1446,8 +1446,8 @@
   growthStages: 6
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.75
   chemicals:
     Nutriment:
       Min: 1
@@ -1485,8 +1485,8 @@
   growthStages: 3
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.75
   chemicals:
     Stellibinin:
       Min: 1
@@ -1510,8 +1510,8 @@
   growthStages: 3
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.75
   chemicals:
     Razorium:
       Min: 1
@@ -1535,8 +1535,8 @@
   growthStages: 2
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.5
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.5
   chemicals:
     Amatoxin:
       Min: 1
@@ -1568,8 +1568,8 @@
   idealLight: 6
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.75
   chemicals:
     Nutriment:
       Min: 1
@@ -1598,8 +1598,8 @@
   idealLight: 6
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.75
   chemicals:
     Nutriment:
       Min: 1
@@ -1628,8 +1628,8 @@
   idealLight: 6
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.75
   chemicals:
     Nutriment:
       Min: 1
@@ -1658,8 +1658,8 @@
   idealLight: 5
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.4
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.4
   chemicals:
     Nutriment:
       Min: 1
@@ -1690,8 +1690,8 @@
   idealLight: 7
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.4
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.4
   chemicals:
     Nutriment:
       Min: 1
@@ -1715,8 +1715,8 @@
   potency: 10
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.75
   chemicals:
     Nutriment:
       Min: 1
@@ -1745,8 +1745,8 @@
   idealLight: 7
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.4
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.4
   chemicals:
     Nutriment:
       Min: 1
@@ -1774,8 +1774,8 @@
   growthStages: 2
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.75
   chemicals:
     Nutriment:
       Min: 1
@@ -1805,8 +1805,8 @@
   idealLight: 8
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.75
   chemicals:
     Nutriment:
       Min: 1
@@ -1838,8 +1838,8 @@
   idealLight: 8
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.75
   chemicals:
     Nutriment:
       Min: 1
@@ -1872,8 +1872,8 @@
   idealHeat: 298
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 1.0
-      nutrientConsumption: 0.8
+      WaterConsumption: 1.0
+      NutrientConsumption: 0.8
   chemicals:
     Vitamin:
       Min: 1
@@ -1901,8 +1901,8 @@
   idealLight: 7
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.6
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.6
   chemicals:
     Nutriment:
       Min: 2
@@ -1933,8 +1933,8 @@
   growthStages: 4
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.75
   chemicals:
     Nutriment:
       Min: 5
@@ -1966,8 +1966,8 @@
   harvestRepeat: Repeat
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.5
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.5
   chemicals:
     Nutriment:
       Min: 1
@@ -1997,8 +1997,8 @@
   harvestRepeat: Repeat
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.5
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.5
   chemicals:
     Happiness:
       Min: 1
@@ -2033,8 +2033,8 @@
   growthStages: 3
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.75
   chemicals:
     PumpkinFlesh:
       Min: 1
@@ -2063,8 +2063,8 @@
   growthStages: 3
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.75
   chemicals:
     Ammonia:
       Min: 1
@@ -2099,8 +2099,8 @@
   growthStages: 3
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.75
   chemicals:
     Fiber:
       Min: 5
@@ -2125,8 +2125,8 @@
   growthStages: 3
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.8
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.8
+      NutrientConsumption: 0.75
   chemicals:
     Fiber:
       Min: 5
@@ -2155,8 +2155,8 @@
   idealLight: 6
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.5
-      nutrientConsumption: 0.75
+      WaterConsumption: 0.5
+      NutrientConsumption: 0.75
   chemicals:
     Nutriment:
       Min: 1
@@ -2184,8 +2184,8 @@
   growthStages: 2
   growthComponents:
     - type: BasicGrowthComponent
-      waterConsumption: 0.6
-      nutrientConsumption: 0.5
+      WaterConsumption: 0.6
+      NutrientConsumption: 0.5
   chemicals:
     Artifexium:
       Min: 1
