@@ -1,7 +1,6 @@
 namespace Content.Server.Botany.Components;
 
 [RegisterComponent]
-[ImplicitDataDefinitionForInheritors]
 public sealed partial class BasicGrowthComponent : PlantGrowthComponent
 {
     /// <summary>
