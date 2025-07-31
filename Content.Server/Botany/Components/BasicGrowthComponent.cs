@@ -7,11 +7,11 @@ public sealed partial class BasicGrowthComponent : PlantGrowthComponent
     /// Amount of water consumed per growth tick.
     /// </summary>
     [DataField]
-    public float WaterConsumption = 0.5f;
+    public float waterConsumption = 0.5f;
 
     /// <summary>
     /// Amount of nutrients consumed per growth tick.
     /// </summary>
     [DataField]
-    public float NutrientConsumption = 0.75f;
+    public float nutrientConsumption = 0.75f;
 }

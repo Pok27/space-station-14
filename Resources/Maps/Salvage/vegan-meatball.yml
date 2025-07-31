@@ -497,8 +497,8 @@ entities:
         idealHeat: 298
         growthComponents:
           - type: BasicGrowthComponent
-            WaterConsumption: 0.4
-            NutrientConsumption: 0.75
+            waterConsumption: 0.4
+            nutrientConsumption: 0.75
         exudeGasses: {}
         consumeGasses: {}
         chemicals:
@@ -569,8 +569,8 @@ entities:
         idealHeat: 293
         growthComponents:
           - type: BasicGrowthComponent
-            WaterConsumption: 0.6
-            NutrientConsumption: 0.75
+            waterConsumption: 0.6
+            nutrientConsumption: 0.75
         exudeGasses: {}
         consumeGasses: {}
         chemicals:

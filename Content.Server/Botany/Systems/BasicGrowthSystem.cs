@@ -29,15 +29,15 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
         if (swabComp == null)
         {
             swab.components.Add(new BasicGrowthComponent() {
-                WaterConsumption = component.WaterConsumption,
-                NutrientConsumption = component.NutrientConsumption
+                waterConsumption = component.waterConsumption,
+                nutrientConsumption = component.nutrientConsumption
             });
         }
         else
         {
             BasicGrowthComponent typedComp = (BasicGrowthComponent)swabComp;
-            if (_random.Prob(0.5f)) typedComp.WaterConsumption = component.WaterConsumption;
-            if (_random.Prob(0.5f)) typedComp.NutrientConsumption = component.NutrientConsumption;
+            if (_random.Prob(0.5f)) typedComp.waterConsumption = component.waterConsumption;
+            if (_random.Prob(0.5f)) typedComp.nutrientConsumption = component.nutrientConsumption;
         }
     }
 
@@ -107,18 +107,18 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
             }
         }
 
-        if (component.WaterConsumption > 0 && holder.WaterLevel > 0 && _random.Prob(0.75f))
+        if (component.waterConsumption > 0 && holder.WaterLevel > 0 && _random.Prob(0.75f))
         {
             holder.WaterLevel -= MathF.Max(0f,
-                component.WaterConsumption * HydroponicsConsumptionMultiplier * HydroponicsSpeedMultiplier);
+                component.waterConsumption * HydroponicsConsumptionMultiplier * HydroponicsSpeedMultiplier);
             if (holder.DrawWarnings)
                 holder.UpdateSpriteAfterUpdate = true;
         }
 
-        if (component.NutrientConsumption > 0 && holder.NutritionLevel > 0 && _random.Prob(0.75f))
+        if (component.nutrientConsumption > 0 && holder.NutritionLevel > 0 && _random.Prob(0.75f))
         {
             holder.NutritionLevel -= MathF.Max(0f,
-                component.NutrientConsumption * HydroponicsConsumptionMultiplier * HydroponicsSpeedMultiplier);
+                component.nutrientConsumption * HydroponicsConsumptionMultiplier * HydroponicsSpeedMultiplier);
             if (holder.DrawWarnings)
                 holder.UpdateSpriteAfterUpdate = true;
         }
