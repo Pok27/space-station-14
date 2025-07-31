@@ -12,9 +12,8 @@ public sealed partial class PlantMutateHarvest : EntityEffect
 {
     public override void Effect(EntityEffectBaseArgs args)
     {
-        var plantholder = args.EntityManager.GetComponent<PlantHolderComponent>(args.TargetEntity);
-
-        if (plantholder.Seed == null)
+        if (!args.EntityManager.TryGetComponent(args.TargetEntity, out PlantHolderComponent? plantholder) ||
+            plantholder.Seed == null || plantholder.Dead || plantholder.Seed.Immutable)
             return;
 
         if (plantholder.Seed.HarvestRepeat == HarvestType.NoRepeat)
@@ -25,6 +24,6 @@ public sealed partial class PlantMutateHarvest : EntityEffect
 
     protected override string? ReagentEffectGuidebookText(IPrototypeManager prototype, IEntitySystemManager entSys)
     {
-        return "TODO";
+        return Loc.GetString("reagent-effect-guidebook-plant-mutate-harvest");
     }
 }

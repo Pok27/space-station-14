@@ -177,6 +177,12 @@ public partial class SeedData
     /// </summary>
     [DataField]
     public List<PlantGrowthComponent> GrowthComponents = new();
+
+    /// <summary>
+    /// Whether this seed is viable for growth.
+    /// </summary>
+    [DataField]
+    public bool Viable = true;
     //{
     //    new PlantComponent(),
     //    new BasicGrowthComponent(),
@@ -192,7 +198,8 @@ public partial class SeedData
 
         var newSeed = new SeedData
         {
-            GrowthComponents = GrowthComponents,
+            GrowthComponents = new List<PlantGrowthComponent>(),
+            Viable = Viable,
             Name = Name,
             Noun = Noun,
             DisplayName = DisplayName,
@@ -228,6 +235,12 @@ public partial class SeedData
             Unique = true,
         };
 
+        // Deep copy growth components
+        foreach (var component in GrowthComponents)
+        {
+            newSeed.GrowthComponents.Add(component.DupeComponent());
+        }
+        
         newSeed.Mutations.AddRange(Mutations);
         return newSeed;
     }
@@ -240,6 +253,8 @@ public partial class SeedData
     {
         var newSeed = new SeedData
         {
+            GrowthComponents = new List<PlantGrowthComponent>(),
+            Viable = other.Viable,
             Name = other.Name,
             Noun = other.Noun,
             DisplayName = other.DisplayName,
@@ -290,6 +305,12 @@ public partial class SeedData
             {
                 newSeed.Chemicals.Remove(originalChem.Key);
             }
+        }
+
+        // Deep copy growth components from the new species
+        foreach (var component in other.GrowthComponents)
+        {
+            newSeed.GrowthComponents.Add(component.DupeComponent());
         }
 
         return newSeed;

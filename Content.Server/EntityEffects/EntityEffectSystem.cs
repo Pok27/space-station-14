@@ -525,20 +525,16 @@ public sealed class EntityEffectSystem : EntitySystem
         var transform = Comp<TransformComponent>(args.Args.TargetEntity);
         var coords = _xform.GetMapCoordinates(args.Args.TargetEntity, xform: transform);
         var range = args.Effect.Range;
+        var quantity = args.Effect.Quantity;
+        var reagent = args.Effect.Reagent;
 
         if (args.Args is EntityEffectReagentArgs reagentArgs)
         {
             range *= reagentArgs.Scale.Float();
+            quantity *= reagentArgs.Quantity.Int();
         }
 
         var entities = _map.GetEntitiesInRange(coords, range);
-        var reagent = args.Effect.Reagent;
-        var quantity = args.Effect.Quantity;
-
-        if (args.Args is EntityEffectReagentArgs reagentArgs2)
-        {
-            quantity *= reagentArgs2.Quantity.Int();
-        }
 
         foreach (var entity in entities)
         {
@@ -555,7 +551,7 @@ public sealed class EntityEffectSystem : EntitySystem
         }
 
         if (args.Effect.Sound != null)
-            _audio.PlayPvs(args.Effect.Sound, reagentArgs.TargetEntity, AudioParams.Default.WithVariation(0.25f));
+            _audio.PlayPvs(args.Effect.Sound, args.Args.TargetEntity, AudioParams.Default.WithVariation(0.25f));
     }
 
     private void OnExecuteCauseZombieInfection(ref ExecuteEntityEffectEvent<CauseZombieInfection> args)
