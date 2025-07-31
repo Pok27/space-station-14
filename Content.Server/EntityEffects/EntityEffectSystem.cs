@@ -902,13 +902,13 @@ public sealed class EntityEffectSystem : EntitySystem
         // Add a random amount of a random gas to this gas dictionary
         float amount = _random.NextFloat(args.Effect.MinValue, args.Effect.MaxValue);
         Gas gas = _random.Pick(Enum.GetValues(typeof(Gas)).Cast<Gas>().ToList());
-        if (gasComponent.ConsumeGasses.ContainsKey(gas))
+        if (gasComponent.ConsumeGases.ContainsKey(gas))
         {
-            gasComponent.ConsumeGasses[gas] += amount;
+            gasComponent.ConsumeGases[gas] += amount;
         }
         else
         {
-            gasComponent.ConsumeGasses.Add(gas, amount);
+            gasComponent.ConsumeGases.Add(gas, amount);
         }
     }
 
@@ -924,13 +924,13 @@ public sealed class EntityEffectSystem : EntitySystem
         // Add a random amount of a random gas to this gas dictionary
         float amount = _random.NextFloat(args.Effect.MinValue, args.Effect.MaxValue);
         Gas gas = _random.Pick(Enum.GetValues(typeof(Gas)).Cast<Gas>().ToList());
-        if (gasComponent.ExudeGasses.ContainsKey(gas))
+        if (gasComponent.ExudeGases.ContainsKey(gas))
         {
-            gasComponent.ExudeGasses[gas] += amount;
+            gasComponent.ExudeGases[gas] += amount;
         }
         else
         {
-            gasComponent.ExudeGasses.Add(gas, amount);
+            gasComponent.ExudeGases.Add(gas, amount);
         }
     }
 
