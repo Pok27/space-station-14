@@ -6,6 +6,6 @@ namespace Content.Server.Botany.Components;
 [DataDefinition]
 public sealed partial class ConsumeExudeGasGrowthComponent : PlantGrowthComponent
 {
-    [DataField] public Dictionary<Gas, float> ConsumeGasses = new();
-    [DataField] public Dictionary<Gas, float> ExudeGasses = new();
+    [DataField] public Dictionary<Gas, float> ConsumeGases = new();
+    [DataField] public Dictionary<Gas, float> ExudeGases = new();
 }

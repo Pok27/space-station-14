@@ -1,8 +1,11 @@
 using Content.Server.Botany.Components;
+using Robust.Shared.Random;
 
 namespace Content.Server.Botany.Systems;
-public sealed class UnviableGrowthSystem : PlantGrowthSystem
+public sealed class UnviableGrowthSystem : EntitySystem
 {
+    [Dependency] private readonly IRobustRandom _random = default!;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -17,6 +20,12 @@ public sealed class UnviableGrowthSystem : PlantGrowthSystem
         if (holder == null || holder.Seed == null || holder.Dead)
             return;
 
-        holder.Health -= 6 * _random.Next(1, 3) * HydroponicsSpeedMultiplier;
+        // Unviable plants have a chance to die each growth cycle
+        if (_random.Prob(component.DeathChance))
+        {
+            holder.Health -= component.DeathDamage;
+            if (holder.DrawWarnings)
+                holder.UpdateSpriteAfterUpdate = true;
+        }
     }
 }

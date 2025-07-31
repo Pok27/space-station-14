@@ -11,7 +11,7 @@ public readonly record struct OnPlantGrowEvent;
 /// Base system for plant growth mechanics. Handles the core growth cycle and provides
 /// common functionality for all plant growth systems.
 /// </summary>
-public abstract class PlantGrowthSystem : EntitySystem
+public sealed class PlantGrowthSystem : EntitySystem
 {
     [Dependency] protected readonly IRobustRandom _random = default!;
     [Dependency] protected readonly IGameTiming _gameTiming = default!;
@@ -46,6 +46,9 @@ public abstract class PlantGrowthSystem : EntitySystem
 
             var plantGrow = new OnPlantGrowEvent();
             RaiseLocalEvent(uid, ref plantGrow);
+            
+            // Update the last cycle time after processing growth
+            plantHolder.LastCycle = _gameTiming.CurTime;
         }
 
         nextUpdate = _gameTiming.CurTime + updateDelay;

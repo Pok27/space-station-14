@@ -1,11 +1,14 @@
 using Content.Server.Atmos.EntitySystems;
 using Content.Server.Botany.Components;
 using Content.Shared.Atmos;
+using Robust.Shared.Random;
 
 namespace Content.Server.Botany.Systems;
-public sealed class ConsumeExudeGasGrowthSystem : PlantGrowthSystem
+public sealed class ConsumeExudeGasGrowthSystem : EntitySystem
 {
     [Dependency] private readonly AtmosphereSystem _atmosphere = default!;
+    [Dependency] private readonly IRobustRandom _random = default!;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -22,26 +25,21 @@ public sealed class ConsumeExudeGasGrowthSystem : PlantGrowthSystem
 
         var environment = _atmosphere.GetContainingMixture(uid, true, true) ?? GasMixture.SpaceGas;
 
-        holder.MissingGas = 0;
-        if (component.ConsumeGasses.Count > 0)
+        // Consume gases
+        foreach (var (gas, amount) in component.ConsumeGases)
         {
-            foreach (var (gas, amount) in component.ConsumeGasses)
+            if (environment.GetMoles(gas) >= amount)
             {
-                if (environment.GetMoles(gas) < amount)
-                {
-                    holder.MissingGas++;
-                    continue;
-                }
-
                 environment.AdjustMoles(gas, -amount);
             }
-
-            if (holder.MissingGas > 0)
-            {
-                holder.Health -= holder.MissingGas * HydroponicsSpeedMultiplier;
-                if (holder.DrawWarnings)
-                    holder.UpdateSpriteAfterUpdate = true;
-            }
         }
+
+        // Exude gases
+        foreach (var (gas, amount) in component.ExudeGases)
+        {
+            environment.AdjustMoles(gas, amount);
+        }
+
+        _atmosphere.Merge(environment, _atmosphere.GetContainingMixture(uid, true, true));
     }
 }
