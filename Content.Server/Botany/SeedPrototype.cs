@@ -9,6 +9,7 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype.List;
 using Robust.Shared.Utility;
+using Robust.Shared.Log;
 
 namespace Content.Server.Botany;
 
@@ -253,7 +254,18 @@ public partial class SeedData
         // Deep copy growth components
         foreach (var component in GrowthComponents)
         {
-            newSeed.GrowthComponents.Add(component.DupeComponent());
+            var newComponent = component.DupeComponent();
+            newSeed.GrowthComponents.Add(newComponent);
+            
+            // Debug logging
+            if (component is BasicGrowthComponent basic)
+            {
+                Log.Info($"Cloning BasicGrowthComponent: WaterConsumption={basic.WaterConsumption} -> {((BasicGrowthComponent)newComponent).WaterConsumption}, NutrientConsumption={basic.NutrientConsumption} -> {((BasicGrowthComponent)newComponent).NutrientConsumption}");
+            }
+            else if (component is AtmosphericGrowthComponent atmos)
+            {
+                Log.Info($"Cloning AtmosphericGrowthComponent: IdealHeat={atmos.IdealHeat} -> {((AtmosphericGrowthComponent)newComponent).IdealHeat}");
+            }
         }
 
         newSeed.Mutations.AddRange(Mutations);

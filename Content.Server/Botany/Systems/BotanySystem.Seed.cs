@@ -1,21 +1,25 @@
 using Content.Server.Botany.Components;
+using Content.Server.Hands.Systems;
 using Content.Server.Kitchen.Components;
 using Content.Server.Popups;
-using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Botany;
+using Content.Shared.Chemistry.EntitySystems;
+using Content.Shared.Database;
 using Content.Shared.Examine;
-using Content.Shared.Hands.EntitySystems;
+using Content.Shared.FixedPoint;
+using Content.Shared.Hands.Components;
+using Content.Shared.Interaction;
 using Content.Shared.Popups;
 using Content.Shared.Random;
-using Content.Shared.Random.Helpers;
 using Robust.Server.GameObjects;
-using Robust.Shared.Map;
+using Robust.Shared.Audio.Systems;
+using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
+using Robust.Shared.Log;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared.Administration.Logs;
-using Content.Shared.Database;
 using LogType = Content.Shared.Database.LogType;
 
 namespace Content.Server.Botany.Systems;
@@ -107,6 +111,21 @@ public sealed partial class BotanySystem : EntitySystem
         
         // Clone the seed to make it unique and ensure growth components are properly copied
         seedComp.Seed = proto.Clone();
+        
+        // Debug logging to check growth components
+        Log.Info($"Creating seed packet for {proto.Name} with {proto.GrowthComponents.Count} growth components");
+        foreach(var g in proto.GrowthComponents)
+        {
+            if (g is BasicGrowthComponent basic)
+            {
+                Log.Info($"BasicGrowthComponent: WaterConsumption={basic.WaterConsumption}, NutrientConsumption={basic.NutrientConsumption}");
+            }
+            else if (g is AtmosphericGrowthComponent atmos)
+            {
+                Log.Info($"AtmosphericGrowthComponent: IdealHeat={atmos.IdealHeat}, HeatTolerance={atmos.HeatTolerance}");
+            }
+        }
+        
         seedComp.HealthOverride = healthOverride;
 
         var name = Loc.GetString(proto.Name);
