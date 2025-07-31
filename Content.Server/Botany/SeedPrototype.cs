@@ -177,7 +177,7 @@ public partial class SeedData
     /// The growth components used by this seed.
     /// </summary>
     [DataField]
-    public List<PlantGrowthComponent> GrowthComponents = new();
+    public List<object> GrowthComponents = new();
 
     /// <summary>
     /// Whether this seed is viable for growth.
@@ -203,7 +203,7 @@ public partial class SeedData
 
         var newSeed = new SeedData
         {
-            GrowthComponents = new List<PlantGrowthComponent>(),
+            GrowthComponents = new List<object>(),
             Viable = Viable,
             HarvestLogImpact = HarvestLogImpact,
             PlantLogImpact = PlantLogImpact,
@@ -245,7 +245,10 @@ public partial class SeedData
         // Deep copy growth components
         foreach (var component in GrowthComponents)
         {
-            newSeed.GrowthComponents.Add(component.DupeComponent());
+            if (component is PlantGrowthComponent growthComponent)
+            {
+                newSeed.GrowthComponents.Add(growthComponent.DupeComponent());
+            }
         }
 
         newSeed.Mutations.AddRange(Mutations);
@@ -260,7 +263,7 @@ public partial class SeedData
     {
         var newSeed = new SeedData
         {
-            GrowthComponents = new List<PlantGrowthComponent>(),
+            GrowthComponents = new List<object>(),
             Viable = other.Viable,
             HarvestLogImpact = other.HarvestLogImpact,
             PlantLogImpact = other.PlantLogImpact,
@@ -319,7 +322,10 @@ public partial class SeedData
         // Deep copy growth components from the new species
         foreach (var component in other.GrowthComponents)
         {
-            newSeed.GrowthComponents.Add(component.DupeComponent());
+            if (component is PlantGrowthComponent growthComponent)
+            {
+                newSeed.GrowthComponents.Add(growthComponent.DupeComponent());
+            }
         }
 
         return newSeed;
