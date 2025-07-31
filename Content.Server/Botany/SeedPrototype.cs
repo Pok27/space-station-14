@@ -9,7 +9,6 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype.List;
 using Robust.Shared.Utility;
-using Robust.Shared.Log;
 using Robust.Shared.Serialization;
 using Robust.Shared.IoC;
 
@@ -19,25 +18,6 @@ namespace Content.Server.Botany;
 public sealed partial class SeedPrototype : SeedData, IPrototype
 {
     [IdDataField] public string ID { get; private set; } = default!;
-
-    public override void Initialize()
-    {
-        base.Initialize();
-        
-        // Temporary debug logging
-        Log.Info($"SeedPrototype {ID} loaded with {GrowthComponents.Count} growth components");
-        foreach(var g in GrowthComponents)
-        {
-            if (g is BasicGrowthComponent basic)
-            {
-                Log.Info($"  BasicGrowthComponent: WaterConsumption={basic.WaterConsumption}, NutrientConsumption={basic.NutrientConsumption}");
-            }
-            else if (g is AtmosphericGrowthComponent atmos)
-            {
-                Log.Info($"  AtmosphericGrowthComponent: IdealHeat={atmos.IdealHeat}, HeatTolerance={atmos.HeatTolerance}");
-            }
-        }
-    }
 }
 
 public enum HarvestType : byte
@@ -126,6 +106,75 @@ public partial class SeedData
     [DataField(customTypeSerializer: typeof(PrototypeIdListSerializer<EntityPrototype>))]
     public List<string> ProductPrototypes = new();
 
+    [DataField] public Dictionary<string, SeedChemQuantity> Chemicals = new();
+
+    #endregion
+
+    #region Tolerances
+    [DataField] public float ToxinsTolerance = 4f;
+
+    #endregion
+
+    #region General traits
+
+    [DataField] public float Endurance = 100f;
+
+    [DataField] public int Yield;
+    [DataField] public float Lifespan;
+    [DataField] public float Maturation;
+    [DataField] public float Production;
+    [DataField] public int GrowthStages = 6;
+
+    [DataField] public HarvestType HarvestRepeat = HarvestType.NoRepeat;
+
+    [DataField] public float Potency = 1f;
+
+    /// <summary>
+    ///     If true, cannot be harvested for seeds. Balances hybrids and
+    ///     mutations.
+    /// </summary>
+    [DataField] public bool Seedless = false;
+
+    /// <summary>
+    ///     If true, a sharp tool is required to harvest this plant.
+    /// </summary>
+    [DataField] public bool Ligneous;
+
+    #endregion
+
+    #region Cosmetics
+
+    [DataField(required: true)]
+    public ResPath PlantRsi { get; set; } = default!;
+
+    [DataField] public string PlantIconState { get; set; } = "produce";
+
+    /// <summary>
+    /// Screams random sound from collection SoundCollectionSpecifier
+    /// </summary>
+    [DataField]
+    public SoundSpecifier ScreamSound = new SoundCollectionSpecifier("PlantScreams", AudioParams.Default.WithVolume(-10));
+
+    [DataField("screaming")] public bool CanScream;
+
+    [DataField(customTypeSerializer: typeof(PrototypeIdSerializer<EntityPrototype>))] public string KudzuPrototype = "WeakKudzu";
+
+    [DataField] public bool TurnIntoKudzu;
+    [DataField] public string? SplatPrototype { get; set; }
+
+    #endregion
+
+    /// <summary>
+    /// The mutation effects that have been applied to this plant.
+    /// </summary>
+    [DataField] public List<RandomPlantMutation> Mutations { get; set; } = new();
+
+    /// <summary>
+    ///     The seed prototypes this seed may mutate into when prompted to.
+    /// </summary>
+    [DataField(customTypeSerializer: typeof(PrototypeIdListSerializer<SeedPrototype>))]
+    public List<string> MutationPrototypes = new();
+
     /// <summary>
     /// The growth components used by this seed.
     /// </summary>
@@ -149,8 +198,6 @@ public partial class SeedData
     /// </summary>
     [DataField]
     public LogImpact? PlantLogImpact;
-    //TODO: the mutation system should add the missing components when they mutate.
-    //This would be done with EnsureComp<>
 
     public SeedData Clone()
     {
