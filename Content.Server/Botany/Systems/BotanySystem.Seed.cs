@@ -52,6 +52,7 @@ public sealed partial class BotanySystem : EntitySystem
             && _prototypeManager.TryIndex(comp.SeedId, out SeedPrototype? protoSeed))
         {
             seed = protoSeed.Clone();
+            seed.InitializeGrowthComponents();
             return true;
         }
 

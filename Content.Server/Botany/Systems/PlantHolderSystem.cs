@@ -202,8 +202,7 @@ public sealed class PlantHolderSystem : EntitySystem
 
                 foreach(var g in seed.GrowthComponents)
                 {
-                    if (g is PlantGrowthComponent growthComponent)
-                        EntityManager.AddComponent(uid, _copier.CreateCopy(growthComponent, notNullableOverride: true));
+                    EntityManager.AddComponent(uid, _copier.CreateCopy(g, notNullableOverride: true));
                 }
 
                 if (TryComp<PaperLabelComponent>(args.Used, out var paperLabel))

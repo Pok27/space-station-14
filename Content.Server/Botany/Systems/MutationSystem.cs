@@ -66,13 +66,10 @@ public sealed class MutationSystem : EntitySystem
     {
         foreach (var component in seed.GrowthComponents)
         {
-            if (component is PlantGrowthComponent growthComponent)
+            if (!EntityManager.HasComponent(plantHolder, component.GetType()))
             {
-                if (!EntityManager.HasComponent(plantHolder, growthComponent.GetType()))
-                {
-                    var newComponent = growthComponent.DupeComponent();
-                    EntityManager.AddComponent(plantHolder, newComponent);
-                }
+                var newComponent = component.DupeComponent();
+                EntityManager.AddComponent(plantHolder, newComponent);
             }
         }
     }
