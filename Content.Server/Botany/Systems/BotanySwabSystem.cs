@@ -72,15 +72,12 @@ public sealed class BotanySwabSystem : EntitySystem
             if (plant.Seed != null)
             {
                 // Deep copy components to prevent changes to the original plant from affecting the swab
-                            swab.components = new List<PlantGrowthComponent>();
-            foreach (var component in plant.Seed.GrowthComponents)
-            {
-                if (component is PlantGrowthComponent growthComponent)
+                swab.components = new List<PlantGrowthComponent>();
+                foreach (var component in plant.Seed.GrowthComponents)
                 {
-                    var copiedComponent = growthComponent.DupeComponent();
+                    var copiedComponent = component.DupeComponent();
                     swab.components.Add(copiedComponent);
                 }
-            }
             }
 
             _popupSystem.PopupEntity(Loc.GetString("botany-swab-from"), args.Args.Target.Value, args.Args.User);
@@ -103,11 +100,8 @@ public sealed class BotanySwabSystem : EntitySystem
                 swab.components = new List<PlantGrowthComponent>();
                 foreach (var component in old.GrowthComponents)
                 {
-                    if (component is PlantGrowthComponent growthComponent)
-                    {
-                        var copiedComponent = growthComponent.DupeComponent();
-                        swab.components.Add(copiedComponent);
-                    }
+                    var copiedComponent = component.DupeComponent();
+                    swab.components.Add(copiedComponent);
                 }
             }
 
