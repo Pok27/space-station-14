@@ -125,7 +125,7 @@ public sealed class PlantHolderSystem : EntitySystem
                     args.PushMarkup(Loc.GetString(
                         "plant-holder-component-something-already-growing-low-health-message",
                         ("healthState",
-                            Loc.GetString(component.Age > (TryComp<PlantTraitsComponent>(uid, out var traits) ? traits?.Lifespan ?? 0 : 0)
+                            Loc.GetString(component.Age > (traits?.Lifespan ?? 0)
                                 ? "plant-holder-component-plant-old-adjective"
                                 : "plant-holder-component-plant-unhealthy-adjective"))));
                 }
