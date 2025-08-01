@@ -7,29 +7,36 @@ public sealed class WeedPestGrowthSystem : PlantGrowthSystem
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeLocalEvent<WeedPestGrowthComponent, OnPlantGrowEvent>(OnPlantGrow);
+        SubscribeLocalEvent<PlantHolderComponent, OnPlantGrowEvent>(OnPlantGrow);
     }
 
-    private void OnPlantGrow(EntityUid uid, WeedPestGrowthComponent component, OnPlantGrowEvent args)
+    private void OnPlantGrow(EntityUid uid, PlantHolderComponent holder, OnPlantGrowEvent args)
     {
-        PlantHolderComponent? holder = null;
-        Resolve<PlantHolderComponent>(uid, ref holder);
-
-        if (holder == null || holder.Seed == null || holder.Dead)
+        if (holder.Seed == null || holder.Dead)
             return;
 
+        // Get weed/pest component or use default values
+        WeedPestGrowthComponent? weedPestComponent = null;
+        TryComp<WeedPestGrowthComponent>(uid, out weedPestComponent);
+
+        // Use component values or defaults
+        var weedGrowthChance = weedPestComponent?.WeedGrowthChance ?? 0.01f;
+        var weedGrowthAmount = weedPestComponent?.WeedGrowthAmount ?? 0.5f;
+        var pestDamageChance = weedPestComponent?.PestDamageChance ?? 0.05f;
+        var pestDamageAmount = weedPestComponent?.PestDamageAmount ?? 1f;
+
         // Weed growth logic
-        if (_random.Prob(component.WeedGrowthChance))
+        if (_random.Prob(weedGrowthChance))
         {
-            holder.WeedLevel += component.WeedGrowthAmount;
+            holder.WeedLevel += weedGrowthAmount;
             if (holder.DrawWarnings)
                 holder.UpdateSpriteAfterUpdate = true;
         }
 
         // Pest damage logic
-        if (_random.Prob(component.PestDamageChance))
+        if (_random.Prob(pestDamageChance))
         {
-            holder.Health -= component.PestDamageAmount;
+            holder.Health -= pestDamageAmount;
             if (holder.DrawWarnings)
                 holder.UpdateSpriteAfterUpdate = true;
         }
