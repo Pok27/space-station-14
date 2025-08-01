@@ -63,8 +63,11 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
             holder.SkipAging--;
         else
         {
-            holder.Age += (int)(1 * HydroponicsSpeedMultiplier);
-            holder.UpdateSpriteAfterUpdate = true;
+            if (_random.Prob(0.8f))
+            {
+                holder.Age += (int)(1 * HydroponicsSpeedMultiplier);
+                holder.UpdateSpriteAfterUpdate = true;
+            }
         }
 
         if (holder.Age > holder.Seed.Lifespan)
@@ -104,7 +107,7 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
             }
         }
 
-        if (component.WaterConsumption > 0 && holder.WaterLevel > 0)
+        if (component.WaterConsumption > 0 && holder.WaterLevel > 0 && _random.Prob(0.75f))
         {
             holder.WaterLevel -= MathF.Max(0f,
                 component.WaterConsumption * HydroponicsConsumptionMultiplier * HydroponicsSpeedMultiplier);
@@ -112,7 +115,7 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
                 holder.UpdateSpriteAfterUpdate = true;
         }
 
-        if (component.NutrientConsumption > 0 && holder.NutritionLevel > 0)
+        if (component.NutrientConsumption > 0 && holder.NutritionLevel > 0 && _random.Prob(0.75f))
         {
             holder.NutritionLevel -= MathF.Max(0f,
                 component.NutrientConsumption * HydroponicsConsumptionMultiplier * HydroponicsSpeedMultiplier);
@@ -126,7 +129,7 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
             // Make sure the plant is not thirsty.
             if (holder.WaterLevel > 10)
             {
-                holder.Health += healthMod;
+                holder.Health += Convert.ToInt32(_random.Prob(0.35f)) * healthMod;
             }
             else
             {
@@ -136,7 +139,7 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
 
             if (holder.NutritionLevel > 5)
             {
-                holder.Health += healthMod;
+                holder.Health += Convert.ToInt32(_random.Prob(0.35f)) * healthMod;
             }
             else
             {
