@@ -223,10 +223,8 @@
     - worldPea
   growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        waterConsumption: 0.6
+        nutrientConsumption: 0.6
     - !type:PlantTraitsComponent
         lifespan: 25
         maturation: 7
@@ -234,8 +232,6 @@
         yield: 3
         potency: 20
         growthStages: 3
-    - !type:HarvestComponent
-        harvestRepeat: Repeat
   chemicals:
     Nutriment:
       Min: 1
@@ -482,12 +478,9 @@
   packetPrototype: PotatoSeeds
   productPrototypes:
     - FoodPotato
-      growthComponents:
+  growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        waterConsumption: 0.6
     - !type:PlantTraitsComponent
         lifespan: 30
         maturation: 10
@@ -495,8 +488,6 @@
         yield: 3
         potency: 10
         growthStages: 4
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
   chemicals:
     Nutriment:
       Min: 1
@@ -548,12 +539,9 @@
   packetPrototype: TeaPlantSeeds
   productPrototypes:
     - LeavesTea
-      growthComponents:
+  growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        waterConsumption: 0.6
     - !type:PlantTraitsComponent
         lifespan: 75
         maturation: 5
@@ -561,8 +549,6 @@
         yield: 2
         potency: 20
         growthStages: 5
-    - !type:HarvestComponent
-        harvestRepeat: Repeat
   chemicals:
     Vitamin:
       Min: 1
@@ -952,12 +938,9 @@
   packetPrototype: GoldenAppleSeeds
   productPrototypes:
     - FoodGoldenApple
-      growthComponents:
+  growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        waterConsumption: 0.75
     - !type:PlantTraitsComponent
         lifespan: 55
         maturation: 6
@@ -965,8 +948,6 @@
         yield: 3
         potency: 10
         growthStages: 3
-    - !type:HarvestComponent
-        harvestRepeat: Repeat
   chemicals:
     Nutriment:
       Min: 1
@@ -1422,21 +1403,9 @@
     - FoodPoppy
   mutationPrototypes:
     - lily
-      growthComponents:
+  growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
-    - !type:PlantTraitsComponent
-        lifespan: 25
-        maturation: 10
-        production: 3
-        yield: 3
-        potency: 10
-        growthStages: 3
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
+        waterConsumption: 0.6
   chemicals:
     Nutriment:
       Min: 1
@@ -1456,21 +1425,9 @@
   packetPrototype: AloeSeeds
   productPrototypes:
     - FoodAloe
-      growthComponents:
+  growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
-    - !type:PlantTraitsComponent
-        lifespan: 25
-        maturation: 10
-        production: 3
-        yield: 3
-        potency: 10
-        growthStages: 5
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
+        waterConsumption: 0.6
   chemicals:
     Aloe:
       Min: 1
@@ -1492,21 +1449,9 @@
     - FoodLily
   mutationPrototypes:
     - spacemansTrumpet
-      growthComponents:
+  growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
-    - !type:PlantTraitsComponent
-        lifespan: 25
-        maturation: 10
-        production: 3
-        yield: 3
-        potency: 10
-        growthStages: 3
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
+        waterConsumption: 0.6
   chemicals:
     Nutriment:
       Min: 1
@@ -1526,21 +1471,9 @@
   packetPrototype: LingzhiSeeds
   productPrototypes:
     - FoodLingzhi
-      growthComponents:
+  growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
-    - !type:PlantTraitsComponent
-        lifespan: 25
-        maturation: 10
-        production: 3
-        yield: 3
-        potency: 10
-        growthStages: 3
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
+        waterConsumption: 0.6
   chemicals:
     Ultravasculine:
       Min: 1
@@ -1562,21 +1495,9 @@
     - FoodAmbrosiaVulgaris
   mutationPrototypes:
     - ambrosiaDeus
-      growthComponents:
+        growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
-    - !type:PlantTraitsComponent
-        lifespan: 25
-        maturation: 10
-        production: 3
-        yield: 3
-        potency: 10
-        growthStages: 6
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
+        waterConsumption: 0.6
   chemicals:
     Nutriment:
       Min: 1
@@ -1608,21 +1529,9 @@
   packetPrototype: AmbrosiaDeusSeeds
   productPrototypes:
     - FoodAmbrosiaDeus
-      growthComponents:
+        growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
-    - !type:PlantTraitsComponent
-        lifespan: 25
-        maturation: 10
-        production: 3
-        yield: 3
-        potency: 10
-        growthStages: 6
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
+        waterConsumption: 0.6
   chemicals:
     Nutriment:
       Min: 1
@@ -1652,21 +1561,9 @@
     - FoodGalaxythistle
   mutationPrototypes:
     - glasstle
-      growthComponents:
+        growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
-    - !type:PlantTraitsComponent
-        lifespan: 25
-        maturation: 10
-        production: 3
-        yield: 3
-        potency: 10
-        growthStages: 3
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
+        waterConsumption: 0.6
   chemicals:
     Stellibinin:
       Min: 1
@@ -1917,21 +1814,9 @@
   packetPrototype: SpacemansTrumpetSeeds
   productPrototypes:
     - FoodSpacemansTrumpet
-      growthComponents:
+        growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
-    - !type:PlantTraitsComponent
-        lifespan: 20
-        maturation: 14
-        production: 3
-        yield: 2
-        potency: 10
-        growthStages: 4
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
+        waterConsumption: 0.6
   chemicals:
     Nutriment:
       Min: 1
@@ -2165,21 +2050,9 @@
   packetPrototype: BungoSeeds
   productPrototypes:
     - FoodBungo
-      growthComponents:
+        growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
-    - !type:PlantTraitsComponent
-        lifespan: 50
-        maturation: 8
-        production: 6
-        yield: 3
-        potency: 10
-        growthStages: 4
-    - !type:HarvestComponent
-        harvestRepeat: Repeat
+        waterConsumption: 0.6
   chemicals:
     Nutriment:
       Min: 5
@@ -2349,21 +2222,9 @@
     - CottonBol
   mutationPrototypes:
     - pyrotton
-      growthComponents:
+        growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
-    - !type:PlantTraitsComponent
-        lifespan: 25
-        maturation: 8
-        production: 3
-        yield: 3
-        potency: 5
-        growthStages: 3
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
+        waterConsumption: 0.6
   chemicals:
     Fiber:
       Min: 5
@@ -2379,12 +2240,9 @@
   packetPrototype: PyrottonSeeds
   productPrototypes:
     - PyrottonBol
-      growthComponents:
+  growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        waterConsumption: 0.8
     - !type:PlantTraitsComponent
         lifespan: 25
         maturation: 8
@@ -2392,8 +2250,6 @@
         yield: 2
         potency: 5
         growthStages: 3
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
   chemicals:
     Fiber:
       Min: 5
@@ -2447,21 +2303,10 @@
   packetPrototype: AnomalyBerrySeeds
   productPrototypes:
     - FoodAnomalyBerry
-      growthComponents:
+        growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
+        waterConsumption: 0.6
         nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
-    - !type:PlantTraitsComponent
-        lifespan: 25
-        maturation: 12
-        production: 3
-        yield: 3
-        potency: 10
-        growthStages: 2
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
   chemicals:
     Artifexium:
       Min: 1
