@@ -207,9 +207,6 @@ public sealed class PlantHolderSystem : EntitySystem
                 foreach(var g in seed.GrowthComponents)
                     EntityManager.AddComponent(uid, _copier.CreateCopy(g, notNullableOverride: true), overwrite: true);
 
-                // Ensure essential growth components are present
-                EnsureEssentialGrowthComponents(uid, seed);
-
                 if (TryComp<PaperLabelComponent>(args.Used, out var paperLabel))
                 {
                     _itemSlots.TryEjectToHands(args.Used, paperLabel.LabelSlot, args.User);
@@ -780,19 +777,5 @@ public sealed class PlantHolderSystem : EntitySystem
         component.SkipAging++; // We're forcing an update cycle, so one age hasn't passed.
         component.ForceUpdate = true;
         Update(uid, component);
-    }
-
-    /// <summary>
-    /// Ensures that essential growth components are present on the plant.
-    /// This prevents plants from not growing due to missing critical components.
-    /// </summary>
-    private void EnsureEssentialGrowthComponents(EntityUid uid, SeedData seed)
-    {
-        // Ensure AtmosphericGrowthComponent is present for proper temperature and pressure handling
-        if (!EntityManager.HasComponent<AtmosphericGrowthComponent>(uid))
-        {
-            var atmosphericComponent = new AtmosphericGrowthComponent();
-            EntityManager.AddComponent(uid, atmosphericComponent);
-        }
     }
 }
