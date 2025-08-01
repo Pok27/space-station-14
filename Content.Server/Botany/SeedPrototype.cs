@@ -181,38 +181,7 @@ public partial class SeedData
     /// The growth components used by this seed.
     /// </summary>
     [DataField]
-    private List<PlantGrowthComponent> _growthComponents = new();
-
-    /// <summary>
-    /// The growth components used by this seed, with automatic addition of essential components.
-    /// </summary>
-    public List<PlantGrowthComponent> GrowthComponents
-    {
-        get
-        {
-            // Ensure essential components are present
-            if (!_growthComponents.Any(c => c is BasicGrowthComponent))
-            {
-                _growthComponents.Add(new BasicGrowthComponent());
-            }
-
-            if (!_growthComponents.Any(c => c is AtmosphericGrowthComponent))
-            {
-                _growthComponents.Add(new AtmosphericGrowthComponent());
-            }
-
-            return _growthComponents;
-        }
-        set => _growthComponents = value;
-    }
-
-    /// <summary>
-    /// Adds a growth component directly to the internal list without triggering the automatic addition logic.
-    /// </summary>
-    public void AddGrowthComponent(PlantGrowthComponent component)
-    {
-        _growthComponents.Add(component);
-    }
+    public List<PlantGrowthComponent> GrowthComponents = new();
 
     /// <summary>
     /// Whether this seed is viable for growth.
@@ -283,7 +252,7 @@ public partial class SeedData
         foreach (var component in GrowthComponents)
         {
             var newComponent = component.DupeComponent();
-            newSeed.AddGrowthComponent(newComponent);
+            newSeed.GrowthComponents.Add(newComponent);
         }
 
         newSeed.Mutations.AddRange(Mutations);
@@ -358,7 +327,7 @@ public partial class SeedData
         foreach (var component in other.GrowthComponents)
         {
             var newComponent = component.DupeComponent();
-            newSeed.AddGrowthComponent(newComponent);
+            newSeed.GrowthComponents.Add(newComponent);
         }
 
         return newSeed;
