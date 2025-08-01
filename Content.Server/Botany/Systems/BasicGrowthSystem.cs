@@ -25,9 +25,6 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
             args.Used == null || !TryComp<BotanySwabComponent>(args.Used.Value, out var swab))
             return;
 
-        // Ensure default values are set before swabbing
-        EnsureDefaultValues(component);
-
         var swabComp = swab.components.Find(c => c.GetType() == typeof(BasicGrowthComponent));
         if (swabComp == null)
         {
@@ -51,9 +48,6 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
 
         if (holder == null || holder.Seed == null || holder.Dead)
             return;
-
-        // Ensure default values are set if not specified in YAML
-        EnsureDefaultValues(component);
 
         // Check if the plant is viable
         if (holder.Seed.Viable == false)
@@ -152,25 +146,6 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
                 AffectGrowth(-1, holder);
                 holder.Health -= healthMod;
             }
-        }
-    }
-
-    /// <summary>
-    /// Ensures that default values are set for BasicGrowthComponent if not specified in YAML.
-    /// This method checks if the component has been initialized with default values and sets them if needed.
-    /// </summary>
-    private void EnsureDefaultValues(BasicGrowthComponent component)
-    {
-        // If WaterConsumption is 0 (uninitialized), set it to default
-        if (component.WaterConsumption == 0f)
-        {
-            component.WaterConsumption = 0.5f;
-        }
-
-        // If NutrientConsumption is 0 (uninitialized), set it to default
-        if (component.NutrientConsumption == 0f)
-        {
-            component.NutrientConsumption = 0.75f;
         }
     }
 }

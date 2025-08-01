@@ -27,4 +27,25 @@ public sealed partial class AtmosphericGrowthComponent : PlantGrowthComponent
     /// </summary>
     [DataField("lighPressureTolerance")]
     public float HighPressureTolerance = 121f;
+
+    /// <summary>
+    /// Ensures default values are set after YAML deserialization.
+    /// </summary>
+    public override void OnValidate()
+    {
+        base.OnValidate();
+        
+        // Ensure default values are set if not specified in YAML
+        if (IdealHeat == 0f)
+            IdealHeat = 293f;
+            
+        if (HeatTolerance == 0f)
+            HeatTolerance = 10f;
+            
+        if (LowPressureTolerance == 0f)
+            LowPressureTolerance = 81f;
+            
+        if (HighPressureTolerance == 0f)
+            HighPressureTolerance = 121f;
+    }
 }

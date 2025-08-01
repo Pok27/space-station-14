@@ -88,38 +88,12 @@ public sealed class MutationSystem : EntitySystem
             var basicComponent = new BasicGrowthComponent();
             EntityManager.AddComponent(plantHolder, basicComponent);
         }
-        else
-        {
-            // If component exists, ensure it has default values
-            if (TryComp<BasicGrowthComponent>(plantHolder, out var existingBasic))
-            {
-                EnsureBasicGrowthDefaultValues(existingBasic);
-            }
-        }
 
         // Ensure AtmosphericGrowthComponent is present for proper temperature and pressure handling
         if (!EntityManager.HasComponent<AtmosphericGrowthComponent>(plantHolder))
         {
             var atmosphericComponent = new AtmosphericGrowthComponent();
             EntityManager.AddComponent(plantHolder, atmosphericComponent);
-        }
-    }
-
-    /// <summary>
-    /// Ensures that BasicGrowthComponent has default values if not specified in YAML.
-    /// </summary>
-    private void EnsureBasicGrowthDefaultValues(BasicGrowthComponent component)
-    {
-        // If WaterConsumption is 0 (uninitialized), set it to default
-        if (component.WaterConsumption == 0f)
-        {
-            component.WaterConsumption = 0.5f;
-        }
-
-        // If NutrientConsumption is 0 (uninitialized), set it to default
-        if (component.NutrientConsumption == 0f)
-        {
-            component.NutrientConsumption = 0.75f;
         }
     }
 
