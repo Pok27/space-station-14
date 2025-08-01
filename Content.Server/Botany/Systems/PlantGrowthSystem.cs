@@ -59,7 +59,14 @@ public abstract class PlantGrowthSystem : EntitySystem
     [Dependency] protected readonly IRobustRandom _random = default!;
     [Dependency] protected readonly IGameTiming _gameTiming = default!;
 
+    /// <summary>
+    /// Multiplier for plant growth speed in hydroponics systems.
+    /// </summary>
     public const float HydroponicsSpeedMultiplier = 1f;
+    
+    /// <summary>
+    /// Multiplier for resource consumption (water, nutrients) in hydroponics systems.
+    /// </summary>
     public const float HydroponicsConsumptionMultiplier = 2f;
 
     public override void Initialize()
