@@ -9,14 +9,21 @@
     - WheatBushel
   mutationPrototypes:
     - meatwheat
-  lifespan: 25
-  maturation: 6
-  production: 3
-  yield: 3
-  potency: 5
   growthComponents:
     - !type:BasicGrowthComponent
+        waterConsumption: 0.4
         nutrientConsumption: 0.4
+    - !type:AtmosphericGrowthComponent
+        idealHeat: 298
+    - !type:PlantTraitsComponent
+        lifespan: 25
+        maturation: 6
+        production: 3
+        yield: 3
+        potency: 5
+        growthStages: 3
+    - !type:HarvestComponent
+        harvestRepeat: NoRepeat
   chemicals:
     Nutriment:
       Min: 1
@@ -36,14 +43,21 @@
   packetPrototype: MeatwheatSeeds
   productPrototypes:
     - MeatwheatBushel
-  lifespan: 25
-  maturation: 6
-  production: 3
-  yield: 3
-  potency: 5
   growthComponents:
     - !type:BasicGrowthComponent
+        waterConsumption: 0.4
         nutrientConsumption: 0.4
+    - !type:AtmosphericGrowthComponent
+        idealHeat: 298
+    - !type:PlantTraitsComponent
+        lifespan: 25
+        maturation: 6
+        production: 3
+        yield: 3
+        potency: 5
+        growthStages: 3
+    - !type:HarvestComponent
+        harvestRepeat: NoRepeat
   chemicals:
     Nutriment:
       Min: 1
