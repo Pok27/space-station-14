@@ -77,14 +77,21 @@
   packetPrototype: OatSeeds
   productPrototypes:
     - OatBushel
-  lifespan: 25
-  maturation: 6
-  production: 3
-  yield: 3
-  potency: 5
   growthComponents:
     - !type:BasicGrowthComponent
+        waterConsumption: 0.4
         nutrientConsumption: 0.4
+    - !type:AtmosphericGrowthComponent
+        idealHeat: 298
+    - !type:PlantTraitsComponent
+        lifespan: 25
+        maturation: 6
+        production: 3
+        yield: 3
+        potency: 5
+        growthStages: 3
+    - !type:HarvestComponent
+        harvestRepeat: NoRepeat
   chemicals:
     Nutriment:
       Min: 1
@@ -106,16 +113,21 @@
     - FoodBanana
   mutationPrototypes:
     - mimana
-  harvestRepeat: Repeat
-  lifespan: 50
-  maturation: 6
-  production: 6
-  yield: 2
   growthComponents:
     - !type:BasicGrowthComponent
         waterConsumption: 0.6
+        nutrientConsumption: 0.5
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+    - !type:PlantTraitsComponent
+        lifespan: 50
+        maturation: 6
+        production: 6
+        yield: 2
+        potency: 10
+        growthStages: 3
+    - !type:HarvestComponent
+        harvestRepeat: Repeat
   chemicals:
     Vitamin:
       Min: 1
@@ -135,16 +147,21 @@
   packetPrototype: MimanaSeeds
   productPrototypes:
     - FoodMimana
-  harvestRepeat: Repeat
-  lifespan: 50
-  maturation: 6
-  production: 6
-  yield: 2
   growthComponents:
     - !type:BasicGrowthComponent
         waterConsumption: 0.6
+        nutrientConsumption: 0.5
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+    - !type:PlantTraitsComponent
+        lifespan: 50
+        maturation: 6
+        production: 6
+        yield: 2
+        potency: 10
+        growthStages: 3
+    - !type:HarvestComponent
+        harvestRepeat: Repeat
   chemicals:
     MuteToxin:
       Min: 1
@@ -164,15 +181,21 @@
   packetPrototype: CarrotSeeds
   productPrototypes:
     - FoodCarrot
-  lifespan: 25
-  maturation: 10
-  production: 3
-  yield: 3
-  potency: 10
-  growthStages: 3
   growthComponents:
     - !type:BasicGrowthComponent
         waterConsumption: 0.6
+        nutrientConsumption: 0.5
+    - !type:AtmosphericGrowthComponent
+        idealHeat: 298
+    - !type:PlantTraitsComponent
+        lifespan: 25
+        maturation: 10
+        production: 3
+        yield: 3
+        potency: 10
+        growthStages: 3
+    - !type:HarvestComponent
+        harvestRepeat: NoRepeat
   chemicals:
     JuiceCarrot:
       Min: 1
