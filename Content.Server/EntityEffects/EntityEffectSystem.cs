@@ -533,21 +533,25 @@ public sealed class EntityEffectSystem : EntitySystem
         if (plantHolderComp.Seed == null)
             return;
 
-        if (plantHolderComp.Seed.Potency < args.Effect.PotencyLimit)
-        {
-            _plantHolder.EnsureUniqueSeed(args.Args.TargetEntity, plantHolderComp);
-            plantHolderComp.Seed.Potency = Math.Min(plantHolderComp.Seed.Potency + args.Effect.PotencyIncrease, args.Effect.PotencyLimit);
+        PlantTraitsComponent? traits = null;
+        Resolve<PlantTraitsComponent>(args.Args.TargetEntity, ref traits);
+        
+        if (traits == null)
+            return;
 
-            if (plantHolderComp.Seed.Potency > args.Effect.PotencySeedlessThreshold)
+        if (traits.Potency < args.Effect.PotencyLimit)
+        {
+            traits.Potency = Math.Min(traits.Potency + args.Effect.PotencyIncrease, args.Effect.PotencyLimit);
+
+            if (traits.Potency > args.Effect.PotencySeedlessThreshold)
             {
                 plantHolderComp.Seed.Seedless = true;
             }
         }
-        else if (plantHolderComp.Seed.Yield > 1 && _random.Prob(0.1f))
+        else if (traits.Yield > 1 && _random.Prob(0.1f))
         {
             // Too much of a good thing reduces yield
-            _plantHolder.EnsureUniqueSeed(args.Args.TargetEntity, plantHolderComp);
-            plantHolderComp.Seed.Yield--;
+            traits.Yield--;
         }
     }
 
