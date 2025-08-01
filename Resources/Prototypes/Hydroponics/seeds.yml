@@ -1572,8 +1572,7 @@
   idealLight: 6
   growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.6
-        nutrientConsumption: 0.5
+    - !type:AtmosphericGrowthComponent
   chemicals:
     Amatoxin:
       Min: 1
@@ -1605,8 +1604,7 @@
   idealLight: 6
   growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.75
+    - !type:AtmosphericGrowthComponent
   chemicals:
     Nutriment:
       Min: 1
@@ -1635,8 +1633,7 @@
   idealLight: 6
   growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.75
+    - !type:AtmosphericGrowthComponent
   chemicals:
     Nutriment:
       Min: 1
@@ -1665,8 +1662,7 @@
   idealLight: 6
   growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.75
+    - !type:AtmosphericGrowthComponent
   chemicals:
     Nutriment:
       Min: 1
