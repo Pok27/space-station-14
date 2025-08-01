@@ -10,6 +10,7 @@ using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototy
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype.List;
 using Robust.Shared.Utility;
 using Robust.Shared.Serialization.Manager;
+using System.Linq;
 
 namespace Content.Server.Botany;
 
@@ -342,6 +343,13 @@ public partial class SeedData
     /// </summary>
     public void EnsureEssentialGrowthComponents()
     {
+        // Ensure BasicGrowthComponent is present for water and nutrient consumption
+        if (!GrowthComponents.Any(c => c is BasicGrowthComponent))
+        {
+            var basicComponent = new BasicGrowthComponent();
+            GrowthComponents.Add(basicComponent);
+        }
+
         // Ensure AtmosphericGrowthComponent is present for proper temperature and pressure handling
         if (!GrowthComponents.Any(c => c is AtmosphericGrowthComponent))
         {
