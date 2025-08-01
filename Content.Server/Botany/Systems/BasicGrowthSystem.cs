@@ -50,7 +50,18 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
             return;
 
         // Check if the plant is viable
-        if (holder.Seed.Viable == false)
+        var viable = true;
+        if (TryComp<PlantTraitsComponent>(uid, out var traits))
+        {
+            viable = traits.Viable;
+        }
+        else if (holder.Seed != null)
+        {
+            // Fallback to old system
+            viable = holder.Seed.Viable;
+        }
+
+        if (!viable)
         {
             holder.Health -= _random.Next(5, 10) * PlantGrowthSystem.HydroponicsSpeedMultiplier;
             if (holder.DrawWarnings)
@@ -70,7 +81,33 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
             }
         }
 
-        if (holder.Age > holder.Seed.Lifespan)
+        var lifespan = 0f;
+        var production = 0f;
+        var hasProducts = false;
+
+        if (TryComp<PlantTraitsComponent>(uid, out var plantTraits))
+        {
+            lifespan = plantTraits.Lifespan;
+            production = plantTraits.Production;
+        }
+        else if (holder.Seed != null)
+        {
+            // Fallback to old system
+            lifespan = holder.Seed.Lifespan;
+            production = holder.Seed.Production;
+        }
+
+        if (TryComp<PlantProductsComponent>(uid, out var products))
+        {
+            hasProducts = products.ProductPrototypes.Count > 0;
+        }
+        else if (holder.Seed != null)
+        {
+            // Fallback to old system
+            hasProducts = holder.Seed.ProductPrototypes.Count > 0;
+        }
+
+        if (holder.Age > lifespan)
         {
             holder.Health -= _random.Next(3, 5) * PlantGrowthSystem.HydroponicsSpeedMultiplier;
             if (holder.DrawWarnings)
@@ -87,11 +124,11 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
         }
 
         // If enough time has passed since the plant was harvested, we're ready to harvest again!
-        if (holder.Seed.ProductPrototypes.Count > 0)
+        if (hasProducts)
         {
-            if (holder.Age > holder.Seed.Production)
+            if (holder.Age > production)
             {
-                if (holder.Age - holder.LastProduce > holder.Seed.Production && !holder.Harvest)
+                if (holder.Age - holder.LastProduce > production && !holder.Harvest)
                 {
                     holder.Harvest = true;
                     holder.LastProduce = holder.Age;

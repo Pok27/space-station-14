@@ -3,6 +3,8 @@ using Content.Shared.EntityEffects;
 using Content.Shared.Random;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
+using Robust.Shared.IoC;
+using Robust.Shared.Serialization.Manager;
 using System.Linq;
 
 namespace Content.Server.Botany;
@@ -59,10 +61,11 @@ public sealed class MutationSystem : EntitySystem
     }
 
     /// <summary>
-    /// Ensures that the plant has all the growth components specified in the seed data.
+    /// Ensures that the plant has all the components specified in the seed data.
     /// </summary>
     private void EnsureGrowthComponents(EntityUid plantHolder, SeedData seed)
     {
+        // Ensure growth components
         foreach (var component in seed.GrowthComponents)
         {
             if (!EntityManager.HasComponent(plantHolder, component.GetType()))
@@ -71,25 +74,79 @@ public sealed class MutationSystem : EntitySystem
                 EntityManager.AddComponent(plantHolder, newComponent);
             }
         }
+
+        // Ensure plant components
+        if (seed.PlantTraits != null && !EntityManager.HasComponent<PlantTraitsComponent>(plantHolder))
+        {
+            var traits = IoCManager.Resolve<ISerializationManager>().CreateCopy(seed.PlantTraits, notNullableOverride: true);
+            EntityManager.AddComponent(plantHolder, traits);
+        }
+
+        if (seed.PlantCosmetics != null && !EntityManager.HasComponent<PlantCosmeticsComponent>(plantHolder))
+        {
+            var cosmetics = IoCManager.Resolve<ISerializationManager>().CreateCopy(seed.PlantCosmetics, notNullableOverride: true);
+            EntityManager.AddComponent(plantHolder, cosmetics);
+        }
+
+        if (seed.PlantChemicals != null && !EntityManager.HasComponent<PlantChemicalsComponent>(plantHolder))
+        {
+            var chemicals = IoCManager.Resolve<ISerializationManager>().CreateCopy(seed.PlantChemicals, notNullableOverride: true);
+            EntityManager.AddComponent(plantHolder, chemicals);
+        }
+
+        if (seed.PlantProducts != null && !EntityManager.HasComponent<PlantProductsComponent>(plantHolder))
+        {
+            var products = IoCManager.Resolve<ISerializationManager>().CreateCopy(seed.PlantProducts, notNullableOverride: true);
+            EntityManager.AddComponent(plantHolder, products);
+        }
+
+        if (seed.Harvest != null && !EntityManager.HasComponent<HarvestComponent>(plantHolder))
+        {
+            var harvest = IoCManager.Resolve<ISerializationManager>().CreateCopy(seed.Harvest, notNullableOverride: true);
+            EntityManager.AddComponent(plantHolder, harvest);
+        }
     }
 
     public SeedData Cross(SeedData a, SeedData b)
     {
         SeedData result = b.Clone();
 
-        CrossChemicals(ref result.Chemicals, a.Chemicals);
+        // Cross chemicals
+        if (result.PlantChemicals != null && a.PlantChemicals != null)
+        {
+            CrossChemicals(ref result.PlantChemicals.Chemicals, a.PlantChemicals.Chemicals);
+        }
 
-        CrossFloat(ref result.Endurance, a.Endurance);
-        CrossInt(ref result.Yield, a.Yield);
-        CrossFloat(ref result.Lifespan, a.Lifespan);
-        CrossFloat(ref result.Maturation, a.Maturation);
-        CrossFloat(ref result.Production, a.Production);
-        CrossFloat(ref result.Potency, a.Potency);
+        // Cross traits
+        if (result.PlantTraits != null && a.PlantTraits != null)
+        {
+            CrossFloat(ref result.PlantTraits.Endurance, a.PlantTraits.Endurance);
+            CrossInt(ref result.PlantTraits.Yield, a.PlantTraits.Yield);
+            CrossFloat(ref result.PlantTraits.Lifespan, a.PlantTraits.Lifespan);
+            CrossFloat(ref result.PlantTraits.Maturation, a.PlantTraits.Maturation);
+            CrossFloat(ref result.PlantTraits.Production, a.PlantTraits.Production);
+            CrossFloat(ref result.PlantTraits.Potency, a.PlantTraits.Potency);
+            CrossBool(ref result.PlantTraits.Seedless, a.PlantTraits.Seedless);
+            CrossBool(ref result.PlantTraits.Ligneous, a.PlantTraits.Ligneous);
+            CrossBool(ref result.PlantTraits.Viable, a.PlantTraits.Viable);
+        }
 
-        CrossBool(ref result.Seedless, a.Seedless);
-        CrossBool(ref result.Ligneous, a.Ligneous);
-        CrossBool(ref result.TurnIntoKudzu, a.TurnIntoKudzu);
-        CrossBool(ref result.CanScream, a.CanScream);
+        // Cross cosmetics
+        if (result.PlantCosmetics != null && a.PlantCosmetics != null)
+        {
+            CrossBool(ref result.PlantCosmetics.TurnIntoKudzu, a.PlantCosmetics.TurnIntoKudzu);
+            CrossBool(ref result.PlantCosmetics.CanScream, a.PlantCosmetics.CanScream);
+        }
+
+        // Cross harvest
+        if (result.Harvest != null && a.Harvest != null)
+        {
+            // 50% chance to use the other plant's harvest type
+            if (Random(0.5f))
+            {
+                result.Harvest.HarvestRepeat = a.Harvest.HarvestRepeat;
+            }
+        }
 
         // LINQ Explanation
         // For the list of mutation effects on both plants, use a 50% chance to pick each one.
@@ -98,9 +155,9 @@ public sealed class MutationSystem : EntitySystem
 
         // Hybrids have a high chance of being seedless. Balances very
         // effective hybrid crossings.
-        if (a.Name != result.Name && Random(0.7f))
+        if (a.Name != result.Name && Random(0.7f) && result.PlantTraits != null)
         {
-            result.Seedless = true;
+            result.PlantTraits.Seedless = true;
         }
 
         return result;

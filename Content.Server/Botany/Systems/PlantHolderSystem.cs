@@ -87,7 +87,22 @@ public sealed class PlantHolderSystem : EntitySystem
         if (component.Seed == null)
             return 0;
 
-        var result = Math.Max(1, (int)(component.Age * component.Seed.GrowthStages / component.Seed.Maturation));
+        var growthStages = 6;
+        var maturation = 0f;
+
+        if (TryComp<PlantTraitsComponent>(uid, out var traits))
+        {
+            growthStages = traits.GrowthStages;
+            maturation = traits.Maturation;
+        }
+        else
+        {
+            // Fallback to old system
+            growthStages = component.Seed.GrowthStages;
+            maturation = component.Seed.Maturation;
+        }
+
+        var result = Math.Max(1, (int)(component.Age * growthStages / maturation));
         return result;
     }
 
@@ -418,7 +433,7 @@ public sealed class PlantHolderSystem : EntitySystem
             var chance = 0f;
             if (component.Seed == null)
                 chance = 0.05f;
-            else if (component.Seed.TurnIntoKudzu)
+            else if (TryComp<PlantCosmeticsComponent>(uid, out var cosmetics) && cosmetics.TurnIntoKudzu)
                 chance = 1f;
             else
                 chance = 0.01f;
@@ -430,11 +445,11 @@ public sealed class PlantHolderSystem : EntitySystem
                 component.UpdateSpriteAfterUpdate = true;
         }
 
-        if (component.Seed != null && component.Seed.TurnIntoKudzu
-            && component.WeedLevel >= WeedHighLevelThreshold)
+        if (component.Seed != null && TryComp<PlantCosmeticsComponent>(uid, out var plantCosmetics) && 
+            plantCosmetics.TurnIntoKudzu && component.WeedLevel >= WeedHighLevelThreshold)
         {
-            Spawn(component.Seed.KudzuPrototype, Transform(uid).Coordinates.SnapToGrid(EntityManager));
-            component.Seed.TurnIntoKudzu = false;
+            Spawn(plantCosmetics.KudzuPrototype, Transform(uid).Coordinates.SnapToGrid(EntityManager));
+            plantCosmetics.TurnIntoKudzu = false;
             component.Health = 0;
         }
 
@@ -464,8 +479,8 @@ public sealed class PlantHolderSystem : EntitySystem
         if (!Resolve(uid, ref component))
             return;
 
-        if (component.Seed != null)
-            component.Health = MathHelper.Clamp(component.Health, 0, component.Seed.Endurance);
+        if (component.Seed != null && TryComp<PlantTraitsComponent>(uid, out var traits))
+            component.Health = MathHelper.Clamp(component.Health, 0, traits.Endurance);
         else
         {
             component.Health = 0f;
@@ -490,7 +505,15 @@ public sealed class PlantHolderSystem : EntitySystem
         if (component.Seed == null || Deleted(user))
             return false;
 
+        // Use the new harvest system if available
+        if (TryComp<HarvestComponent>(plantholder, out var harvestComponent))
+        {
+            var harvestSystem = EntityManager.System<HarvestSystem>();
+            harvestSystem.DoHarvest(plantholder, user, harvestComponent, component);
+            return true;
+        }
 
+        // Fallback to old system for compatibility
         if (component.Harvest && !component.Dead)
         {
             if (_hands.TryGetActiveItem(user, out var activeItem))
@@ -525,6 +548,14 @@ public sealed class PlantHolderSystem : EntitySystem
     /// <returns></returns>
     public bool DoScream(EntityUid plantholder, SeedData? seed = null)
     {
+        // Try to use the new component system first
+        if (TryComp<PlantCosmeticsComponent>(plantholder, out var cosmetics) && cosmetics.CanScream)
+        {
+            _audio.PlayPvs(cosmetics.ScreamSound, plantholder);
+            return true;
+        }
+
+        // Fallback to old system for compatibility
         if (seed == null || seed.CanScream == false)
             return false;
 
@@ -537,6 +568,15 @@ public sealed class PlantHolderSystem : EntitySystem
         if (!Resolve(uid, ref component))
             return;
 
+        // Use new harvest system if available
+        if (TryComp<HarvestComponent>(uid, out var harvest))
+        {
+            var harvestSystem = EntityManager.System<HarvestSystem>();
+            harvestSystem.AutoHarvest(uid, harvest);
+            return;
+        }
+
+        // Fallback to old system
         if (component.Seed == null || !component.Harvest)
             return;
 
@@ -549,12 +589,34 @@ public sealed class PlantHolderSystem : EntitySystem
         if (!Resolve(uid, ref component))
             return;
 
-        component.Harvest = false;
-        component.LastProduce = component.Age;
+        // Use new harvest system if available
+        if (TryComp<HarvestComponent>(uid, out var harvest))
+        {
+            harvest.ReadyForHarvest = false;
+            harvest.LastHarvestTime = component.Age;
+        }
+        else
+        {
+            // Fallback to old system
+            component.Harvest = false;
+            component.LastProduce = component.Age;
+        }
 
         DoScream(uid, component.Seed);
 
-        if (component.Seed?.HarvestRepeat == HarvestType.NoRepeat)
+        // Check harvest type for removal
+        var harvestRepeat = HarvestType.NoRepeat;
+        if (TryComp<HarvestComponent>(uid, out var harvestComp))
+        {
+            harvestRepeat = harvestComp.HarvestRepeat;
+        }
+        else if (component.Seed != null)
+        {
+            // Fallback to old system
+            harvestRepeat = component.Seed.HarvestRepeat;
+        }
+
+        if (harvestRepeat == HarvestType.NoRepeat)
             RemovePlant(uid, component);
 
         CheckLevelSanity(uid, component);
@@ -621,18 +683,44 @@ public sealed class PlantHolderSystem : EntitySystem
         if (component.Seed == null)
             return;
 
+        var maturation = 0f;
+        var yield = 0;
+        var readyForHarvest = false;
+
+        if (TryComp<PlantTraitsComponent>(uid, out var traits))
+        {
+            maturation = traits.Maturation;
+            yield = traits.Yield;
+        }
+        else
+        {
+            // Fallback to old system
+            maturation = component.Seed.Maturation;
+            yield = component.Seed.Yield;
+        }
+
+        if (TryComp<HarvestComponent>(uid, out var harvest))
+        {
+            readyForHarvest = harvest.ReadyForHarvest;
+        }
+        else
+        {
+            // Fallback to old system
+            readyForHarvest = component.Harvest;
+        }
+
         if (amount > 0)
         {
-            if (component.Age < component.Seed.Maturation)
+            if (component.Age < maturation)
                 component.Age += amount;
-            else if (!component.Harvest && component.Seed.Yield <= 0f)
+            else if (!readyForHarvest && yield <= 0f)
                 component.LastProduce -= amount;
         }
         else
         {
-            if (component.Age < component.Seed.Maturation)
+            if (component.Age < maturation)
                 component.SkipAging++;
-            else if (!component.Harvest && component.Seed.Yield <= 0f)
+            else if (!readyForHarvest && yield <= 0f)
                 component.LastProduce += amount;
         }
     }
@@ -704,33 +792,72 @@ public sealed class PlantHolderSystem : EntitySystem
 
         if (component.Seed != null)
         {
+            // Try to use new components first
+            var plantRsi = "";
+            var plantIconState = "produce";
+            var endurance = 100f;
+            var maturation = 0f;
+            var growthStages = 6;
+            var readyForHarvest = component.Harvest;
+
+            if (TryComp<PlantCosmeticsComponent>(uid, out var cosmetics))
+            {
+                plantRsi = cosmetics.PlantRsi.ToString();
+                plantIconState = cosmetics.PlantIconState;
+            }
+            else
+            {
+                // Fallback to old system
+                plantRsi = component.Seed.PlantRsi.ToString();
+                plantIconState = component.Seed.PlantIconState;
+            }
+
+            if (TryComp<PlantTraitsComponent>(uid, out var traits))
+            {
+                endurance = traits.Endurance;
+                maturation = traits.Maturation;
+                growthStages = traits.GrowthStages;
+            }
+            else
+            {
+                // Fallback to old system
+                endurance = component.Seed.Endurance;
+                maturation = component.Seed.Maturation;
+                growthStages = component.Seed.GrowthStages;
+            }
+
+            if (TryComp<HarvestComponent>(uid, out var harvest))
+            {
+                readyForHarvest = harvest.ReadyForHarvest;
+            }
+
             if (component.DrawWarnings)
             {
-                _appearance.SetData(uid, PlantHolderVisuals.HealthLight, component.Health <= component.Seed.Endurance / 2f);
+                _appearance.SetData(uid, PlantHolderVisuals.HealthLight, component.Health <= endurance / 2f);
             }
 
             if (component.Dead)
             {
-                _appearance.SetData(uid, PlantHolderVisuals.PlantRsi, component.Seed.PlantRsi.ToString(), app);
+                _appearance.SetData(uid, PlantHolderVisuals.PlantRsi, plantRsi, app);
                 _appearance.SetData(uid, PlantHolderVisuals.PlantState, "dead", app);
             }
-            else if (component.Harvest)
+            else if (readyForHarvest)
             {
-                _appearance.SetData(uid, PlantHolderVisuals.PlantRsi, component.Seed.PlantRsi.ToString(), app);
+                _appearance.SetData(uid, PlantHolderVisuals.PlantRsi, plantRsi, app);
                 _appearance.SetData(uid, PlantHolderVisuals.PlantState, "harvest", app);
             }
-            else if (component.Age < component.Seed.Maturation)
+            else if (component.Age < maturation)
             {
                 var growthStage = GetCurrentGrowthStage((uid, component));
 
-                _appearance.SetData(uid, PlantHolderVisuals.PlantRsi, component.Seed.PlantRsi.ToString(), app);
+                _appearance.SetData(uid, PlantHolderVisuals.PlantRsi, plantRsi, app);
                 _appearance.SetData(uid, PlantHolderVisuals.PlantState, $"stage-{growthStage}", app);
                 component.LastProduce = component.Age;
             }
             else
             {
-                _appearance.SetData(uid, PlantHolderVisuals.PlantRsi, component.Seed.PlantRsi.ToString(), app);
-                _appearance.SetData(uid, PlantHolderVisuals.PlantState, $"stage-{component.Seed.GrowthStages}", app);
+                _appearance.SetData(uid, PlantHolderVisuals.PlantRsi, plantRsi, app);
+                _appearance.SetData(uid, PlantHolderVisuals.PlantState, $"stage-{growthStages}", app);
             }
         }
         else
@@ -747,7 +874,7 @@ public sealed class PlantHolderSystem : EntitySystem
         _appearance.SetData(uid, PlantHolderVisuals.AlertLight,
             component.WeedLevel >= 5 || component.PestLevel >= 5 || component.Toxins >= 40 || component.ImproperHeat ||
             component.ImproperPressure || component.MissingGas > 0, app);
-        _appearance.SetData(uid, PlantHolderVisuals.HarvestLight, component.Harvest, app);
+        _appearance.SetData(uid, PlantHolderVisuals.HarvestLight, readyForHarvest, app);
     }
 
     /// <summary>
@@ -782,5 +909,6 @@ public sealed class PlantHolderSystem : EntitySystem
         EnsureComp<BasicGrowthComponent>(uid);
         EnsureComp<AtmosphericGrowthComponent>(uid);
         EnsureComp<WeedPestGrowthComponent>(uid);
+        EnsureComp<ToxinsComponent>(uid);
     }
 }

@@ -10,6 +10,7 @@ using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototy
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype.List;
 using Robust.Shared.Utility;
 using Robust.Shared.Serialization.Manager;
+using Robust.Shared.IoC;
 
 namespace Content.Server.Botany;
 
@@ -92,105 +93,36 @@ public partial class SeedData
     public bool Unique = false; // seed-prototypes or yaml-defined seeds for entity prototypes will not generally be unique.
     #endregion
 
-    #region Output
+    #region Plant Components
     /// <summary>
-    /// The entity prototype that is spawned when this type of seed is extracted from produce using a seed extractor.
-    /// </summary>
-    [DataField(customTypeSerializer: typeof(PrototypeIdSerializer<EntityPrototype>))]
-    public string PacketPrototype = "SeedBase";
-
-    /// <summary>
-    /// The entity prototypes that are spawned when this type of seed is harvested.
-    /// </summary>
-    [DataField(customTypeSerializer: typeof(PrototypeIdListSerializer<EntityPrototype>))]
-    public List<string> ProductPrototypes = new();
-
-    [DataField] public Dictionary<string, SeedChemQuantity> Chemicals = new();
-
-    #endregion
-
-    #region General traits
-
-    /// <summary>
-    /// The plant's max health.
-    /// </summary>
-    [DataField] public float Endurance = 100f;
-
-    /// <summary>
-    /// How many produce are created on harvest.
-    /// </summary>
-    [DataField] public int Yield;
-
-    /// <summary>
-    /// The number of growth ticks this plant can be alive for. Plants take high damage levels when Age > Lifespan.
-    /// </summary>
-    [DataField] public float Lifespan;
-
-    /// <summary>
-    /// The number of growth ticks it takes for a plant to reach its final growth stage.
-    /// </summary>
-    [DataField] public float Maturation;
-
-    /// <summary>
-    /// The number of growth ticks it takes for a plant to be (re-)harvestable. Shouldn't be lower than Maturation.
-    /// </summary>
-    [DataField] public float Production;
-
-    /// <summary>
-    /// How many different sprites appear before the plant is fully grown.
-    /// </summary>
-    [DataField] public int GrowthStages = 6;
-
-    /// <summary>
-    /// Harvest options are NoRepeat(plant is removed on harvest), Repeat(Plant makes produce every Production ticks),
-    /// and SelfHarvest (Repeat, plus produce is dropped on the ground near the plant automatically)
-    /// </summary>
-    [DataField] public HarvestType HarvestRepeat = HarvestType.NoRepeat;
-
-    /// <summary>
-    /// A scalar for sprite size and chemical quantity on the produce. Caps at 100.
-    /// </summary>
-    [DataField] public float Potency = 1f;
-
-    /// <summary>
-    /// If true, produce can't be put into the seed maker.
-    /// </summary>
-    [DataField] public bool Seedless = false;
-
-    /// <summary>
-    /// If true, a sharp tool is required to harvest this plant.
-    /// </summary>
-    [DataField] public bool Ligneous;
-
-    #endregion
-
-    #region Cosmetics
-
-    [DataField(required: true)]
-    public ResPath PlantRsi { get; set; } = default!;
-
-    [DataField] public string PlantIconState { get; set; } = "produce";
-
-    /// <summary>
-    /// Screams random sound from collection SoundCollectionSpecifier
+    /// The plant traits component that will be applied to the plant.
     /// </summary>
     [DataField]
-    public SoundSpecifier ScreamSound = new SoundCollectionSpecifier("PlantScreams", AudioParams.Default.WithVolume(-10));
+    public PlantTraitsComponent? PlantTraits;
 
     /// <summary>
-    /// If true, AAAAAAAAAAAHHHHHHHHHHH!
+    /// The plant cosmetics component that will be applied to the plant.
     /// </summary>
-    [DataField("screaming")] public bool CanScream;
+    [DataField]
+    public PlantCosmeticsComponent? PlantCosmetics;
 
     /// <summary>
-    /// Which kind of kudzu this plant will turn into if it kuzuifies.
+    /// The plant chemicals component that will be applied to the plant.
     /// </summary>
-    [DataField(customTypeSerializer: typeof(PrototypeIdSerializer<EntityPrototype>))] public string KudzuPrototype = "WeakKudzu";
+    [DataField]
+    public PlantChemicalsComponent? PlantChemicals;
 
     /// <summary>
-    /// If true, this plant turns into it's KudzuPrototype when the PlantHolder's WeedLevel hits this plant's WeedHighLevelThreshold.
+    /// The plant products component that will be applied to the plant.
     /// </summary>
-    [DataField] public bool TurnIntoKudzu;
+    [DataField]
+    public PlantProductsComponent? PlantProducts;
+
+    /// <summary>
+    /// The harvest component that will be applied to the plant.
+    /// </summary>
+    [DataField]
+    public HarvestComponent? Harvest;
 
     #endregion
 
@@ -236,36 +168,21 @@ public partial class SeedData
         var newSeed = new SeedData
         {
             GrowthComponents = new List<PlantGrowthComponent>(),
-            Viable = Viable,
             HarvestLogImpact = HarvestLogImpact,
             PlantLogImpact = PlantLogImpact,
             Name = Name,
             Noun = Noun,
             DisplayName = DisplayName,
             Mysterious = Mysterious,
-
-            PacketPrototype = PacketPrototype,
-            ProductPrototypes = new List<string>(ProductPrototypes),
             MutationPrototypes = new List<string>(MutationPrototypes),
-            Chemicals = new Dictionary<string, SeedChemQuantity>(Chemicals),
-
-            Endurance = Endurance,
-            Yield = Yield,
-            Lifespan = Lifespan,
-            Maturation = Maturation,
-            Production = Production,
-            GrowthStages = GrowthStages,
-            HarvestRepeat = HarvestRepeat,
-            Potency = Potency,
-
-            Seedless = Seedless,
-            Ligneous = Ligneous,
-
-            PlantRsi = PlantRsi,
-            PlantIconState = PlantIconState,
-            CanScream = CanScream,
-            TurnIntoKudzu = TurnIntoKudzu,
             Mutations = new List<RandomPlantMutation>(),
+
+            // Clone plant components
+            PlantTraits = PlantTraits != null ? IoCManager.Resolve<ISerializationManager>().CreateCopy(PlantTraits, notNullableOverride: true) : null,
+            PlantCosmetics = PlantCosmetics != null ? IoCManager.Resolve<ISerializationManager>().CreateCopy(PlantCosmetics, notNullableOverride: true) : null,
+            PlantChemicals = PlantChemicals != null ? IoCManager.Resolve<ISerializationManager>().CreateCopy(PlantChemicals, notNullableOverride: true) : null,
+            PlantProducts = PlantProducts != null ? IoCManager.Resolve<ISerializationManager>().CreateCopy(PlantProducts, notNullableOverride: true) : null,
+            Harvest = Harvest != null ? IoCManager.Resolve<ISerializationManager>().CreateCopy(Harvest, notNullableOverride: true) : null,
 
             // Newly cloned seed is unique. No need to unnecessarily clone if repeatedly modified.
             Unique = true,
@@ -291,57 +208,27 @@ public partial class SeedData
         var newSeed = new SeedData
         {
             GrowthComponents = new List<PlantGrowthComponent>(),
-            Viable = other.Viable,
             HarvestLogImpact = other.HarvestLogImpact,
             PlantLogImpact = other.PlantLogImpact,
             Name = other.Name,
             Noun = other.Noun,
             DisplayName = other.DisplayName,
             Mysterious = other.Mysterious,
-
-            PacketPrototype = other.PacketPrototype,
-            ProductPrototypes = new List<string>(other.ProductPrototypes),
             MutationPrototypes = new List<string>(other.MutationPrototypes),
-
-            Chemicals = new Dictionary<string, SeedChemQuantity>(Chemicals),
-
-            Endurance = Endurance,
-            Yield = Yield,
-            Lifespan = Lifespan,
-            Maturation = Maturation,
-            Production = Production,
-            GrowthStages = other.GrowthStages,
-            HarvestRepeat = HarvestRepeat,
-            Potency = Potency,
-
             Mutations = Mutations,
 
-            Seedless = Seedless,
-            Ligneous = Ligneous,
+            // Copy plant components from the new species
+            PlantTraits = other.PlantTraits != null ? IoCManager.Resolve<ISerializationManager>().CreateCopy(other.PlantTraits, notNullableOverride: true) : null,
+            PlantCosmetics = other.PlantCosmetics != null ? IoCManager.Resolve<ISerializationManager>().CreateCopy(other.PlantCosmetics, notNullableOverride: true) : null,
+            PlantProducts = other.PlantProducts != null ? IoCManager.Resolve<ISerializationManager>().CreateCopy(other.PlantProducts, notNullableOverride: true) : null,
+            Harvest = other.Harvest != null ? IoCManager.Resolve<ISerializationManager>().CreateCopy(other.Harvest, notNullableOverride: true) : null,
 
-            PlantRsi = other.PlantRsi,
-            PlantIconState = other.PlantIconState,
-            CanScream = CanScream,
-            TurnIntoKudzu = TurnIntoKudzu,
+            // Merge chemicals from both species
+            PlantChemicals = MergeChemicals(other),
 
             // Newly cloned seed is unique. No need to unnecessarily clone if repeatedly modified.
             Unique = true,
         };
-
-        // Adding the new chemicals from the new species.
-        foreach (var otherChem in other.Chemicals)
-        {
-            newSeed.Chemicals.TryAdd(otherChem.Key, otherChem.Value);
-        }
-
-        // Removing the inherent chemicals from the old species. Leaving mutated/crossbread ones intact.
-        foreach (var originalChem in newSeed.Chemicals)
-        {
-            if (!other.Chemicals.ContainsKey(originalChem.Key) && originalChem.Value.Inherent)
-            {
-                newSeed.Chemicals.Remove(originalChem.Key);
-            }
-        }
 
         // Deep copy growth components from the new species
         foreach (var component in other.GrowthComponents)
@@ -351,5 +238,53 @@ public partial class SeedData
         }
 
         return newSeed;
+    }
+
+    /// <summary>
+    /// Merges chemicals from the current seed and the new species, preserving mutations.
+    /// </summary>
+    private PlantChemicalsComponent? MergeChemicals(SeedData other)
+    {
+        if (PlantChemicals == null && other.PlantChemicals == null)
+            return null;
+
+        var mergedChemicals = new PlantChemicalsComponent();
+        
+        // Start with current chemicals
+        if (PlantChemicals != null)
+        {
+            foreach (var chem in PlantChemicals.Chemicals)
+            {
+                mergedChemicals.Chemicals[chem.Key] = chem.Value;
+            }
+        }
+
+        // Add new chemicals from the other species
+        if (other.PlantChemicals != null)
+        {
+            foreach (var otherChem in other.PlantChemicals.Chemicals)
+            {
+                mergedChemicals.Chemicals.TryAdd(otherChem.Key, otherChem.Value);
+            }
+        }
+
+        // Remove inherent chemicals that are no longer in the new species
+        if (other.PlantChemicals != null)
+        {
+            var chemicalsToRemove = new List<string>();
+            foreach (var chem in mergedChemicals.Chemicals)
+            {
+                if (!other.PlantChemicals.Chemicals.ContainsKey(chem.Key) && chem.Value.Inherent)
+                {
+                    chemicalsToRemove.Add(chem.Key);
+                }
+            }
+            foreach (var chemKey in chemicalsToRemove)
+            {
+                mergedChemicals.Chemicals.Remove(chemKey);
+            }
+        }
+
+        return mergedChemicals;
     }
 }

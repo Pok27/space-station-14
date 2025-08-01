@@ -78,18 +78,45 @@ public abstract class PlantGrowthSystem : EntitySystem
         if (component == null || component.Seed == null)
             return;
 
+        var maturation = 0f;
+        var yield = 0;
+        var readyForHarvest = false;
+
+        // Try to get values from new components
+        if (TryComp<PlantTraitsComponent>(component.Owner, out var traits))
+        {
+            maturation = traits.Maturation;
+            yield = traits.Yield;
+        }
+        else
+        {
+            // Fallback to old system
+            maturation = component.Seed.Maturation;
+            yield = component.Seed.Yield;
+        }
+
+        if (TryComp<HarvestComponent>(component.Owner, out var harvest))
+        {
+            readyForHarvest = harvest.ReadyForHarvest;
+        }
+        else
+        {
+            // Fallback to old system
+            readyForHarvest = component.Harvest;
+        }
+
         if (amount > 0)
         {
-            if (component.Age < component.Seed.Maturation)
+            if (component.Age < maturation)
                 component.Age += amount;
-            else if (!component.Harvest && component.Seed.Yield > 0f)
+            else if (!readyForHarvest && yield > 0f)
                 component.LastProduce -= amount;
         }
         else
         {
-            if (component.Age < component.Seed.Maturation)
+            if (component.Age < maturation)
                 component.SkipAging++;
-            else if (!component.Harvest && component.Seed.Yield > 0f)
+            else if (!readyForHarvest && yield > 0f)
                 component.LastProduce += amount;
         }
     }
