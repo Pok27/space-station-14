@@ -18,6 +18,12 @@ namespace Content.Server.Botany;
 public sealed partial class SeedPrototype : SeedData, IPrototype
 {
     [IdDataField] public string ID { get; private set; } = default!;
+
+    public override void OnValidate()
+    {
+        base.OnValidate();
+        EnsureEssentialGrowthComponents();
+    }
 }
 
 public enum HarvestType : byte
@@ -356,5 +362,13 @@ public partial class SeedData
             var atmosphericComponent = new AtmosphericGrowthComponent();
             GrowthComponents.Add(atmosphericComponent);
         }
+    }
+
+    /// <summary>
+    /// Called after the prototype is loaded and validated.
+    /// </summary>
+    public virtual void OnValidate()
+    {
+        // This method can be overridden by derived classes
     }
 }
