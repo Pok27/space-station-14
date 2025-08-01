@@ -43,10 +43,10 @@
   packetPrototype: MeatwheatSeeds
   productPrototypes:
     - MeatwheatBushel
-    growthComponents:
+  growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
+        waterConsumption: 0.4
+        nutrientConsumption: 0.4
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
     - !type:PlantTraitsComponent
@@ -79,10 +79,20 @@
     - OatBushel
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
+        waterConsumption: 0.4
+        nutrientConsumption: 0.4
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+    - !type:PlantTraitsComponent
+        lifespan: 25
+        maturation: 6
+        production: 3
+        yield: 3
+        potency: 5
+        growthStages: 3
+    - !type:HarvestComponent
+        harvestRepeat: NoRepeat
+
     - !type:PlantTraitsComponent
         lifespan: 25
         maturation: 6
@@ -115,10 +125,20 @@
     - mimana
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
+        waterConsumption: 0.6
         nutrientConsumption: 0.5
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+    - !type:PlantTraitsComponent
+        lifespan: 50
+        maturation: 6
+        production: 6
+        yield: 2
+        potency: 10
+        growthStages: 3
+    - !type:HarvestComponent
+        harvestRepeat: Repeat
+
     - !type:PlantTraitsComponent
         lifespan: 50
         maturation: 6
@@ -149,10 +169,20 @@
     - FoodMimana
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
+        waterConsumption: 0.6
         nutrientConsumption: 0.5
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+    - !type:PlantTraitsComponent
+        lifespan: 50
+        maturation: 6
+        production: 6
+        yield: 2
+        potency: 10
+        growthStages: 3
+    - !type:HarvestComponent
+        harvestRepeat: Repeat
+
     - !type:PlantTraitsComponent
         lifespan: 50
         maturation: 6
@@ -183,10 +213,20 @@
     - FoodCarrot
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
+        waterConsumption: 0.6
         nutrientConsumption: 0.5
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+    - !type:PlantTraitsComponent
+        lifespan: 25
+        maturation: 10
+        production: 3
+        yield: 3
+        potency: 10
+        growthStages: 3
+    - !type:HarvestComponent
+        harvestRepeat: NoRepeat
+
     - !type:PlantTraitsComponent
         lifespan: 25
         maturation: 10
@@ -225,6 +265,7 @@
     - !type:BasicGrowthComponent
         waterConsumption: 0.6
         nutrientConsumption: 0.6
+
     - !type:PlantTraitsComponent
         lifespan: 25
         maturation: 7
@@ -232,6 +273,8 @@
         yield: 3
         potency: 20
         growthStages: 3
+    - !type:HarvestComponent
+        harvestRepeat: Repeat
   chemicals:
     Nutriment:
       Min: 1
@@ -259,12 +302,7 @@
     - lemoon
     - lime
     - orange
-  growthComponents:
-    - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+    growthComponents:
     - !type:PlantTraitsComponent
         lifespan: 55
         maturation: 6
@@ -293,12 +331,7 @@
   packetPrototype: LemoonSeeds
   productPrototypes:
     - FoodLemoon
-  growthComponents:
-    - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+    growthComponents:
     - !type:PlantTraitsComponent
         lifespan: 90
         maturation: 8
@@ -330,12 +363,7 @@
   mutationPrototypes:
     - orange
     - lemon
-      growthComponents:
-    - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        growthComponents:
     - !type:PlantTraitsComponent
         lifespan: 55
         maturation: 6
@@ -368,12 +396,7 @@
     - extradimensionalOrange
     - lemon
     - lime
-      growthComponents:
-    - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        growthComponents:
     - !type:PlantTraitsComponent
         lifespan: 55
         maturation: 6
@@ -402,12 +425,7 @@
   packetPrototype: ExtradimensionalOrangeSeeds
   productPrototypes:
     - FoodExtradimensionalOrange
-      growthComponents:
-    - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        growthComponents:
     - !type:PlantTraitsComponent
         lifespan: 55
         maturation: 6
@@ -440,12 +458,7 @@
   packetPrototype: PineappleSeeds
   productPrototypes:
     - FoodPineapple
-      growthComponents:
-    - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        growthComponents:
     - !type:PlantTraitsComponent
         lifespan: 55
         maturation: 6
@@ -481,6 +494,7 @@
   growthComponents:
     - !type:BasicGrowthComponent
         waterConsumption: 0.6
+
     - !type:PlantTraitsComponent
         lifespan: 30
         maturation: 10
@@ -510,11 +524,9 @@
   mutationPrototypes:
     - papercane
       growthComponents:
-    - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+
     - !type:PlantTraitsComponent
         lifespan: 60
         maturation: 6
@@ -542,6 +554,9 @@
   growthComponents:
     - !type:BasicGrowthComponent
         waterConsumption: 0.6
+    - !type:AtmosphericGrowthComponent
+        idealHeat: 298
+
     - !type:PlantTraitsComponent
         lifespan: 75
         maturation: 5
@@ -549,6 +564,8 @@
         yield: 2
         potency: 20
         growthStages: 5
+    - !type:HarvestComponent
+        harvestRepeat: Repeat
   chemicals:
     Vitamin:
       Min: 1
@@ -565,11 +582,9 @@
   productPrototypes:
     - Papercane
       growthComponents:
-    - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+
     - !type:PlantTraitsComponent
         lifespan: 60
         maturation: 6
@@ -594,10 +609,11 @@
   ligneous: true
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
+        waterConsumption: 0.6
         nutrientConsumption: 0.5
     - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        idealHeat: 288
+
     - !type:PlantTraitsComponent
         lifespan: 80
         maturation: 15
@@ -605,8 +621,6 @@
         yield: 5
         potency: 1
         growthStages: 3
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
 
 - type: seed
   id: steelcap
@@ -620,10 +634,11 @@
   ligneous: true
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
+        waterConsumption: 0.6
+        nutrientConsumption: 0.8
     - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        idealHeat: 288
+
     - !type:PlantTraitsComponent
         lifespan: 80
         maturation: 15
@@ -631,8 +646,6 @@
         yield: 3
         potency: 1
         growthStages: 3
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
 
 - type: seed
   id: tomato
@@ -648,10 +661,11 @@
     - bloodTomato
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
+        waterConsumption: 0.6
+        nutrientConsumption: 0.4
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+
     - !type:PlantTraitsComponent
         lifespan: 25
         maturation: 8
@@ -686,10 +700,11 @@
     - FoodBlueTomato
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
+        waterConsumption: 0.6
+        nutrientConsumption: 0.7
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+
     - !type:PlantTraitsComponent
         lifespan: 25
         maturation: 8
@@ -726,10 +741,11 @@
     - killerTomato
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
+        waterConsumption: 0.6
+        nutrientConsumption: 0.7
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+
     - !type:PlantTraitsComponent
         lifespan: 60
         maturation: 8
@@ -762,10 +778,20 @@
     - MobTomatoKiller
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
+        waterConsumption: 0.6
+        nutrientConsumption: 0.7
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+    - !type:PlantTraitsComponent
+        lifespan: 25
+        maturation: 15
+        production: 6
+        yield: 2
+        potency: 10
+        growthStages: 2
+    - !type:HarvestComponent
+        harvestRepeat: Repeat
+
     - !type:PlantTraitsComponent
         lifespan: 25
         maturation: 15
@@ -799,9 +825,19 @@
       growthComponents:
     - !type:BasicGrowthComponent
         waterConsumption: 0.5
-        nutrientConsumption: 0.5
+        nutrientConsumption: 0.75
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+    - !type:PlantTraitsComponent
+        lifespan: 25
+        maturation: 6
+        production: 6
+        yield: 2
+        potency: 20
+        growthStages: 3
+    - !type:HarvestComponent
+        harvestRepeat: Repeat
+
     - !type:PlantTraitsComponent
         lifespan: 25
         maturation: 6
@@ -833,9 +869,19 @@
       growthComponents:
     - !type:BasicGrowthComponent
         waterConsumption: 0.5
-        nutrientConsumption: 0.5
+        nutrientConsumption: 0.75
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+    - !type:PlantTraitsComponent
+        lifespan: 50
+        maturation: 7
+        production: 5
+        yield: 3
+        potency: 10
+        growthStages: 1
+    - !type:HarvestComponent
+        harvestRepeat: NoRepeat
+
     - !type:PlantTraitsComponent
         lifespan: 50
         maturation: 7
@@ -864,12 +910,7 @@
   packetPrototype: GarlicSeeds
   productPrototypes:
     - FoodGarlic
-      growthComponents:
-    - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        growthComponents:
     - !type:PlantTraitsComponent
         lifespan: 25
         maturation: 8
@@ -877,8 +918,6 @@
         yield: 3
         potency: 25
         growthStages: 3
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
   chemicals:
     Nutriment:
       Min: 1
@@ -904,12 +943,7 @@
     - FoodApple
   mutationPrototypes:
     - goldenApple
-      growthComponents:
-    - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        growthComponents:
     - !type:PlantTraitsComponent
         lifespan: 55
         maturation: 6
@@ -941,6 +975,7 @@
   growthComponents:
     - !type:BasicGrowthComponent
         waterConsumption: 0.75
+
     - !type:PlantTraitsComponent
         lifespan: 55
         maturation: 6
@@ -948,6 +983,8 @@
         yield: 3
         potency: 10
         growthStages: 3
+    - !type:HarvestComponent
+        harvestRepeat: Repeat
   chemicals:
     Nutriment:
       Min: 1
@@ -973,10 +1010,10 @@
     - FoodCorn
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
+        waterConsumption: 0.6
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+
     - !type:PlantTraitsComponent
         lifespan: 25
         maturation: 8
@@ -984,8 +1021,6 @@
         yield: 2
         potency: 20
         growthStages: 3
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
   chemicals:
     Nutriment:
       Min: 1
@@ -1009,10 +1044,10 @@
     - onionred
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
+        waterConsumption: 0.6
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+
     - !type:PlantTraitsComponent
         lifespan: 25
         maturation: 8
@@ -1020,8 +1055,6 @@
         yield: 2
         potency: 20
         growthStages: 3
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
   chemicals:
     Nutriment:
       Min: 1
@@ -1047,10 +1080,10 @@
     - FoodOnionRed
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
+        waterConsumption: 0.6
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+
     - !type:PlantTraitsComponent
         lifespan: 25
         maturation: 8
@@ -1058,8 +1091,6 @@
         yield: 2
         potency: 20
         growthStages: 3
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
   chemicals:
     Nutriment:
       Min: 1
@@ -1085,10 +1116,11 @@
     - FoodMushroom
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
+        waterConsumption: 0.6
         nutrientConsumption: 0.5
     - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        idealHeat: 288
+
     - !type:PlantTraitsComponent
         lifespan: 35
         maturation: 10
@@ -1096,8 +1128,6 @@
         yield: 5
         potency: 1
         growthStages: 3
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
   chemicals:
     Nutriment:
       Min: 1
@@ -1115,10 +1145,10 @@
     - FoodEgg
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
         nutrientConsumption: 0.5
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+
     - !type:PlantTraitsComponent
         lifespan: 75
         maturation: 6
@@ -1147,10 +1177,10 @@
     - rainbowCannabis
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
+        waterConsumption: 0.4
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+
     - !type:PlantTraitsComponent
         lifespan: 75
         maturation: 8
@@ -1177,10 +1207,10 @@
     - LeavesCannabisRainbow
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
+        waterConsumption: 0.4
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+
     - !type:PlantTraitsComponent
         lifespan: 75
         maturation: 8
@@ -1227,10 +1257,10 @@
     - LeavesTobacco
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
+        waterConsumption: 0.4
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+
     - !type:PlantTraitsComponent
         lifespan: 75
         maturation: 5
@@ -1259,10 +1289,10 @@
     - deathNettle
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
+        waterConsumption: 0.6
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+
     - !type:PlantTraitsComponent
         lifespan: 25
         maturation: 8
@@ -1270,8 +1300,6 @@
         yield: 2
         potency: 20
         growthStages: 5
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
   chemicals:
     Histamine:
       Min: 1
@@ -1291,10 +1319,11 @@
     - DeathNettle
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
+        waterConsumption: 0.7
+        nutrientConsumption: 0.8
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+
     - !type:PlantTraitsComponent
         lifespan: 25
         maturation: 8
@@ -1302,8 +1331,6 @@
         yield: 2
         potency: 20
         growthStages: 5
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
   chemicals:
     SulfuricAcid:
       Min: 1
@@ -1326,11 +1353,9 @@
   mutationPrototypes:
     - chilly
       growthComponents:
-    - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+
     - !type:PlantTraitsComponent
         lifespan: 25
         maturation: 6
@@ -1364,11 +1389,9 @@
   productPrototypes:
     - FoodChillyPepper
       growthComponents:
-    - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+
     - !type:PlantTraitsComponent
         lifespan: 25
         maturation: 6
@@ -1406,6 +1429,14 @@
   growthComponents:
     - !type:BasicGrowthComponent
         waterConsumption: 0.6
+
+    - !type:PlantTraitsComponent
+        lifespan: 25
+        maturation: 10
+        production: 3
+        yield: 3
+        potency: 10
+        growthStages: 3
   chemicals:
     Nutriment:
       Min: 1
@@ -1428,6 +1459,14 @@
   growthComponents:
     - !type:BasicGrowthComponent
         waterConsumption: 0.6
+
+    - !type:PlantTraitsComponent
+        lifespan: 25
+        maturation: 10
+        production: 3
+        yield: 3
+        potency: 10
+        growthStages: 5
   chemicals:
     Aloe:
       Min: 1
@@ -1452,6 +1491,14 @@
   growthComponents:
     - !type:BasicGrowthComponent
         waterConsumption: 0.6
+
+    - !type:PlantTraitsComponent
+        lifespan: 25
+        maturation: 10
+        production: 3
+        yield: 3
+        potency: 10
+        growthStages: 3
   chemicals:
     Nutriment:
       Min: 1
@@ -1474,6 +1521,14 @@
   growthComponents:
     - !type:BasicGrowthComponent
         waterConsumption: 0.6
+
+    - !type:PlantTraitsComponent
+        lifespan: 25
+        maturation: 10
+        production: 3
+        yield: 3
+        potency: 10
+        growthStages: 3
   chemicals:
     Ultravasculine:
       Min: 1
@@ -1498,6 +1553,14 @@
         growthComponents:
     - !type:BasicGrowthComponent
         waterConsumption: 0.6
+
+    - !type:PlantTraitsComponent
+        lifespan: 25
+        maturation: 10
+        production: 3
+        yield: 3
+        potency: 10
+        growthStages: 6
   chemicals:
     Nutriment:
       Min: 1
@@ -1532,6 +1595,14 @@
         growthComponents:
     - !type:BasicGrowthComponent
         waterConsumption: 0.6
+
+    - !type:PlantTraitsComponent
+        lifespan: 25
+        maturation: 10
+        production: 3
+        yield: 3
+        potency: 10
+        growthStages: 6
   chemicals:
     Nutriment:
       Min: 1
@@ -1564,6 +1635,14 @@
         growthComponents:
     - !type:BasicGrowthComponent
         waterConsumption: 0.6
+
+    - !type:PlantTraitsComponent
+        lifespan: 25
+        maturation: 10
+        production: 3
+        yield: 3
+        potency: 10
+        growthStages: 3
   chemicals:
     Stellibinin:
       Min: 1
@@ -1579,12 +1658,7 @@
   packetPrototype: GlasstleSeeds
   productPrototypes:
     - FoodGlasstle
-      growthComponents:
-    - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        growthComponents:
     - !type:PlantTraitsComponent
         lifespan: 25
         maturation: 10
@@ -1592,8 +1666,6 @@
         yield: 3
         potency: 10
         growthStages: 3
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
   chemicals:
     Razorium:
       Min: 1
@@ -1611,10 +1683,9 @@
     - FoodFlyAmanita
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
+        waterConsumption: 0.6
         nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+
     - !type:PlantTraitsComponent
         lifespan: 25
         maturation: 12
@@ -1622,8 +1693,6 @@
         yield: 3
         potency: 10
         growthStages: 2
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
   chemicals:
     Amatoxin:
       Min: 1
@@ -1646,12 +1715,7 @@
   mutationPrototypes:
     - fakeCapfruit
     - realCapfruit
-      growthComponents:
-    - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        growthComponents:
     - !type:PlantTraitsComponent
         lifespan: 65
         maturation: 25
@@ -1659,8 +1723,6 @@
         yield: 1
         potency: 10
         growthStages: 2
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
   chemicals:
     Nutriment:
       Min: 1
@@ -1680,12 +1742,7 @@
   packetPrototype: FakeCapfruitSeeds
   productPrototypes:
     - FoodFakeCapfruit
-      growthComponents:
-    - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        growthComponents:
     - !type:PlantTraitsComponent
         lifespan: 65
         maturation: 25
@@ -1693,8 +1750,6 @@
         yield: 1
         potency: 10
         growthStages: 2
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
   chemicals:
     Nutriment:
       Min: 1
@@ -1714,12 +1769,7 @@
   packetPrototype: RealCapfruitSeeds
   productPrototypes:
     - FoodRealCapfruit
-      growthComponents:
-    - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        growthComponents:
     - !type:PlantTraitsComponent
         lifespan: 65
         maturation: 25
@@ -1727,8 +1777,6 @@
         yield: 1
         potency: 10
         growthStages: 2
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
   chemicals:
     Nutriment:
       Min: 1
@@ -1750,10 +1798,9 @@
     - RiceBushel
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        waterConsumption: 0.6
+        nutrientConsumption: 0.4
+
     - !type:PlantTraitsComponent
         lifespan: 25
         maturation: 6
@@ -1761,8 +1808,6 @@
         yield: 3
         potency: 5
         growthStages: 4
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
   chemicals:
     Nutriment:
       Min: 1
@@ -1786,10 +1831,8 @@
     - koibean
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        nutrientConsumption: 0.4
+
     - !type:PlantTraitsComponent
         lifespan: 25
         maturation: 6
@@ -1797,8 +1840,6 @@
         yield: 3
         potency: 5
         growthStages: 4
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
   chemicals:
     Nutriment:
       Min: 1
@@ -1817,6 +1858,14 @@
         growthComponents:
     - !type:BasicGrowthComponent
         waterConsumption: 0.6
+
+    - !type:PlantTraitsComponent
+        lifespan: 20
+        maturation: 14
+        production: 3
+        yield: 2
+        potency: 10
+        growthStages: 4
   chemicals:
     Nutriment:
       Min: 1
@@ -1838,10 +1887,8 @@
     - FoodKoibean
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        nutrientConsumption: 0.4
+
     - !type:PlantTraitsComponent
         lifespan: 25
         maturation: 6
@@ -1849,8 +1896,6 @@
         yield: 3
         potency: 5
         growthStages: 4
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
   chemicals:
     Nutriment:
       Min: 1
@@ -1870,12 +1915,7 @@
   packetPrototype: GrapeSeeds
   productPrototypes:
     - FoodGrape
-      growthComponents:
-    - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        growthComponents:
     - !type:PlantTraitsComponent
         lifespan: 50
         maturation: 6
@@ -1883,8 +1923,6 @@
         yield: 3
         potency: 10
         growthStages: 2
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
   chemicals:
     Nutriment:
       Min: 1
@@ -1906,12 +1944,7 @@
     - FoodWatermelon
   mutationPrototypes:
     - holymelon
-      growthComponents:
-    - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        growthComponents:
     - !type:PlantTraitsComponent
         lifespan: 55
         maturation: 12
@@ -1919,8 +1952,6 @@
         yield: 1
         potency: 1
         growthStages: 3
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
   chemicals:
     Nutriment:
       Min: 1
@@ -1944,12 +1975,7 @@
   packetPrototype: HolymelonSeeds
   productPrototypes:
     - FoodHolymelon
-      growthComponents:
-    - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        growthComponents:
     - !type:PlantTraitsComponent
         lifespan: 55
         maturation: 12
@@ -1957,8 +1983,6 @@
         yield: 1
         potency: 1
         growthStages: 3
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
   chemicals:
     Nutriment:
       Min: 1
@@ -1984,10 +2008,11 @@
     - FoodCocoaPod
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
+        waterConsumption: 1.0
+        nutrientConsumption: 0.8
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+
     - !type:PlantTraitsComponent
         lifespan: 50
         maturation: 6
@@ -2018,10 +2043,8 @@
     - FoodBerries
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        nutrientConsumption: 0.6
+
     - !type:PlantTraitsComponent
         lifespan: 50
         maturation: 6
@@ -2053,6 +2076,18 @@
         growthComponents:
     - !type:BasicGrowthComponent
         waterConsumption: 0.6
+    - !type:AtmosphericGrowthComponent
+        idealHeat: 298
+
+    - !type:PlantTraitsComponent
+        lifespan: 50
+        maturation: 8
+        production: 6
+        yield: 3
+        potency: 10
+        growthStages: 4
+    - !type:HarvestComponent
+        harvestRepeat: Repeat
   chemicals:
     Nutriment:
       Min: 5
@@ -2076,10 +2111,8 @@
     - laughinPea
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
         nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+
     - !type:PlantTraitsComponent
         lifespan: 25
         maturation: 8
@@ -2110,10 +2143,8 @@
     - FoodWorldPeas
       growthComponents:
     - !type:BasicGrowthComponent
-        waterConsumption: 0.5
         nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+
     - !type:PlantTraitsComponent
         lifespan: 25
         maturation: 20
@@ -2149,11 +2180,9 @@
   mutationPrototypes:
     - bluePumpkin
       growthComponents:
-    - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
     - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        idealHeat: 288
+
     - !type:PlantTraitsComponent
         lifespan: 55
         maturation: 10
@@ -2161,8 +2190,6 @@
         yield: 2
         potency: 10
         growthStages: 3
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
   chemicals:
     PumpkinFlesh:
       Min: 1
@@ -2183,11 +2210,9 @@
   productPrototypes:
     - FoodBluePumpkin
       growthComponents:
-    - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
     - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+        idealHeat: 288
+
     - !type:PlantTraitsComponent
         lifespan: 55
         maturation: 10
@@ -2195,8 +2220,6 @@
         yield: 2
         potency: 10
         growthStages: 3
-    - !type:HarvestComponent
-        harvestRepeat: NoRepeat
   chemicals:
     Ammonia:
       Min: 1
@@ -2225,6 +2248,14 @@
         growthComponents:
     - !type:BasicGrowthComponent
         waterConsumption: 0.6
+
+    - !type:PlantTraitsComponent
+        lifespan: 25
+        maturation: 8
+        production: 3
+        yield: 3
+        potency: 5
+        growthStages: 3
   chemicals:
     Fiber:
       Min: 5
@@ -2243,6 +2274,7 @@
   growthComponents:
     - !type:BasicGrowthComponent
         waterConsumption: 0.8
+
     - !type:PlantTraitsComponent
         lifespan: 25
         maturation: 8
@@ -2269,12 +2301,7 @@
   packetPrototype: CherrySeeds
   productPrototypes:
     - FoodCherry
-      growthComponents:
-    - !type:BasicGrowthComponent
-        waterConsumption: 0.5
-        nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+  growthComponents:
     - !type:PlantTraitsComponent
         lifespan: 55
         maturation: 6
@@ -2307,6 +2334,14 @@
     - !type:BasicGrowthComponent
         waterConsumption: 0.6
         nutrientConsumption: 0.5
+
+    - !type:PlantTraitsComponent
+        lifespan: 25
+        maturation: 12
+        production: 3
+        yield: 3
+        potency: 10
+        growthStages: 2
   chemicals:
     Artifexium:
       Min: 1
