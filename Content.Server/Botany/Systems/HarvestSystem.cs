@@ -107,7 +107,6 @@ public sealed class HarvestSystem : EntitySystem
                     // Apply mutations to product
                     if (TryComp<ProduceComponent>(product, out var produce))
                     {
-                        produce.Seed = plantHolder.Seed;
                         _botany.ProduceGrown(product, produce);
                     }
                 }
