@@ -21,4 +21,7 @@ public sealed partial class WeedPestGrowthComponent : PlantGrowthComponent
 
     [DataField("pestDamageAmount")]
     public float PestDamageAmount = 1f;
+
+    [DataField("toxinsTolerance")]
+    public float ToxinsTolerance = 4f;
 }
