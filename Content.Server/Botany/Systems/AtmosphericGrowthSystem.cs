@@ -9,12 +9,6 @@ public sealed class AtmosphericGrowthSystem : PlantGrowthSystem
     [Dependency] private readonly PlantHolderSystem _plantHolderSystem = default!;
     [Dependency] private readonly AtmosphereSystem _atmosphere = default!;
 
-    // Default values for atmospheric growth
-    private const float DefaultIdealHeat = 293f;
-    private const float DefaultHeatTolerance = 10f;
-    private const float DefaultLowPressureTolerance = 81f;
-    private const float DefaultHighPressureTolerance = 121f;
-
     public override void Initialize()
     {
         base.Initialize();
@@ -30,10 +24,10 @@ public sealed class AtmosphericGrowthSystem : PlantGrowthSystem
 
         var environment = _atmosphere.GetContainingMixture(uid, true, true) ?? GasMixture.SpaceGas;
         
-        var idealHeat = atmosphericComponent?.IdealHeat ?? DefaultIdealHeat;
-        var heatTolerance = atmosphericComponent?.HeatTolerance ?? DefaultHeatTolerance;
-        var lowPressureTolerance = atmosphericComponent?.LowPressureTolerance ?? DefaultLowPressureTolerance;
-        var highPressureTolerance = atmosphericComponent?.HighPressureTolerance ?? DefaultHighPressureTolerance;
+        var idealHeat = atmosphericComponent?.IdealHeat ?? 293f;
+        var heatTolerance = atmosphericComponent?.HeatTolerance ?? 10f;
+        var lowPressureTolerance = atmosphericComponent?.LowPressureTolerance ?? 81f;
+        var highPressureTolerance = atmosphericComponent?.HighPressureTolerance ?? 121f;
 
         if (MathF.Abs(environment.Temperature - idealHeat) > heatTolerance)
         {

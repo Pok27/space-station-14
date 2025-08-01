@@ -4,12 +4,6 @@ using Robust.Shared.Random;
 namespace Content.Server.Botany.Systems;
 public sealed class WeedPestGrowthSystem : PlantGrowthSystem
 {
-    // Default values for weed/pest growth
-    private const float DefaultWeedGrowthChance = 0.01f;
-    private const float DefaultWeedGrowthAmount = 0.5f;
-    private const float DefaultPestDamageChance = 0.05f;
-    private const float DefaultPestDamageAmount = 1f;
-
     public override void Initialize()
     {
         base.Initialize();
@@ -23,10 +17,10 @@ public sealed class WeedPestGrowthSystem : PlantGrowthSystem
 
         TryComp<WeedPestGrowthComponent>(uid, out var weedPestComponent);
 
-        var weedGrowthChance = weedPestComponent?.WeedGrowthChance ?? DefaultWeedGrowthChance;
-        var weedGrowthAmount = weedPestComponent?.WeedGrowthAmount ?? DefaultWeedGrowthAmount;
-        var pestDamageChance = weedPestComponent?.PestDamageChance ?? DefaultPestDamageChance;
-        var pestDamageAmount = weedPestComponent?.PestDamageAmount ?? DefaultPestDamageAmount;
+        var weedGrowthChance = weedPestComponent?.WeedGrowthChance ?? 0.01f;
+        var weedGrowthAmount = weedPestComponent?.WeedGrowthAmount ?? 0.5f;
+        var pestDamageChance = weedPestComponent?.PestDamageChance ?? 0.05f;
+        var pestDamageAmount = weedPestComponent?.PestDamageAmount ?? 1f;
 
         // Weed growth logic
         if (_random.Prob(weedGrowthChance))
