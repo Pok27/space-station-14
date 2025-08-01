@@ -6,8 +6,8 @@
   mutationPrototypes:
     - meatwheat
   growthComponents:
-    - !type:BasicGrowthComponent
-        nutrientConsumption: 0.4
+    - BasicGrowthComponent
+      nutrientConsumption: 0.4
   plantTraits:
     endurance: 100
     yield: 3
@@ -16,14 +16,8 @@
     production: 3
     growthStages: 6
     potency: 5
-    seedless: false
-    ligneous: false
-    viable: true
   plantCosmetics:
     plantRsi: Objects/Specific/Hydroponics/wheat.rsi
-    plantIconState: produce
-    canScream: false
-    turnIntoKudzu: false
   plantChemicals:
     chemicals:
       Nutriment:
@@ -49,8 +43,8 @@
   noun: seeds-noun-seeds
   displayName: seeds-meatwheat-display-name
   growthComponents:
-    - !type:BasicGrowthComponent
-        nutrientConsumption: 0.4
+    - BasicGrowthComponent
+      nutrientConsumption: 0.4
   plantTraits:
     endurance: 100
     yield: 3
@@ -59,14 +53,8 @@
     production: 3
     growthStages: 6
     potency: 5
-    seedless: false
-    ligneous: false
-    viable: true
   plantCosmetics:
     plantRsi: Objects/Specific/Hydroponics/meatwheat.rsi
-    plantIconState: produce
-    canScream: false
-    turnIntoKudzu: false
   plantChemicals:
     chemicals:
       Nutriment:
@@ -92,25 +80,18 @@
   noun: seeds-noun-seeds
   displayName: seeds-oat-display-name
   growthComponents:
-    - !type:BasicGrowthComponent
-        nutrientConsumption: 0.4
+    - BasicGrowthComponent
+      nutrientConsumption: 0.4
   plantTraits:
-    !type:PlantTraitsComponent
-      endurance: 100
-      yield: 3
-      lifespan: 25
-      maturation: 6
-      production: 3
-      growthStages: 6
-      potency: 5
-      seedless: false
-      ligneous: false
-      viable: true
+    endurance: 100
+    yield: 3
+    lifespan: 25
+    maturation: 6
+    production: 3
+    growthStages: 6
+    potency: 5
   plantCosmetics:
     plantRsi: Objects/Specific/Hydroponics/oat.rsi
-    plantIconState: produce
-    canScream: false
-    turnIntoKudzu: false
   plantChemicals:
     chemicals:
       Nutriment:
@@ -138,10 +119,10 @@
   mutationPrototypes:
     - mimana
   growthComponents:
-    - !type:BasicGrowthComponent
-        waterConsumption: 0.6
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
+    - BasicGrowthComponent
+      waterConsumption: 0.6
+    - AtmosphericGrowthComponent
+      idealHeat: 298
   plantTraits:
     endurance: 100
     yield: 2
@@ -150,14 +131,8 @@
     production: 6
     growthStages: 6
     potency: 1
-    seedless: false
-    ligneous: false
-    viable: true
   plantCosmetics:
     plantRsi: Objects/Specific/Hydroponics/banana.rsi
-    plantIconState: produce
-    canScream: false
-    turnIntoKudzu: false
   plantChemicals:
     chemicals:
       Vitamin:
