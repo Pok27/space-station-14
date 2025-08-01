@@ -63,7 +63,7 @@ public sealed class HarvestSystem : EntitySystem
             return;
 
         // Check if sharp tool is required
-        if (plantHolder.Seed.Ligneous)
+        if (plantHolder.Seed?.Ligneous == true)
         {
             if (!_hands.TryGetActiveItem(args.User, out var activeItem) ||
                 !_botany.CanHarvest(plantHolder.Seed, activeItem))
@@ -105,7 +105,7 @@ public sealed class HarvestSystem : EntitySystem
                     var product = Spawn(productPrototype, Transform(plantUid).Coordinates);
 
                     // Apply mutations to product
-                    if (TryComp<ProduceComponent>(product, out var produce) && plantHolder.Seed != null)
+                    if (TryComp<ProduceComponent>(product, out var produce))
                     {
                         produce.Seed = plantHolder.Seed;
                         _botany.ProduceGrown(product, produce);

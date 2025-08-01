@@ -125,7 +125,7 @@ public sealed class PlantHolderSystem : EntitySystem
                     args.PushMarkup(Loc.GetString(
                         "plant-holder-component-something-already-growing-low-health-message",
                         ("healthState",
-                            Loc.GetString(component.Age > (TryComp<PlantTraitsComponent>(uid, out var traits) ? traits.Lifespan : 0)
+                            Loc.GetString(component.Age > (TryComp<PlantTraitsComponent>(uid, out var traits) ? traits?.Lifespan ?? 0 : 0)
                                 ? "plant-holder-component-plant-old-adjective"
                                 : "plant-holder-component-plant-unhealthy-adjective"))));
                 }
@@ -482,12 +482,12 @@ public sealed class PlantHolderSystem : EntitySystem
         if (!Resolve(uid, ref component))
             return;
 
-        PlantTraitsComponent? traits = null;
-        Resolve<PlantTraitsComponent>(uid, ref traits);
+        PlantTraitsComponent? plantTraits = null;
+        Resolve<PlantTraitsComponent>(uid, ref plantTraits);
 
         if (component.Seed != null)
         {
-            component.Health = MathHelper.Clamp(component.Health, 0, traits?.Endurance ?? 100f);
+            component.Health = MathHelper.Clamp(component.Health, 0, plantTraits?.Endurance ?? 100f);
         }
         else
         {
@@ -646,24 +646,24 @@ public sealed class PlantHolderSystem : EntitySystem
         if (component.Seed == null)
             return;
 
-        PlantTraitsComponent? traits = null;
-        Resolve<PlantTraitsComponent>(uid, ref traits);
+        PlantTraitsComponent? growthTraits = null;
+        Resolve<PlantTraitsComponent>(uid, ref growthTraits);
         
-        if (traits == null)
+        if (growthTraits == null)
             return;
 
         if (amount > 0)
         {
-            if (component.Age < traits.Maturation)
+            if (component.Age < growthTraits.Maturation)
                 component.Age += amount;
-            else if (!component.Harvest && traits.Yield <= 0f)
+            else if (!component.Harvest && growthTraits.Yield <= 0f)
                 component.LastProduce -= amount;
         }
         else
         {
-            if (component.Age < traits.Maturation)
+            if (component.Age < growthTraits.Maturation)
                 component.SkipAging++;
-            else if (!component.Harvest && traits.Yield <= 0f)
+            else if (!component.Harvest && growthTraits.Yield <= 0f)
                 component.LastProduce += amount;
         }
     }
@@ -733,14 +733,14 @@ public sealed class PlantHolderSystem : EntitySystem
         if (!TryComp<AppearanceComponent>(uid, out var app))
             return;
 
-        PlantTraitsComponent? traits = null;
-        Resolve<PlantTraitsComponent>(uid, ref traits);
+        PlantTraitsComponent? spriteTraits = null;
+        Resolve<PlantTraitsComponent>(uid, ref spriteTraits);
 
         if (component.Seed != null)
         {
             if (component.DrawWarnings)
             {
-                _appearance.SetData(uid, PlantHolderVisuals.HealthLight, component.Health <= (traits?.Endurance ?? 100f) / 2f);
+                _appearance.SetData(uid, PlantHolderVisuals.HealthLight, component.Health <= (spriteTraits?.Endurance ?? 100f) / 2f);
             }
 
             if (component.Dead)
@@ -755,10 +755,10 @@ public sealed class PlantHolderSystem : EntitySystem
             }
             else
             {
-                if (traits == null)
+                if (spriteTraits == null)
                     return;
                     
-                if (component.Age < traits.Maturation)
+                if (component.Age < spriteTraits.Maturation)
             {
                 var growthStage = GetCurrentGrowthStage((uid, component));
 
@@ -769,7 +769,7 @@ public sealed class PlantHolderSystem : EntitySystem
             else
             {
                 _appearance.SetData(uid, PlantHolderVisuals.PlantRsi, component.Seed.PlantRsi.ToString(), app);
-                _appearance.SetData(uid, PlantHolderVisuals.PlantState, $"stage-{traits.GrowthStages}", app);
+                _appearance.SetData(uid, PlantHolderVisuals.PlantState, $"stage-{spriteTraits.GrowthStages}", app);
                 }
             }
         }
