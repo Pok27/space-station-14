@@ -682,16 +682,21 @@
     - FoodEggplant
   mutationPrototypes:
     - eggy
-  harvestRepeat: Repeat
-  lifespan: 25
-  maturation: 6
-  production: 6
-  yield: 2
-  potency: 20
-  growthStages: 3
   growthComponents:
+    - !type:BasicGrowthComponent
+        waterConsumption: 0.5
+        nutrientConsumption: 0.75
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+    - !type:PlantTraitsComponent
+        lifespan: 25
+        maturation: 6
+        production: 6
+        yield: 2
+        potency: 20
+        growthStages: 3
+    - !type:HarvestComponent
+        harvestRepeat: Repeat
   chemicals:
     Nutriment:
       Min: 1
@@ -711,12 +716,21 @@
   packetPrototype: CabbageSeeds
   productPrototypes:
     - FoodCabbage
-  lifespan: 50
-  maturation: 7
-  production: 5
-  yield: 3
-  potency: 10
-  growthStages: 1
+  growthComponents:
+    - !type:BasicGrowthComponent
+        waterConsumption: 0.5
+        nutrientConsumption: 0.75
+    - !type:AtmosphericGrowthComponent
+        idealHeat: 298
+    - !type:PlantTraitsComponent
+        lifespan: 50
+        maturation: 7
+        production: 5
+        yield: 3
+        potency: 10
+        growthStages: 1
+    - !type:HarvestComponent
+        harvestRepeat: NoRepeat
   chemicals:
     Nutriment:
       Min: 1

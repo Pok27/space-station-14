@@ -70,12 +70,7 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
             }
         }
 
-        if (holder.Age > holder.Seed.Lifespan)
-        {
-            holder.Health -= _random.Next(3, 5) * PlantGrowthSystem.HydroponicsSpeedMultiplier;
-            if (holder.DrawWarnings)
-                holder.UpdateSpriteAfterUpdate = true;
-        }
+
         else if (holder.Age < 0) // Revert back to seed packet!
         {
             var packetSeed = holder.Seed;
@@ -86,26 +81,7 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
             _plantHolder.Update(uid, holder);
         }
 
-        // If enough time has passed since the plant was harvested, we're ready to harvest again!
-        if (holder.Seed.ProductPrototypes.Count > 0)
-        {
-            if (holder.Age > holder.Seed.Production)
-            {
-                if (holder.Age - holder.LastProduce > holder.Seed.Production && !holder.Harvest)
-                {
-                    holder.Harvest = true;
-                    holder.LastProduce = holder.Age;
-                }
-            }
-            else
-            {
-                if (holder.Harvest)
-                {
-                    holder.Harvest = false;
-                    holder.LastProduce = holder.Age;
-                }
-            }
-        }
+
 
         if (component.WaterConsumption > 0 && holder.WaterLevel > 0 && _random.Prob(0.75f))
         {

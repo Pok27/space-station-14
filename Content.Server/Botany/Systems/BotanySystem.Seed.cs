@@ -90,8 +90,15 @@ public sealed partial class BotanySystem : EntitySystem
         {
             var name = Loc.GetString(seed.DisplayName);
             args.PushMarkup(Loc.GetString($"seed-component-description", ("seedName", name)));
-                    args.PushMarkup(Loc.GetString($"seed-component-plant-yield-text", ("seedYield", seed.Yield)));
-        args.PushMarkup(Loc.GetString($"seed-component-plant-potency-text", ("seedPotency", seed.Potency)));
+                    var yield = 3;
+        var potency = 10f;
+        if (TryComp<PlantTraitsComponent>(uid, out var traits))
+        {
+            yield = traits.Yield;
+            potency = traits.Potency;
+        }
+        args.PushMarkup(Loc.GetString($"seed-component-plant-yield-text", ("seedYield", yield)));
+        args.PushMarkup(Loc.GetString($"seed-component-plant-potency-text", ("seedPotency", potency)));
         }
     }
 
@@ -133,7 +140,13 @@ public sealed partial class BotanySystem : EntitySystem
 
     public IEnumerable<EntityUid> Harvest(SeedData proto, EntityUid user, int yieldMod = 1)
     {
-        if (proto.ProductPrototypes.Count == 0 || proto.Yield <= 0)
+        var yield = 3;
+        if (TryComp<PlantTraitsComponent>(user, out var traits))
+        {
+            yield = traits.Yield;
+        }
+        
+        if (proto.ProductPrototypes.Count == 0 || yield <= 0)
         {
             _popupSystem.PopupCursor(Loc.GetString("botany-harvest-fail-message"), user, PopupType.Medium);
             return Enumerable.Empty<EntityUid>();
@@ -151,12 +164,18 @@ public sealed partial class BotanySystem : EntitySystem
     public IEnumerable<EntityUid> GenerateProduct(SeedData proto, EntityCoordinates position, int yieldMod = 1)
     {
         var totalYield = 0;
-        if (proto.Yield > -1)
+        var yield = 3;
+        if (TryComp<PlantTraitsComponent>(position.GetGridUid(EntityManager) ?? EntityUid.Invalid, out var traits))
+        {
+            yield = traits.Yield;
+        }
+        
+        if (yield > -1)
         {
             if (yieldMod < 0)
-                totalYield = proto.Yield;
+                totalYield = yield;
             else
-                totalYield = proto.Yield * yieldMod;
+                totalYield = yield * yieldMod;
 
             totalYield = Math.Max(1, totalYield);
         }
@@ -179,7 +198,12 @@ public sealed partial class BotanySystem : EntitySystem
             produce.Seed = proto.Clone();
             ProduceGrown(entity, produce);
 
-            _appearance.SetData(entity, ProduceVisuals.Potency, proto.Potency);
+            var potency = 10f;
+            if (TryComp<PlantTraitsComponent>(position.GetGridUid(EntityManager) ?? EntityUid.Invalid, out var traits))
+            {
+                potency = traits.Potency;
+            }
+            _appearance.SetData(entity, ProduceVisuals.Potency, potency);
 
             if (proto.Mysterious)
             {
