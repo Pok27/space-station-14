@@ -8,6 +8,10 @@ namespace Content.Server.Botany.Systems;
 /// </summary>
 public sealed class ToxinsSystem : PlantGrowthSystem
 {
+    // Default values for toxins
+    private const float DefaultToxinsTolerance = 4f;
+    private const float DefaultToxinUptakeDivisor = 10f;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -19,13 +23,10 @@ public sealed class ToxinsSystem : PlantGrowthSystem
         if (holder.Seed == null || holder.Dead)
             return;
 
-        // Get toxins component or use default values
-        ToxinsComponent? toxinsComponent = null;
-        TryComp<ToxinsComponent>(uid, out toxinsComponent);
+        TryComp<ToxinsComponent>(uid, out var toxinsComponent);
 
-        // Use component values or defaults
-        var toxinsTolerance = toxinsComponent?.ToxinsTolerance ?? 4f;
-        var toxinUptakeDivisor = toxinsComponent?.ToxinUptakeDivisor ?? 10f;
+        var toxinsTolerance = toxinsComponent?.ToxinsTolerance ?? DefaultToxinsTolerance;
+        var toxinUptakeDivisor = toxinsComponent?.ToxinUptakeDivisor ?? DefaultToxinUptakeDivisor;
 
         if (holder.Toxins > 0)
         {
