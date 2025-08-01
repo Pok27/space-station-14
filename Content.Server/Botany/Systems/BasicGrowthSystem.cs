@@ -70,8 +70,7 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
             }
         }
 
-        // Check if plant is too old
-        if (TryComp<PlantTraitsComponent>(uid, out var traits) && holder.Age > traits.Lifespan)
+        if (holder.Age > holder.Seed.Lifespan)
         {
             holder.Health -= _random.Next(3, 5) * PlantGrowthSystem.HydroponicsSpeedMultiplier;
             if (holder.DrawWarnings)
@@ -88,11 +87,11 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
         }
 
         // If enough time has passed since the plant was harvested, we're ready to harvest again!
-        if (holder.Seed.ProductPrototypes.Count > 0 && TryComp<PlantTraitsComponent>(uid, out var traits))
+        if (holder.Seed.ProductPrototypes.Count > 0)
         {
-            if (holder.Age > traits.Production)
+            if (holder.Age > holder.Seed.Production)
             {
-                if (holder.Age - holder.LastProduce > traits.Production && !holder.Harvest)
+                if (holder.Age - holder.LastProduce > holder.Seed.Production && !holder.Harvest)
                 {
                     holder.Harvest = true;
                     holder.LastProduce = holder.Age;
