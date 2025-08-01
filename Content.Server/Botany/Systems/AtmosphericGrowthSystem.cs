@@ -12,24 +12,19 @@ public sealed class AtmosphericGrowthSystem : PlantGrowthSystem
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeLocalEvent<PlantHolderComponent, OnPlantGrowEvent>(OnPlantGrow);
+        SubscribeLocalEvent<AtmosphericGrowthComponent, OnPlantGrowEvent>(OnPlantGrow);
     }
 
-    private void OnPlantGrow(EntityUid uid, PlantHolderComponent holder, OnPlantGrowEvent args)
+    private void OnPlantGrow(EntityUid uid, AtmosphericGrowthComponent component, OnPlantGrowEvent args)
     {
-        if (holder.Seed == null || holder.Dead)
+        PlantHolderComponent? holder = null;
+        Resolve<PlantHolderComponent>(uid, ref holder);
+
+        if (holder == null || holder.Seed == null || holder.Dead)
             return;
 
-        TryComp<AtmosphericGrowthComponent>(uid, out var atmosphericComponent);
-
         var environment = _atmosphere.GetContainingMixture(uid, true, true) ?? GasMixture.SpaceGas;
-        
-        var idealHeat = atmosphericComponent?.IdealHeat ?? 293f;
-        var heatTolerance = atmosphericComponent?.HeatTolerance ?? 10f;
-        var lowPressureTolerance = atmosphericComponent?.LowPressureTolerance ?? 81f;
-        var highPressureTolerance = atmosphericComponent?.HighPressureTolerance ?? 121f;
-
-        if (MathF.Abs(environment.Temperature - idealHeat) > heatTolerance)
+        if (MathF.Abs(environment.Temperature - component.IdealHeat) > component.HeatTolerance)
         {
             holder.Health -= _random.Next(1, 3);
             holder.ImproperHeat = true;
@@ -42,7 +37,7 @@ public sealed class AtmosphericGrowthSystem : PlantGrowthSystem
         }
 
         var pressure = environment.Pressure;
-        if (pressure < lowPressureTolerance || pressure > highPressureTolerance)
+        if (pressure < component.LowPressureTolerance || pressure > component.HighPressureTolerance)
         {
             holder.Health -= _random.Next(1, 3);
             holder.ImproperPressure = true;

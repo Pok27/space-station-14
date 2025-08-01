@@ -204,8 +204,12 @@ public sealed class PlantHolderSystem : EntitySystem
                 foreach(var g in existingGrowthComponents)
                     EntityManager.RemoveComponent(uid, g);
 
+                // Add components from seed
                 foreach(var g in seed.GrowthComponents)
                     EntityManager.AddComponent(uid, _copier.CreateCopy(g, notNullableOverride: true), overwrite: true);
+
+                // Add default growth components if not present
+                EnsureDefaultGrowthComponents(uid, seed);
 
                 if (TryComp<PaperLabelComponent>(args.Used, out var paperLabel))
                 {
@@ -768,5 +772,32 @@ public sealed class PlantHolderSystem : EntitySystem
         component.SkipAging++; // We're forcing an update cycle, so one age hasn't passed.
         component.ForceUpdate = true;
         Update(uid, component);
+    }
+
+    /// <summary>
+    /// Ensures that all default growth components are added to the plant if they're not already present.
+    /// </summary>
+    private void EnsureDefaultGrowthComponents(EntityUid uid, SeedData seed)
+    {
+        // Add AtmosphericGrowthComponent if not present
+        if (!HasComp<AtmosphericGrowthComponent>(uid))
+        {
+            var atmosphericComponent = new AtmosphericGrowthComponent();
+            EntityManager.AddComponent(uid, atmosphericComponent);
+        }
+
+        // Add ToxinsComponent if not present
+        if (!HasComp<ToxinsComponent>(uid))
+        {
+            var toxinsComponent = new ToxinsComponent();
+            EntityManager.AddComponent(uid, toxinsComponent);
+        }
+
+        // Add WeedPestGrowthComponent if not present
+        if (!HasComp<WeedPestGrowthComponent>(uid))
+        {
+            var weedPestComponent = new WeedPestGrowthComponent();
+            EntityManager.AddComponent(uid, weedPestComponent);
+        }
     }
 }

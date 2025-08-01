@@ -11,23 +11,21 @@ public sealed class ToxinsSystem : PlantGrowthSystem
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeLocalEvent<PlantHolderComponent, OnPlantGrowEvent>(OnPlantGrow);
+        SubscribeLocalEvent<ToxinsComponent, OnPlantGrowEvent>(OnPlantGrow);
     }
 
-    private void OnPlantGrow(EntityUid uid, PlantHolderComponent holder, OnPlantGrowEvent args)
+    private void OnPlantGrow(EntityUid uid, ToxinsComponent component, OnPlantGrowEvent args)
     {
-        if (holder.Seed == null || holder.Dead)
+        PlantHolderComponent? holder = null;
+        Resolve<PlantHolderComponent>(uid, ref holder);
+
+        if (holder == null || holder.Seed == null || holder.Dead)
             return;
-
-        TryComp<ToxinsComponent>(uid, out var toxinsComponent);
-
-        var toxinsTolerance = toxinsComponent?.ToxinsTolerance ?? 4f;
-        var toxinUptakeDivisor = toxinsComponent?.ToxinUptakeDivisor ?? 10f;
 
         if (holder.Toxins > 0)
         {
-            var toxinUptake = MathF.Max(1, MathF.Round(holder.Toxins / toxinUptakeDivisor));
-            if (holder.Toxins > toxinsTolerance)
+            var toxinUptake = MathF.Max(1, MathF.Round(holder.Toxins / component.ToxinUptakeDivisor));
+            if (holder.Toxins > component.ToxinsTolerance)
             {
                 holder.Health -= toxinUptake;
             }
