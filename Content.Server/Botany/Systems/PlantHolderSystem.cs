@@ -794,12 +794,38 @@ public sealed class PlantHolderSystem : EntitySystem
             var basicComponent = new BasicGrowthComponent();
             EntityManager.AddComponent(uid, basicComponent);
         }
+        else
+        {
+            // If component exists, ensure it has default values
+            if (TryComp<BasicGrowthComponent>(uid, out var existingBasic))
+            {
+                EnsureBasicGrowthDefaultValues(existingBasic);
+            }
+        }
 
         // Ensure AtmosphericGrowthComponent is present for proper temperature and pressure handling
         if (!EntityManager.HasComponent<AtmosphericGrowthComponent>(uid))
         {
             var atmosphericComponent = new AtmosphericGrowthComponent();
             EntityManager.AddComponent(uid, atmosphericComponent);
+        }
+    }
+
+    /// <summary>
+    /// Ensures that BasicGrowthComponent has default values if not specified in YAML.
+    /// </summary>
+    private void EnsureBasicGrowthDefaultValues(BasicGrowthComponent component)
+    {
+        // If WaterConsumption is 0 (uninitialized), set it to default
+        if (component.WaterConsumption == 0f)
+        {
+            component.WaterConsumption = 0.5f;
+        }
+
+        // If NutrientConsumption is 0 (uninitialized), set it to default
+        if (component.NutrientConsumption == 0f)
+        {
+            component.NutrientConsumption = 0.75f;
         }
     }
 }

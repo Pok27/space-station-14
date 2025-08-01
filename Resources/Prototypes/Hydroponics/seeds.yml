@@ -2236,3 +2236,57 @@
       Min: 1
       Max: 2
       PotencyDivisor: 40
+
+- type: seed
+  id: testDefaultValues
+  name: seeds-test-default-values-name
+  noun: seeds-noun-seeds
+  displayName: seeds-test-default-values-display-name
+  plantRsi: Objects/Specific/Hydroponics/wheat.rsi
+  packetPrototype: WheatSeeds
+  productPrototypes:
+    - FoodWheat
+  lifespan: 25
+  maturation: 6
+  production: 1
+  yield: 4
+  potency: 10
+  growthStages: 4
+  idealLight: 6
+  growthComponents:
+    - !type:BasicGrowthComponent
+    - !type:AtmosphericGrowthComponent
+  chemicals:
+    Nutriment:
+      Min: 1
+      Max: 5
+      PotencyDivisor: 6
+
+- type: seed
+  id: testCustomValues
+  name: seeds-test-custom-values-name
+  noun: seeds-noun-seeds
+  displayName: seeds-test-custom-values-display-name
+  plantRsi: Objects/Specific/Hydroponics/wheat.rsi
+  packetPrototype: WheatSeeds
+  productPrototypes:
+    - FoodWheat
+  lifespan: 25
+  maturation: 6
+  production: 1
+  yield: 4
+  potency: 10
+  growthStages: 4
+  idealLight: 6
+  growthComponents:
+    - !type:BasicGrowthComponent
+        waterConsumption: 0.8
+        nutrientConsumption: 0.3
+    - !type:AtmosphericGrowthComponent
+        idealHeat: 298
+        heatTolerance: 15
+  chemicals:
+    Nutriment:
+      Min: 1
+      Max: 5
+      PotencyDivisor: 6
