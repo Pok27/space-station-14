@@ -342,17 +342,10 @@ public partial class SeedData
     /// </summary>
     public void EnsureEssentialGrowthComponents()
     {
-        // Ensure BasicGrowthComponent is present for water and nutrient consumption
-        if (!GrowthComponents.Any(c => c is BasicGrowthComponent))
-        {
-            var basicComponent = DefaultGrowthComponents.CreateDefaultBasicGrowth();
-            GrowthComponents.Add(basicComponent);
-        }
-
         // Ensure AtmosphericGrowthComponent is present for proper temperature and pressure handling
         if (!GrowthComponents.Any(c => c is AtmosphericGrowthComponent))
         {
-            var atmosphericComponent = DefaultGrowthComponents.CreateDefaultAtmosphericGrowth();
+            var atmosphericComponent = new AtmosphericGrowthComponent();
             GrowthComponents.Add(atmosphericComponent);
         }
     }
