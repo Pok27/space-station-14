@@ -253,8 +253,13 @@ public sealed class EntityEffectSystem : EntitySystem
         if (plantHolderComp.Seed == null)
             return;
 
-        _plantHolder.EnsureUniqueSeed(args.Args.TargetEntity, plantHolderComp);
-        plantHolderComp.Seed.Potency = Math.Max(plantHolderComp.Seed.Potency + args.Effect.Amount, 1);
+        PlantTraitsComponent? traits = null;
+        Resolve<PlantTraitsComponent>(args.Args.TargetEntity, ref traits);
+        
+        if (traits == null)
+            return;
+
+        traits.Potency = Math.Max(traits.Potency + args.Effect.Amount, 1);
     }
 
     private void OnExecutePlantAdjustToxins(ref ExecuteEntityEffectEvent<PlantAdjustToxins> args)
@@ -365,35 +370,72 @@ public sealed class EntityEffectSystem : EntitySystem
         if (plantHolderComp.Seed == null)
             return;
 
-        var member = plantHolderComp.Seed.GetType().GetField(args.Effect.TargetValue);
+        // Try to find the field in PlantTraitsComponent first
+        PlantTraitsComponent? traits = null;
+        Resolve<PlantTraitsComponent>(args.Args.TargetEntity, ref traits);
+        
+        if (traits != null)
+        {
+            var member = traits.GetType().GetField(args.Effect.TargetValue);
+            if (member != null)
+            {
+                var currentValObj = member.GetValue(traits);
+                if (currentValObj != null)
+                {
+                    if (member.FieldType == typeof(float))
+                    {
+                        var floatVal = (float)currentValObj;
+                        MutateFloat(ref floatVal, args.Effect.MinValue, args.Effect.MaxValue, args.Effect.Steps);
+                        member.SetValue(traits, floatVal);
+                        return;
+                    }
+                    else if (member.FieldType == typeof(int))
+                    {
+                        var intVal = (int)currentValObj;
+                        MutateInt(ref intVal, (int)args.Effect.MinValue, (int)args.Effect.MaxValue, args.Effect.Steps);
+                        member.SetValue(traits, intVal);
+                        return;
+                    }
+                    else if (member.FieldType == typeof(bool))
+                    {
+                        var boolVal = (bool)currentValObj;
+                        boolVal = !boolVal;
+                        member.SetValue(traits, boolVal);
+                        return;
+                    }
+                }
+            }
+        }
 
-        if (member == null)
+        // Fallback to SeedData for fields that haven't been moved to components yet
+        var seedMember = plantHolderComp.Seed.GetType().GetField(args.Effect.TargetValue);
+        if (seedMember == null)
         {
             _mutation.Log.Error(args.Effect.GetType().Name + " Error: Member " + args.Effect.TargetValue + " not found on " + plantHolderComp.Seed.GetType().Name + ". Did you misspell it?");
             return;
         }
 
-        var currentValObj = member.GetValue(plantHolderComp.Seed);
-        if (currentValObj == null)
+        var currentSeedValObj = seedMember.GetValue(plantHolderComp.Seed);
+        if (currentSeedValObj == null)
             return;
 
-        if (member.FieldType == typeof(float))
+        if (seedMember.FieldType == typeof(float))
         {
-            var floatVal = (float)currentValObj;
+            var floatVal = (float)currentSeedValObj;
             MutateFloat(ref floatVal, args.Effect.MinValue, args.Effect.MaxValue, args.Effect.Steps);
-            member.SetValue(plantHolderComp.Seed, floatVal);
+            seedMember.SetValue(plantHolderComp.Seed, floatVal);
         }
-        else if (member.FieldType == typeof(int))
+        else if (seedMember.FieldType == typeof(int))
         {
-            var intVal = (int)currentValObj;
+            var intVal = (int)currentSeedValObj;
             MutateInt(ref intVal, (int)args.Effect.MinValue, (int)args.Effect.MaxValue, args.Effect.Steps);
-            member.SetValue(plantHolderComp.Seed, intVal);
+            seedMember.SetValue(plantHolderComp.Seed, intVal);
         }
-        else if (member.FieldType == typeof(bool))
+        else if (seedMember.FieldType == typeof(bool))
         {
-            var boolVal = (bool)currentValObj;
+            var boolVal = (bool)currentSeedValObj;
             boolVal = !boolVal;
-            member.SetValue(plantHolderComp.Seed, boolVal);
+            seedMember.SetValue(plantHolderComp.Seed, boolVal);
         }
     }
 
@@ -402,14 +444,21 @@ public sealed class EntityEffectSystem : EntitySystem
         if (!CanMetabolizePlant(args.Args.TargetEntity, out var plantHolderComp))
             return;
 
-        var deviation = 0;
         var seed = plantHolderComp.Seed;
         if (seed == null)
             return;
-        if (plantHolderComp.Age > seed.Maturation)
-            deviation = (int) Math.Max(seed.Maturation - 1, plantHolderComp.Age - _random.Next(7, 10));
+
+        PlantTraitsComponent? traits = null;
+        Resolve<PlantTraitsComponent>(args.Args.TargetEntity, ref traits);
+        
+        if (traits == null)
+            return;
+
+        var deviation = 0;
+        if (plantHolderComp.Age > traits.Maturation)
+            deviation = (int) Math.Max(traits.Maturation - 1, plantHolderComp.Age - _random.Next(7, 10));
         else
-            deviation = (int) (seed.Maturation / seed.GrowthStages);
+            deviation = (int) (traits.Maturation / traits.GrowthStages);
         plantHolderComp.Age -= deviation;
         plantHolderComp.LastProduce = plantHolderComp.Age;
         plantHolderComp.SkipAging++;
@@ -438,16 +487,20 @@ public sealed class EntityEffectSystem : EntitySystem
         if (!CanMetabolizePlant(args.Args.TargetEntity, out var plantHolderComp, mustHaveMutableSeed: true))
             return;
 
+        PlantTraitsComponent? traits = null;
+        Resolve<PlantTraitsComponent>(args.Args.TargetEntity, ref traits);
+        
+        if (traits == null)
+            return;
+
         if (_random.Prob(0.1f))
         {
-            _plantHolder.EnsureUniqueSeed(args.Args.TargetEntity, plantHolderComp);
-            plantHolderComp.Seed!.Lifespan++;
+            traits.Lifespan++;
         }
 
         if (_random.Prob(0.1f))
         {
-            _plantHolder.EnsureUniqueSeed(args.Args.TargetEntity, plantHolderComp);
-            plantHolderComp.Seed!.Endurance++;
+            traits.Endurance++;
         }
     }
 
