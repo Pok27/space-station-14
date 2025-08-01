@@ -1574,11 +1574,6 @@
     - !type:BasicGrowthComponent
         waterConsumption: 0.6
         nutrientConsumption: 0.5
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
-        heatTolerance: 10
-        lowPressureTolerance: 81
-        highPressureTolerance: 121
   chemicals:
     Amatoxin:
       Min: 1
@@ -1612,11 +1607,6 @@
     - !type:BasicGrowthComponent
         waterConsumption: 0.5
         nutrientConsumption: 0.75
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
-        heatTolerance: 10
-        lowPressureTolerance: 81
-        highPressureTolerance: 121
   chemicals:
     Nutriment:
       Min: 1
@@ -1647,11 +1637,6 @@
     - !type:BasicGrowthComponent
         waterConsumption: 0.5
         nutrientConsumption: 0.75
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
-        heatTolerance: 10
-        lowPressureTolerance: 81
-        highPressureTolerance: 121
   chemicals:
     Nutriment:
       Min: 1
@@ -1682,11 +1667,6 @@
     - !type:BasicGrowthComponent
         waterConsumption: 0.5
         nutrientConsumption: 0.75
-    - !type:AtmosphericGrowthComponent
-        idealHeat: 298
-        heatTolerance: 10
-        lowPressureTolerance: 81
-        highPressureTolerance: 121
   chemicals:
     Nutriment:
       Min: 1

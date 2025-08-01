@@ -788,17 +788,10 @@ public sealed class PlantHolderSystem : EntitySystem
     /// </summary>
     private void EnsureEssentialGrowthComponents(EntityUid uid, SeedData seed)
     {
-        // Ensure BasicGrowthComponent is present for water and nutrient consumption
-        if (!EntityManager.HasComponent<BasicGrowthComponent>(uid))
-        {
-            var basicComponent = DefaultGrowthComponents.CreateDefaultBasicGrowth();
-            EntityManager.AddComponent(uid, basicComponent);
-        }
-
         // Ensure AtmosphericGrowthComponent is present for proper temperature and pressure handling
         if (!EntityManager.HasComponent<AtmosphericGrowthComponent>(uid))
         {
-            var atmosphericComponent = DefaultGrowthComponents.CreateDefaultAtmosphericGrowth();
+            var atmosphericComponent = new AtmosphericGrowthComponent();
             EntityManager.AddComponent(uid, atmosphericComponent);
         }
     }

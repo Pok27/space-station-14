@@ -82,17 +82,10 @@ public sealed class MutationSystem : EntitySystem
     /// </summary>
     private void EnsureEssentialGrowthComponents(EntityUid plantHolder, SeedData seed)
     {
-        // Ensure BasicGrowthComponent is present for water and nutrient consumption
-        if (!EntityManager.HasComponent<BasicGrowthComponent>(plantHolder))
-        {
-            var basicComponent = DefaultGrowthComponents.CreateDefaultBasicGrowth();
-            EntityManager.AddComponent(plantHolder, basicComponent);
-        }
-
         // Ensure AtmosphericGrowthComponent is present for proper temperature and pressure handling
         if (!EntityManager.HasComponent<AtmosphericGrowthComponent>(plantHolder))
         {
-            var atmosphericComponent = DefaultGrowthComponents.CreateDefaultAtmosphericGrowth();
+            var atmosphericComponent = new AtmosphericGrowthComponent();
             EntityManager.AddComponent(plantHolder, atmosphericComponent);
         }
     }
