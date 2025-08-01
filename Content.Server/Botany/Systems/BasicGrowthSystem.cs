@@ -12,10 +12,6 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
     [Dependency] private readonly BotanySystem _botany = default!;
     [Dependency] private readonly PlantHolderSystem _plantHolder = default!;
 
-    // Conditions for OnPlantGrow
-    private bool _shouldSetWaterConsumption = false;
-    private bool _shouldSetNutrientConsumption = false;
-
     public override void Initialize()
     {
         base.Initialize();
@@ -32,10 +28,6 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
         var swabComp = swab.components.Find(c => c.GetType() == typeof(BasicGrowthComponent));
         if (swabComp == null)
         {
-            // Set conditions for OnPlantGrow
-            _shouldSetWaterConsumption = true;
-            _shouldSetNutrientConsumption = true;
-            
             swab.components.Add(new BasicGrowthComponent() {
                 WaterConsumption = component.WaterConsumption,
                 NutrientConsumption = component.NutrientConsumption
@@ -44,16 +36,8 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
         else
         {
             BasicGrowthComponent typedComp = (BasicGrowthComponent)swabComp;
-            if (_random.Prob(0.5f)) 
-            {
-                typedComp.WaterConsumption = component.WaterConsumption;
-                _shouldSetWaterConsumption = true;
-            }
-            if (_random.Prob(0.5f)) 
-            {
-                typedComp.NutrientConsumption = component.NutrientConsumption;
-                _shouldSetNutrientConsumption = true;
-            }
+            if (_random.Prob(0.5f)) typedComp.WaterConsumption = component.WaterConsumption;
+            if (_random.Prob(0.5f)) typedComp.NutrientConsumption = component.NutrientConsumption;
         }
     }
 
@@ -139,9 +123,7 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
                 holder.UpdateSpriteAfterUpdate = true;
         }
 
-        // Set component values based on conditions from OnSwab
-        if (_shouldSetWaterConsumption) component.WaterConsumption = component.WaterConsumption;
-        if (_shouldSetNutrientConsumption) component.NutrientConsumption = component.NutrientConsumption;
+
 
         var healthMod = _random.Next(1, 3) * PlantGrowthSystem.HydroponicsSpeedMultiplier;
         if (holder.SkipAging < 10)
