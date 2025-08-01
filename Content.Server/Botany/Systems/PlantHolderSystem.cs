@@ -87,16 +87,10 @@ public sealed class PlantHolderSystem : EntitySystem
         if (component.Seed == null)
             return 0;
 
-        var growthStages = 6;
-        var maturation = 6;
-        
-        if (TryComp<PlantTraitsComponent>(uid, out var traits))
-        {
-            growthStages = traits.GrowthStages;
-            maturation = traits.Maturation;
-        }
-        
-        var result = Math.Max(1, (int)(component.Age * growthStages / maturation));
+        if (!TryComp<PlantTraitsComponent>(uid, out var traits))
+            return 1;
+            
+        var result = Math.Max(1, (int)(component.Age * traits.GrowthStages / traits.Maturation));
         return result;
     }
 
@@ -125,7 +119,7 @@ public sealed class PlantHolderSystem : EntitySystem
                     args.PushMarkup(Loc.GetString(
                         "plant-holder-component-something-already-growing-low-health-message",
                         ("healthState",
-                            Loc.GetString(component.Age > (TryComp<PlantTraitsComponent>(uid, out var traits) ? traits.Lifespan : 25)
+                            Loc.GetString(component.Age > (TryComp<PlantTraitsComponent>(uid, out var traits) ? traits.Lifespan : 0)
                                 ? "plant-holder-component-plant-old-adjective"
                                 : "plant-holder-component-plant-unhealthy-adjective"))));
                 }
@@ -216,8 +210,7 @@ public sealed class PlantHolderSystem : EntitySystem
                 foreach(var g in seed.GrowthComponents)
                     EntityManager.AddComponent(uid, _copier.CreateCopy(g, notNullableOverride: true), overwrite: true);
 
-                // Trigger the PlantGrowthComponentSystem to create default components if needed
-                RaiseLocalEvent(uid, new ComponentStartup());
+
 
                 if (TryComp<PaperLabelComponent>(args.Used, out var paperLabel))
                 {
@@ -371,12 +364,10 @@ public sealed class PlantHolderSystem : EntitySystem
             var seed = produce.Seed;
             if (seed != null)
             {
-                var potency = 10f;
-        if (TryComp<PlantTraitsComponent>(uid, out var traits))
-        {
-            potency = traits.Potency;
-        }
-        var nutrientBonus = potency / 2.5f;
+                if (!TryComp<PlantTraitsComponent>(uid, out var traits))
+            return;
+            
+        var nutrientBonus = traits.Potency / 2.5f;
                 AdjustNutrient(uid, nutrientBonus, component);
             }
             QueueDel(args.Used);
@@ -734,15 +725,10 @@ public sealed class PlantHolderSystem : EntitySystem
                 _appearance.SetData(uid, PlantHolderVisuals.PlantRsi, component.Seed.PlantRsi.ToString(), app);
                 _appearance.SetData(uid, PlantHolderVisuals.PlantState, "harvest", app);
             }
-            else             var maturation = 6;
-            var growthStages = 6;
-            if (TryComp<PlantTraitsComponent>(uid, out var traits))
-            {
-                maturation = traits.Maturation;
-                growthStages = traits.GrowthStages;
-            }
-            
-            if (component.Age < maturation)
+            else             if (!TryComp<PlantTraitsComponent>(uid, out var traits))
+                return;
+                
+            if (component.Age < traits.Maturation)
             {
                 var growthStage = GetCurrentGrowthStage((uid, component));
 
@@ -753,7 +739,7 @@ public sealed class PlantHolderSystem : EntitySystem
             else
             {
                 _appearance.SetData(uid, PlantHolderVisuals.PlantRsi, component.Seed.PlantRsi.ToString(), app);
-                _appearance.SetData(uid, PlantHolderVisuals.PlantState, $"stage-{growthStages}", app);
+                _appearance.SetData(uid, PlantHolderVisuals.PlantState, $"stage-{traits.GrowthStages}", app);
             }
         }
         else

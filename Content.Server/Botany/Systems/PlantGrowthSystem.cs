@@ -78,26 +78,21 @@ public abstract class PlantGrowthSystem : EntitySystem
         if (component == null || component.Seed == null)
             return;
 
-        var maturation = 6;
-        var yield = 3;
-        if (TryComp<PlantTraitsComponent>(uid, out var traits))
-        {
-            maturation = traits.Maturation;
-            yield = traits.Yield;
-        }
-        
+        if (!TryComp<PlantTraitsComponent>(uid, out var traits))
+            return;
+            
         if (amount > 0)
         {
-            if (component.Age < maturation)
+            if (component.Age < traits.Maturation)
                 component.Age += amount;
-            else if (!component.Harvest && yield > 0f)
+            else if (!component.Harvest && traits.Yield > 0f)
                 component.LastProduce -= amount;
         }
         else
         {
-            if (component.Age < maturation)
+            if (component.Age < traits.Maturation)
                 component.SkipAging++;
-            else if (!component.Harvest && yield > 0f)
+            else if (!component.Harvest && traits.Yield > 0f)
                 component.LastProduce += amount;
         }
     }

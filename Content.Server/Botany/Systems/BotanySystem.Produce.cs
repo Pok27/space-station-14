@@ -31,14 +31,11 @@ public sealed partial class BotanySystem
         foreach (var (chem, quantity) in seed.Chemicals)
         {
             var amount = FixedPoint2.New(quantity.Min);
-                    var potency = 10f;
-        if (TryComp<PlantTraitsComponent>(uid, out var traits))
-        {
-            potency = traits.Potency;
-        }
-        
-        if (quantity.PotencyDivisor > 0 && potency > 0)
-            amount += FixedPoint2.New(potency / quantity.PotencyDivisor);
+                    if (!TryComp<PlantTraitsComponent>(uid, out var traits))
+            return;
+            
+        if (quantity.PotencyDivisor > 0 && traits.Potency > 0)
+            amount += FixedPoint2.New(traits.Potency / quantity.PotencyDivisor);
             amount = FixedPoint2.New(MathHelper.Clamp(amount.Float(), quantity.Min, quantity.Max));
             solutionContainer.MaxVolume += amount;
             solutionContainer.AddReagent(chem, amount);
