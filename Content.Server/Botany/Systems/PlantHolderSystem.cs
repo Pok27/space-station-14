@@ -87,7 +87,13 @@ public sealed class PlantHolderSystem : EntitySystem
         if (component.Seed == null)
             return 0;
 
-        var result = Math.Max(1, (int)(component.Age * component.Seed.GrowthStages / component.Seed.Maturation));
+        PlantTraitsComponent? traits = null;
+        Resolve<PlantTraitsComponent>(uid, ref traits);
+
+        if (traits == null)
+            return 1;
+
+        var result = Math.Max(1, (int)(component.Age * traits.GrowthStages / traits.Maturation));
         return result;
     }
 
@@ -111,12 +117,18 @@ public sealed class PlantHolderSystem : EntitySystem
                     ("seedName", displayName),
                     ("toBeForm", displayName.EndsWith('s') ? "are" : "is")));
 
-                if (component.Health <= component.Seed.Endurance / 2)
+                PlantTraitsComponent? traits = null;
+                Resolve<PlantTraitsComponent>(entity, ref traits);
+
+                if (traits == null)
+                    return;
+
+                if (component.Health <= traits.Endurance / 2)
                 {
                     args.PushMarkup(Loc.GetString(
                         "plant-holder-component-something-already-growing-low-health-message",
                         ("healthState",
-                            Loc.GetString(component.Age > component.Seed.Lifespan
+                            Loc.GetString(component.Age > traits.Lifespan
                                 ? "plant-holder-component-plant-old-adjective"
                                 : "plant-holder-component-plant-unhealthy-adjective"))));
                 }
@@ -172,6 +184,9 @@ public sealed class PlantHolderSystem : EntitySystem
     {
         var (uid, component) = entity;
 
+        PlantTraitsComponent? traits = null;
+        Resolve<PlantTraitsComponent>(uid, ref traits);
+
         if (TryComp(args.Used, out SeedComponent? seeds))
         {
             if (component.Seed == null)
@@ -193,18 +208,18 @@ public sealed class PlantHolderSystem : EntitySystem
                 {
                     component.Health = seeds.HealthOverride.Value;
                 }
-                else
+                else if (traits != null)
                 {
-                    component.Health = component.Seed.Endurance;
+                    component.Health = traits.Endurance;
                 }
                 component.LastCycle = _gameTiming.CurTime;
 
                 // Ensure no existing growth components before adding new ones
                 var existingGrowthComponents = EntityManager.GetComponents<PlantGrowthComponent>(uid).ToList();
-                foreach(var g in existingGrowthComponents)
+                foreach (var g in existingGrowthComponents)
                     EntityManager.RemoveComponent(uid, g);
 
-                foreach(var g in seed.GrowthComponents)
+                foreach (var g in seed.GrowthComponents)
                     EntityManager.AddComponent(uid, _copier.CreateCopy(g, notNullableOverride: true), overwrite: true);
 
                 EnsureDefaultGrowthComponents(uid);
@@ -359,9 +374,9 @@ public sealed class PlantHolderSystem : EntitySystem
                 }
             }
             var seed = produce.Seed;
-            if (seed != null)
+            if (seed != null && traits != null)
             {
-                var nutrientBonus = seed.Potency / 2.5f;
+                var nutrientBonus = traits.Potency / 2.5f;
                 AdjustNutrient(uid, nutrientBonus, component);
             }
             QueueDel(args.Used);
@@ -464,8 +479,11 @@ public sealed class PlantHolderSystem : EntitySystem
         if (!Resolve(uid, ref component))
             return;
 
-        if (component.Seed != null)
-            component.Health = MathHelper.Clamp(component.Health, 0, component.Seed.Endurance);
+        PlantTraitsComponent? traits = null;
+        Resolve<PlantTraitsComponent>(uid, ref traits);
+
+        if (component.Seed != null && traits != null)
+            component.Health = MathHelper.Clamp(component.Health, 0, traits.Endurance);
         else
         {
             component.Health = 0f;
@@ -554,7 +572,9 @@ public sealed class PlantHolderSystem : EntitySystem
 
         DoScream(uid, component.Seed);
 
-        if (component.Seed?.HarvestRepeat == HarvestType.NoRepeat)
+        HarvestComponent? harvest = null;
+        Resolve<HarvestComponent>(uid, ref harvest);
+        if (harvest?.HarvestRepeat == HarvestType.NoRepeat)
             RemovePlant(uid, component);
 
         CheckLevelSanity(uid, component);
@@ -621,18 +641,24 @@ public sealed class PlantHolderSystem : EntitySystem
         if (component.Seed == null)
             return;
 
+        PlantTraitsComponent? growthTraits = null;
+        Resolve<PlantTraitsComponent>(uid, ref growthTraits);
+
+        if (growthTraits == null)
+            return;
+
         if (amount > 0)
         {
-            if (component.Age < component.Seed.Maturation)
+            if (component.Age < growthTraits.Maturation)
                 component.Age += amount;
-            else if (!component.Harvest && component.Seed.Yield <= 0f)
+            else if (!component.Harvest && growthTraits.Yield <= 0f)
                 component.LastProduce -= amount;
         }
         else
         {
-            if (component.Age < component.Seed.Maturation)
+            if (component.Age < growthTraits.Maturation)
                 component.SkipAging++;
-            else if (!component.Harvest && component.Seed.Yield <= 0f)
+            else if (!component.Harvest && growthTraits.Yield <= 0f)
                 component.LastProduce += amount;
         }
     }
@@ -702,11 +728,14 @@ public sealed class PlantHolderSystem : EntitySystem
         if (!TryComp<AppearanceComponent>(uid, out var app))
             return;
 
+        PlantTraitsComponent? spriteTraits = null;
+        Resolve<PlantTraitsComponent>(uid, ref spriteTraits);
+
         if (component.Seed != null)
         {
             if (component.DrawWarnings)
             {
-                _appearance.SetData(uid, PlantHolderVisuals.HealthLight, component.Health <= component.Seed.Endurance / 2f);
+                _appearance.SetData(uid, PlantHolderVisuals.HealthLight, component.Health <= (spriteTraits?.Endurance ?? 100f) / 2f);
             }
 
             if (component.Dead)
@@ -719,7 +748,12 @@ public sealed class PlantHolderSystem : EntitySystem
                 _appearance.SetData(uid, PlantHolderVisuals.PlantRsi, component.Seed.PlantRsi.ToString(), app);
                 _appearance.SetData(uid, PlantHolderVisuals.PlantState, "harvest", app);
             }
-            else if (component.Age < component.Seed.Maturation)
+            else
+            {
+                if (spriteTraits == null)
+                    return;
+
+                if (component.Age < spriteTraits.Maturation)
             {
                 var growthStage = GetCurrentGrowthStage((uid, component));
 
@@ -730,7 +764,8 @@ public sealed class PlantHolderSystem : EntitySystem
             else
             {
                 _appearance.SetData(uid, PlantHolderVisuals.PlantRsi, component.Seed.PlantRsi.ToString(), app);
-                _appearance.SetData(uid, PlantHolderVisuals.PlantState, $"stage-{component.Seed.GrowthStages}", app);
+                _appearance.SetData(uid, PlantHolderVisuals.PlantState, $"stage-{spriteTraits.GrowthStages}", app);
+                }
             }
         }
         else
@@ -780,6 +815,7 @@ public sealed class PlantHolderSystem : EntitySystem
     {
         EnsureComp<PlantComponent>(uid);
         EnsureComp<BasicGrowthComponent>(uid);
+        EnsureComp<PlantTraitsComponent>(uid);
         EnsureComp<AtmosphericGrowthComponent>(uid);
         EnsureComp<WeedPestGrowthComponent>(uid);
     }

@@ -14,6 +14,27 @@ using Robust.Shared.Timing;
 
 namespace Content.Server.Botany.Systems;
 
+/// <summary>
+/// Harvest options for plants.
+/// </summary>
+public enum HarvestType
+{
+    /// <summary>
+    /// Plant is removed on harvest.
+    /// </summary>
+    NoRepeat,
+
+    /// <summary>
+    /// Plant makes produce every Production ticks.
+    /// </summary>
+    Repeat,
+
+    /// <summary>
+    /// Repeat, plus produce is dropped on the ground near the plant automatically.
+    /// </summary>
+    SelfHarvest
+}
+
 public sealed class HarvestSystem : EntitySystem
 {
     [Dependency] private readonly BotanySystem _botany = default!;
@@ -56,15 +77,14 @@ public sealed class HarvestSystem : EntitySystem
     private void OnInteractHand(EntityUid uid, HarvestComponent component, InteractHandEvent args)
     {
         if (!TryComp<PlantHolderComponent>(uid, out var plantHolder) ||
-            !TryComp<PlantTraitsComponent>(uid, out var traits) ||
-            !TryComp<PlantProductsComponent>(uid, out var products))
+            !TryComp<PlantTraitsComponent>(uid, out var traits))
             return;
 
         if (!component.ReadyForHarvest || plantHolder.Dead)
             return;
 
         // Check if sharp tool is required
-        if (traits.Ligneous)
+        if (plantHolder.Seed?.Ligneous == true)
         {
             if (!_hands.TryGetActiveItem(args.User, out var activeItem) ||
                 !_botany.CanHarvest(plantHolder.Seed, activeItem))
@@ -75,13 +95,13 @@ public sealed class HarvestSystem : EntitySystem
         }
 
         // Perform harvest
-        DoHarvest(uid, args.User, component, plantHolder, traits, products);
+        DoHarvest(uid, args.User, component, plantHolder, traits);
     }
 
     public void DoHarvest(EntityUid plantUid, EntityUid user, HarvestComponent? harvestComp = null,
-        PlantHolderComponent? plantHolder = null, PlantTraitsComponent? traits = null, PlantProductsComponent? products = null)
+        PlantHolderComponent? plantHolder = null, PlantTraitsComponent? traits = null)
     {
-        if (!Resolve(plantUid, ref harvestComp, ref plantHolder, ref traits, ref products))
+        if (!Resolve(plantUid, ref harvestComp, ref plantHolder, ref traits))
             return;
 
         if (plantHolder.Dead)
@@ -97,17 +117,19 @@ public sealed class HarvestSystem : EntitySystem
 
         // Spawn products
         var yield = traits.Yield;
-        for (int i = 0; i < yield; i++)
+        if (plantHolder.Seed?.ProductPrototypes != null)
         {
-            foreach (var productPrototype in products.ProductPrototypes)
+            for (int i = 0; i < yield; i++)
             {
-                var product = Spawn(productPrototype, Transform(plantUid).Coordinates);
-
-                // Apply mutations to product
-                if (TryComp<ProduceComponent>(product, out var produce) && plantHolder.Seed != null)
+                foreach (var productPrototype in plantHolder.Seed.ProductPrototypes)
                 {
-                    produce.Seed = plantHolder.Seed;
-                    _botany.ProduceGrown(product, produce);
+                    var product = Spawn(productPrototype, Transform(plantUid).Coordinates);
+
+                    // Apply mutations to product
+                    if (TryComp<ProduceComponent>(product, out var produce))
+                    {
+                        _botany.ProduceGrown(product, produce);
+                    }
                 }
             }
         }
@@ -131,9 +153,9 @@ public sealed class HarvestSystem : EntitySystem
     private void AfterHarvest(EntityUid uid, HarvestComponent component, PlantHolderComponent plantHolder)
     {
         // Play scream sound if applicable
-        if (TryComp<PlantCosmeticsComponent>(uid, out var cosmetics) && cosmetics.CanScream)
+        if (plantHolder.Seed?.CanScream == true)
         {
-            _audio.PlayPvs(cosmetics.ScreamSound, uid);
+            _audio.PlayPvs(plantHolder.Seed.ScreamSound, uid);
         }
 
         // Update sprite
