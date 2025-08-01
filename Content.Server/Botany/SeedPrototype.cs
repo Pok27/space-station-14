@@ -250,6 +250,16 @@ public partial class SeedData
         {
             // Use DupeComponent method for proper copying that preserves field values
             var newComponent = component.DupeComponent();
+            
+            // Fix zero values that may come from YAML serialization
+            if (newComponent is BasicGrowthComponent basicComp)
+            {
+                if (basicComp.WaterConsumption == 0f)
+                    basicComp.WaterConsumption = 0.5f;
+                if (basicComp.NutrientConsumption == 0f)
+                    basicComp.NutrientConsumption = 0.75f;
+            }
+            
             newSeed.GrowthComponents.Add(newComponent);
         }
 
@@ -326,6 +336,16 @@ public partial class SeedData
         {
             // Use DupeComponent method for proper copying that preserves field values
             var newComponent = component.DupeComponent();
+            
+            // Fix zero values that may come from YAML serialization
+            if (newComponent is BasicGrowthComponent basicComp)
+            {
+                if (basicComp.WaterConsumption == 0f)
+                    basicComp.WaterConsumption = 0.5f;
+                if (basicComp.NutrientConsumption == 0f)
+                    basicComp.NutrientConsumption = 0.75f;
+            }
+            
             newSeed.GrowthComponents.Add(newComponent);
         }
 
