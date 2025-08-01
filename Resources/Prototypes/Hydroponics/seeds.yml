@@ -3,114 +3,146 @@
   name: seeds-wheat-name
   noun: seeds-noun-seeds
   displayName: seeds-wheat-display-name
-  plantRsi: Objects/Specific/Hydroponics/wheat.rsi
-  packetPrototype: WheatSeeds
-  productPrototypes:
-    - WheatBushel
   mutationPrototypes:
     - meatwheat
-  lifespan: 25
-  maturation: 6
-  production: 3
-  yield: 3
-  potency: 5
   growthComponents:
     - !type:BasicGrowthComponent
         nutrientConsumption: 0.4
-  chemicals:
-    Nutriment:
-      Min: 1
-      Max: 20
-      PotencyDivisor: 20
-    Flour:
-      Min: 5
-      Max: 20
-      PotencyDivisor: 20
+    - !type:PlantTraitsComponent
+        endurance: 100
+        yield: 3
+        lifespan: 25
+        maturation: 6
+        production: 3
+        growthStages: 6
+        potency: 5
+    - !type:HarvestComponent
+        harvestRepeat: NoRepeat
+  plantCosmetics:
+    plantRsi: Objects/Specific/Hydroponics/wheat.rsi
+  plantChemicals:
+    chemicals:
+      Nutriment:
+        Min: 1
+        Max: 20
+        PotencyDivisor: 20
+      Flour:
+        Min: 5
+        Max: 20
+        PotencyDivisor: 20
+  plantProducts:
+    productPrototypes:
+      - WheatBushel
+    packetPrototype: WheatSeeds
 
 - type: seed
   id: meatwheat
   name: seeds-meatwheat-name
   noun: seeds-noun-seeds
   displayName: seeds-meatwheat-display-name
-  plantRsi: Objects/Specific/Hydroponics/meatwheat.rsi
-  packetPrototype: MeatwheatSeeds
-  productPrototypes:
-    - MeatwheatBushel
-  lifespan: 25
-  maturation: 6
-  production: 3
-  yield: 3
-  potency: 5
   growthComponents:
     - !type:BasicGrowthComponent
         nutrientConsumption: 0.4
-  chemicals:
-    Nutriment:
-      Min: 1
-      Max: 20
-      PotencyDivisor: 20
-    UncookedAnimalProteins:
-      Min: 5
-      Max: 20
-      PotencyDivisor: 20
+    - !type:PlantTraitsComponent
+        endurance: 100
+        yield: 3
+        lifespan: 25
+        maturation: 6
+        production: 3
+        growthStages: 6
+        potency: 5
+    - !type:HarvestComponent
+        harvestRepeat: NoRepeat
+  plantCosmetics:
+    plantRsi: Objects/Specific/Hydroponics/meatwheat.rsi
+  plantChemicals:
+    chemicals:
+      Nutriment:
+        Min: 1
+        Max: 20
+        PotencyDivisor: 20
+      UncookedAnimalProteins:
+        Min: 5
+        Max: 20
+        PotencyDivisor: 20
+  plantProducts:
+    productPrototypes:
+      - MeatwheatBushel
+    packetPrototype: MeatwheatSeeds
 
 - type: seed
   id: oat
   name: seeds-oat-name
   noun: seeds-noun-seeds
   displayName: seeds-oat-display-name
-  plantRsi: Objects/Specific/Hydroponics/oat.rsi
-  packetPrototype: OatSeeds
-  productPrototypes:
-    - OatBushel
-  lifespan: 25
-  maturation: 6
-  production: 3
-  yield: 3
-  potency: 5
   growthComponents:
     - !type:BasicGrowthComponent
         nutrientConsumption: 0.4
-  chemicals:
-    Nutriment:
-      Min: 1
-      Max: 20
-      PotencyDivisor: 20
-    Oats:
-      Min: 5
-      Max: 20
-      PotencyDivisor: 20
+    - !type:PlantTraitsComponent
+        endurance: 100
+        yield: 3
+        lifespan: 25
+        maturation: 6
+        production: 3
+        growthStages: 6
+        potency: 5
+    - !type:HarvestComponent
+        harvestRepeat: NoRepeat
+  plantCosmetics:
+    plantRsi: Objects/Specific/Hydroponics/oat.rsi
+  plantChemicals:
+    chemicals:
+      Nutriment:
+        Min: 1
+        Max: 20
+        PotencyDivisor: 20
+      Oats:
+        Min: 5
+        Max: 20
+        PotencyDivisor: 20
+  plantProducts:
+    productPrototypes:
+      - OatBushel
+    packetPrototype: OatSeeds
 
 - type: seed
   id: banana
   name: seeds-banana-name
   noun: seeds-noun-seeds
   displayName: seeds-banana-display-name
-  plantRsi: Objects/Specific/Hydroponics/banana.rsi
-  packetPrototype: BananaSeeds
-  productPrototypes:
-    - FoodBanana
   mutationPrototypes:
     - mimana
-  harvestRepeat: Repeat
-  lifespan: 50
-  maturation: 6
-  production: 6
-  yield: 2
   growthComponents:
     - !type:BasicGrowthComponent
         waterConsumption: 0.6
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
-  chemicals:
-    Vitamin:
-      Min: 1
-      Max: 4
-      PotencyDivisor: 25
-    Nutriment:
-      Min: 1
-      Max: 2
-      PotencyDivisor: 50
+    - !type:PlantTraitsComponent
+        endurance: 100
+        yield: 2
+        lifespan: 50
+        maturation: 6
+        production: 6
+        growthStages: 6
+        potency: 1
+    - !type:HarvestComponent
+        harvestRepeat: Repeat
+  plantCosmetics:
+    plantRsi: Objects/Specific/Hydroponics/banana.rsi
+  plantChemicals:
+    chemicals:
+      Vitamin:
+        Min: 1
+        Max: 4
+        PotencyDivisor: 25
+      Nutriment:
+        Min: 1
+        Max: 2
+        PotencyDivisor: 50
+  plantProducts:
+    productPrototypes:
+      - FoodBanana
+    packetPrototype: BananaSeeds
 
 - type: seed
   id: mimana

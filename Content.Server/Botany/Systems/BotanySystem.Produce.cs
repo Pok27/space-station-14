@@ -28,14 +28,43 @@ public sealed partial class BotanySystem
             return;
 
         solutionContainer.RemoveAllSolution();
-        foreach (var (chem, quantity) in seed.Chemicals)
+
+        // Try to use new component system first
+        if (TryComp<PlantChemicalsComponent>(uid, out var chemicals))
         {
-            var amount = FixedPoint2.New(quantity.Min);
-            if (quantity.PotencyDivisor > 0 && seed.Potency > 0)
-                amount += FixedPoint2.New(seed.Potency / quantity.PotencyDivisor);
-            amount = FixedPoint2.New(MathHelper.Clamp(amount.Float(), quantity.Min, quantity.Max));
-            solutionContainer.MaxVolume += amount;
-            solutionContainer.AddReagent(chem, amount);
+            var potency = 1f;
+            if (TryComp<PlantTraitsComponent>(uid, out var traits))
+            {
+                potency = traits.Potency;
+            }
+            else if (seed != null)
+            {
+                // Fallback to old system
+                potency = seed.Potency;
+            }
+
+            foreach (var (chem, quantity) in chemicals.Chemicals)
+            {
+                var amount = FixedPoint2.New(quantity.Min);
+                if (quantity.PotencyDivisor > 0 && potency > 0)
+                    amount += FixedPoint2.New(potency / quantity.PotencyDivisor);
+                amount = FixedPoint2.New(MathHelper.Clamp(amount.Float(), quantity.Min, quantity.Max));
+                solutionContainer.MaxVolume += amount;
+                solutionContainer.AddReagent(chem, amount);
+            }
+        }
+        else if (seed != null)
+        {
+            // Fallback to old system
+            foreach (var (chem, quantity) in seed.Chemicals)
+            {
+                var amount = FixedPoint2.New(quantity.Min);
+                if (quantity.PotencyDivisor > 0 && seed.Potency > 0)
+                    amount += FixedPoint2.New(seed.Potency / quantity.PotencyDivisor);
+                amount = FixedPoint2.New(MathHelper.Clamp(amount.Float(), quantity.Min, quantity.Max));
+                solutionContainer.MaxVolume += amount;
+                solutionContainer.AddReagent(chem, amount);
+            }
         }
     }
 
