@@ -9,44 +9,39 @@
     - !type:BasicGrowthComponent
         nutrientConsumption: 0.4
   plantTraits:
-    !type:PlantTraitsComponent
-      endurance: 100
-      yield: 3
-      lifespan: 25
-      maturation: 6
-      production: 3
-      growthStages: 6
-      potency: 5
-      seedless: false
-      ligneous: false
-      viable: true
+    endurance: 100
+    yield: 3
+    lifespan: 25
+    maturation: 6
+    production: 3
+    growthStages: 6
+    potency: 5
+    seedless: false
+    ligneous: false
+    viable: true
   plantCosmetics:
-    !type:PlantCosmeticsComponent
-      plantRsi: Objects/Specific/Hydroponics/wheat.rsi
-      plantIconState: produce
-      canScream: false
-      turnIntoKudzu: false
+    plantRsi: Objects/Specific/Hydroponics/wheat.rsi
+    plantIconState: produce
+    canScream: false
+    turnIntoKudzu: false
   plantChemicals:
-    !type:PlantChemicalsComponent
-      chemicals:
-        Nutriment:
-          Min: 1
-          Max: 20
-          PotencyDivisor: 20
-          Inherent: true
-        Flour:
-          Min: 5
-          Max: 20
-          PotencyDivisor: 20
-          Inherent: true
+    chemicals:
+      Nutriment:
+        Min: 1
+        Max: 20
+        PotencyDivisor: 20
+        Inherent: true
+      Flour:
+        Min: 5
+        Max: 20
+        PotencyDivisor: 20
+        Inherent: true
   plantProducts:
-    !type:PlantProductsComponent
-      productPrototypes:
-        - WheatBushel
-      packetPrototype: WheatSeeds
+    productPrototypes:
+      - WheatBushel
+    packetPrototype: WheatSeeds
   harvest:
-    !type:HarvestComponent
-      harvestRepeat: NoRepeat
+    harvestRepeat: NoRepeat
 
 - type: seed
   id: meatwheat
@@ -57,44 +52,39 @@
     - !type:BasicGrowthComponent
         nutrientConsumption: 0.4
   plantTraits:
-    !type:PlantTraitsComponent
-      endurance: 100
-      yield: 3
-      lifespan: 25
-      maturation: 6
-      production: 3
-      growthStages: 6
-      potency: 5
-      seedless: false
-      ligneous: false
-      viable: true
+    endurance: 100
+    yield: 3
+    lifespan: 25
+    maturation: 6
+    production: 3
+    growthStages: 6
+    potency: 5
+    seedless: false
+    ligneous: false
+    viable: true
   plantCosmetics:
-    !type:PlantCosmeticsComponent
-      plantRsi: Objects/Specific/Hydroponics/meatwheat.rsi
-      plantIconState: produce
-      canScream: false
-      turnIntoKudzu: false
+    plantRsi: Objects/Specific/Hydroponics/meatwheat.rsi
+    plantIconState: produce
+    canScream: false
+    turnIntoKudzu: false
   plantChemicals:
-    !type:PlantChemicalsComponent
-      chemicals:
-        Nutriment:
-          Min: 1
-          Max: 20
-          PotencyDivisor: 20
-          Inherent: true
-        UncookedAnimalProteins:
-          Min: 5
-          Max: 20
-          PotencyDivisor: 20
-          Inherent: true
+    chemicals:
+      Nutriment:
+        Min: 1
+        Max: 20
+        PotencyDivisor: 20
+        Inherent: true
+      UncookedAnimalProteins:
+        Min: 5
+        Max: 20
+        PotencyDivisor: 20
+        Inherent: true
   plantProducts:
-    !type:PlantProductsComponent
-      productPrototypes:
-        - MeatwheatBushel
-      packetPrototype: MeatwheatSeeds
+    productPrototypes:
+      - MeatwheatBushel
+    packetPrototype: MeatwheatSeeds
   harvest:
-    !type:HarvestComponent
-      harvestRepeat: NoRepeat
+    harvestRepeat: NoRepeat
 
 - type: seed
   id: oat
@@ -117,32 +107,28 @@
       ligneous: false
       viable: true
   plantCosmetics:
-    !type:PlantCosmeticsComponent
-      plantRsi: Objects/Specific/Hydroponics/oat.rsi
-      plantIconState: produce
-      canScream: false
-      turnIntoKudzu: false
+    plantRsi: Objects/Specific/Hydroponics/oat.rsi
+    plantIconState: produce
+    canScream: false
+    turnIntoKudzu: false
   plantChemicals:
-    !type:PlantChemicalsComponent
-      chemicals:
-        Nutriment:
-          Min: 1
-          Max: 20
-          PotencyDivisor: 20
-          Inherent: true
-        Oats:
-          Min: 5
-          Max: 20
-          PotencyDivisor: 20
-          Inherent: true
+    chemicals:
+      Nutriment:
+        Min: 1
+        Max: 20
+        PotencyDivisor: 20
+        Inherent: true
+      Oats:
+        Min: 5
+        Max: 20
+        PotencyDivisor: 20
+        Inherent: true
   plantProducts:
-    !type:PlantProductsComponent
-      productPrototypes:
-        - OatBushel
-      packetPrototype: OatSeeds
+    productPrototypes:
+      - OatBushel
+    packetPrototype: OatSeeds
   harvest:
-    !type:HarvestComponent
-      harvestRepeat: NoRepeat
+    harvestRepeat: NoRepeat
 
 - type: seed
   id: banana
@@ -157,44 +143,39 @@
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
   plantTraits:
-    !type:PlantTraitsComponent
-      endurance: 100
-      yield: 2
-      lifespan: 50
-      maturation: 6
-      production: 6
-      growthStages: 6
-      potency: 1
-      seedless: false
-      ligneous: false
-      viable: true
+    endurance: 100
+    yield: 2
+    lifespan: 50
+    maturation: 6
+    production: 6
+    growthStages: 6
+    potency: 1
+    seedless: false
+    ligneous: false
+    viable: true
   plantCosmetics:
-    !type:PlantCosmeticsComponent
-      plantRsi: Objects/Specific/Hydroponics/banana.rsi
-      plantIconState: produce
-      canScream: false
-      turnIntoKudzu: false
+    plantRsi: Objects/Specific/Hydroponics/banana.rsi
+    plantIconState: produce
+    canScream: false
+    turnIntoKudzu: false
   plantChemicals:
-    !type:PlantChemicalsComponent
-      chemicals:
-        Vitamin:
-          Min: 1
-          Max: 4
-          PotencyDivisor: 25
-          Inherent: true
-        Nutriment:
-          Min: 1
-          Max: 2
-          PotencyDivisor: 50
-          Inherent: true
+    chemicals:
+      Vitamin:
+        Min: 1
+        Max: 4
+        PotencyDivisor: 25
+        Inherent: true
+      Nutriment:
+        Min: 1
+        Max: 2
+        PotencyDivisor: 50
+        Inherent: true
   plantProducts:
-    !type:PlantProductsComponent
-      productPrototypes:
-        - FoodBanana
-      packetPrototype: BananaSeeds
+    productPrototypes:
+      - FoodBanana
+    packetPrototype: BananaSeeds
   harvest:
-    !type:HarvestComponent
-      harvestRepeat: Repeat
+    harvestRepeat: Repeat
 
 - type: seed
   id: mimana
