@@ -7,6 +7,7 @@ using Content.Server.Body.Systems;
 using Content.Server.Botany.Components;
 using Content.Server.Botany.Systems;
 using Content.Server.Botany;
+using HarvestType = Content.Server.Botany.Systems.HarvestType;
 using Content.Server.Chat.Systems;
 using Content.Server.Emp;
 using Content.Server.Explosion.EntitySystems;
@@ -932,16 +933,14 @@ public sealed class EntityEffectSystem : EntitySystem
             plantholder.Seed == null)
             return;
 
-        // Clone the seed to make it mutable
-        var clonedSeed = plantholder.Seed.Clone();
+        // Get or create the harvest component
+        var harvestComponent = EnsureComp<HarvestComponent>(args.Args.TargetEntity);
 
-        if (clonedSeed.HarvestRepeat == HarvestType.NoRepeat)
-            clonedSeed.HarvestRepeat = HarvestType.Repeat;
-        else if (clonedSeed.HarvestRepeat == HarvestType.Repeat)
-            clonedSeed.HarvestRepeat = HarvestType.SelfHarvest;
-
-        // Update the plant holder with the cloned seed
-        plantholder.Seed = clonedSeed;
+        // Mutate the harvest type
+        if (harvestComponent.HarvestRepeat == HarvestType.NoRepeat)
+            harvestComponent.HarvestRepeat = HarvestType.Repeat;
+        else if (harvestComponent.HarvestRepeat == HarvestType.Repeat)
+            harvestComponent.HarvestRepeat = HarvestType.SelfHarvest;
     }
 
     private void OnExecutePlantSpeciesChange(ref ExecuteEntityEffectEvent<PlantSpeciesChange> args)

@@ -14,27 +14,6 @@ using Robust.Shared.Timing;
 
 namespace Content.Server.Botany.Systems;
 
-/// <summary>
-/// Harvest options for plants.
-/// </summary>
-public enum HarvestType
-{
-    /// <summary>
-    /// Plant is removed on harvest.
-    /// </summary>
-    NoRepeat,
-    
-    /// <summary>
-    /// Plant makes produce every Production ticks.
-    /// </summary>
-    Repeat,
-    
-    /// <summary>
-    /// Repeat, plus produce is dropped on the ground near the plant automatically.
-    /// </summary>
-    SelfHarvest
-}
-
 public sealed class HarvestSystem : EntitySystem
 {
     [Dependency] private readonly BotanySystem _botany = default!;
