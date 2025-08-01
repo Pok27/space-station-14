@@ -202,8 +202,6 @@ public sealed class PlantHolderSystem : EntitySystem
                 }
                 else
                 {
-                    PlantTraitsComponent? traits = null;
-                    Resolve<PlantTraitsComponent>(uid, ref traits);
                     component.Health = traits?.Endurance ?? 100f;
                 }
                 component.LastCycle = _gameTiming.CurTime;
@@ -216,7 +214,9 @@ public sealed class PlantHolderSystem : EntitySystem
                 foreach(var g in seed.GrowthComponents)
                     EntityManager.AddComponent(uid, _copier.CreateCopy(g, notNullableOverride: true), overwrite: true);
 
-
+                // Get traits component after adding it
+                PlantTraitsComponent? traits = null;
+                Resolve<PlantTraitsComponent>(uid, ref traits);
 
                 if (TryComp<PaperLabelComponent>(args.Used, out var paperLabel))
                 {
@@ -479,10 +479,11 @@ public sealed class PlantHolderSystem : EntitySystem
         if (!Resolve(uid, ref component))
             return;
 
+        PlantTraitsComponent? traits = null;
+        Resolve<PlantTraitsComponent>(uid, ref traits);
+
         if (component.Seed != null)
         {
-            PlantTraitsComponent? traits = null;
-            Resolve<PlantTraitsComponent>(uid, ref traits);
             component.Health = MathHelper.Clamp(component.Health, 0, traits?.Endurance ?? 100f);
         }
         else
@@ -729,12 +730,13 @@ public sealed class PlantHolderSystem : EntitySystem
         if (!TryComp<AppearanceComponent>(uid, out var app))
             return;
 
+        PlantTraitsComponent? traits = null;
+        Resolve<PlantTraitsComponent>(uid, ref traits);
+
         if (component.Seed != null)
         {
             if (component.DrawWarnings)
             {
-                PlantTraitsComponent? traits = null;
-                Resolve<PlantTraitsComponent>(uid, ref traits);
                 _appearance.SetData(uid, PlantHolderVisuals.HealthLight, component.Health <= (traits?.Endurance ?? 100f) / 2f);
             }
 
@@ -750,9 +752,6 @@ public sealed class PlantHolderSystem : EntitySystem
             }
             else
             {
-                PlantTraitsComponent? traits = null;
-                Resolve<PlantTraitsComponent>(uid, ref traits);
-                
                 if (traits == null)
                     return;
                     
