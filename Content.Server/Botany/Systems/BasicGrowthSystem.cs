@@ -63,11 +63,8 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
             holder.SkipAging--;
         else
         {
-            if (_random.Prob(0.8f))
-            {
-                holder.Age += (int)(1 * HydroponicsSpeedMultiplier);
-                holder.UpdateSpriteAfterUpdate = true;
-            }
+            holder.Age += (int)(1 * HydroponicsSpeedMultiplier);
+            holder.UpdateSpriteAfterUpdate = true;
         }
 
         if (holder.Age > holder.Seed.Lifespan)
@@ -107,7 +104,7 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
             }
         }
 
-        if (component.WaterConsumption > 0 && holder.WaterLevel > 0 && _random.Prob(0.75f))
+        if (component.WaterConsumption > 0 && holder.WaterLevel > 0)
         {
             holder.WaterLevel -= MathF.Max(0f,
                 component.WaterConsumption * HydroponicsConsumptionMultiplier * HydroponicsSpeedMultiplier);
@@ -115,7 +112,7 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
                 holder.UpdateSpriteAfterUpdate = true;
         }
 
-        if (component.NutrientConsumption > 0 && holder.NutritionLevel > 0 && _random.Prob(0.75f))
+        if (component.NutrientConsumption > 0 && holder.NutritionLevel > 0)
         {
             holder.NutritionLevel -= MathF.Max(0f,
                 component.NutrientConsumption * HydroponicsConsumptionMultiplier * HydroponicsSpeedMultiplier);
@@ -129,7 +126,7 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
             // Make sure the plant is not thirsty.
             if (holder.WaterLevel > 10)
             {
-                holder.Health += Convert.ToInt32(_random.Prob(0.35f)) * healthMod;
+                holder.Health += healthMod;
             }
             else
             {
@@ -139,7 +136,7 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
 
             if (holder.NutritionLevel > 5)
             {
-                holder.Health += Convert.ToInt32(_random.Prob(0.35f)) * healthMod;
+                holder.Health += healthMod;
             }
             else
             {
