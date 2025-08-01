@@ -12,10 +12,6 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
     [Dependency] private readonly BotanySystem _botany = default!;
     [Dependency] private readonly PlantHolderSystem _plantHolder = default!;
 
-    // Variables to store values that will be used in OnPlantGrow
-    private float _waterConsumption = 0.5f;
-    private float _nutrientConsumption = 0.75f;
-
     public override void Initialize()
     {
         base.Initialize();
@@ -32,10 +28,6 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
         var swabComp = swab.components.Find(c => c.GetType() == typeof(BasicGrowthComponent));
         if (swabComp == null)
         {
-            // Set values for OnPlantGrow
-            _waterConsumption = component.WaterConsumption;
-            _nutrientConsumption = component.NutrientConsumption;
-            
             swab.components.Add(new BasicGrowthComponent() {
                 WaterConsumption = component.WaterConsumption,
                 NutrientConsumption = component.NutrientConsumption
@@ -44,16 +36,8 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
         else
         {
             BasicGrowthComponent typedComp = (BasicGrowthComponent)swabComp;
-            if (_random.Prob(0.5f)) 
-            {
-                typedComp.WaterConsumption = component.WaterConsumption;
-                _waterConsumption = component.WaterConsumption;
-            }
-            if (_random.Prob(0.5f)) 
-            {
-                typedComp.NutrientConsumption = component.NutrientConsumption;
-                _nutrientConsumption = component.NutrientConsumption;
-            }
+            if (_random.Prob(0.5f)) typedComp.WaterConsumption = component.WaterConsumption;
+            if (_random.Prob(0.5f)) typedComp.NutrientConsumption = component.NutrientConsumption;
         }
     }
 
@@ -139,9 +123,7 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
                 holder.UpdateSpriteAfterUpdate = true;
         }
 
-        // Set component values based on stored values from OnSwab
-        component.WaterConsumption = _waterConsumption;
-        component.NutrientConsumption = _nutrientConsumption;
+
 
         var healthMod = _random.Next(1, 3) * PlantGrowthSystem.HydroponicsSpeedMultiplier;
         if (holder.SkipAging < 10)
