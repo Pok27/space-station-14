@@ -73,24 +73,32 @@ public abstract class PlantGrowthSystem : EntitySystem
     /// <summary>
     /// Affects the growth of a plant by modifying its age or production timing.
     /// </summary>
-    public void AffectGrowth(int amount, PlantHolderComponent? component = null)
+    public void AffectGrowth(EntityUid uid, int amount, PlantHolderComponent? component = null)
     {
-        if (component == null || component.Seed == null)
+        if (!Resolve(uid, ref component) || component.Seed == null)
             return;
 
+        PlantTraitsComponent? traits = null;
+        Resolve<PlantTraitsComponent>(uid, ref traits);
+        
+        if (traits == null)
+            return;
+            
         if (amount > 0)
         {
-            if (component.Age < component.Seed.Maturation)
+            if (component.Age < traits.Maturation)
                 component.Age += amount;
-            else if (!component.Harvest && component.Seed.Yield > 0f)
+            else if (!component.Harvest && traits.Yield > 0f)
                 component.LastProduce -= amount;
         }
         else
         {
-            if (component.Age < component.Seed.Maturation)
+            if (component.Age < traits.Maturation)
                 component.SkipAging++;
-            else if (!component.Harvest && component.Seed.Yield > 0f)
+            else if (!component.Harvest && traits.Yield > 0f)
                 component.LastProduce += amount;
         }
     }
+
+
 }

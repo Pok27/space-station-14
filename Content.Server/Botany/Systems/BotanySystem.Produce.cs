@@ -31,8 +31,14 @@ public sealed partial class BotanySystem
         foreach (var (chem, quantity) in seed.Chemicals)
         {
             var amount = FixedPoint2.New(quantity.Min);
-            if (quantity.PotencyDivisor > 0 && seed.Potency > 0)
-                amount += FixedPoint2.New(seed.Potency / quantity.PotencyDivisor);
+                    PlantTraitsComponent? traits = null;
+        Resolve<PlantTraitsComponent>(uid, ref traits);
+        
+        if (traits == null)
+            return;
+            
+        if (quantity.PotencyDivisor > 0 && traits.Potency > 0)
+            amount += FixedPoint2.New(traits.Potency / quantity.PotencyDivisor);
             amount = FixedPoint2.New(MathHelper.Clamp(amount.Float(), quantity.Min, quantity.Max));
             solutionContainer.MaxVolume += amount;
             solutionContainer.AddReagent(chem, amount);
