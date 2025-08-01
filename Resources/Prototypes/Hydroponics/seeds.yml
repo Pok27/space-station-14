@@ -6,8 +6,8 @@
   mutationPrototypes:
     - meatwheat
   growthComponents:
-    - BasicGrowthComponent
-      nutrientConsumption: 0.4
+    - !type:BasicGrowthComponent
+        nutrientConsumption: 0.4
   plantTraits:
     endurance: 100
     yield: 3
@@ -24,12 +24,10 @@
         Min: 1
         Max: 20
         PotencyDivisor: 20
-        Inherent: true
       Flour:
         Min: 5
         Max: 20
         PotencyDivisor: 20
-        Inherent: true
   plantProducts:
     productPrototypes:
       - WheatBushel
@@ -43,8 +41,8 @@
   noun: seeds-noun-seeds
   displayName: seeds-meatwheat-display-name
   growthComponents:
-    - BasicGrowthComponent
-      nutrientConsumption: 0.4
+    - !type:BasicGrowthComponent
+        nutrientConsumption: 0.4
   plantTraits:
     endurance: 100
     yield: 3
@@ -61,12 +59,10 @@
         Min: 1
         Max: 20
         PotencyDivisor: 20
-        Inherent: true
       UncookedAnimalProteins:
         Min: 5
         Max: 20
         PotencyDivisor: 20
-        Inherent: true
   plantProducts:
     productPrototypes:
       - MeatwheatBushel
@@ -80,8 +76,8 @@
   noun: seeds-noun-seeds
   displayName: seeds-oat-display-name
   growthComponents:
-    - BasicGrowthComponent
-      nutrientConsumption: 0.4
+    - !type:BasicGrowthComponent
+        nutrientConsumption: 0.4
   plantTraits:
     endurance: 100
     yield: 3
@@ -98,12 +94,10 @@
         Min: 1
         Max: 20
         PotencyDivisor: 20
-        Inherent: true
       Oats:
         Min: 5
         Max: 20
         PotencyDivisor: 20
-        Inherent: true
   plantProducts:
     productPrototypes:
       - OatBushel
@@ -119,10 +113,10 @@
   mutationPrototypes:
     - mimana
   growthComponents:
-    - BasicGrowthComponent
-      waterConsumption: 0.6
-    - AtmosphericGrowthComponent
-      idealHeat: 298
+    - !type:BasicGrowthComponent
+        waterConsumption: 0.6
+    - !type:AtmosphericGrowthComponent
+        idealHeat: 298
   plantTraits:
     endurance: 100
     yield: 2
@@ -139,12 +133,10 @@
         Min: 1
         Max: 4
         PotencyDivisor: 25
-        Inherent: true
       Nutriment:
         Min: 1
         Max: 2
         PotencyDivisor: 50
-        Inherent: true
   plantProducts:
     productPrototypes:
       - FoodBanana
