@@ -43,6 +43,13 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
 
     private void OnPlantGrow(EntityUid uid, BasicGrowthComponent component, OnPlantGrowEvent args)
     {
+        // Ensure default values are set if not specified in YAML
+        if (component.WaterConsumption <= 0f)
+            component.WaterConsumption = 0.5f;
+            
+        if (component.NutrientConsumption <= 0f)
+            component.NutrientConsumption = 0.75f;
+
         PlantHolderComponent? holder = null;
         Resolve<PlantHolderComponent>(uid, ref holder);
 
