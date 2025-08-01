@@ -19,13 +19,6 @@ public sealed partial class SeedPrototype : SeedData, IPrototype
     [IdDataField] public string ID { get; private set; } = default!;
 }
 
-public enum HarvestType : byte
-{
-    NoRepeat,
-    Repeat,
-    SelfHarvest
-}
-
 [DataDefinition]
 public partial struct SeedChemQuantity
 {
@@ -110,47 +103,6 @@ public partial class SeedData
     #endregion
 
     #region General traits
-
-    /// <summary>
-    /// The plant's max health.
-    /// </summary>
-    [DataField] public float Endurance = 100f;
-
-    /// <summary>
-    /// How many produce are created on harvest.
-    /// </summary>
-    [DataField] public int Yield;
-
-    /// <summary>
-    /// The number of growth ticks this plant can be alive for. Plants take high damage levels when Age > Lifespan.
-    /// </summary>
-    [DataField] public float Lifespan;
-
-    /// <summary>
-    /// The number of growth ticks it takes for a plant to reach its final growth stage.
-    /// </summary>
-    [DataField] public float Maturation;
-
-    /// <summary>
-    /// The number of growth ticks it takes for a plant to be (re-)harvestable. Shouldn't be lower than Maturation.
-    /// </summary>
-    [DataField] public float Production;
-
-    /// <summary>
-    /// How many different sprites appear before the plant is fully grown.
-    /// </summary>
-    [DataField] public int GrowthStages = 6;
-
-    /// <summary>
-    /// Harvest options are NoRepeat(plant is removed on harvest), Repeat(Plant makes produce every Production ticks),
-    /// and SelfHarvest (Repeat, plus produce is dropped on the ground near the plant automatically)
-    /// </summary>
-    [DataField] public HarvestType HarvestRepeat = HarvestType.NoRepeat;
-
-    /// <summary>
-    /// A scalar for sprite size and chemical quantity on the produce. Caps at 100.
-    /// </summary>
-    [DataField] public float Potency = 1f;
 
     /// <summary>
     /// If true, produce can't be put into the seed maker.
@@ -249,15 +201,6 @@ public partial class SeedData
             MutationPrototypes = new List<string>(MutationPrototypes),
             Chemicals = new Dictionary<string, SeedChemQuantity>(Chemicals),
 
-            Endurance = Endurance,
-            Yield = Yield,
-            Lifespan = Lifespan,
-            Maturation = Maturation,
-            Production = Production,
-            GrowthStages = GrowthStages,
-            HarvestRepeat = HarvestRepeat,
-            Potency = Potency,
-
             Seedless = Seedless,
             Ligneous = Ligneous,
 
@@ -304,15 +247,6 @@ public partial class SeedData
             MutationPrototypes = new List<string>(other.MutationPrototypes),
 
             Chemicals = new Dictionary<string, SeedChemQuantity>(Chemicals),
-
-            Endurance = Endurance,
-            Yield = Yield,
-            Lifespan = Lifespan,
-            Maturation = Maturation,
-            Production = Production,
-            GrowthStages = other.GrowthStages,
-            HarvestRepeat = HarvestRepeat,
-            Potency = Potency,
 
             Mutations = Mutations,
 

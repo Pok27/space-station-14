@@ -646,19 +646,21 @@
   packetPrototype: KillerTomatoSeeds
   productPrototypes:
     - MobTomatoKiller
-  harvestRepeat: Repeat
-  lifespan: 25
-  maturation: 15
-  production: 6
-  yield: 2
-  potency: 10
-  growthStages: 2
   growthComponents:
     - !type:BasicGrowthComponent
         waterConsumption: 0.6
         nutrientConsumption: 0.7
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
+    - !type:PlantTraitsComponent
+        lifespan: 25
+        maturation: 15
+        production: 6
+        yield: 2
+        potency: 10
+        growthStages: 2
+    - !type:HarvestComponent
+        harvestRepeat: Repeat
   chemicals:
     Blood:
       Min: 1
