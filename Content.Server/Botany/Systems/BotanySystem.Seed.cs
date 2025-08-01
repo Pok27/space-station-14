@@ -90,7 +90,10 @@ public sealed partial class BotanySystem : EntitySystem
         {
             var name = Loc.GetString(seed.DisplayName);
             args.PushMarkup(Loc.GetString($"seed-component-description", ("seedName", name)));
-                    if (!TryComp<PlantTraitsComponent>(uid, out var traits))
+                    PlantTraitsComponent? traits = null;
+        Resolve<PlantTraitsComponent>(uid, ref traits);
+        
+        if (traits == null)
             return;
             
         args.PushMarkup(Loc.GetString($"seed-component-plant-yield-text", ("seedYield", traits.Yield)));
@@ -136,7 +139,10 @@ public sealed partial class BotanySystem : EntitySystem
 
     public IEnumerable<EntityUid> Harvest(SeedData proto, EntityUid user, int yieldMod = 1)
     {
-        if (!TryComp<PlantTraitsComponent>(user, out var traits))
+        PlantTraitsComponent? traits = null;
+        Resolve<PlantTraitsComponent>(user, ref traits);
+        
+        if (traits == null)
             return Enumerable.Empty<EntityUid>();
             
         if (proto.ProductPrototypes.Count == 0 || traits.Yield <= 0)
@@ -157,7 +163,10 @@ public sealed partial class BotanySystem : EntitySystem
     public IEnumerable<EntityUid> GenerateProduct(SeedData proto, EntityCoordinates position, int yieldMod = 1)
     {
         var totalYield = 0;
-        if (!TryComp<PlantTraitsComponent>(position.GetGridUid(EntityManager) ?? EntityUid.Invalid, out var traits))
+        PlantTraitsComponent? traits = null;
+        Resolve<PlantTraitsComponent>(position.GetGridUid(EntityManager) ?? EntityUid.Invalid, ref traits);
+        
+        if (traits == null)
             return Enumerable.Empty<EntityUid>();
         
         if (traits.Yield > -1)

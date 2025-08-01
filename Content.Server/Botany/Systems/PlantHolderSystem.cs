@@ -87,7 +87,10 @@ public sealed class PlantHolderSystem : EntitySystem
         if (component.Seed == null)
             return 0;
 
-        if (!TryComp<PlantTraitsComponent>(uid, out var traits))
+        PlantTraitsComponent? traits = null;
+        Resolve<PlantTraitsComponent>(uid, ref traits);
+        
+        if (traits == null)
             return 1;
             
         var result = Math.Max(1, (int)(component.Age * traits.GrowthStages / traits.Maturation));
@@ -364,10 +367,13 @@ public sealed class PlantHolderSystem : EntitySystem
             var seed = produce.Seed;
             if (seed != null)
             {
-                if (!TryComp<PlantTraitsComponent>(uid, out var traits))
-            return;
-            
-        var nutrientBonus = traits.Potency / 2.5f;
+                PlantTraitsComponent? traits = null;
+                Resolve<PlantTraitsComponent>(uid, ref traits);
+                
+                if (traits == null)
+                    return;
+                    
+                var nutrientBonus = traits.Potency / 2.5f;
                 AdjustNutrient(uid, nutrientBonus, component);
             }
             QueueDel(args.Used);
@@ -725,7 +731,10 @@ public sealed class PlantHolderSystem : EntitySystem
                 _appearance.SetData(uid, PlantHolderVisuals.PlantRsi, component.Seed.PlantRsi.ToString(), app);
                 _appearance.SetData(uid, PlantHolderVisuals.PlantState, "harvest", app);
             }
-            else             if (!TryComp<PlantTraitsComponent>(uid, out var traits))
+            else             PlantTraitsComponent? traits = null;
+            Resolve<PlantTraitsComponent>(uid, ref traits);
+            
+            if (traits == null)
                 return;
                 
             if (component.Age < traits.Maturation)

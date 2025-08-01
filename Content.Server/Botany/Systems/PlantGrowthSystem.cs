@@ -78,7 +78,10 @@ public abstract class PlantGrowthSystem : EntitySystem
         if (component == null || component.Seed == null)
             return;
 
-        if (!TryComp<PlantTraitsComponent>(uid, out var traits))
+        PlantTraitsComponent? traits = null;
+        Resolve<PlantTraitsComponent>(uid, ref traits);
+        
+        if (traits == null)
             return;
             
         if (amount > 0)

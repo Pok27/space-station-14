@@ -31,7 +31,10 @@ public sealed partial class BotanySystem
         foreach (var (chem, quantity) in seed.Chemicals)
         {
             var amount = FixedPoint2.New(quantity.Min);
-                    if (!TryComp<PlantTraitsComponent>(uid, out var traits))
+                    PlantTraitsComponent? traits = null;
+        Resolve<PlantTraitsComponent>(uid, ref traits);
+        
+        if (traits == null)
             return;
             
         if (quantity.PotencyDivisor > 0 && traits.Potency > 0)
