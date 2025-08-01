@@ -779,25 +779,19 @@ public sealed class PlantHolderSystem : EntitySystem
     /// </summary>
     private void EnsureDefaultGrowthComponents(EntityUid uid, SeedData seed)
     {
-        // Add AtmosphericGrowthComponent if not present
-        if (!HasComp<AtmosphericGrowthComponent>(uid))
+        var defaultComponents = new PlantGrowthComponent[]
         {
-            var atmosphericComponent = new AtmosphericGrowthComponent();
-            EntityManager.AddComponent(uid, atmosphericComponent);
-        }
+            new AtmosphericGrowthComponent(),
+            new ToxinsComponent(),
+            new WeedPestGrowthComponent()
+        };
 
-        // Add ToxinsComponent if not present
-        if (!HasComp<ToxinsComponent>(uid))
+        foreach (var component in defaultComponents)
         {
-            var toxinsComponent = new ToxinsComponent();
-            EntityManager.AddComponent(uid, toxinsComponent);
-        }
-
-        // Add WeedPestGrowthComponent if not present
-        if (!HasComp<WeedPestGrowthComponent>(uid))
-        {
-            var weedPestComponent = new WeedPestGrowthComponent();
-            EntityManager.AddComponent(uid, weedPestComponent);
+            if (!HasComp(uid, component.GetType()))
+            {
+                EntityManager.AddComponent(uid, component);
+            }
         }
     }
 }
