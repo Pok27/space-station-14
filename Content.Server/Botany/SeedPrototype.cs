@@ -207,6 +207,14 @@ public partial class SeedData
     }
 
     /// <summary>
+    /// Adds a growth component directly to the internal list without triggering the automatic addition logic.
+    /// </summary>
+    public void AddGrowthComponent(PlantGrowthComponent component)
+    {
+        _growthComponents.Add(component);
+    }
+
+    /// <summary>
     /// Whether this seed is viable for growth.
     /// </summary>
     [DataField]
@@ -275,7 +283,7 @@ public partial class SeedData
         foreach (var component in GrowthComponents)
         {
             var newComponent = component.DupeComponent();
-            newSeed._growthComponents.Add(newComponent);
+            newSeed.AddGrowthComponent(newComponent);
         }
 
         newSeed.Mutations.AddRange(Mutations);
@@ -350,7 +358,7 @@ public partial class SeedData
         foreach (var component in other.GrowthComponents)
         {
             var newComponent = component.DupeComponent();
-            newSeed._growthComponents.Add(newComponent);
+            newSeed.AddGrowthComponent(newComponent);
         }
 
         return newSeed;
