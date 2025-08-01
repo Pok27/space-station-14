@@ -93,4 +93,57 @@ public abstract class PlantGrowthSystem : EntitySystem
                 component.LastProduce += amount;
         }
     }
+
+    /// <summary>
+    /// Creates default growth components for seeds that don't have them yet.
+    /// This is used for backward compatibility with old seeds that have parameters directly in SeedData.
+    /// </summary>
+    public void EnsureDefaultGrowthComponents(EntityUid uid, SeedData seed)
+    {
+        // Always ensure basic components
+        EnsureComp<PlantComponent>(uid);
+        EnsureComp<BasicGrowthComponent>(uid);
+        EnsureComp<AtmosphericGrowthComponent>(uid);
+        EnsureComp<WeedPestGrowthComponent>(uid);
+
+        // Check if seed has growth components defined
+        if (seed.GrowthComponents.Count > 0)
+            return;
+
+        // Create PlantTraitsComponent from seed parameters
+        var traits = EnsureComp<PlantTraitsComponent>(uid);
+        
+        // Set default values if not already set
+        if (traits.Lifespan == 0)
+            traits.Lifespan = 25;
+        if (traits.Maturation == 0)
+            traits.Maturation = 6;
+        if (traits.Production == 0)
+            traits.Production = 6;
+        if (traits.Yield == 0)
+            traits.Yield = 3;
+        if (traits.Potency == 1f)
+            traits.Potency = 10;
+        if (traits.GrowthStages == 6)
+            traits.GrowthStages = 3;
+
+        // Create HarvestComponent if needed
+        if (seed.HarvestRepeat != HarvestType.NoRepeat)
+        {
+            var harvest = EnsureComp<HarvestComponent>(uid);
+            harvest.HarvestRepeat = seed.HarvestRepeat;
+        }
+
+        // Create PlantProductsComponent
+        var products = EnsureComp<PlantProductsComponent>(uid);
+        products.ProductPrototypes.Clear();
+        products.ProductPrototypes.AddRange(seed.ProductPrototypes);
+
+        // Create PlantCosmeticsComponent
+        var cosmetics = EnsureComp<PlantCosmeticsComponent>(uid);
+        cosmetics.CanScream = seed.CanScream;
+        cosmetics.ScreamSound = seed.ScreamSound;
+        cosmetics.TurnIntoKudzu = seed.TurnIntoKudzu;
+        cosmetics.KudzuPrototype = seed.KudzuPrototype;
+    }
 }
