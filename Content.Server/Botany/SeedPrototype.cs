@@ -19,11 +19,7 @@ public sealed partial class SeedPrototype : SeedData, IPrototype
 {
     [IdDataField] public string ID { get; private set; } = default!;
 
-    public override void OnValidate()
-    {
-        base.OnValidate();
-        EnsureEssentialGrowthComponents();
-    }
+
 }
 
 public enum HarvestType : byte
@@ -185,7 +181,30 @@ public partial class SeedData
     /// The growth components used by this seed.
     /// </summary>
     [DataField]
-    public List<PlantGrowthComponent> GrowthComponents = new();
+    private List<PlantGrowthComponent> _growthComponents = new();
+
+    /// <summary>
+    /// The growth components used by this seed, with automatic addition of essential components.
+    /// </summary>
+    public List<PlantGrowthComponent> GrowthComponents
+    {
+        get
+        {
+            // Ensure essential components are present
+            if (!_growthComponents.Any(c => c is BasicGrowthComponent))
+            {
+                _growthComponents.Add(new BasicGrowthComponent());
+            }
+
+            if (!_growthComponents.Any(c => c is AtmosphericGrowthComponent))
+            {
+                _growthComponents.Add(new AtmosphericGrowthComponent());
+            }
+
+            return _growthComponents;
+        }
+        set => _growthComponents = value;
+    }
 
     /// <summary>
     /// Whether this seed is viable for growth.
@@ -256,11 +275,8 @@ public partial class SeedData
         foreach (var component in GrowthComponents)
         {
             var newComponent = component.DupeComponent();
-            newSeed.GrowthComponents.Add(newComponent);
+            newSeed._growthComponents.Add(newComponent);
         }
-
-        // Ensure essential growth components are present
-        newSeed.EnsureEssentialGrowthComponents();
 
         newSeed.Mutations.AddRange(Mutations);
         return newSeed;
@@ -334,41 +350,11 @@ public partial class SeedData
         foreach (var component in other.GrowthComponents)
         {
             var newComponent = component.DupeComponent();
-            newSeed.GrowthComponents.Add(newComponent);
+            newSeed._growthComponents.Add(newComponent);
         }
-
-        // Ensure essential growth components are present
-        newSeed.EnsureEssentialGrowthComponents();
 
         return newSeed;
     }
 
-    /// <summary>
-    /// Ensures that essential growth components are present in the seed data.
-    /// This prevents plants from not growing due to missing critical components.
-    /// </summary>
-    public void EnsureEssentialGrowthComponents()
-    {
-        // Ensure BasicGrowthComponent is present for water and nutrient consumption
-        if (!GrowthComponents.Any(c => c is BasicGrowthComponent))
-        {
-            var basicComponent = new BasicGrowthComponent();
-            GrowthComponents.Add(basicComponent);
-        }
 
-        // Ensure AtmosphericGrowthComponent is present for proper temperature and pressure handling
-        if (!GrowthComponents.Any(c => c is AtmosphericGrowthComponent))
-        {
-            var atmosphericComponent = new AtmosphericGrowthComponent();
-            GrowthComponents.Add(atmosphericComponent);
-        }
-    }
-
-    /// <summary>
-    /// Called after the prototype is loaded and validated.
-    /// </summary>
-    public virtual void OnValidate()
-    {
-        // This method can be overridden by derived classes
-    }
 }
