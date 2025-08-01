@@ -65,7 +65,7 @@ public sealed class MutationSystem : EntitySystem
     /// </summary>
     private void EnsureGrowthComponents(EntityUid plantHolder, SeedData seed)
     {
-        // Ensure growth components
+        // Ensure growth components (including PlantTraitsComponent and HarvestComponent)
         foreach (var component in seed.GrowthComponents)
         {
             if (!EntityManager.HasComponent(plantHolder, component.GetType()))
@@ -75,13 +75,7 @@ public sealed class MutationSystem : EntitySystem
             }
         }
 
-        // Ensure plant components
-        if (seed.PlantTraits != null && !EntityManager.HasComponent<PlantTraitsComponent>(plantHolder))
-        {
-            var traits = IoCManager.Resolve<ISerializationManager>().CreateCopy(seed.PlantTraits, notNullableOverride: true);
-            EntityManager.AddComponent(plantHolder, traits);
-        }
-
+        // Ensure other plant components (not in growthComponents)
         if (seed.PlantCosmetics != null && !EntityManager.HasComponent<PlantCosmeticsComponent>(plantHolder))
         {
             var cosmetics = IoCManager.Resolve<ISerializationManager>().CreateCopy(seed.PlantCosmetics, notNullableOverride: true);
@@ -99,12 +93,6 @@ public sealed class MutationSystem : EntitySystem
             var products = IoCManager.Resolve<ISerializationManager>().CreateCopy(seed.PlantProducts, notNullableOverride: true);
             EntityManager.AddComponent(plantHolder, products);
         }
-
-        if (seed.Harvest != null && !EntityManager.HasComponent<HarvestComponent>(plantHolder))
-        {
-            var harvest = IoCManager.Resolve<ISerializationManager>().CreateCopy(seed.Harvest, notNullableOverride: true);
-            EntityManager.AddComponent(plantHolder, harvest);
-        }
     }
 
     public SeedData Cross(SeedData a, SeedData b)
@@ -117,18 +105,23 @@ public sealed class MutationSystem : EntitySystem
             CrossChemicals(ref result.PlantChemicals.Chemicals, a.PlantChemicals.Chemicals);
         }
 
-        // Cross traits
-        if (result.PlantTraits != null && a.PlantTraits != null)
+        // Cross traits and harvest from growthComponents
+        var resultTraits = result.GrowthComponents.OfType<PlantTraitsComponent>().FirstOrDefault();
+        var resultHarvest = result.GrowthComponents.OfType<HarvestComponent>().FirstOrDefault();
+        var aTraits = a.GrowthComponents.OfType<PlantTraitsComponent>().FirstOrDefault();
+        var aHarvest = a.GrowthComponents.OfType<HarvestComponent>().FirstOrDefault();
+
+        if (resultTraits != null && aTraits != null)
         {
-            CrossFloat(ref result.PlantTraits.Endurance, a.PlantTraits.Endurance);
-            CrossInt(ref result.PlantTraits.Yield, a.PlantTraits.Yield);
-            CrossFloat(ref result.PlantTraits.Lifespan, a.PlantTraits.Lifespan);
-            CrossFloat(ref result.PlantTraits.Maturation, a.PlantTraits.Maturation);
-            CrossFloat(ref result.PlantTraits.Production, a.PlantTraits.Production);
-            CrossFloat(ref result.PlantTraits.Potency, a.PlantTraits.Potency);
-            CrossBool(ref result.PlantTraits.Seedless, a.PlantTraits.Seedless);
-            CrossBool(ref result.PlantTraits.Ligneous, a.PlantTraits.Ligneous);
-            CrossBool(ref result.PlantTraits.Viable, a.PlantTraits.Viable);
+            CrossFloat(ref resultTraits.Endurance, aTraits.Endurance);
+            CrossInt(ref resultTraits.Yield, aTraits.Yield);
+            CrossFloat(ref resultTraits.Lifespan, aTraits.Lifespan);
+            CrossFloat(ref resultTraits.Maturation, aTraits.Maturation);
+            CrossFloat(ref resultTraits.Production, aTraits.Production);
+            CrossFloat(ref resultTraits.Potency, aTraits.Potency);
+            CrossBool(ref resultTraits.Seedless, aTraits.Seedless);
+            CrossBool(ref resultTraits.Ligneous, aTraits.Ligneous);
+            CrossBool(ref resultTraits.Viable, aTraits.Viable);
         }
 
         // Cross cosmetics
@@ -139,12 +132,12 @@ public sealed class MutationSystem : EntitySystem
         }
 
         // Cross harvest
-        if (result.Harvest != null && a.Harvest != null)
+        if (resultHarvest != null && aHarvest != null)
         {
             // 50% chance to use the other plant's harvest type
             if (Random(0.5f))
             {
-                result.Harvest.HarvestRepeat = a.Harvest.HarvestRepeat;
+                resultHarvest.HarvestRepeat = aHarvest.HarvestRepeat;
             }
         }
 
@@ -155,9 +148,9 @@ public sealed class MutationSystem : EntitySystem
 
         // Hybrids have a high chance of being seedless. Balances very
         // effective hybrid crossings.
-        if (a.Name != result.Name && Random(0.7f) && result.PlantTraits != null)
+        if (a.Name != result.Name && Random(0.7f) && resultTraits != null)
         {
-            result.PlantTraits.Seedless = true;
+            resultTraits.Seedless = true;
         }
 
         return result;

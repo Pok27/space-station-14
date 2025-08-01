@@ -906,9 +906,14 @@ public sealed class PlantHolderSystem : EntitySystem
     private void EnsureDefaultGrowthComponents(EntityUid uid)
     {
         EnsureComp<PlantComponent>(uid);
-        EnsureComp<BasicGrowthComponent>(uid);
-        EnsureComp<AtmosphericGrowthComponent>(uid);
-        EnsureComp<WeedPestGrowthComponent>(uid);
-        EnsureComp<ToxinsComponent>(uid);
+        // Only add default components if they're not already present from growthComponents
+        if (!HasComp<BasicGrowthComponent>(uid))
+            EnsureComp<BasicGrowthComponent>(uid);
+        if (!HasComp<AtmosphericGrowthComponent>(uid))
+            EnsureComp<AtmosphericGrowthComponent>(uid);
+        if (!HasComp<WeedPestGrowthComponent>(uid))
+            EnsureComp<WeedPestGrowthComponent>(uid);
+        if (!HasComp<ToxinsComponent>(uid))
+            EnsureComp<ToxinsComponent>(uid);
     }
 }

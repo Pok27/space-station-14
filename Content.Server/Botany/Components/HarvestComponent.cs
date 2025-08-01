@@ -4,7 +4,7 @@ namespace Content.Server.Botany.Components;
 
 [RegisterComponent]
 [DataDefinition]
-public sealed partial class HarvestComponent : Component
+public sealed partial class HarvestComponent : PlantGrowthComponent
 {
     /// <summary>
     /// Harvest options are NoRepeat(plant is removed on harvest), Repeat(Plant makes produce every Production ticks),

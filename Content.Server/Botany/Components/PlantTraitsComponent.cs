@@ -4,7 +4,7 @@ namespace Content.Server.Botany.Components;
 
 [RegisterComponent]
 [DataDefinition]
-public sealed partial class PlantTraitsComponent : Component
+public sealed partial class PlantTraitsComponent : PlantGrowthComponent
 {
     /// <summary>
     /// The plant's max health.
