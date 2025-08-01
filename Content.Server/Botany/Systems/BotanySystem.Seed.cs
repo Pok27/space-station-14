@@ -70,7 +70,7 @@ public sealed partial class BotanySystem : EntitySystem
         if (comp.SeedId != null
             && _prototypeManager.TryIndex(comp.SeedId, out SeedPrototype? protoSeed))
         {
-            seed = protoSeed;
+            seed = protoSeed.Clone(); // Clone to ensure essential components are added
             return true;
         }
 
@@ -104,7 +104,8 @@ public sealed partial class BotanySystem : EntitySystem
     {
         var seed = Spawn(proto.PacketPrototype, coords);
         var seedComp = EnsureComp<SeedComponent>(seed);
-        seedComp.Seed = proto.Clone();
+        var clonedSeed = proto.Clone(); // Clone to ensure essential components are added
+        seedComp.Seed = clonedSeed;
         seedComp.HealthOverride = healthOverride;
 
         var name = Loc.GetString(proto.Name);

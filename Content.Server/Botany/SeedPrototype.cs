@@ -252,6 +252,9 @@ public partial class SeedData
             newSeed.GrowthComponents.Add(newComponent);
         }
 
+        // Ensure essential growth components are present
+        newSeed.EnsureEssentialGrowthComponents();
+
         newSeed.Mutations.AddRange(Mutations);
         return newSeed;
     }
@@ -327,6 +330,30 @@ public partial class SeedData
             newSeed.GrowthComponents.Add(newComponent);
         }
 
+        // Ensure essential growth components are present
+        newSeed.EnsureEssentialGrowthComponents();
+
         return newSeed;
+    }
+
+    /// <summary>
+    /// Ensures that essential growth components are present in the seed data.
+    /// This prevents plants from not growing due to missing critical components.
+    /// </summary>
+    public void EnsureEssentialGrowthComponents()
+    {
+        // Ensure BasicGrowthComponent is present for water and nutrient consumption
+        if (!GrowthComponents.Any(c => c is BasicGrowthComponent))
+        {
+            var basicComponent = DefaultGrowthComponents.CreateDefaultBasicGrowth();
+            GrowthComponents.Add(basicComponent);
+        }
+
+        // Ensure AtmosphericGrowthComponent is present for proper temperature and pressure handling
+        if (!GrowthComponents.Any(c => c is AtmosphericGrowthComponent))
+        {
+            var atmosphericComponent = DefaultGrowthComponents.CreateDefaultAtmosphericGrowth();
+            GrowthComponents.Add(atmosphericComponent);
+        }
     }
 }
