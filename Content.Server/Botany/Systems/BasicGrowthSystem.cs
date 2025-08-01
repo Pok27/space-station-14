@@ -12,6 +12,10 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
     [Dependency] private readonly BotanySystem _botany = default!;
     [Dependency] private readonly PlantHolderSystem _plantHolder = default!;
 
+    // Conditions for OnPlantGrow
+    private bool _shouldSetWaterConsumption = false;
+    private bool _shouldSetNutrientConsumption = false;
+
     public override void Initialize()
     {
         base.Initialize();
