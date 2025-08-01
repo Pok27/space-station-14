@@ -123,7 +123,9 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
                 holder.UpdateSpriteAfterUpdate = true;
         }
 
-
+        // Set component values based on conditions
+        if (_random.Prob(0.5f)) component.WaterConsumption = component.WaterConsumption;
+        if (_random.Prob(0.5f)) component.NutrientConsumption = component.NutrientConsumption;
 
         var healthMod = _random.Next(1, 3) * PlantGrowthSystem.HydroponicsSpeedMultiplier;
         if (holder.SkipAging < 10)
