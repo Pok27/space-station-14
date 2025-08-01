@@ -8,14 +8,15 @@
   growthComponents:
     - !type:BasicGrowthComponent
         nutrientConsumption: 0.4
-  plantTraits:
-    endurance: 100
-    yield: 3
-    lifespan: 25
-    maturation: 6
-    production: 3
-    growthStages: 6
-    potency: 5
+    - !type:PlantTraitsComponent
+        endurance: 100
+        yield: 3
+        lifespan: 25
+        maturation: 6
+        production: 3
+        growthStages: 6
+        potency: 5
+        harvestRepeat: NoRepeat
   plantCosmetics:
     plantRsi: Objects/Specific/Hydroponics/wheat.rsi
   plantChemicals:
@@ -32,8 +33,6 @@
     productPrototypes:
       - WheatBushel
     packetPrototype: WheatSeeds
-  harvest:
-    harvestRepeat: NoRepeat
 
 - type: seed
   id: meatwheat
@@ -43,14 +42,15 @@
   growthComponents:
     - !type:BasicGrowthComponent
         nutrientConsumption: 0.4
-  plantTraits:
-    endurance: 100
-    yield: 3
-    lifespan: 25
-    maturation: 6
-    production: 3
-    growthStages: 6
-    potency: 5
+    - !type:PlantTraitsComponent
+        endurance: 100
+        yield: 3
+        lifespan: 25
+        maturation: 6
+        production: 3
+        growthStages: 6
+        potency: 5
+        harvestRepeat: NoRepeat
   plantCosmetics:
     plantRsi: Objects/Specific/Hydroponics/meatwheat.rsi
   plantChemicals:
@@ -67,8 +67,6 @@
     productPrototypes:
       - MeatwheatBushel
     packetPrototype: MeatwheatSeeds
-  harvest:
-    harvestRepeat: NoRepeat
 
 - type: seed
   id: oat
@@ -78,14 +76,15 @@
   growthComponents:
     - !type:BasicGrowthComponent
         nutrientConsumption: 0.4
-  plantTraits:
-    endurance: 100
-    yield: 3
-    lifespan: 25
-    maturation: 6
-    production: 3
-    growthStages: 6
-    potency: 5
+    - !type:PlantTraitsComponent
+        endurance: 100
+        yield: 3
+        lifespan: 25
+        maturation: 6
+        production: 3
+        growthStages: 6
+        potency: 5
+        harvestRepeat: NoRepeat
   plantCosmetics:
     plantRsi: Objects/Specific/Hydroponics/oat.rsi
   plantChemicals:
@@ -102,8 +101,6 @@
     productPrototypes:
       - OatBushel
     packetPrototype: OatSeeds
-  harvest:
-    harvestRepeat: NoRepeat
 
 - type: seed
   id: banana
@@ -117,14 +114,15 @@
         waterConsumption: 0.6
     - !type:AtmosphericGrowthComponent
         idealHeat: 298
-  plantTraits:
-    endurance: 100
-    yield: 2
-    lifespan: 50
-    maturation: 6
-    production: 6
-    growthStages: 6
-    potency: 1
+    - !type:PlantTraitsComponent
+        endurance: 100
+        yield: 2
+        lifespan: 50
+        maturation: 6
+        production: 6
+        growthStages: 6
+        potency: 1
+        harvestRepeat: Repeat
   plantCosmetics:
     plantRsi: Objects/Specific/Hydroponics/banana.rsi
   plantChemicals:
@@ -141,8 +139,6 @@
     productPrototypes:
       - FoodBanana
     packetPrototype: BananaSeeds
-  harvest:
-    harvestRepeat: Repeat
 
 - type: seed
   id: mimana
