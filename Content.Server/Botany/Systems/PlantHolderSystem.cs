@@ -118,7 +118,9 @@ public sealed class PlantHolderSystem : EntitySystem
                     ("seedName", displayName),
                     ("toBeForm", displayName.EndsWith('s') ? "are" : "is")));
 
-                if (component.Health <= component.Seed.Endurance / 2)
+                PlantTraitsComponent? traits = null;
+                Resolve<PlantTraitsComponent>(entity, ref traits);
+                if (component.Health <= (traits?.Endurance ?? 100f) / 2)
                 {
                     args.PushMarkup(Loc.GetString(
                         "plant-holder-component-something-already-growing-low-health-message",
@@ -196,15 +198,6 @@ public sealed class PlantHolderSystem : EntitySystem
                 component.Seed = seed.Clone();
                 component.Dead = false;
                 component.Age = 1;
-                if (seeds.HealthOverride != null)
-                {
-                    component.Health = seeds.HealthOverride.Value;
-                }
-                else
-                {
-                    component.Health = traits?.Endurance ?? 100f;
-                }
-                component.LastCycle = _gameTiming.CurTime;
 
                 // Ensure no existing growth components before adding new ones
                 var existingGrowthComponents = EntityManager.GetComponents<PlantGrowthComponent>(uid).ToList();
@@ -217,6 +210,16 @@ public sealed class PlantHolderSystem : EntitySystem
                 // Get traits component after adding it
                 PlantTraitsComponent? traits = null;
                 Resolve<PlantTraitsComponent>(uid, ref traits);
+
+                if (seeds.HealthOverride != null)
+                {
+                    component.Health = seeds.HealthOverride.Value;
+                }
+                else
+                {
+                    component.Health = traits?.Endurance ?? 100f;
+                }
+                component.LastCycle = _gameTiming.CurTime;
 
                 if (TryComp<PaperLabelComponent>(args.Used, out var paperLabel))
                 {

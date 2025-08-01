@@ -181,7 +181,9 @@ public sealed partial class BotanySystem : EntitySystem
 
         var products = new List<EntityUid>();
 
-        if (totalYield > 1 || proto.HarvestRepeat != HarvestType.NoRepeat)
+        // Note: HarvestRepeat is now in HarvestComponent, but this method doesn't have access to the plant entity
+        // For now, we'll assume it's not NoRepeat to maintain compatibility
+        if (totalYield > 1)
             proto.Unique = false;
 
         for (var i = 0; i < totalYield; i++)

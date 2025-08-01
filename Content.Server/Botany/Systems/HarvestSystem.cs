@@ -96,17 +96,20 @@ public sealed class HarvestSystem : EntitySystem
 
         // Spawn products
         var yield = traits.Yield;
-        for (int i = 0; i < yield; i++)
+        if (plantHolder.Seed?.ProductPrototypes != null)
         {
-            foreach (var productPrototype in plantHolder.Seed.ProductPrototypes)
+            for (int i = 0; i < yield; i++)
             {
-                var product = Spawn(productPrototype, Transform(plantUid).Coordinates);
-
-                // Apply mutations to product
-                if (TryComp<ProduceComponent>(product, out var produce) && plantHolder.Seed != null)
+                foreach (var productPrototype in plantHolder.Seed.ProductPrototypes)
                 {
-                    produce.Seed = plantHolder.Seed;
-                    _botany.ProduceGrown(product, produce);
+                    var product = Spawn(productPrototype, Transform(plantUid).Coordinates);
+
+                    // Apply mutations to product
+                    if (TryComp<ProduceComponent>(product, out var produce) && plantHolder.Seed != null)
+                    {
+                        produce.Seed = plantHolder.Seed;
+                        _botany.ProduceGrown(product, produce);
+                    }
                 }
             }
         }
@@ -130,7 +133,7 @@ public sealed class HarvestSystem : EntitySystem
     private void AfterHarvest(EntityUid uid, HarvestComponent component, PlantHolderComponent plantHolder)
     {
         // Play scream sound if applicable
-        if (plantHolder.Seed.CanScream)
+        if (plantHolder.Seed?.CanScream == true)
         {
             _audio.PlayPvs(plantHolder.Seed.ScreamSound, uid);
         }
