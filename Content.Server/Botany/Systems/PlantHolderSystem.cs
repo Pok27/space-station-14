@@ -526,7 +526,7 @@ public sealed class PlantHolderSystem : EntitySystem
                 return false;
             }
 
-            _botany.Harvest(component.Seed, user, plantholder);
+            _botany.Harvest(component.Seed, user, component.YieldMod);
             AfterHarvest(plantholder, component);
             return true;
         }
@@ -563,7 +563,7 @@ public sealed class PlantHolderSystem : EntitySystem
         if (component.Seed == null || !component.Harvest)
             return;
 
-        _botany.AutoHarvest(component.Seed, Transform(uid).Coordinates, uid);
+        _botany.AutoHarvest(component.Seed, Transform(uid).Coordinates, component.YieldMod);
         AfterHarvest(uid, component);
     }
 
