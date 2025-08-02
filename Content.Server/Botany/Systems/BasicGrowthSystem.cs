@@ -1,5 +1,6 @@
 using Content.Server.Botany.Components;
 using Robust.Shared.Random;
+using System.Linq;
 
 namespace Content.Server.Botany.Systems;
 // For all the very common stuff all plants are expected to do.
@@ -14,14 +15,21 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeLocalEvent<BasicGrowthComponent, OnPlantGrowEvent>(OnPlantGrow);
+
         SubscribeLocalEvent<BasicGrowthComponent, BotanySwabDoAfterEvent>(OnSwab);
+        SubscribeLocalEvent<BasicGrowthComponent, OnPlantGrowEvent>(OnPlantGrow);
     }
 
     private void OnSwab(EntityUid uid, BasicGrowthComponent component, BotanySwabDoAfterEvent args)
     {
-        if (args.Cancelled || args.Handled || !TryComp<PlantHolderComponent>(args.Args.Target, out var plant) ||
-            args.Used == null || !TryComp<BotanySwabComponent>(args.Used.Value, out var swab))
+        if (args.Cancelled || args.Target == null)
+            return;
+
+        if (!TryComp<PlantHolderComponent>(args.Target, out var holder) || holder.Seed == null)
+            return;
+
+        var swab = holder.Seed;
+        if (swab.components == null)
             return;
 
         var swabComp = swab.components.Find(c => c.GetType() == typeof(BasicGrowthComponent));
@@ -77,16 +85,19 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
             if (packetSeed != null && packetSeed.Unique)
             {
                 var plantGrowthComponents = EntityManager.GetComponents<PlantGrowthComponent>(uid).ToList();
-                packetSeed.GrowthComponents.Clear();
+                packetSeed.GrowthComponents?.Clear();
                 foreach (var growthComponent in plantGrowthComponents)
                 {
                     var newComponent = growthComponent.DupeComponent();
-                    packetSeed.GrowthComponents.Add(newComponent);
+                    packetSeed.GrowthComponents?.Add(newComponent);
                 }
             }
             
             // will put it in the trays hands if it has any, please do not try doing this
-            _botany.SpawnSeedPacket(packetSeed, Transform(uid).Coordinates, uid);
+            if (packetSeed != null)
+            {
+                _botany.SpawnSeedPacket(packetSeed, Transform(uid).Coordinates, uid);
+            }
             _plantHolder.RemovePlant(uid, holder);
             holder.ForceUpdate = true;
             _plantHolder.Update(uid, holder);

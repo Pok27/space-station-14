@@ -324,11 +324,11 @@ public sealed class PlantHolderSystem : EntitySystem
             if (packetSeed != null && packetSeed.Unique)
             {
                 var plantGrowthComponents = EntityManager.GetComponents<PlantGrowthComponent>(uid).ToList();
-                packetSeed.GrowthComponents.Clear();
+                packetSeed.GrowthComponents?.Clear();
                 foreach (var growthComponent in plantGrowthComponents)
                 {
                     var newComponent = growthComponent.DupeComponent();
-                    packetSeed.GrowthComponents.Add(newComponent);
+                    packetSeed.GrowthComponents?.Add(newComponent);
                 }
                 
                 // Log for debugging
@@ -336,20 +336,23 @@ public sealed class PlantHolderSystem : EntitySystem
                     $"Copied {plantGrowthComponents.Count} growth components from plant {uid} to seed {packetSeed.Name}");
             }
             
-            var seed = _botany.SpawnSeedPacket(packetSeed, Transform(args.User).Coordinates, args.User, healthOverride);
-            _randomHelper.RandomOffset(seed, 0.25f);
-            var displayName = Loc.GetString(component.Seed.DisplayName);
-            _popup.PopupCursor(Loc.GetString("plant-holder-component-take-sample-message",
-                ("seedName", displayName)), args.User);
+            if (packetSeed != null)
+            {
+                var seed = _botany.SpawnSeedPacket(packetSeed, Transform(args.User).Coordinates, args.User, healthOverride);
+                _randomHelper.RandomOffset(seed, 0.25f);
+                var displayName = Loc.GetString(component.Seed.DisplayName);
+                _popup.PopupCursor(Loc.GetString("plant-holder-component-take-sample-message",
+                    ("seedName", displayName)), args.User);
 
-            DoScream(entity.Owner, component.Seed);
+                DoScream(entity.Owner, component.Seed);
 
-            if (_random.Prob(0.3f))
-                component.Sampled = true;
+                if (_random.Prob(0.3f))
+                    component.Sampled = true;
 
-            // Just in case.
-            CheckLevelSanity(uid, component);
-            ForceUpdateByExternalCause(uid, component);
+                // Just in case.
+                CheckLevelSanity(uid, component);
+                ForceUpdateByExternalCause(uid, component);
+            }
 
             return;
         }
