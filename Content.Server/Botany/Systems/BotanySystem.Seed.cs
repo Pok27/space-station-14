@@ -214,8 +214,7 @@ public sealed partial class BotanySystem : EntitySystem
 
             var produce = EnsureComp<ProduceComponent>(entity);
 
-            // Use Clone with plant entity to preserve gas mutations if provided
-            produce.Seed = proto.Clone(plantEntity, EntityManager);
+            produce.Seed = proto.Clone();
                 
             ProduceGrown(entity, produce);
 

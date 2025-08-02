@@ -10,7 +10,6 @@ using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototy
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype.List;
 using Robust.Shared.Utility;
 using Robust.Shared.Serialization.Manager;
-using System.Linq;
 
 namespace Content.Server.Botany;
 
@@ -164,7 +163,7 @@ public partial class SeedData
     [DataField]
     public LogImpact? PlantLogImpact;
 
-    public SeedData Clone(EntityUid? plantEntity = null, IEntityManager? entityManager = null)
+    public SeedData Clone()
     {
         DebugTools.Assert(!Immutable, "There should be no need to clone an immutable seed.");
 
@@ -197,28 +196,6 @@ public partial class SeedData
         {
             var newComponent = component.DupeComponent();
             newSeed.GrowthComponents.Add(newComponent);
-        }
-
-        // Copy gas components from the plant if provided
-        if (plantEntity.HasValue && entityManager != null)
-        {
-            if (entityManager.TryGetComponent<ConsumeExudeGasGrowthComponent>(plantEntity.Value, out var gasComponent))
-            {
-                // Check if the seed already has this component
-                var existingComponent = newSeed.GrowthComponents.OfType<ConsumeExudeGasGrowthComponent>().FirstOrDefault();
-                if (existingComponent != null)
-                {
-                    // Update existing component
-                    existingComponent.ConsumeGasses = new Dictionary<Gas, float>(gasComponent.ConsumeGasses);
-                    existingComponent.ExudeGasses = new Dictionary<Gas, float>(gasComponent.ExudeGasses);
-                }
-                else
-                {
-                    // Add new component
-                    var newGasComponent = gasComponent.DupeComponent();
-                    newSeed.GrowthComponents.Add(newGasComponent);
-                }
-            }
         }
 
         newSeed.Mutations.AddRange(Mutations);
