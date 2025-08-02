@@ -527,6 +527,23 @@ public sealed class PlantHolderSystem : EntitySystem
             }
 
             _botany.Harvest(component.Seed, user, plantholder);
+            
+            // Copy growth components from the plant to the seed before harvesting
+            if (component.Seed != null && component.Seed.Unique)
+            {
+                var plantGrowthComponents = EntityManager.GetComponents<PlantGrowthComponent>(plantholder).ToList();
+                component.Seed.GrowthComponents.Clear();
+                foreach (var component in plantGrowthComponents)
+                {
+                    var newComponent = component.DupeComponent();
+                    component.Seed.GrowthComponents.Add(newComponent);
+                }
+                
+                // Log for debugging
+                _adminLogger.Add(LogType.Botany, LogImpact.Low, 
+                    $"Copied {plantGrowthComponents.Count} growth components from plant {plantholder} to seed {component.Seed.Name}");
+            }
+            
             AfterHarvest(plantholder, component);
             return true;
         }
@@ -562,6 +579,22 @@ public sealed class PlantHolderSystem : EntitySystem
 
         if (component.Seed == null || !component.Harvest)
             return;
+
+        // Copy growth components from the plant to the seed before harvesting
+        if (component.Seed.Unique)
+        {
+            var plantGrowthComponents = EntityManager.GetComponents<PlantGrowthComponent>(uid).ToList();
+            component.Seed.GrowthComponents.Clear();
+            foreach (var growthComponent in plantGrowthComponents)
+            {
+                var newComponent = growthComponent.DupeComponent();
+                component.Seed.GrowthComponents.Add(newComponent);
+            }
+            
+            // Log for debugging
+            _adminLogger.Add(LogType.Botany, LogImpact.Low, 
+                $"Copied {plantGrowthComponents.Count} growth components from plant {uid} to seed {component.Seed.Name}");
+        }
 
         _botany.AutoHarvest(component.Seed, Transform(uid).Coordinates, uid);
         AfterHarvest(uid, component);

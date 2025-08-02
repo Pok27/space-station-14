@@ -155,7 +155,7 @@ public sealed partial class BotanySystem : EntitySystem
 
             var yieldMod = Comp<PlantHolderComponent>(plantEntity!.Value).YieldMod;
 
-            return GenerateProduct(proto, position, yieldMod, plantEntity);
+            return GenerateProduct(proto, position, yieldMod);
         }
 
         return Enumerable.Empty<EntityUid>();
@@ -178,15 +178,10 @@ public sealed partial class BotanySystem : EntitySystem
 
         var yieldMod = Comp<PlantHolderComponent>(plantEntity!.Value).YieldMod;
 
-        return GenerateProduct(proto, Transform(user).Coordinates, yieldMod, plantEntity);
+        return GenerateProduct(proto, Transform(user).Coordinates, yieldMod);
     }
 
     public IEnumerable<EntityUid> GenerateProduct(SeedData proto, EntityCoordinates position, int yieldMod = 1)
-    {
-        return GenerateProduct(proto, position, yieldMod, null);
-    }
-
-    public IEnumerable<EntityUid> GenerateProduct(SeedData proto, EntityCoordinates position, int yieldMod, EntityUid? plantEntity)
     {
         var traits = GetPlantTraits(proto);
         if (traits == null)
@@ -220,22 +215,6 @@ public sealed partial class BotanySystem : EntitySystem
             var produce = EnsureComp<ProduceComponent>(entity);
 
             produce.Seed = proto.Clone();
-            
-            // Copy growth components from the plant to the seed if plantEntity is provided
-            if (plantEntity != null && EntityManager.EntityExists(plantEntity.Value))
-            {
-                var plantGrowthComponents = EntityManager.GetComponents<PlantGrowthComponent>(plantEntity.Value).ToList();
-                produce.Seed.GrowthComponents.Clear();
-                foreach (var component in plantGrowthComponents)
-                {
-                    var newComponent = component.DupeComponent();
-                    produce.Seed.GrowthComponents.Add(newComponent);
-                }
-                
-                // Log for debugging
-                _adminLogger.Add(LogType.Botany, LogImpact.Low, 
-                    $"Copied {plantGrowthComponents.Count} growth components from plant {plantEntity.Value} to seed {produce.Seed.Name}");
-            }
             
             ProduceGrown(entity, produce);
 

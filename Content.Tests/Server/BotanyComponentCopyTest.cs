@@ -64,7 +64,7 @@ namespace Content.Tests.Server
             entMan.AddComponent<BasicGrowthComponent>(_plantEntity);
             
             // Test that components are copied during harvest
-            var products = _botanySystem.GenerateProduct(seed, MapCoordinates.Nullspace, 1, _plantEntity);
+            var products = _botanySystem.GenerateProduct(seed, MapCoordinates.Nullspace, 1);
             
             Assert.That(products, Is.Not.Empty);
             
