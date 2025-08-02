@@ -183,7 +183,7 @@ public sealed partial class BotanySystem : EntitySystem
         if (traits == null)
             return Enumerable.Empty<EntityUid>();
 
-        var yieldMod = plantEntity.HasValue ? Comp<PlantHolderComponent>(plantEntity.Value).YieldMod : 1;
+        var yieldMod = Comp<PlantHolderComponent>(plantEntity!.Value).YieldMod;
         var totalYield = 0;
 
         if (traits.Yield > -1)
