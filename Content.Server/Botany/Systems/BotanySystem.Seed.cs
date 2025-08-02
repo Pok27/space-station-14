@@ -155,7 +155,7 @@ public sealed partial class BotanySystem : EntitySystem
 
             var yieldMod = Comp<PlantHolderComponent>(plantEntity!.Value).YieldMod;
 
-            return GenerateProduct(proto: proto, position: position, yieldMod: yieldMod, plantEntity: plantEntity);
+            return GenerateProduct(proto, position, yieldMod, plantEntity);
         }
 
         return Enumerable.Empty<EntityUid>();
@@ -178,10 +178,15 @@ public sealed partial class BotanySystem : EntitySystem
 
         var yieldMod = Comp<PlantHolderComponent>(plantEntity!.Value).YieldMod;
 
-        return GenerateProduct(proto: proto, position: Transform(user).Coordinates, yieldMod: yieldMod, plantEntity: plantEntity);
+        return GenerateProduct(proto, Transform(user).Coordinates, yieldMod, plantEntity);
     }
 
-    public IEnumerable<EntityUid> GenerateProduct(SeedData proto, EntityCoordinates position, int yieldMod = 1, EntityUid? plantEntity = null)
+    public IEnumerable<EntityUid> GenerateProduct(SeedData proto, EntityCoordinates position, int yieldMod = 1)
+    {
+        return GenerateProduct(proto, position, yieldMod, null);
+    }
+
+    public IEnumerable<EntityUid> GenerateProduct(SeedData proto, EntityCoordinates position, int yieldMod, EntityUid? plantEntity)
     {
         var traits = GetPlantTraits(proto);
         if (traits == null)
