@@ -913,49 +913,7 @@ public sealed class EntityEffectSystem : EntitySystem
         }
     }
 
-    private void OnExecutePlantMutateConsumeGasses(ref ExecuteEntityEffectEvent<PlantMutateConsumeGasses> args)
-    {
-        if (!TryComp<PlantHolderComponent>(args.Args.TargetEntity, out var plantholder) ||
-            plantholder.Seed == null)
-            return;
 
-        // Get or create the gas growth component
-        var gasComponent = EnsureComp<ConsumeExudeGasGrowthComponent>(args.Args.TargetEntity);
-
-        // Add a random amount of a random gas to this gas dictionary
-        float amount = _random.NextFloat(args.Effect.MinValue, args.Effect.MaxValue);
-        Gas gas = _random.Pick(Enum.GetValues(typeof(Gas)).Cast<Gas>().ToList());
-        if (gasComponent.ConsumeGasses.ContainsKey(gas))
-        {
-            gasComponent.ConsumeGasses[gas] += amount;
-        }
-        else
-        {
-            gasComponent.ConsumeGasses.Add(gas, amount);
-        }
-    }
-
-    private void OnExecutePlantMutateExudeGasses(ref ExecuteEntityEffectEvent<PlantMutateExudeGasses> args)
-    {
-        if (!TryComp<PlantHolderComponent>(args.Args.TargetEntity, out var plantholder) ||
-            plantholder.Seed == null)
-            return;
-
-        // Get or create the gas growth component
-        var gasComponent = EnsureComp<ConsumeExudeGasGrowthComponent>(args.Args.TargetEntity);
-
-        // Add a random amount of a random gas to this gas dictionary
-        float amount = _random.NextFloat(args.Effect.MinValue, args.Effect.MaxValue);
-        Gas gas = _random.Pick(Enum.GetValues(typeof(Gas)).Cast<Gas>().ToList());
-        if (gasComponent.ExudeGasses.ContainsKey(gas))
-        {
-            gasComponent.ExudeGasses[gas] += amount;
-        }
-        else
-        {
-            gasComponent.ExudeGasses.Add(gas, amount);
-        }
-    }
 
     private void OnExecutePlantMutateHarvest(ref ExecuteEntityEffectEvent<PlantMutateHarvest> args)
     {
@@ -1008,5 +966,49 @@ public sealed class EntityEffectSystem : EntitySystem
                 return;
 
         _narcolepsy.AdjustNarcolepsyTimer(args.Args.TargetEntity, args.Effect.TimerReset);
+    }
+
+    private void OnExecutePlantMutateConsumeGasses(ref ExecuteEntityEffectEvent<PlantMutateConsumeGasses> args)
+    {
+        if (!TryComp<PlantHolderComponent>(args.Args.TargetEntity, out var plantholder) ||
+            plantholder.Seed == null)
+            return;
+
+        // Get or create the gas growth component
+        var gasComponent = EnsureComp<ConsumeExudeGasGrowthComponent>(args.Args.TargetEntity);
+
+        // Add a random amount of a random gas to this gas dictionary
+        float amount = _random.NextFloat(args.Effect.MinValue, args.Effect.MaxValue);
+        Gas gas = _random.Pick(Enum.GetValues(typeof(Gas)).Cast<Gas>().ToList());
+        if (gasComponent.ConsumeGasses.ContainsKey(gas))
+        {
+            gasComponent.ConsumeGasses[gas] += amount;
+        }
+        else
+        {
+            gasComponent.ConsumeGasses.Add(gas, amount);
+        }
+    }
+
+    private void OnExecutePlantMutateExudeGasses(ref ExecuteEntityEffectEvent<PlantMutateExudeGasses> args)
+    {
+        if (!TryComp<PlantHolderComponent>(args.Args.TargetEntity, out var plantholder) ||
+            plantholder.Seed == null)
+            return;
+
+        // Get or create the gas growth component
+        var gasComponent = EnsureComp<ConsumeExudeGasGrowthComponent>(args.Args.TargetEntity);
+
+        // Add a random amount of a random gas to this gas dictionary
+        float amount = _random.NextFloat(args.Effect.MinValue, args.Effect.MaxValue);
+        Gas gas = _random.Pick(Enum.GetValues(typeof(Gas)).Cast<Gas>().ToList());
+        if (gasComponent.ExudeGasses.ContainsKey(gas))
+        {
+            gasComponent.ExudeGasses[gas] += amount;
+        }
+        else
+        {
+            gasComponent.ExudeGasses.Add(gas, amount);
+        }
     }
 }
