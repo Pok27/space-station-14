@@ -164,7 +164,7 @@ public partial class SeedData
     [DataField]
     public LogImpact? PlantLogImpact;
 
-    public SeedData Clone()
+    public SeedData Clone(EntityUid? plantEntity = null, IEntityManager? entityManager = null)
     {
         DebugTools.Assert(!Immutable, "There should be no need to clone an immutable seed.");
 
@@ -199,37 +199,29 @@ public partial class SeedData
             newSeed.GrowthComponents.Add(newComponent);
         }
 
-        newSeed.Mutations.AddRange(Mutations);
-        return newSeed;
-    }
-
-    /// <summary>
-    /// Clones the seed and copies gas components from the plant entity if they exist.
-    /// This ensures that gas mutations are preserved when creating new seeds.
-    /// </summary>
-    public SeedData CloneWithPlantComponents(EntityUid plantEntity, IEntityManager entityManager)
-    {
-        var newSeed = Clone();
-
-        // Copy gas components from the plant if they exist
-        if (entityManager.TryGetComponent<ConsumeExudeGasGrowthComponent>(plantEntity, out var gasComponent))
+        // Copy gas components from the plant if provided
+        if (plantEntity.HasValue && entityManager != null)
         {
-            // Check if the seed already has this component
-            var existingComponent = newSeed.GrowthComponents.OfType<ConsumeExudeGasGrowthComponent>().FirstOrDefault();
-            if (existingComponent != null)
+            if (entityManager.TryGetComponent<ConsumeExudeGasGrowthComponent>(plantEntity.Value, out var gasComponent))
             {
-                // Update existing component
-                existingComponent.ConsumeGasses = new Dictionary<Gas, float>(gasComponent.ConsumeGasses);
-                existingComponent.ExudeGasses = new Dictionary<Gas, float>(gasComponent.ExudeGasses);
-            }
-            else
-            {
-                // Add new component
-                var newGasComponent = gasComponent.DupeComponent();
-                newSeed.GrowthComponents.Add(newGasComponent);
+                // Check if the seed already has this component
+                var existingComponent = newSeed.GrowthComponents.OfType<ConsumeExudeGasGrowthComponent>().FirstOrDefault();
+                if (existingComponent != null)
+                {
+                    // Update existing component
+                    existingComponent.ConsumeGasses = new Dictionary<Gas, float>(gasComponent.ConsumeGasses);
+                    existingComponent.ExudeGasses = new Dictionary<Gas, float>(gasComponent.ExudeGasses);
+                }
+                else
+                {
+                    // Add new component
+                    var newGasComponent = gasComponent.DupeComponent();
+                    newSeed.GrowthComponents.Add(newGasComponent);
+                }
             }
         }
 
+        newSeed.Mutations.AddRange(Mutations);
         return newSeed;
     }
 
