@@ -145,7 +145,7 @@ public sealed partial class BotanySystem : EntitySystem
         return seed;
     }
 
-    public IEnumerable<EntityUid> AutoHarvest(SeedData proto, EntityCoordinates position, int yieldMod = 1, EntityUid? plantEntity = null)
+    public IEnumerable<EntityUid> AutoHarvest(SeedData proto, EntityCoordinates position, EntityUid? plantEntity = null)
     {
         if (position.IsValid(EntityManager) &&
             proto.ProductPrototypes.Count > 0)
@@ -153,16 +153,17 @@ public sealed partial class BotanySystem : EntitySystem
             if (proto.HarvestLogImpact != null)
                 _adminLogger.Add(LogType.Botany, proto.HarvestLogImpact.Value, $"Auto-harvested {Loc.GetString(proto.Name):seed} at Pos:{position}.");
 
-                    if (plantEntity.HasValue)
+            var yieldMod = plantEntity.HasValue && TryComp<PlantHolderComponent>(plantEntity.Value, out var plantHolder) 
+                ? plantHolder.YieldMod 
+                : 1;
+
             return GenerateProduct(proto, position, yieldMod, plantEntity);
-        else
-            return GenerateProduct(proto, position, yieldMod);
         }
 
         return Enumerable.Empty<EntityUid>();
     }
 
-    public IEnumerable<EntityUid> Harvest(SeedData proto, EntityUid user, int yieldMod = 1, EntityUid? plantEntity = null)
+    public IEnumerable<EntityUid> Harvest(SeedData proto, EntityUid user, EntityUid? plantEntity = null)
     {
         var traits = GetPlantTraits(proto);
         if (traits == null || proto.ProductPrototypes.Count == 0 || traits.Yield <= 0)
@@ -177,10 +178,11 @@ public sealed partial class BotanySystem : EntitySystem
         if (proto.HarvestLogImpact != null)
             _adminLogger.Add(LogType.Botany, proto.HarvestLogImpact.Value, $"{ToPrettyString(user):player} harvested {Loc.GetString(proto.Name):seed} at Pos:{Transform(user).Coordinates}.");
 
-        if (plantEntity.HasValue)
-            return GenerateProduct(proto, Transform(user).Coordinates, yieldMod, plantEntity);
-        else
-            return GenerateProduct(proto, Transform(user).Coordinates, yieldMod);
+        var yieldMod = plantEntity.HasValue && TryComp<PlantHolderComponent>(plantEntity.Value, out var plantHolder) 
+            ? plantHolder.YieldMod 
+            : 1;
+
+        return GenerateProduct(proto, Transform(user).Coordinates, yieldMod, plantEntity);
     }
 
     public IEnumerable<EntityUid> GenerateProduct(SeedData proto, EntityCoordinates position, int yieldMod = 1, EntityUid? plantEntity = null)
