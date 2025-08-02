@@ -533,9 +533,9 @@ public sealed class PlantHolderSystem : EntitySystem
             {
                 var plantGrowthComponents = EntityManager.GetComponents<PlantGrowthComponent>(plantholder).ToList();
                 component.Seed.GrowthComponents.Clear();
-                foreach (var component in plantGrowthComponents)
+                foreach (var growthComponent in plantGrowthComponents)
                 {
-                    var newComponent = component.DupeComponent();
+                    var newComponent = growthComponent.DupeComponent();
                     component.Seed.GrowthComponents.Add(newComponent);
                 }
                 
