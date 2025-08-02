@@ -10,6 +10,7 @@ using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototy
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype.List;
 using Robust.Shared.Utility;
 using Robust.Shared.Serialization.Manager;
+using System.Linq;
 
 namespace Content.Server.Botany;
 
@@ -199,6 +200,36 @@ public partial class SeedData
         }
 
         newSeed.Mutations.AddRange(Mutations);
+        return newSeed;
+    }
+
+    /// <summary>
+    /// Clones the seed and copies gas components from the plant entity if they exist.
+    /// This ensures that gas mutations are preserved when creating new seeds.
+    /// </summary>
+    public SeedData CloneWithPlantComponents(EntityUid plantEntity, IEntityManager entityManager)
+    {
+        var newSeed = Clone();
+
+        // Copy gas components from the plant if they exist
+        if (entityManager.TryGetComponent<ConsumeExudeGasGrowthComponent>(plantEntity, out var gasComponent))
+        {
+            // Check if the seed already has this component
+            var existingComponent = newSeed.GrowthComponents.OfType<ConsumeExudeGasGrowthComponent>().FirstOrDefault();
+            if (existingComponent != null)
+            {
+                // Update existing component
+                existingComponent.ConsumeGasses = new Dictionary<Gas, float>(gasComponent.ConsumeGasses);
+                existingComponent.ExudeGasses = new Dictionary<Gas, float>(gasComponent.ExudeGasses);
+            }
+            else
+            {
+                // Add new component
+                var newGasComponent = gasComponent.DupeComponent();
+                newSeed.GrowthComponents.Add(newGasComponent);
+            }
+        }
+
         return newSeed;
     }
 

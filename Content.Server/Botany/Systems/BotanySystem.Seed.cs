@@ -159,6 +159,20 @@ public sealed partial class BotanySystem : EntitySystem
         return Enumerable.Empty<EntityUid>();
     }
 
+    public IEnumerable<EntityUid> AutoHarvest(SeedData proto, EntityCoordinates position, EntityUid plantEntity, int yieldMod = 1)
+    {
+        if (position.IsValid(EntityManager) &&
+            proto.ProductPrototypes.Count > 0)
+        {
+            if (proto.HarvestLogImpact != null)
+                _adminLogger.Add(LogType.Botany, proto.HarvestLogImpact.Value, $"Auto-harvested {Loc.GetString(proto.Name):seed} at Pos:{position}.");
+
+            return GenerateProductWithPlant(proto, position, plantEntity, yieldMod);
+        }
+
+        return Enumerable.Empty<EntityUid>();
+    }
+
     public IEnumerable<EntityUid> Harvest(SeedData proto, EntityUid user, int yieldMod = 1)
     {
         var traits = GetPlantTraits(proto);
@@ -175,6 +189,24 @@ public sealed partial class BotanySystem : EntitySystem
             _adminLogger.Add(LogType.Botany, proto.HarvestLogImpact.Value, $"{ToPrettyString(user):player} harvested {Loc.GetString(proto.Name):seed} at Pos:{Transform(user).Coordinates}.");
 
         return GenerateProduct(proto, Transform(user).Coordinates, yieldMod);
+    }
+
+    public IEnumerable<EntityUid> Harvest(SeedData proto, EntityUid user, EntityUid plantEntity, int yieldMod = 1)
+    {
+        var traits = GetPlantTraits(proto);
+        if (traits == null || proto.ProductPrototypes.Count == 0 || traits.Yield <= 0)
+        {
+            _popupSystem.PopupCursor(Loc.GetString("botany-harvest-fail-message"), user, PopupType.Medium);
+            return Enumerable.Empty<EntityUid>();
+        }
+
+        var name = Loc.GetString(proto.DisplayName);
+        _popupSystem.PopupCursor(Loc.GetString("botany-harvest-success-message", ("name", name)), user, PopupType.Medium);
+
+        if (proto.HarvestLogImpact != null)
+            _adminLogger.Add(LogType.Botany, proto.HarvestLogImpact.Value, $"{ToPrettyString(user):player} harvested {Loc.GetString(proto.Name):seed} at Pos:{Transform(user).Coordinates}.");
+
+        return GenerateProductWithPlant(proto, Transform(user).Coordinates, plantEntity, yieldMod);
     }
 
     public IEnumerable<EntityUid> GenerateProduct(SeedData proto, EntityCoordinates position, int yieldMod = 1)
@@ -211,6 +243,57 @@ public sealed partial class BotanySystem : EntitySystem
             var produce = EnsureComp<ProduceComponent>(entity);
 
             produce.Seed = proto.Clone();
+            ProduceGrown(entity, produce);
+
+            _appearance.SetData(entity, ProduceVisuals.Potency, traits.Potency);
+
+            if (proto.Mysterious)
+            {
+                var metaData = MetaData(entity);
+                _metaData.SetEntityName(entity, metaData.EntityName + "?", metaData);
+                _metaData.SetEntityDescription(entity,
+                    metaData.EntityDescription + " " + Loc.GetString("botany-mysterious-description-addon"), metaData);
+            }
+        }
+
+        return products;
+    }
+
+    public IEnumerable<EntityUid> GenerateProductWithPlant(SeedData proto, EntityCoordinates position, EntityUid plantEntity, int yieldMod = 1)
+    {
+        var traits = GetPlantTraits(proto);
+        if (traits == null)
+            return Enumerable.Empty<EntityUid>();
+
+        var totalYield = 0;
+
+        if (traits.Yield > -1)
+        {
+            if (yieldMod < 0)
+                totalYield = traits.Yield;
+            else
+                totalYield = traits.Yield * yieldMod;
+
+            totalYield = Math.Max(1, totalYield);
+        }
+
+        var products = new List<EntityUid>();
+
+        if (totalYield > 1)
+            proto.Unique = false;
+
+        for (var i = 0; i < totalYield; i++)
+        {
+            var product = _robustRandom.Pick(proto.ProductPrototypes);
+
+            var entity = Spawn(product, position);
+            _randomHelper.RandomOffset(entity, 0.25f);
+            products.Add(entity);
+
+            var produce = EnsureComp<ProduceComponent>(entity);
+
+            // Use CloneWithPlantComponents to preserve gas mutations
+            produce.Seed = proto.CloneWithPlantComponents(plantEntity, EntityManager);
             ProduceGrown(entity, produce);
 
             _appearance.SetData(entity, ProduceVisuals.Potency, traits.Potency);
