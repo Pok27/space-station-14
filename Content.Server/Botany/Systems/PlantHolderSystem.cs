@@ -528,20 +528,13 @@ public sealed class PlantHolderSystem : EntitySystem
 
             _botany.Harvest(component.Seed, user, plantholder);
             
-            // Copy growth components from the plant to the seed before harvesting
+            // Copy growth components from the seed to the harvested produce
             if (component.Seed != null && component.Seed.Unique)
             {
-                var plantGrowthComponents = EntityManager.GetComponents<PlantGrowthComponent>(plantholder).ToList();
-                component.Seed.GrowthComponents.Clear();
-                foreach (var growthComponent in plantGrowthComponents)
-                {
-                    var newComponent = growthComponent.DupeComponent();
-                    component.Seed.GrowthComponents.Add(newComponent);
-                }
-                
-                // Log for debugging
+                // The seed already contains the updated components from mutations
+                // We just need to ensure the harvested produce gets the same components
                 _adminLogger.Add(LogType.Botany, LogImpact.Low, 
-                    $"Copied {plantGrowthComponents.Count} growth components from plant {plantholder} to seed {component.Seed.Name}");
+                    $"Seed {component.Seed.Name} has {component.Seed.GrowthComponents.Count} growth components");
             }
             
             AfterHarvest(plantholder, component);
@@ -580,20 +573,13 @@ public sealed class PlantHolderSystem : EntitySystem
         if (component.Seed == null || !component.Harvest)
             return;
 
-        // Copy growth components from the plant to the seed before harvesting
+        // Copy growth components from the seed to the harvested produce
         if (component.Seed.Unique)
         {
-            var plantGrowthComponents = EntityManager.GetComponents<PlantGrowthComponent>(uid).ToList();
-            component.Seed.GrowthComponents.Clear();
-            foreach (var growthComponent in plantGrowthComponents)
-            {
-                var newComponent = growthComponent.DupeComponent();
-                component.Seed.GrowthComponents.Add(newComponent);
-            }
-            
-            // Log for debugging
+            // The seed already contains the updated components from mutations
+            // We just need to ensure the harvested produce gets the same components
             _adminLogger.Add(LogType.Botany, LogImpact.Low, 
-                $"Copied {plantGrowthComponents.Count} growth components from plant {uid} to seed {component.Seed.Name}");
+                $"Seed {component.Seed.Name} has {component.Seed.GrowthComponents.Count} growth components");
         }
 
         _botany.AutoHarvest(component.Seed, Transform(uid).Coordinates, uid);

@@ -224,6 +224,21 @@ public sealed partial class BotanySystem : EntitySystem
 
             produce.Seed = proto.Clone();
             
+            // Copy growth components from the seed to the harvested produce
+            if (proto.GrowthComponents.Count > 0)
+            {
+                produce.Seed.GrowthComponents.Clear();
+                foreach (var growthComponent in proto.GrowthComponents)
+                {
+                    var newComponent = growthComponent.DupeComponent();
+                    produce.Seed.GrowthComponents.Add(newComponent);
+                }
+                
+                // Log for debugging
+                _adminLogger.Add(LogType.Botany, LogImpact.Low, 
+                    $"Copied {proto.GrowthComponents.Count} growth components from seed {proto.Name} to harvested produce");
+            }
+            
             ProduceGrown(entity, produce);
 
             _appearance.SetData(entity, ProduceVisuals.Potency, traits.Potency);

@@ -58,6 +58,23 @@ public sealed class MutationSystem : EntitySystem
 
         CheckRandomMutations(plantHolder, ref seed, severity);
         EnsureGrowthComponents(plantHolder, seed);
+        
+        // Copy mutated components from plant back to seed
+        CopyPlantComponentsToSeed(plantHolder, seed);
+    }
+    
+    /// <summary>
+    /// Copies growth components from the plant back to the seed after mutations.
+    /// </summary>
+    private void CopyPlantComponentsToSeed(EntityUid plantHolder, SeedData seed)
+    {
+        var plantGrowthComponents = EntityManager.GetComponents<PlantGrowthComponent>(plantHolder).ToList();
+        seed.GrowthComponents.Clear();
+        foreach (var component in plantGrowthComponents)
+        {
+            var newComponent = component.DupeComponent();
+            seed.GrowthComponents.Add(newComponent);
+        }
     }
 
     /// <summary>
