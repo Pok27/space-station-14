@@ -153,8 +153,8 @@ public sealed partial class BotanySystem : EntitySystem
             if (proto.HarvestLogImpact != null)
                 _adminLogger.Add(LogType.Botany, proto.HarvestLogImpact.Value, $"Auto-harvested {Loc.GetString(proto.Name):seed} at Pos:{position}.");
 
-            var yieldMod = plantEntity.HasValue && TryComp<PlantHolderComponent>(plantEntity.Value, out var plantHolder) 
-                ? plantHolder.YieldMod 
+            var yieldMod = plantEntity.HasValue 
+                ? Comp<PlantHolderComponent>(plantEntity.Value).YieldMod 
                 : 1;
 
             return GenerateProduct(proto, position, yieldMod, plantEntity);
@@ -178,8 +178,8 @@ public sealed partial class BotanySystem : EntitySystem
         if (proto.HarvestLogImpact != null)
             _adminLogger.Add(LogType.Botany, proto.HarvestLogImpact.Value, $"{ToPrettyString(user):player} harvested {Loc.GetString(proto.Name):seed} at Pos:{Transform(user).Coordinates}.");
 
-        var yieldMod = plantEntity.HasValue && TryComp<PlantHolderComponent>(plantEntity.Value, out var plantHolder) 
-            ? plantHolder.YieldMod 
+        var yieldMod = plantEntity.HasValue 
+            ? Comp<PlantHolderComponent>(plantEntity.Value).YieldMod 
             : 1;
 
         return GenerateProduct(proto, Transform(user).Coordinates, yieldMod, plantEntity);
