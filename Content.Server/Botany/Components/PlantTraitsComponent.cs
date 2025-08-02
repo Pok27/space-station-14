@@ -47,4 +47,28 @@ public sealed partial class PlantTraitsComponent : PlantGrowthComponent
     /// </summary>
     [DataField]
     public float Potency = 1f;
+
+    /// <summary>
+    /// If true, produce can't be put into the seed maker.
+    /// </summary>
+    [DataField]
+    public bool Seedless = false;
+
+    /// <summary>
+    /// If true, a sharp tool is required to harvest this plant.
+    /// </summary>
+    [DataField]
+    public bool Ligneous = false;
+
+    /// <summary>
+    /// If true, the plant can scream when harvested.
+    /// </summary>
+    [DataField]
+    public bool CanScream = false;
+
+    /// <summary>
+    /// If true, the plant can turn into kudzu.
+    /// </summary>
+    [DataField]
+    public bool TurnIntoKudzu = false;
 }

@@ -229,7 +229,11 @@ public sealed partial class BotanySystem : EntitySystem
 
     public bool CanHarvest(SeedData proto, EntityUid? held = null)
     {
-        return !proto.Ligneous || proto.Ligneous && held != null && HasComp<SharpComponent>(held);
+        var traits = GetPlantTraits(proto);
+        if (traits == null)
+            return true;
+
+        return !traits.Ligneous || traits.Ligneous && held != null && HasComp<SharpComponent>(held);
     }
 
     #endregion

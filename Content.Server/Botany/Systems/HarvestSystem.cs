@@ -84,9 +84,10 @@ public sealed class HarvestSystem : EntitySystem
             return;
 
         // Check if sharp tool is required
-        if (plantHolder.Seed?.Ligneous == true)
+        if (traits.Ligneous)
         {
             if (!_hands.TryGetActiveItem(args.User, out var activeItem) ||
+                plantHolder.Seed == null ||
                 !_botany.CanHarvest(plantHolder.Seed, activeItem))
             {
                 _popup.PopupCursor(Loc.GetString("plant-holder-component-ligneous-cant-harvest-message"), args.User);
@@ -153,7 +154,7 @@ public sealed class HarvestSystem : EntitySystem
     private void AfterHarvest(EntityUid uid, HarvestComponent component, PlantHolderComponent plantHolder)
     {
         // Play scream sound if applicable
-        if (plantHolder.Seed?.CanScream == true)
+        if (TryComp<PlantTraitsComponent>(uid, out var traits) && traits.CanScream && plantHolder.Seed != null)
         {
             _audio.PlayPvs(plantHolder.Seed.ScreamSound, uid);
         }

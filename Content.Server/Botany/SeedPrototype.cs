@@ -104,15 +104,7 @@ public partial class SeedData
 
     #region General traits
 
-    /// <summary>
-    /// If true, produce can't be put into the seed maker.
-    /// </summary>
-    [DataField] public bool Seedless = false;
 
-    /// <summary>
-    /// If true, a sharp tool is required to harvest this plant.
-    /// </summary>
-    [DataField] public bool Ligneous;
 
     #endregion
 
@@ -130,19 +122,9 @@ public partial class SeedData
     public SoundSpecifier ScreamSound = new SoundCollectionSpecifier("PlantScreams", AudioParams.Default.WithVolume(-10));
 
     /// <summary>
-    /// If true, AAAAAAAAAAAHHHHHHHHHHH!
-    /// </summary>
-    [DataField("screaming")] public bool CanScream;
-
-    /// <summary>
     /// Which kind of kudzu this plant will turn into if it kuzuifies.
     /// </summary>
     [DataField(customTypeSerializer: typeof(PrototypeIdSerializer<EntityPrototype>))] public string KudzuPrototype = "WeakKudzu";
-
-    /// <summary>
-    /// If true, this plant turns into it's KudzuPrototype when the PlantHolder's WeedLevel hits this plant's WeedHighLevelThreshold.
-    /// </summary>
-    [DataField] public bool TurnIntoKudzu;
 
     #endregion
 
@@ -201,13 +183,8 @@ public partial class SeedData
             MutationPrototypes = new List<string>(MutationPrototypes),
             Chemicals = new Dictionary<string, SeedChemQuantity>(Chemicals),
 
-            Seedless = Seedless,
-            Ligneous = Ligneous,
-
             PlantRsi = PlantRsi,
             PlantIconState = PlantIconState,
-            CanScream = CanScream,
-            TurnIntoKudzu = TurnIntoKudzu,
             Mutations = new List<RandomPlantMutation>(),
 
             // Newly cloned seed is unique. No need to unnecessarily clone if repeatedly modified.
@@ -250,13 +227,8 @@ public partial class SeedData
 
             Mutations = Mutations,
 
-            Seedless = Seedless,
-            Ligneous = Ligneous,
-
             PlantRsi = other.PlantRsi,
             PlantIconState = other.PlantIconState,
-            CanScream = CanScream,
-            TurnIntoKudzu = TurnIntoKudzu,
 
             // Newly cloned seed is unique. No need to unnecessarily clone if repeatedly modified.
             Unique = true,

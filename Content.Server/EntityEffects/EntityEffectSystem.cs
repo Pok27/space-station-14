@@ -64,6 +64,7 @@ public sealed class EntityEffectSystem : EntitySystem
     [Dependency] private readonly MutationSystem _mutation = default!;
     [Dependency] private readonly NarcolepsySystem _narcolepsy = default!;
     [Dependency] private readonly PlantHolderSystem _plantHolder = default!;
+    [Dependency] private readonly BasicGrowthSystem _plantGrowth = default!;
     [Dependency] private readonly PolymorphSystem _polymorph = default!;
     [Dependency] private readonly RespiratorSystem _respirator = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
@@ -290,7 +291,7 @@ public sealed class EntityEffectSystem : EntitySystem
         if (!CanMetabolizePlant(args.Args.TargetEntity, out var plantHolderComp))
             return;
 
-        _plantHolder.AffectGrowth(args.Args.TargetEntity, (int) args.Effect.Amount, plantHolderComp);
+        _plantGrowth.AffectGrowth(args.Args.TargetEntity, (int) args.Effect.Amount, plantHolderComp);
     }
 
     // Mutate reference 'val' between 'min' and 'max' by pretending the value
@@ -436,7 +437,10 @@ public sealed class EntityEffectSystem : EntitySystem
         if (!CanMetabolizePlant(args.Args.TargetEntity, out var plantHolderComp, mustHaveMutableSeed: true))
             return;
 
-        if (plantHolderComp.Seed!.Seedless == false)
+        PlantTraitsComponent? traits = null;
+        Resolve<PlantTraitsComponent>(args.Args.TargetEntity, ref traits);
+
+        if (traits != null && !traits.Seedless)
         {
             _plantHolder.EnsureUniqueSeed(args.Args.TargetEntity, plantHolderComp);
             _popup.PopupEntity(
@@ -444,7 +448,7 @@ public sealed class EntityEffectSystem : EntitySystem
                 args.Args.TargetEntity,
                 PopupType.SmallCaution
             );
-            plantHolderComp.Seed.Seedless = true;
+            traits.Seedless = true;
         }
     }
 
@@ -483,11 +487,14 @@ public sealed class EntityEffectSystem : EntitySystem
         if (!CanMetabolizePlant(args.Args.TargetEntity, out var plantHolderComp, mustHaveMutableSeed: true))
             return;
 
-        if (plantHolderComp.Seed!.Seedless)
+        PlantTraitsComponent? traits = null;
+        Resolve<PlantTraitsComponent>(args.Args.TargetEntity, ref traits);
+
+        if (traits != null && traits.Seedless)
         {
             _plantHolder.EnsureUniqueSeed(args.Args.TargetEntity, plantHolderComp);
             _popup.PopupEntity(Loc.GetString("botany-plant-seedsrestored"), args.Args.TargetEntity);
-            plantHolderComp.Seed.Seedless = false;
+            traits.Seedless = false;
         }
     }
 
@@ -511,7 +518,7 @@ public sealed class EntityEffectSystem : EntitySystem
 
             if (traits.Potency > args.Effect.PotencySeedlessThreshold)
             {
-                plantHolderComp.Seed.Seedless = true;
+                traits.Seedless = true;
             }
         }
         else if (traits.Yield > 1 && _random.Prob(0.1f))
