@@ -133,6 +133,22 @@ public sealed partial class BotanySystem : EntitySystem
         var seed = Spawn(proto.PacketPrototype, coords);
         var seedComp = EnsureComp<SeedComponent>(seed);
         seedComp.Seed = proto.Clone();
+        
+        // Copy growth components from the seed to the seed packet
+        if (proto.GrowthComponents.Count > 0)
+        {
+            seedComp.Seed.GrowthComponents.Clear();
+            foreach (var growthComponent in proto.GrowthComponents)
+            {
+                var newComponent = growthComponent.DupeComponent();
+                seedComp.Seed.GrowthComponents.Add(newComponent);
+            }
+            
+            // Log for debugging
+            _adminLogger.Add(LogType.Botany, LogImpact.Low, 
+                $"Copied {proto.GrowthComponents.Count} growth components from seed {proto.Name} to seed packet");
+        }
+        
         seedComp.HealthOverride = healthOverride;
 
         var name = Loc.GetString(proto.Name);

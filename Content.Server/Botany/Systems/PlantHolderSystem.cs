@@ -319,6 +319,23 @@ public sealed class PlantHolderSystem : EntitySystem
                 healthOverride = component.Health;
             }
             var packetSeed = component.Seed;
+            
+            // Copy growth components from the plant to the seed before creating seed packet
+            if (packetSeed != null && packetSeed.Unique)
+            {
+                var plantGrowthComponents = EntityManager.GetComponents<PlantGrowthComponent>(uid).ToList();
+                packetSeed.GrowthComponents.Clear();
+                foreach (var growthComponent in plantGrowthComponents)
+                {
+                    var newComponent = growthComponent.DupeComponent();
+                    packetSeed.GrowthComponents.Add(newComponent);
+                }
+                
+                // Log for debugging
+                _adminLogger.Add(LogType.Botany, LogImpact.Low, 
+                    $"Copied {plantGrowthComponents.Count} growth components from plant {uid} to seed {packetSeed.Name}");
+            }
+            
             var seed = _botany.SpawnSeedPacket(packetSeed, Transform(args.User).Coordinates, args.User, healthOverride);
             _randomHelper.RandomOffset(seed, 0.25f);
             var displayName = Loc.GetString(component.Seed.DisplayName);

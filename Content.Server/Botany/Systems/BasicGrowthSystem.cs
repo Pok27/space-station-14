@@ -1,5 +1,4 @@
 using Content.Server.Botany.Components;
-using Content.Shared.Swab;
 using Robust.Shared.Random;
 
 namespace Content.Server.Botany.Systems;
@@ -73,6 +72,19 @@ public sealed class BasicGrowthSystem : PlantGrowthSystem
         if (holder.Age < 0) // Revert back to seed packet!
         {
             var packetSeed = holder.Seed;
+            
+            // Copy growth components from the plant to the seed before creating seed packet
+            if (packetSeed != null && packetSeed.Unique)
+            {
+                var plantGrowthComponents = EntityManager.GetComponents<PlantGrowthComponent>(uid).ToList();
+                packetSeed.GrowthComponents.Clear();
+                foreach (var growthComponent in plantGrowthComponents)
+                {
+                    var newComponent = growthComponent.DupeComponent();
+                    packetSeed.GrowthComponents.Add(newComponent);
+                }
+            }
+            
             // will put it in the trays hands if it has any, please do not try doing this
             _botany.SpawnSeedPacket(packetSeed, Transform(uid).Coordinates, uid);
             _plantHolder.RemovePlant(uid, holder);
