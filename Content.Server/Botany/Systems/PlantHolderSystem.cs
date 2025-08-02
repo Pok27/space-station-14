@@ -184,9 +184,6 @@ public sealed class PlantHolderSystem : EntitySystem
     {
         var (uid, component) = entity;
 
-        PlantTraitsComponent? traits = null;
-        Resolve<PlantTraitsComponent>(uid, ref traits);
-
         if (TryComp(args.Used, out SeedComponent? seeds))
         {
             if (component.Seed == null)
@@ -204,13 +201,17 @@ public sealed class PlantHolderSystem : EntitySystem
                 component.Seed = seed.Clone();
                 component.Dead = false;
                 component.Age = 1;
+                component.DrawWarnings = true;
+
+                // Get endurance from seed's PlantTraitsComponent
+                var seedTraits = _botany.GetPlantTraits(seed);
                 if (seeds.HealthOverride != null)
                 {
                     component.Health = seeds.HealthOverride.Value;
                 }
-                else if (traits != null)
+                else if (seedTraits != null)
                 {
-                    component.Health = traits.Endurance;
+                    component.Health = seedTraits.Endurance;
                 }
                 component.LastCycle = _gameTiming.CurTime;
 
@@ -466,6 +467,12 @@ public sealed class PlantHolderSystem : EntitySystem
         CheckHealth(uid, component);
         CheckLevelSanity(uid, component);
 
+        // Synchronize harvest status between PlantHolderComponent and HarvestComponent
+        if (TryComp<HarvestComponent>(uid, out var harvestComp))
+        {
+            component.Harvest = harvestComp.ReadyForHarvest;
+        }
+
         if (component.UpdateSpriteAfterUpdate)
             UpdateSprite(uid, component);
     }
@@ -508,8 +515,8 @@ public sealed class PlantHolderSystem : EntitySystem
         if (component.Seed == null || Deleted(user))
             return false;
 
-
-        if (component.Harvest && !component.Dead)
+        // Try to get HarvestComponent for harvest system
+        if (TryComp<HarvestComponent>(plantholder, out var harvestComp) && harvestComp.ReadyForHarvest && !component.Dead)
         {
             if (_hands.TryGetActiveItem(user, out var activeItem))
             {
@@ -573,9 +580,14 @@ public sealed class PlantHolderSystem : EntitySystem
         DoScream(uid, component.Seed);
 
         HarvestComponent? harvest = null;
-        Resolve<HarvestComponent>(uid, ref harvest);
-        if (harvest?.HarvestRepeat == HarvestType.NoRepeat)
-            RemovePlant(uid, component);
+        if (TryComp<HarvestComponent>(uid, out harvest))
+        {
+            harvest.ReadyForHarvest = false;
+            harvest.LastHarvestTime = component.Age;
+
+            if (harvest.HarvestRepeat == HarvestType.NoRepeat)
+                RemovePlant(uid, component);
+        }
 
         CheckLevelSanity(uid, component);
         UpdateSprite(uid, component);
@@ -631,36 +643,6 @@ public sealed class PlantHolderSystem : EntitySystem
         component.ImproperHeat = false;
 
         UpdateSprite(uid, component);
-    }
-
-    public void AffectGrowth(EntityUid uid, int amount, PlantHolderComponent? component = null)
-    {
-        if (!Resolve(uid, ref component))
-            return;
-
-        if (component.Seed == null)
-            return;
-
-        PlantTraitsComponent? growthTraits = null;
-        Resolve<PlantTraitsComponent>(uid, ref growthTraits);
-
-        if (growthTraits == null)
-            return;
-
-        if (amount > 0)
-        {
-            if (component.Age < growthTraits.Maturation)
-                component.Age += amount;
-            else if (!component.Harvest && growthTraits.Yield <= 0f)
-                component.LastProduce -= amount;
-        }
-        else
-        {
-            if (component.Age < growthTraits.Maturation)
-                component.SkipAging++;
-            else if (!component.Harvest && growthTraits.Yield <= 0f)
-                component.LastProduce += amount;
-        }
     }
 
     public void AdjustNutrient(EntityUid uid, float amount, PlantHolderComponent? component = null)

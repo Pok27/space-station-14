@@ -84,6 +84,12 @@ public abstract class PlantGrowthSystem : EntitySystem
         if (traits == null)
             return;
 
+        // Synchronize harvest status with HarvestComponent if present
+        if (TryComp<HarvestComponent>(uid, out var harvestComp))
+        {
+            component.Harvest = harvestComp.ReadyForHarvest;
+        }
+
         if (amount > 0)
         {
             if (component.Age < traits.Maturation)

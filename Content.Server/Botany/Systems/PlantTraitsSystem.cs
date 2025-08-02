@@ -34,22 +34,22 @@ public sealed class PlantTraitsSystem : PlantGrowthSystem
         }
 
         // Check if plant is ready for harvest
-        if (holder.Seed.ProductPrototypes.Count > 0)
+        if (holder.Seed.ProductPrototypes.Count > 0 && TryComp<HarvestComponent>(uid, out var harvestComp))
         {
             if (holder.Age > component.Production)
             {
-                if (holder.Age - holder.LastProduce > component.Production && !holder.Harvest)
+                if (holder.Age - harvestComp.LastHarvestTime > component.Production && !harvestComp.ReadyForHarvest)
                 {
-                    holder.Harvest = true;
-                    holder.LastProduce = holder.Age;
+                    harvestComp.ReadyForHarvest = true;
+                    harvestComp.LastHarvestTime = holder.Age;
                 }
             }
             else
             {
-                if (holder.Harvest)
+                if (harvestComp.ReadyForHarvest)
                 {
-                    holder.Harvest = false;
-                    holder.LastProduce = holder.Age;
+                    harvestComp.ReadyForHarvest = false;
+                    harvestComp.LastHarvestTime = holder.Age;
                 }
             }
         }

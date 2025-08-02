@@ -78,6 +78,30 @@ public sealed partial class BotanySystem : EntitySystem
         return false;
     }
 
+    public PlantTraitsComponent? GetPlantTraits(SeedData seed)
+    {
+        foreach (var growthComponent in seed.GrowthComponents)
+        {
+            if (growthComponent is PlantTraitsComponent plantTraits)
+            {
+                return plantTraits;
+            }
+        }
+        return null;
+    }
+
+    public HarvestComponent? GetHarvestComponent(SeedData seed)
+    {
+        foreach (var growthComponent in seed.GrowthComponents)
+        {
+            if (growthComponent is HarvestComponent harvestComp)
+            {
+                return harvestComp;
+            }
+        }
+        return null;
+    }
+
     private void OnExamined(EntityUid uid, SeedComponent component, ExaminedEvent args)
     {
         if (!args.IsInDetailsRange)
@@ -86,9 +110,7 @@ public sealed partial class BotanySystem : EntitySystem
         if (!TryGetSeed(component, out var seed))
             return;
 
-        PlantTraitsComponent? traits = null;
-        Resolve<PlantTraitsComponent>(uid, ref traits);
-
+        var traits = GetPlantTraits(seed);
         if (traits == null)
             return;
 
@@ -139,13 +161,8 @@ public sealed partial class BotanySystem : EntitySystem
 
     public IEnumerable<EntityUid> Harvest(SeedData proto, EntityUid user, int yieldMod = 1)
     {
-        PlantTraitsComponent? traits = null;
-        Resolve<PlantTraitsComponent>(user, ref traits);
-
-        if (traits == null)
-            return Enumerable.Empty<EntityUid>();
-
-        if (proto.ProductPrototypes.Count == 0 || traits.Yield <= 0)
+        var traits = GetPlantTraits(proto);
+        if (traits == null || proto.ProductPrototypes.Count == 0 || traits.Yield <= 0)
         {
             _popupSystem.PopupCursor(Loc.GetString("botany-harvest-fail-message"), user, PopupType.Medium);
             return Enumerable.Empty<EntityUid>();
@@ -162,12 +179,11 @@ public sealed partial class BotanySystem : EntitySystem
 
     public IEnumerable<EntityUid> GenerateProduct(SeedData proto, EntityCoordinates position, int yieldMod = 1)
     {
-        var totalYield = 0;
-        PlantTraitsComponent? traits = null;
-        Resolve<PlantTraitsComponent>(position.GetGridUid(EntityManager) ?? EntityUid.Invalid, ref traits);
-
+        var traits = GetPlantTraits(proto);
         if (traits == null)
             return Enumerable.Empty<EntityUid>();
+
+        var totalYield = 0;
 
         if (traits.Yield > -1)
         {
