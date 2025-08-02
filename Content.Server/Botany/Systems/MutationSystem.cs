@@ -44,7 +44,7 @@ public sealed class MutationSystem : EntitySystem
             }
         }
     }
-
+    
     /// <summary>
     /// Checks all defined mutations against a seed to see which of them are applied.
     /// </summary>
