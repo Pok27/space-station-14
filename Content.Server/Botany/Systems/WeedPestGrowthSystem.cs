@@ -64,21 +64,17 @@ public sealed class WeedPestGrowthSystem : PlantGrowthSystem
                     component.UpdateSpriteAfterUpdate = true;
             }
         }
-        else
-        {
-            // Debug: Check why weeds don't grow
-            // This will help us understand if the issue is with water/nutrients
-        }
 
         // ===== KUDZU TRANSFORMATION LOGIC =====
-        // Check all conditions for kudzu transformation
-        if (TryComp<WeedPestGrowthComponent>(uid, out var weed) &&
+        // Only transform if plant exists and is not dead
+        if (component.Seed != null && !component.Dead &&
+            TryComp<WeedPestGrowthComponent>(uid, out var weed) &&
             TryComp<PlantTraitsComponent>(uid, out var kudzuTraits) &&
             kudzuTraits.TurnIntoKudzu &&
             component.WeedLevel >= weed.WeedHighLevelThreshold)
         {
             // Spawn kudzu entity
-            if (component.Seed?.KudzuPrototype != null)
+            if (component.Seed.KudzuPrototype != null)
                 Spawn(component.Seed.KudzuPrototype, Transform(uid).Coordinates.SnapToGrid(EntityManager));
 
             // Reset kudzu trait and kill plant
