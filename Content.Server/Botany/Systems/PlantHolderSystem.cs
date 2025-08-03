@@ -31,6 +31,7 @@ using Content.Shared.Containers.ItemSlots;
 using LogType = Content.Shared.Database.LogType;
 using Content.Shared.Labels.Components;
 using System.Linq;
+using Robust.Shared.Log;
 
 namespace Content.Server.Botany.Systems;
 
@@ -417,6 +418,7 @@ public sealed class PlantHolderSystem : EntitySystem
 
         // Always raise plant grow event for weed growth, even in empty trays
         var plantGrow = new OnPlantGrowEvent();
+        Logger.Debug($"PlantHolderSystem: Raising OnPlantGrowEvent for entity {uid}");
         RaiseLocalEvent(uid, ref plantGrow);
 
         // Process mutations. All plants can mutate, so this stays here.

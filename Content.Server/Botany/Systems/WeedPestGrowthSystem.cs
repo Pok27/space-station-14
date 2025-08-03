@@ -2,6 +2,7 @@ using Content.Server.Botany.Components;
 using Content.Shared.Coordinates.Helpers;
 using Robust.Server.GameObjects;
 using Robust.Shared.Random;
+using Robust.Shared.Log;
 
 namespace Content.Server.Botany.Systems;
 public sealed class WeedPestGrowthSystem : PlantGrowthSystem
@@ -47,6 +48,7 @@ public sealed class WeedPestGrowthSystem : PlantGrowthSystem
     /// </summary>
     private void OnTrayUpdate(EntityUid uid, PlantHolderComponent component, OnPlantGrowEvent args)
     {
+        Logger.Debug($"OnTrayUpdate called for entity {uid}, Water={component.WaterLevel}, Nutrients={component.NutritionLevel}, WeedLevel={component.WeedLevel}");
         HandleWeedGrowth(uid, component);
     }
 
@@ -55,6 +57,7 @@ public sealed class WeedPestGrowthSystem : PlantGrowthSystem
     /// </summary>
     private void HandleWeedGrowth(EntityUid uid, PlantHolderComponent component)
     {
+        Logger.Debug($"HandleWeedGrowth called for entity {uid}, Water={component.WaterLevel}, Nutrients={component.NutritionLevel}, WeedLevel={component.WeedLevel}");
         // Weeds like water and nutrients! They may appear even if there's not a seed planted. Isnt connected to the plant, stays here in PlantHolder.
         if (component.WaterLevel > 10 && component.NutritionLevel > 5)
         {
@@ -66,11 +69,21 @@ public sealed class WeedPestGrowthSystem : PlantGrowthSystem
             else
                 chance = 0.01f;
 
+            Logger.Debug($"Weed growth conditions met: Water={component.WaterLevel}, Nutrients={component.NutritionLevel}, Chance={chance}");
+            
             if (_random.Prob(chance))
+            {
+                var oldWeedLevel = component.WeedLevel;
                 component.WeedLevel += 1 + component.WeedCoefficient;
-
-            if (component.DrawWarnings)
-                component.UpdateSpriteAfterUpdate = true;
+                Logger.Debug($"Weed level increased from {oldWeedLevel} to {component.WeedLevel}");
+                
+                if (component.DrawWarnings)
+                    component.UpdateSpriteAfterUpdate = true;
+            }
+        }
+        else
+        {
+            Logger.Debug($"Weed growth conditions not met: Water={component.WaterLevel}, Nutrients={component.NutritionLevel}");
         }
 
         if (component.Seed != null && TryComp<PlantTraitsComponent>(uid, out var kudzuTraits) && kudzuTraits.TurnIntoKudzu
