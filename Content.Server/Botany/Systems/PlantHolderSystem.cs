@@ -53,6 +53,7 @@ public sealed class PlantHolderSystem : EntitySystem
     [Dependency] private readonly ItemSlotsSystem _itemSlots = default!;
     [Dependency] private readonly ISharedAdminLogManager _adminLogger = default!;
 
+    public const float WeedHighLevelThreshold = 10f;
 
     private static readonly ProtoId<TagPrototype> HoeTag = "Hoe";
     private static readonly ProtoId<TagPrototype> PlantSampleTakerTag = "PlantSampleTaker";
@@ -416,12 +417,21 @@ public sealed class PlantHolderSystem : EntitySystem
 
         component.LastCycle = curTime;
 
-        // Always raise plant grow event for weed growth, even in empty trays
-        var plantGrow = new OnPlantGrowEvent();
-        RaiseLocalEvent(uid, ref plantGrow);
+        if (component.Seed != null && !component.Dead)
+        {
+            var plantGrow = new OnPlantGrowEvent();
+            RaiseLocalEvent(uid, ref plantGrow);
+        }
 
-        // ===== WEED GROWTH LOGIC =====
-        // Weeds like water and nutrients! They may appear even if there's not a seed planted
+        // Process mutations. All plants can mutate, so this stays here.
+        if (component.MutationLevel > 0)
+        {
+            Mutate(uid, Math.Min(component.MutationLevel, 25), component);
+            component.UpdateSpriteAfterUpdate = true;
+            component.MutationLevel = 0;
+        }
+
+        // Weeds like water and nutrients! They may appear even if there's not a seed planted. Isnt connected to the plant, stays here in PlantHolder.
         if (component.WaterLevel > 10 && component.NutritionLevel > 5)
         {
             var chance = 0f;
@@ -433,33 +443,18 @@ public sealed class PlantHolderSystem : EntitySystem
                 chance = 0.01f;
 
             if (_random.Prob(chance))
-            {
                 component.WeedLevel += 1 + component.WeedCoefficient;
-                if (component.DrawWarnings)
-                    component.UpdateSpriteAfterUpdate = true;
-            }
+
+            if (component.DrawWarnings)
+                component.UpdateSpriteAfterUpdate = true;
         }
 
-        // ===== KUDZU TRANSFORMATION LOGIC =====
-        if (component.Seed != null && !component.Dead &&
-            TryComp<WeedPestGrowthComponent>(uid, out var weed) &&
-            TryComp<PlantTraitsComponent>(uid, out var kudzuTraits) &&
-            kudzuTraits.TurnIntoKudzu &&
-            component.WeedLevel >= weed.WeedHighLevelThreshold)
+        if (component.Seed != null && TryComp<PlantTraitsComponent>(uid, out var kudzuTraits) && kudzuTraits.TurnIntoKudzu
+            && component.WeedLevel >= WeedHighLevelThreshold)
         {
-            if (component.Seed.KudzuPrototype != null)
-                Spawn(component.Seed.KudzuPrototype, Transform(uid).Coordinates.SnapToGrid(EntityManager));
-            
+            Spawn(component.Seed.KudzuPrototype, Transform(uid).Coordinates.SnapToGrid(EntityManager));
             kudzuTraits.TurnIntoKudzu = false;
             component.Health = 0;
-        }
-
-        // Process mutations. All plants can mutate, so this stays here.
-        if (component.MutationLevel > 0)
-        {
-            Mutate(uid, Math.Min(component.MutationLevel, 25), component);
-            component.UpdateSpriteAfterUpdate = true;
-            component.MutationLevel = 0;
         }
 
         // If we have no seed planted, or the plant is dead, stop processing here.
