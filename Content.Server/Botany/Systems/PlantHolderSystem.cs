@@ -5,7 +5,7 @@ using Content.Server.Botany.Systems;
 using Content.Server.Hands.Systems;
 using Content.Server.Kitchen.Components;
 using Content.Server.Popups;
-using Content.Shared.Tools.Components;
+
 using Content.Shared.Botany;
 using Content.Shared.Burial.Components;
 using Content.Shared.Chemistry.EntitySystems;
@@ -52,7 +52,6 @@ public sealed class PlantHolderSystem : EntitySystem
     [Dependency] private readonly ISerializationManager _copier = default!;
     [Dependency] private readonly ItemSlotsSystem _itemSlots = default!;
     [Dependency] private readonly ISharedAdminLogManager _adminLogger = default!;
-    [Dependency] private readonly HarvestSystem _harvestSystem = default!;
 
 
     private static readonly ProtoId<TagPrototype> HoeTag = "Hoe";
@@ -281,15 +280,7 @@ public sealed class PlantHolderSystem : EntitySystem
             return;
         }
 
-        if (HasComp<SharpComponent>(args.Used))
-        {
-            args.Handled = true;
-            if (TryComp<HarvestComponent>(uid, out var harvestComp))
-            {
-                _harvestSystem.DoHarvest(uid, args.User, harvestComp, component);
-            }
-            return;
-        }
+
 
         if (_tagSystem.HasTag(args.Used, PlantSampleTakerTag))
         {
