@@ -335,8 +335,6 @@ public sealed class PlantHolderSystem : EntitySystem
                 _popup.PopupCursor(Loc.GetString("plant-holder-component-take-sample-message",
                     ("seedName", displayName)), args.User);
 
-                DoScream(entity.Owner, component.Seed);
-
                 if (_random.Prob(0.3f))
                     component.Sampled = true;
 
@@ -398,9 +396,25 @@ public sealed class PlantHolderSystem : EntitySystem
 
         UpdateReagents(uid, component);
 
+        var curTime = _gameTiming.CurTime;
+
         // ForceUpdate is used for external triggers like swabbing
         if (component.ForceUpdate)
             component.ForceUpdate = false;
+        else if (curTime < (component.LastCycle + component.CycleDelay))
+        {
+            if (component.UpdateSpriteAfterUpdate)
+                UpdateSprite(uid, component);
+            return;
+        }
+
+        component.LastCycle = curTime;
+
+        if (component.Seed != null && !component.Dead)
+        {
+            var plantGrow = new OnPlantGrowEvent();
+            RaiseLocalEvent(uid, ref plantGrow);
+        }
 
         // Process mutations. All plants can mutate, so this stays here.
         if (component.MutationLevel > 0)
@@ -421,6 +435,12 @@ public sealed class PlantHolderSystem : EntitySystem
 
         CheckHealth(uid, component);
         CheckLevelSanity(uid, component);
+
+        // Synchronize harvest status between PlantHolderComponent and HarvestComponent
+        if (TryComp<HarvestComponent>(uid, out var harvestComp))
+        {
+            component.Harvest = harvestComp.ReadyForHarvest;
+        }
 
         if (component.UpdateSpriteAfterUpdate)
             UpdateSprite(uid, component);
@@ -453,22 +473,6 @@ public sealed class PlantHolderSystem : EntitySystem
         component.MutationMod = MathHelper.Clamp(component.MutationMod, 0f, 3f);
     }
 
-    /// <summary>
-    /// Force do scream on PlantHolder (like plant is screaming) using seed's ScreamSound specifier (collection or soundPath)
-    /// </summary>
-    /// <returns></returns>
-    public bool DoScream(EntityUid plantholder, SeedData? seed = null)
-    {
-        if (seed == null)
-            return false;
-
-        if (!TryComp<PlantTraitsComponent>(plantholder, out var traits) || !traits.CanScream)
-            return false;
-
-        _audio.PlayPvs(seed.ScreamSound, plantholder);
-        return true;
-    }
-
     public void AutoHarvest(EntityUid uid, PlantHolderComponent? component = null)
     {
         if (!Resolve(uid, ref component))
@@ -488,8 +492,6 @@ public sealed class PlantHolderSystem : EntitySystem
 
         component.Harvest = false;
         component.LastProduce = component.Age;
-
-        DoScream(uid, component.Seed);
 
         HarvestComponent? harvest = null;
         if (TryComp<HarvestComponent>(uid, out harvest))
