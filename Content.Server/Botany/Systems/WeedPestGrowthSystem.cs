@@ -18,19 +18,11 @@ public sealed class WeedPestGrowthSystem : PlantGrowthSystem
         PlantHolderComponent? holder = null;
         Resolve<PlantHolderComponent>(uid, ref holder);
 
-        if (holder == null)
+        if (holder == null || holder.Seed == null || holder.Dead)
             return;
 
-        // Weed growth logic - works for all trays
-        if (_random.Prob(component.WeedGrowthChance))
-        {
-            holder.WeedLevel += component.WeedGrowthAmount;
-            if (holder.DrawWarnings)
-                holder.UpdateSpriteAfterUpdate = true;
-        }
-
         // Pest damage logic - only for planted seeds
-        if (holder.Seed != null && !holder.Dead && _random.Prob(component.PestDamageChance))
+        if (_random.Prob(component.PestDamageChance))
         {
             holder.Health -= component.PestDamageAmount;
             if (holder.DrawWarnings)
@@ -44,10 +36,16 @@ public sealed class WeedPestGrowthSystem : PlantGrowthSystem
     private void OnTrayUpdate(EntityUid uid, PlantHolderComponent component, OnPlantGrowEvent args)
     {
         // Weeds like water and nutrients! They may appear even if there's not a seed planted
-        // Only for empty trays to avoid duplication with OnPlantGrow
-        if (component.Seed == null && component.WaterLevel > 10 && component.NutritionLevel > 5)
+        if (component.WaterLevel > 10 && component.NutritionLevel > 5)
         {
-            float chance = 0.05f;
+            float chance;
+            if (component.Seed == null)
+                chance = 0.05f;
+            else if (TryComp<PlantTraitsComponent>(uid, out var traits) && traits.TurnIntoKudzu)
+                chance = 1f;
+            else
+                chance = 0.01f;
+
             if (_random.Prob(chance))
                 component.WeedLevel += 1 + component.WeedCoefficient;
             if (component.DrawWarnings)
