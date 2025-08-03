@@ -420,6 +420,40 @@ public sealed class PlantHolderSystem : EntitySystem
         var plantGrow = new OnPlantGrowEvent();
         RaiseLocalEvent(uid, ref plantGrow);
 
+        // ===== WEED GROWTH LOGIC =====
+        // Weeds like water and nutrients! They may appear even if there's not a seed planted
+        if (component.WaterLevel > 10 && component.NutritionLevel > 5)
+        {
+            var chance = 0f;
+            if (component.Seed == null)
+                chance = 0.05f;
+            else if (TryComp<PlantTraitsComponent>(uid, out var traits) && traits.TurnIntoKudzu)
+                chance = 1f;
+            else
+                chance = 0.01f;
+
+            if (_random.Prob(chance))
+            {
+                component.WeedLevel += 1 + component.WeedCoefficient;
+                if (component.DrawWarnings)
+                    component.UpdateSpriteAfterUpdate = true;
+            }
+        }
+
+        // ===== KUDZU TRANSFORMATION LOGIC =====
+        if (component.Seed != null && !component.Dead &&
+            TryComp<WeedPestGrowthComponent>(uid, out var weed) &&
+            TryComp<PlantTraitsComponent>(uid, out var kudzuTraits) &&
+            kudzuTraits.TurnIntoKudzu &&
+            component.WeedLevel >= weed.WeedHighLevelThreshold)
+        {
+            if (component.Seed.KudzuPrototype != null)
+                Spawn(component.Seed.KudzuPrototype, Transform(uid).Coordinates.SnapToGrid(EntityManager));
+            
+            kudzuTraits.TurnIntoKudzu = false;
+            component.Health = 0;
+        }
+
         // Process mutations. All plants can mutate, so this stays here.
         if (component.MutationLevel > 0)
         {

@@ -43,6 +43,7 @@ public sealed class WeedPestGrowthSystem : PlantGrowthSystem
     /// </summary>
     private void OnTrayUpdate(EntityUid uid, PlantHolderComponent component, OnPlantGrowEvent args)
     {
+        Logger.Debug($"OnTrayUpdate called for entity {uid}, Water={component.WaterLevel}, Nutrients={component.NutritionLevel}, WeedLevel={component.WeedLevel}");
         // ===== WEED GROWTH LOGIC =====
         // Weeds need water and nutrients to grow
         if (component.WaterLevel > 10 && component.NutritionLevel > 5)
@@ -63,6 +64,11 @@ public sealed class WeedPestGrowthSystem : PlantGrowthSystem
                 if (component.DrawWarnings)
                     component.UpdateSpriteAfterUpdate = true;
             }
+        }
+        else
+        {
+            // Debug: Log why weeds don't grow
+            Logger.Debug($"Weed growth conditions not met: Water={component.WaterLevel}, Nutrients={component.NutritionLevel}");
         }
 
         // ===== KUDZU TRANSFORMATION LOGIC =====
