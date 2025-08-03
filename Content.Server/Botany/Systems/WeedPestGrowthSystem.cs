@@ -14,7 +14,17 @@ public sealed class WeedPestGrowthSystem : PlantGrowthSystem
         SubscribeLocalEvent<PlantHolderComponent, OnPlantGrowEvent>(OnTrayUpdate);
     }
 
-
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+        
+        // Update all plant holders for weed growth, regardless of events
+        var query = EntityQueryEnumerator<PlantHolderComponent>();
+        while (query.MoveNext(out var uid, out var component))
+        {
+            HandleWeedGrowth(uid, component);
+        }
+    }
 
     private void OnPlantGrow(EntityUid uid, WeedPestGrowthComponent component, OnPlantGrowEvent args)
     {
