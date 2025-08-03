@@ -43,77 +43,31 @@ public sealed class WeedPestGrowthSystem : PlantGrowthSystem
     /// </summary>
     private void OnTrayUpdate(EntityUid uid, PlantHolderComponent component, OnPlantGrowEvent args)
     {
-        // Handle weed growth
-        HandleWeedGrowth(uid, component);
-
-        // Handle kudzu transformation
-        HandleKudzuTransformation(uid, component);
-    }
-
-    /// <summary>
-    /// Handles weed growth in plant holder trays.
-    /// </summary>
-    private void HandleWeedGrowth(EntityUid uid, PlantHolderComponent component)
-    {
-        // Weeds need water and nutrients to grow
-        if (component.WaterLevel <= 10 || component.NutritionLevel <= 5)
-            return;
-
-        // Calculate weed growth chance based on tray state
-        var chance = CalculateWeedGrowthChance(uid, component);
-
-        // Try to grow weeds
-        if (_random.Prob(chance))
+        // Weed growth logic
+        if (component.WaterLevel > 10 && component.NutritionLevel > 5)
         {
-            component.WeedLevel += 1 + component.WeedCoefficient;
+            var chance = component.Seed == null ? 0.05f : 
+                        TryComp<PlantTraitsComponent>(uid, out var traits) && traits.TurnIntoKudzu ? 1f : 0.01f;
+
+            if (_random.Prob(chance))
+            {
+                component.WeedLevel += 1 + component.WeedCoefficient;
+                if (component.DrawWarnings)
+                    component.UpdateSpriteAfterUpdate = true;
+            }
+        }
+
+        // Kudzu transformation logic
+        if (TryComp<WeedPestGrowthComponent>(uid, out var weed) &&
+            TryComp<PlantTraitsComponent>(uid, out var kudzuTraits) &&
+            kudzuTraits.TurnIntoKudzu &&
+            component.WeedLevel >= weed.WeedHighLevelThreshold)
+        {
+            if (component.Seed?.KudzuPrototype != null)
+                Spawn(component.Seed.KudzuPrototype, Transform(uid).Coordinates.SnapToGrid(EntityManager));
             
-            if (component.DrawWarnings)
-                component.UpdateSpriteAfterUpdate = true;
+            kudzuTraits.TurnIntoKudzu = false;
+            component.Health = 0;
         }
-    }
-
-    /// <summary>
-    /// Calculates weed growth chance based on tray contents.
-    /// </summary>
-    private float CalculateWeedGrowthChance(EntityUid uid, PlantHolderComponent component)
-    {
-        // Empty trays have higher weed growth chance
-        if (component.Seed == null)
-            return 0.05f;
-
-        // Kudzu mutants have guaranteed weed growth
-        if (TryComp<PlantTraitsComponent>(uid, out var traits) && traits.TurnIntoKudzu)
-            return 1f;
-
-        // Regular plants have low weed growth chance
-        return 0.01f;
-    }
-
-    /// <summary>
-    /// Handles kudzu transformation for plants with TurnIntoKudzu trait.
-    /// </summary>
-    private void HandleKudzuTransformation(EntityUid uid, PlantHolderComponent component)
-    {
-        // Check if plant has WeedPestGrowthComponent
-        if (!TryComp<WeedPestGrowthComponent>(uid, out var weed))
-            return;
-
-        // Check if plant has kudzu trait
-        if (!TryComp<PlantTraitsComponent>(uid, out var traits) || !traits.TurnIntoKudzu)
-            return;
-
-        // Check if weed level is high enough for transformation
-        if (component.WeedLevel < weed.WeedHighLevelThreshold)
-            return;
-
-        // Transform to kudzu
-        if (component.Seed?.KudzuPrototype != null)
-        {
-            Spawn(component.Seed.KudzuPrototype, Transform(uid).Coordinates.SnapToGrid(EntityManager));
-        }
-
-        // Reset kudzu trait and kill plant
-        traits.TurnIntoKudzu = false;
-        component.Health = 0;
     }
 }
