@@ -1,6 +1,7 @@
 using Content.Server.Atmos.EntitySystems;
 using Content.Server.Botany.Components;
 using Content.Server.Botany.Systems;
+
 using Content.Server.Hands.Systems;
 using Content.Server.Kitchen.Components;
 using Content.Server.Popups;
@@ -51,6 +52,7 @@ public sealed class PlantHolderSystem : EntitySystem
     [Dependency] private readonly ISerializationManager _copier = default!;
     [Dependency] private readonly ItemSlotsSystem _itemSlots = default!;
     [Dependency] private readonly ISharedAdminLogManager _adminLogger = default!;
+    [Dependency] private readonly HarvestSystem _harvestSystem = default!;
 
 
     private static readonly ProtoId<TagPrototype> HoeTag = "Hoe";
@@ -61,7 +63,6 @@ public sealed class PlantHolderSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<PlantHolderComponent, ExaminedEvent>(OnExamine);
         SubscribeLocalEvent<PlantHolderComponent, InteractUsingEvent>(OnInteractUsing);
-        SubscribeLocalEvent<PlantHolderComponent, InteractHandEvent>(OnInteractHand);
         SubscribeLocalEvent<PlantHolderComponent, SolutionTransferredEvent>(OnSolutionTransferred);
     }
 
@@ -283,7 +284,10 @@ public sealed class PlantHolderSystem : EntitySystem
         if (HasComp<SharpComponent>(args.Used))
         {
             args.Handled = true;
-            DoHarvest(uid, args.User, component);
+            if (TryComp<HarvestComponent>(uid, out var harvestComp))
+            {
+                _harvestSystem.DoHarvest(uid, args.User, harvestComp, component);
+            }
             return;
         }
 
@@ -400,11 +404,6 @@ public sealed class PlantHolderSystem : EntitySystem
         _audio.PlayPvs(ent.Comp.WateringSound, ent.Owner);
     }
 
-    private void OnInteractHand(Entity<PlantHolderComponent> entity, ref InteractHandEvent args)
-    {
-        DoHarvest(entity, args.User, entity.Comp);
-    }
-
     public void Update(EntityUid uid, PlantHolderComponent? component = null)
     {
         if (!Resolve(uid, ref component))
@@ -489,43 +488,7 @@ public sealed class PlantHolderSystem : EntitySystem
         component.MutationMod = MathHelper.Clamp(component.MutationMod, 0f, 3f);
     }
 
-    public bool DoHarvest(EntityUid plantholder, EntityUid user, PlantHolderComponent? component = null)
-    {
-        if (!Resolve(plantholder, ref component))
-            return false;
 
-        if (component.Seed == null || Deleted(user))
-            return false;
-
-        // Try to get HarvestComponent for harvest system
-        if (TryComp<HarvestComponent>(plantholder, out var harvestComp) && harvestComp.ReadyForHarvest && !component.Dead)
-        {
-            if (_hands.TryGetActiveItem(user, out var activeItem))
-            {
-                if (!_botany.CanHarvest(component.Seed, activeItem))
-                {
-                    _popup.PopupCursor(Loc.GetString("plant-holder-component-ligneous-cant-harvest-message"), user);
-                    return false;
-                }
-            }
-            else if (!_botany.CanHarvest(component.Seed))
-            {
-                return false;
-            }
-
-            _botany.Harvest(component.Seed, user, plantholder);
-
-            AfterHarvest(plantholder, component);
-            return true;
-        }
-
-        if (!component.Dead)
-            return false;
-
-        RemovePlant(plantholder, component);
-        AfterHarvest(plantholder, component);
-        return true;
-    }
 
     /// <summary>
     /// Force do scream on PlantHolder (like plant is screaming) using seed's ScreamSound specifier (collection or soundPath)
@@ -785,5 +748,6 @@ public sealed class PlantHolderSystem : EntitySystem
         EnsureComp<PlantTraitsComponent>(uid);
         EnsureComp<AtmosphericGrowthComponent>(uid);
         EnsureComp<WeedPestGrowthComponent>(uid);
+        EnsureComp<HarvestComponent>(uid);
     }
 }
