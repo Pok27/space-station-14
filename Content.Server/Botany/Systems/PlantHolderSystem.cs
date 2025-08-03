@@ -427,6 +427,17 @@ public sealed class PlantHolderSystem : EntitySystem
         // If we have no seed planted, or the plant is dead, stop processing here.
         if (component.Seed == null || component.Dead)
         {
+            // Allow weeds to grow in empty trays even without plants
+            if (component.WaterLevel > 5 && component.NutritionLevel > 2)
+            {
+                float chance = 0.03f; // Slightly lower chance than when plants are present
+                if (_random.Prob(chance))
+                {
+                    component.WeedLevel += 1 + component.WeedCoefficient;
+                    component.UpdateSpriteAfterUpdate = true;
+                }
+            }
+
             if (component.UpdateSpriteAfterUpdate)
                 UpdateSprite(uid, component);
 

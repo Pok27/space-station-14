@@ -31,9 +31,7 @@ public sealed class PlantGrowthCycleSystem : EntitySystem
         var query = EntityQueryEnumerator<PlantHolderComponent>();
         while (query.MoveNext(out var uid, out var plantHolder))
         {
-            if (plantHolder.Seed == null || plantHolder.Dead)
-                continue;
-
+            // Allow weed growth even in empty trays, but skip plant growth
             if (_gameTiming.CurTime < plantHolder.LastCycle + plantHolder.CycleDelay)
                 continue;
 
