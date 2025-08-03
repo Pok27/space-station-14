@@ -12,7 +12,6 @@ public sealed class WeedPestGrowthSystem : PlantGrowthSystem
     {
         base.Initialize();
         SubscribeLocalEvent<WeedPestGrowthComponent, OnPlantGrowEvent>(OnPlantGrow);
-        SubscribeLocalEvent<PlantHolderComponent, OnPlantGrowEvent>(OnTrayUpdate);
     }
 
     public override void Update(float frameTime)
@@ -52,13 +51,7 @@ public sealed class WeedPestGrowthSystem : PlantGrowthSystem
         }
     }
 
-    /// <summary>
-    /// Handles weed growth and kudzu transformation for plant holder trays.
-    /// </summary>
-    private void OnTrayUpdate(EntityUid uid, PlantHolderComponent component, OnPlantGrowEvent args)
-    {
-        HandleWeedGrowth(uid, component);
-    }
+
 
     /// <summary>
     /// Handles weed growth and kudzu transformation for all plant holders.
