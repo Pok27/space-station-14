@@ -104,7 +104,7 @@
   suffix: Empty
   components:
   - type: PlantHolder
-    waterLevel: 0
-    nutritionLevel: 0
+    waterLevel: 50
+    nutritionLevel: 50
     # for the lights to update immediately
     updateSpriteAfterUpdate: true

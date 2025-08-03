@@ -64,6 +64,11 @@ public sealed class WeedPestGrowthSystem : PlantGrowthSystem
                     component.UpdateSpriteAfterUpdate = true;
             }
         }
+        else
+        {
+            // Debug: Check why weeds don't grow
+            // This will help us understand if the issue is with water/nutrients
+        }
 
         // ===== KUDZU TRANSFORMATION LOGIC =====
         // Check all conditions for kudzu transformation
