@@ -481,8 +481,18 @@ public sealed class PlantHolderSystem : EntitySystem
         if (component.Seed == null || !component.Harvest)
             return;
 
-        _botany.AutoHarvest(component.Seed, Transform(uid).Coordinates, uid);
-        AfterHarvest(uid, component);
+        // Use HarvestSystem to properly handle the harvest (including scream sounds)
+        if (TryComp<HarvestComponent>(uid, out var harvestComp))
+        {
+            var harvestSystem = EntitySystem.Get<HarvestSystem>();
+            harvestSystem.DoHarvest(uid, uid, harvestComp, component);
+        }
+        else
+        {
+            // Fallback to old method if no HarvestComponent
+            _botany.AutoHarvest(component.Seed, Transform(uid).Coordinates, uid);
+            AfterHarvest(uid, component);
+        }
     }
 
     private void AfterHarvest(EntityUid uid, PlantHolderComponent? component = null)
