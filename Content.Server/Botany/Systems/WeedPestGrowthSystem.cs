@@ -18,10 +18,10 @@ public sealed class WeedPestGrowthSystem : PlantGrowthSystem
         PlantHolderComponent? holder = null;
         Resolve<PlantHolderComponent>(uid, ref holder);
 
-        if (holder == null)
+        if (holder == null || holder.Seed == null || holder.Dead)
             return;
 
-        // Weed growth logic - works even for empty trays
+        // Weed growth logic
         if (_random.Prob(component.WeedGrowthChance))
         {
             holder.WeedLevel += component.WeedGrowthAmount;
@@ -29,8 +29,8 @@ public sealed class WeedPestGrowthSystem : PlantGrowthSystem
                 holder.UpdateSpriteAfterUpdate = true;
         }
 
-        // Pest damage logic - only for planted seeds
-        if (holder.Seed != null && !holder.Dead && _random.Prob(component.PestDamageChance))
+        // Pest damage logic
+        if (_random.Prob(component.PestDamageChance))
         {
             holder.Health -= component.PestDamageAmount;
             if (holder.DrawWarnings)
@@ -44,8 +44,7 @@ public sealed class WeedPestGrowthSystem : PlantGrowthSystem
     private void OnTrayUpdate(EntityUid uid, PlantHolderComponent component, OnPlantGrowEvent args)
     {
         // Weeds like water and nutrients! They may appear even if there's not a seed planted
-        // Lowered thresholds to make weeds appear more frequently
-        if (component.WaterLevel > 5 && component.NutritionLevel > 2)
+        if (component.WaterLevel > 10 && component.NutritionLevel > 5)
         {
             float chance;
             if (component.Seed == null)
@@ -61,7 +60,7 @@ public sealed class WeedPestGrowthSystem : PlantGrowthSystem
                 component.UpdateSpriteAfterUpdate = true;
         }
 
-        // Handle kudzu transformation - only for planted seeds
+        // Handle kudzu transformation
         if (component.Seed != null && !component.Dead &&
             TryComp<WeedPestGrowthComponent>(uid, out var weed) &&
             TryComp<PlantTraitsComponent>(uid, out var kudzuTraits) &&
