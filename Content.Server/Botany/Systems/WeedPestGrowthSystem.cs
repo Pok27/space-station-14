@@ -43,12 +43,6 @@ public sealed class WeedPestGrowthSystem : PlantGrowthSystem
     /// </summary>
     private void OnTrayUpdate(EntityUid uid, PlantHolderComponent component, OnPlantGrowEvent args)
     {
-        WeedPestGrowthComponent? weed = null;
-        Resolve<WeedPestGrowthComponent>(uid, ref weed);
-
-        if (weed == null)
-            return;
-
         // Weeds like water and nutrients! They may appear even if there's not a seed planted
         if (component.WaterLevel > 10 && component.NutritionLevel > 5)
         {
@@ -67,9 +61,13 @@ public sealed class WeedPestGrowthSystem : PlantGrowthSystem
                 component.UpdateSpriteAfterUpdate = true;
         }
 
-        // Handle kudzu transformation
-        if (component.Seed != null && TryComp<PlantTraitsComponent>(uid, out var kudzuTraits) && kudzuTraits.TurnIntoKudzu
-            && component.WeedLevel >= weed.WeedHighLevelThreshold)
+        // Handle kudzu transformation (only if WeedPestGrowthComponent exists)
+        WeedPestGrowthComponent? weed = null;
+        if (Resolve<WeedPestGrowthComponent>(uid, ref weed) && 
+            component.Seed != null && 
+            TryComp<PlantTraitsComponent>(uid, out var kudzuTraits) && 
+            kudzuTraits.TurnIntoKudzu &&
+            component.WeedLevel >= weed.WeedHighLevelThreshold)
         {
             Spawn(component.Seed.KudzuPrototype, Transform(uid).Coordinates.SnapToGrid(EntityManager));
             kudzuTraits.TurnIntoKudzu = false;
