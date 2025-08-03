@@ -415,11 +415,9 @@ public sealed class PlantHolderSystem : EntitySystem
 
         component.LastCycle = curTime;
 
-        if (component.Seed != null && !component.Dead)
-        {
-            var plantGrow = new OnPlantGrowEvent();
-            RaiseLocalEvent(uid, ref plantGrow);
-        }
+        // Always raise plant grow event for weed growth, even in empty trays
+        var plantGrow = new OnPlantGrowEvent();
+        RaiseLocalEvent(uid, ref plantGrow);
 
         // Process mutations. All plants can mutate, so this stays here.
         if (component.MutationLevel > 0)
