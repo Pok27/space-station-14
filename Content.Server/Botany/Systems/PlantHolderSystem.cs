@@ -4,6 +4,7 @@ using Content.Server.Botany.Systems;
 using Content.Server.Hands.Systems;
 using Content.Server.Kitchen.Components;
 using Content.Server.Popups;
+using Content.Shared.Tools.Components;
 using Content.Shared.Botany;
 using Content.Shared.Burial.Components;
 using Content.Shared.Chemistry.EntitySystems;
@@ -60,6 +61,7 @@ public sealed class PlantHolderSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<PlantHolderComponent, ExaminedEvent>(OnExamine);
         SubscribeLocalEvent<PlantHolderComponent, InteractUsingEvent>(OnInteractUsing);
+        SubscribeLocalEvent<PlantHolderComponent, InteractHandEvent>(OnInteractHand);
         SubscribeLocalEvent<PlantHolderComponent, SolutionTransferredEvent>(OnSolutionTransferred);
     }
 
@@ -278,6 +280,13 @@ public sealed class PlantHolderSystem : EntitySystem
             return;
         }
 
+        if (HasComp<SharpComponent>(args.Used))
+        {
+            args.Handled = true;
+            DoHarvest(uid, args.User, component);
+            return;
+        }
+
         if (_tagSystem.HasTag(args.Used, PlantSampleTakerTag))
         {
             args.Handled = true;
@@ -391,6 +400,11 @@ public sealed class PlantHolderSystem : EntitySystem
         _audio.PlayPvs(ent.Comp.WateringSound, ent.Owner);
     }
 
+    private void OnInteractHand(Entity<PlantHolderComponent> entity, ref InteractHandEvent args)
+    {
+        DoHarvest(entity, args.User, entity.Comp);
+    }
+
     public void Update(EntityUid uid, PlantHolderComponent? component = null)
     {
         if (!Resolve(uid, ref component))
@@ -398,9 +412,25 @@ public sealed class PlantHolderSystem : EntitySystem
 
         UpdateReagents(uid, component);
 
+        var curTime = _gameTiming.CurTime;
+
         // ForceUpdate is used for external triggers like swabbing
         if (component.ForceUpdate)
             component.ForceUpdate = false;
+        else if (curTime < (component.LastCycle + component.CycleDelay))
+        {
+            if (component.UpdateSpriteAfterUpdate)
+                UpdateSprite(uid, component);
+            return;
+        }
+
+        component.LastCycle = curTime;
+
+        if (component.Seed != null && !component.Dead)
+        {
+            var plantGrow = new OnPlantGrowEvent();
+            RaiseLocalEvent(uid, ref plantGrow);
+        }
 
         // Process mutations. All plants can mutate, so this stays here.
         if (component.MutationLevel > 0)
@@ -421,6 +451,12 @@ public sealed class PlantHolderSystem : EntitySystem
 
         CheckHealth(uid, component);
         CheckLevelSanity(uid, component);
+
+        // Synchronize harvest status between PlantHolderComponent and HarvestComponent
+        if (TryComp<HarvestComponent>(uid, out var harvestComp))
+        {
+            component.Harvest = harvestComp.ReadyForHarvest;
+        }
 
         if (component.UpdateSpriteAfterUpdate)
             UpdateSprite(uid, component);
@@ -451,6 +487,44 @@ public sealed class PlantHolderSystem : EntitySystem
         component.Toxins = MathHelper.Clamp(component.Toxins, 0f, 100f);
         component.YieldMod = MathHelper.Clamp(component.YieldMod, 0, 2);
         component.MutationMod = MathHelper.Clamp(component.MutationMod, 0f, 3f);
+    }
+
+    public bool DoHarvest(EntityUid plantholder, EntityUid user, PlantHolderComponent? component = null)
+    {
+        if (!Resolve(plantholder, ref component))
+            return false;
+
+        if (component.Seed == null || Deleted(user))
+            return false;
+
+        // Try to get HarvestComponent for harvest system
+        if (TryComp<HarvestComponent>(plantholder, out var harvestComp) && harvestComp.ReadyForHarvest && !component.Dead)
+        {
+            if (_hands.TryGetActiveItem(user, out var activeItem))
+            {
+                if (!_botany.CanHarvest(component.Seed, activeItem))
+                {
+                    _popup.PopupCursor(Loc.GetString("plant-holder-component-ligneous-cant-harvest-message"), user);
+                    return false;
+                }
+            }
+            else if (!_botany.CanHarvest(component.Seed))
+            {
+                return false;
+            }
+
+            _botany.Harvest(component.Seed, user, plantholder);
+
+            AfterHarvest(plantholder, component);
+            return true;
+        }
+
+        if (!component.Dead)
+            return false;
+
+        RemovePlant(plantholder, component);
+        AfterHarvest(plantholder, component);
+        return true;
     }
 
     /// <summary>
