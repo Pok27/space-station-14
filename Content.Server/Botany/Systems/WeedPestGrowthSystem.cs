@@ -12,19 +12,10 @@ public sealed class WeedPestGrowthSystem : PlantGrowthSystem
     {
         base.Initialize();
         SubscribeLocalEvent<WeedPestGrowthComponent, OnPlantGrowEvent>(OnPlantGrow);
+        SubscribeLocalEvent<PlantHolderComponent, OnPlantGrowEvent>(OnTrayUpdate);
     }
 
-    public override void Update(float frameTime)
-    {
-        base.Update(frameTime);
-        
-        // Update all plant holders for weed growth, regardless of events
-        var query = EntityQueryEnumerator<PlantHolderComponent>();
-        while (query.MoveNext(out var uid, out var component))
-        {
-            HandleWeedGrowth(uid, component);
-        }
-    }
+
 
     private void OnPlantGrow(EntityUid uid, WeedPestGrowthComponent component, OnPlantGrowEvent args)
     {
@@ -51,7 +42,13 @@ public sealed class WeedPestGrowthSystem : PlantGrowthSystem
         }
     }
 
-
+    /// <summary>
+    /// Handles weed growth and kudzu transformation for plant holder trays.
+    /// </summary>
+    private void OnTrayUpdate(EntityUid uid, PlantHolderComponent component, OnPlantGrowEvent args)
+    {
+        HandleWeedGrowth(uid, component);
+    }
 
     /// <summary>
     /// Handles weed growth and kudzu transformation for all plant holders.
