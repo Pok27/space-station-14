@@ -32,7 +32,7 @@ using System.Linq;
 
 namespace Content.Server.Botany.Systems;
 
-public sealed class PlantHolderSystem : EntitySystem
+public sealed class PlantHolderSystem : PlantGrowthSystem
 {
     [Dependency] private readonly AtmosphereSystem _atmosphere = default!;
     [Dependency] private readonly BotanySystem _botany = default!;
@@ -63,6 +63,61 @@ public sealed class PlantHolderSystem : EntitySystem
         SubscribeLocalEvent<PlantHolderComponent, SolutionTransferredEvent>(OnSolutionTransferred);
     }
 
+    protected override void OnPlantGrow(EntityUid uid, PlantComponent component, ref OnPlantGrowEvent args)
+    {
+        // Only process if this entity has a PlantHolderComponent
+        if (!TryComp<PlantHolderComponent>(uid, out var plantHolder))
+            return;
+
+        ProcessPlantGrowth(uid, plantHolder);
+    }
+
+    private void ProcessPlantGrowth(EntityUid uid, PlantHolderComponent component)
+    {
+        var curTime = _gameTiming.CurTime;
+
+        // ForceUpdate is used for external triggers like swabbing
+        if (component.ForceUpdate)
+            component.ForceUpdate = false;
+        else if (curTime < (component.LastCycle + component.CycleDelay))
+        {
+            if (component.UpdateSpriteAfterUpdate)
+                UpdateSprite(uid, component);
+            return;
+        }
+
+        component.LastCycle = curTime;
+
+        // Process mutations. All plants can mutate, so this stays here.
+        if (component.MutationLevel > 0)
+        {
+            Mutate(uid, Math.Min(component.MutationLevel, 25), component);
+            component.UpdateSpriteAfterUpdate = true;
+            component.MutationLevel = 0;
+        }
+
+        // If we have no seed planted, or the plant is dead, stop processing here.
+        if (component.Seed == null || component.Dead)
+        {
+            if (component.UpdateSpriteAfterUpdate)
+                UpdateSprite(uid, component);
+
+            return;
+        }
+
+        CheckHealth(uid, component);
+        CheckLevelSanity(uid, component);
+
+        // Synchronize harvest status between PlantHolderComponent and HarvestComponent
+        if (TryComp<HarvestComponent>(uid, out var harvestComp))
+        {
+            component.Harvest = harvestComp.ReadyForHarvest;
+        }
+
+        if (component.UpdateSpriteAfterUpdate)
+            UpdateSprite(uid, component);
+    }
+
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
@@ -74,7 +129,7 @@ public sealed class PlantHolderSystem : EntitySystem
                 continue;
             plantHolder.NextUpdate = _gameTiming.CurTime + plantHolder.UpdateDelay;
 
-            Update(uid, plantHolder);
+            UpdateReagents(uid, plantHolder);
         }
     }
 
@@ -389,63 +444,7 @@ public sealed class PlantHolderSystem : EntitySystem
         _audio.PlayPvs(ent.Comp.WateringSound, ent.Owner);
     }
 
-    public void Update(EntityUid uid, PlantHolderComponent? component = null)
-    {
-        if (!Resolve(uid, ref component))
-            return;
 
-        UpdateReagents(uid, component);
-
-        var curTime = _gameTiming.CurTime;
-
-        // ForceUpdate is used for external triggers like swabbing
-        if (component.ForceUpdate)
-            component.ForceUpdate = false;
-        else if (curTime < (component.LastCycle + component.CycleDelay))
-        {
-            if (component.UpdateSpriteAfterUpdate)
-                UpdateSprite(uid, component);
-            return;
-        }
-
-        component.LastCycle = curTime;
-
-        // PlantGrowthSystem now handles OnPlantGrowEvent, so we don't need to call it here
-        // if (component.Seed != null && !component.Dead)
-        // {
-        //     var plantGrow = new OnPlantGrowEvent();
-        //     RaiseLocalEvent(uid, ref plantGrow);
-        // }
-
-        // Process mutations. All plants can mutate, so this stays here.
-        if (component.MutationLevel > 0)
-        {
-            Mutate(uid, Math.Min(component.MutationLevel, 25), component);
-            component.UpdateSpriteAfterUpdate = true;
-            component.MutationLevel = 0;
-        }
-
-        // If we have no seed planted, or the plant is dead, stop processing here.
-        if (component.Seed == null || component.Dead)
-        {
-            if (component.UpdateSpriteAfterUpdate)
-                UpdateSprite(uid, component);
-
-            return;
-        }
-
-        CheckHealth(uid, component);
-        CheckLevelSanity(uid, component);
-
-        // Synchronize harvest status between PlantHolderComponent and HarvestComponent
-        if (TryComp<HarvestComponent>(uid, out var harvestComp))
-        {
-            component.Harvest = harvestComp.ReadyForHarvest;
-        }
-
-        if (component.UpdateSpriteAfterUpdate)
-            UpdateSprite(uid, component);
-    }
 
     /// <summary>
     /// Ensures all plant holder levels are within valid ranges.
