@@ -38,10 +38,21 @@ public sealed class PlantTraitsSystem : PlantGrowthSystem
         {
             if (holder.Age >= component.Production)
             {
-                if (holder.Age - harvestComp.LastHarvestTime >= component.Production && !harvestComp.ReadyForHarvest)
+                // For repeat harvest, check if enough time has passed since last harvest
+                if (harvestComp.HarvestRepeat == HarvestType.Repeat || harvestComp.HarvestRepeat == HarvestType.SelfHarvest)
                 {
-                    harvestComp.ReadyForHarvest = true;
-                    harvestComp.LastHarvestTime = holder.Age;
+                    if (holder.Age - harvestComp.LastHarvestTime >= component.Production && !harvestComp.ReadyForHarvest)
+                    {
+                        harvestComp.ReadyForHarvest = true;
+                    }
+                }
+                else
+                {
+                    // For non-repeat harvest, just check if ready
+                    if (!harvestComp.ReadyForHarvest)
+                    {
+                        harvestComp.ReadyForHarvest = true;
+                    }
                 }
             }
             else
@@ -49,7 +60,6 @@ public sealed class PlantTraitsSystem : PlantGrowthSystem
                 if (harvestComp.ReadyForHarvest)
                 {
                     harvestComp.ReadyForHarvest = false;
-                    harvestComp.LastHarvestTime = holder.Age;
                 }
             }
         }

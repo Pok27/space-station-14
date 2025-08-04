@@ -55,33 +55,8 @@ public sealed class HarvestSystem : EntitySystem
 
     private void OnPlantGrow(EntityUid uid, HarvestComponent component, OnPlantGrowEvent args)
     {
-        if (!TryComp<PlantHolderComponent>(uid, out var plantHolder) ||
-            !TryComp<PlantTraitsComponent>(uid, out var traits))
-            return;
-
-        if (plantHolder.Dead || plantHolder.Seed == null)
-            return;
-
-        // Check if plant is ready for harvest
-        if (component.HarvestRepeat == HarvestType.Repeat || component.HarvestRepeat == HarvestType.SelfHarvest)
-        {
-            // Repeat harvest
-            var timeSinceLastHarvest = plantHolder.Age - component.LastHarvestTime;
-            if (timeSinceLastHarvest >= traits.Production && !component.ReadyForHarvest)
-            {
-                component.ReadyForHarvest = true;
-                plantHolder.UpdateSpriteAfterUpdate = true;
-            }
-        }
-        else
-        {
-            // Non-repeat harvest
-            if (plantHolder.Age >= traits.Production && !component.ReadyForHarvest)
-            {
-                component.ReadyForHarvest = true;
-                plantHolder.UpdateSpriteAfterUpdate = true;
-            }
-        }
+        // Logic for determining harvest readiness is now handled by PlantTraitsSystem
+        // This method is kept for future harvest-specific logic if needed
     }
 
     private void OnInteractHand(EntityUid uid, HarvestComponent component, InteractHandEvent args)
