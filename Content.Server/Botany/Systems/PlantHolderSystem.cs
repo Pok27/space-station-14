@@ -88,7 +88,7 @@ public sealed class PlantHolderSystem : EntitySystem
         if (!TryComp<PlantTraitsComponent>(uid, out var traits))
             return 1;
 
-        var result = Math.Max(1, (int)(component.Age * traits.GrowthStages / traits.Maturation));
+        var result = Math.Max(1, Math.Min(traits.GrowthStages, (int)(component.Age * traits.GrowthStages / traits.Maturation)));
         return result;
     }
 
