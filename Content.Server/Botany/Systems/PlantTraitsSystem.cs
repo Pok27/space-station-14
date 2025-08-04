@@ -28,7 +28,7 @@ public sealed class PlantTraitsSystem : PlantGrowthSystem
         // Check if plant is too old
         if (holder.Age > component.Lifespan)
         {
-            holder.Health -= _random.Next(3, 5) * HydroponicsSpeedMultiplier;
+            holder.Health -= _random.Next(3, 5) * PlantGrowthSystem.HydroponicsSpeedMultiplier;
             if (holder.DrawWarnings)
                 holder.UpdateSpriteAfterUpdate = true;
         }
