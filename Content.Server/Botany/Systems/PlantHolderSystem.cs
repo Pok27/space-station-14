@@ -410,11 +410,12 @@ public sealed class PlantHolderSystem : EntitySystem
 
         component.LastCycle = curTime;
 
-        if (component.Seed != null && !component.Dead)
-        {
-            var plantGrow = new OnPlantGrowEvent();
-            RaiseLocalEvent(uid, ref plantGrow);
-        }
+        // PlantGrowthSystem now handles OnPlantGrowEvent, so we don't need to call it here
+        // if (component.Seed != null && !component.Dead)
+        // {
+        //     var plantGrow = new OnPlantGrowEvent();
+        //     RaiseLocalEvent(uid, ref plantGrow);
+        // }
 
         // Process mutations. All plants can mutate, so this stays here.
         if (component.MutationLevel > 0)
