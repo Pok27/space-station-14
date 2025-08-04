@@ -130,6 +130,8 @@ public sealed class HarvestSystem : EntitySystem
             case HarvestType.SelfHarvest:
                 harvestComp.ReadyForHarvest = false;
                 harvestComp.LastHarvestTime = plantHolder.Age;
+                // Synchronize harvest status immediately for visual update
+                plantHolder.Harvest = false;
                 break;
         }
 
