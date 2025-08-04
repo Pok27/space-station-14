@@ -70,12 +70,6 @@ public sealed class PlantHolderSystem : EntitySystem
         var query = EntityQueryEnumerator<PlantHolderComponent>();
         while (query.MoveNext(out var uid, out var plantHolder))
         {
-            // Check for growth cycle using CycleDelay
-            if (_gameTiming.CurTime >= (plantHolder.LastCycle + plantHolder.CycleDelay))
-            {
-                Update(uid, plantHolder);
-            }
-            
             // Check for reagent updates using UpdateDelay
             if (plantHolder.NextUpdate > _gameTiming.CurTime)
                 continue;
@@ -396,111 +390,9 @@ public sealed class PlantHolderSystem : EntitySystem
         _audio.PlayPvs(ent.Comp.WateringSound, ent.Owner);
     }
 
-    public void Update(EntityUid uid, PlantHolderComponent? component = null)
-    {
-        if (!Resolve(uid, ref component))
-            return;
 
-        var curTime = _gameTiming.CurTime;
 
-        // ForceUpdate is used for external triggers like swabbing
-        if (component.ForceUpdate)
-            component.ForceUpdate = false;
-        else
-        {
-            // This method is only called when CycleDelay has passed
-            component.LastCycle = curTime;
-        }
 
-        if (component.Seed != null && !component.Dead)
-        {
-            var plantGrow = new OnPlantGrowEvent();
-            RaiseLocalEvent(uid, ref plantGrow);
-        }
-
-        // Process mutations. All plants can mutate, so this stays here.
-        if (component.MutationLevel > 0)
-        {
-            Mutate(uid, Math.Min(component.MutationLevel, 25), component);
-            component.UpdateSpriteAfterUpdate = true;
-            component.MutationLevel = 0;
-        }
-
-        // If we have no seed planted, or the plant is dead, stop processing here.
-        if (component.Seed == null || component.Dead)
-        {
-            if (component.UpdateSpriteAfterUpdate)
-                UpdateSprite(uid, component);
-
-            return;
-        }
-
-        CheckHealth(uid, component);
-        CheckLevelSanity(uid, component);
-
-        // Synchronize harvest status between PlantHolderComponent and HarvestComponent
-        if (TryComp<HarvestComponent>(uid, out var harvestComp))
-        {
-            component.Harvest = harvestComp.ReadyForHarvest;
-        }
-
-        if (component.UpdateSpriteAfterUpdate)
-            UpdateSprite(uid, component);
-    }
-
-    /// <summary>
-    /// Ensures all plant holder levels are within valid ranges.
-    /// TODO: Move this validation logic to individual growth components
-    /// </summary>
-    public void CheckLevelSanity(EntityUid uid, PlantHolderComponent? component = null)
-    {
-        if (!Resolve(uid, ref component))
-            return;
-
-        if (component.Seed != null && TryComp<PlantTraitsComponent>(uid, out var traits))
-            component.Health = MathHelper.Clamp(component.Health, 0, traits.Endurance);
-        else
-        {
-            component.Health = 0f;
-            component.Dead = false;
-        }
-
-        component.MutationLevel = MathHelper.Clamp(component.MutationLevel, 0f, 100f);
-        component.NutritionLevel = MathHelper.Clamp(component.NutritionLevel, 0f, 100f);
-        component.WaterLevel = MathHelper.Clamp(component.WaterLevel, 0f, 100f);
-        component.PestLevel = MathHelper.Clamp(component.PestLevel, 0f, 10f);
-        component.WeedLevel = MathHelper.Clamp(component.WeedLevel, 0f, 10f);
-        component.Toxins = MathHelper.Clamp(component.Toxins, 0f, 100f);
-        component.YieldMod = MathHelper.Clamp(component.YieldMod, 0, 2);
-        component.MutationMod = MathHelper.Clamp(component.MutationMod, 0f, 3f);
-    }
-
-    public void CheckHealth(EntityUid uid, PlantHolderComponent? component = null)
-    {
-        if (!Resolve(uid, ref component))
-            return;
-
-        if (component.Health <= 0)
-        {
-            Die(uid, component);
-        }
-    }
-
-    public void Die(EntityUid uid, PlantHolderComponent? component = null)
-    {
-        if (!Resolve(uid, ref component))
-            return;
-
-        component.Dead = true;
-        component.Harvest = false;
-        component.MutationLevel = 0;
-        component.YieldMod = 1;
-        component.MutationMod = 1;
-        component.ImproperPressure = false;
-        component.WeedLevel += 1;
-        component.PestLevel = 0;
-        UpdateSprite(uid, component);
-    }
 
     public void RemovePlant(EntityUid uid, PlantHolderComponent? component = null)
     {
