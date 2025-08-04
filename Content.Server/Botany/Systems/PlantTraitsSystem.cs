@@ -36,12 +36,12 @@ public sealed class PlantTraitsSystem : PlantGrowthSystem
         // Check if plant is ready for harvest
         if (holder.Seed.ProductPrototypes.Count > 0 && TryComp<HarvestComponent>(uid, out var harvestComp))
         {
-            if (holder.Age >= component.Production)
+            if (holder.Age > component.Production)
             {
                 // For repeat harvest, check if enough time has passed since last harvest
                 if (harvestComp.HarvestRepeat == HarvestType.Repeat || harvestComp.HarvestRepeat == HarvestType.SelfHarvest)
                 {
-                    if (holder.Age - harvestComp.LastHarvestTime >= component.Production && !harvestComp.ReadyForHarvest)
+                    if (holder.Age - harvestComp.LastHarvestTime > component.Production && !harvestComp.ReadyForHarvest)
                     {
                         harvestComp.ReadyForHarvest = true;
                     }
