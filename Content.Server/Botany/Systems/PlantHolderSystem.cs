@@ -70,11 +70,18 @@ public sealed class PlantHolderSystem : EntitySystem
         var query = EntityQueryEnumerator<PlantHolderComponent>();
         while (query.MoveNext(out var uid, out var plantHolder))
         {
+            // Check for growth cycle using CycleDelay
+            if (_gameTiming.CurTime >= (plantHolder.LastCycle + plantHolder.CycleDelay))
+            {
+                Update(uid, plantHolder);
+            }
+            
+            // Check for reagent updates using UpdateDelay
             if (plantHolder.NextUpdate > _gameTiming.CurTime)
                 continue;
             plantHolder.NextUpdate = _gameTiming.CurTime + plantHolder.UpdateDelay;
 
-            Update(uid, plantHolder);
+            UpdateReagents(uid, plantHolder);
         }
     }
 
@@ -394,21 +401,16 @@ public sealed class PlantHolderSystem : EntitySystem
         if (!Resolve(uid, ref component))
             return;
 
-        UpdateReagents(uid, component);
-
         var curTime = _gameTiming.CurTime;
 
         // ForceUpdate is used for external triggers like swabbing
         if (component.ForceUpdate)
             component.ForceUpdate = false;
-        else if (curTime < (component.LastCycle + component.CycleDelay))
+        else
         {
-            if (component.UpdateSpriteAfterUpdate)
-                UpdateSprite(uid, component);
-            return;
+            // This method is only called when CycleDelay has passed
+            component.LastCycle = curTime;
         }
-
-        component.LastCycle = curTime;
 
         if (component.Seed != null && !component.Dead)
         {
