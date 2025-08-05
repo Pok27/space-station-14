@@ -12,7 +12,6 @@ using Content.Shared.Gravity;
 using Content.Shared.Hands;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
-using Content.Shared.Mech.Components;
 using Content.Shared.Popups;
 using Content.Shared.Projectiles;
 using Content.Shared.Tag;
@@ -338,12 +337,13 @@ public abstract partial class SharedGunSystem : EntitySystem
             return;
         }
 
-        // Get shooting coordinates - use mech coordinates if user is piloting a mech
-        var fromCoordinates = Transform(user).Coordinates;
-        if (TryComp<MechPilotComponent>(user, out var mechPilot))
-        {
-            fromCoordinates = Transform(mechPilot.Mech).Coordinates;
-        }
+        // Get the effective shooting entity (allows systems to override, e.g., mechs)
+        var shootingEvent = new GetShootingEntityEvent();
+        RaiseLocalEvent(user, ref shootingEvent);
+        var shootingEntity = shootingEvent.Handled && shootingEvent.ShootingEntity.HasValue 
+            ? shootingEvent.ShootingEntity.Value 
+            : user;
+        var fromCoordinates = Transform(shootingEntity).Coordinates;
         
         // Remove ammo
         var ev = new TakeAmmoEvent(shots, new List<(EntityUid? Entity, IShootable Shootable)>(), fromCoordinates, user);
@@ -408,20 +408,10 @@ public abstract partial class SharedGunSystem : EntitySystem
         var shotEv = new GunShotEvent(user, ev.Ammo);
         RaiseLocalEvent(gunUid, ref shotEv);
 
-        if (userImpulse)
+        if (userImpulse && TryComp<PhysicsComponent>(shootingEntity, out var recoilPhysics))
         {
-            // Apply recoil to mech if user is piloting one, otherwise to user
-            var recoilEntity = user;
-            if (TryComp<MechPilotComponent>(user, out var mechPilot))
-            {
-                recoilEntity = mechPilot.Mech;
-            }
-                
-            if (TryComp<PhysicsComponent>(recoilEntity, out var recoilPhysics))
-            {
-                if (_gravity.IsWeightless(recoilEntity, recoilPhysics))
-                    CauseImpulse(fromCoordinates, toCoordinates.Value, recoilEntity, recoilPhysics);
-            }
+            if (_gravity.IsWeightless(shootingEntity, recoilPhysics))
+                CauseImpulse(fromCoordinates, toCoordinates.Value, shootingEntity, recoilPhysics);
         }
     }
 

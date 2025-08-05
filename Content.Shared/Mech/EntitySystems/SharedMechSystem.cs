@@ -58,6 +58,7 @@ public abstract partial class SharedMechSystem : EntitySystem
 
         SubscribeLocalEvent<MechPilotComponent, GetMeleeWeaponEvent>(OnGetMeleeWeapon);
         SubscribeLocalEvent<MechPilotComponent, GetActiveWeaponEvent>(OnGetActiveWeapon);
+        SubscribeLocalEvent<MechPilotComponent, GetShootingEntityEvent>(OnGetShootingEntity);
         SubscribeLocalEvent<MechPilotComponent, CanAttackFromContainerEvent>(OnCanAttackFromContainer);
         SubscribeLocalEvent<MechPilotComponent, AttackAttemptEvent>(OnAttackAttempt);
 
@@ -424,6 +425,16 @@ public abstract partial class SharedMechSystem : EntitySystem
         // Use the currently selected equipment if available, otherwise the mech itself
         var weapon = mech.CurrentSelectedEquipment ?? component.Mech;
         args.Weapon = weapon;
+        args.Handled = true;
+    }
+
+    private void OnGetShootingEntity(EntityUid uid, MechPilotComponent component, ref GetShootingEntityEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        // Use the mech entity for shooting coordinates and physics instead of the pilot
+        args.ShootingEntity = component.Mech;
         args.Handled = true;
     }
 
