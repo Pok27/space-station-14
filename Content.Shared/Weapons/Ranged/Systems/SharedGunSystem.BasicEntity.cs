@@ -1,6 +1,7 @@
-﻿using Content.Shared.Weapons.Ranged.Components;
+using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Events;
 using Robust.Shared.GameStates;
+using Robust.Shared.Log;
 
 namespace Content.Shared.Weapons.Ranged.Systems;
 
@@ -36,8 +37,11 @@ public abstract partial class SharedGunSystem
                 component.Count--;
             }
 
-            var ent = Spawn(component.Proto, args.Coordinates);
-            args.Ammo.Add((ent, EnsureShootable(ent)));
+                    var ent = Spawn(component.Proto, args.Coordinates);
+        args.Ammo.Add((ent, EnsureShootable(ent)));
+        
+        // Debug logging
+        Logger.InfoS("gun", $"BasicEntity spawned ammo at coordinates: {args.Coordinates}");
         }
 
         _recharge.Reset(uid);
