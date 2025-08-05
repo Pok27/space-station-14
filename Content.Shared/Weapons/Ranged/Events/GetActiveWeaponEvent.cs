@@ -1,12 +1,9 @@
-using Robust.Shared.Serialization;
-
 namespace Content.Shared.Weapons.Ranged.Events;
 
 /// <summary>
 /// Event raised to get the active weapon entity for a given user.
 /// Allows systems to override weapon selection logic (e.g., mechs providing their equipment).
 /// </summary>
-[Serializable, NetSerializable]
 public sealed class GetActiveWeaponEvent : HandledEntityEventArgs
 {
     /// <summary>
