@@ -57,6 +57,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         SubscribeLocalEvent<MechComponent, GotEmaggedEvent>(OnEmagged);
 
         SubscribeLocalEvent<MechPilotComponent, GetMeleeWeaponEvent>(OnGetMeleeWeapon);
+        SubscribeLocalEvent<MechPilotComponent, GetActiveWeaponEvent>(OnGetActiveWeapon);
         SubscribeLocalEvent<MechPilotComponent, CanAttackFromContainerEvent>(OnCanAttackFromContainer);
         SubscribeLocalEvent<MechPilotComponent, AttackAttemptEvent>(OnAttackAttempt);
 
@@ -407,6 +408,20 @@ public abstract partial class SharedMechSystem : EntitySystem
         if (!TryComp<MechComponent>(component.Mech, out var mech))
             return;
 
+        var weapon = mech.CurrentSelectedEquipment ?? component.Mech;
+        args.Weapon = weapon;
+        args.Handled = true;
+    }
+
+    private void OnGetActiveWeapon(EntityUid uid, MechPilotComponent component, ref GetActiveWeaponEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        if (!TryComp<MechComponent>(component.Mech, out var mech))
+            return;
+
+        // Use the currently selected equipment if available, otherwise the mech itself
         var weapon = mech.CurrentSelectedEquipment ?? component.Mech;
         args.Weapon = weapon;
         args.Handled = true;
