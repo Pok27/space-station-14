@@ -12,6 +12,7 @@ using Content.Shared.Gravity;
 using Content.Shared.Hands;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
+using Content.Shared.Mech.Components;
 using Content.Shared.Popups;
 using Content.Shared.Projectiles;
 using Content.Shared.Tag;
@@ -337,12 +338,12 @@ public abstract partial class SharedGunSystem : EntitySystem
             return;
         }
 
-        // Get shooting coordinates, allow systems to override (e.g., mechs)
-        var coordinatesEvent = new GetShootCoordinatesEvent();
-        RaiseLocalEvent(user, ref coordinatesEvent);
-        var fromCoordinates = coordinatesEvent.Handled && coordinatesEvent.Coordinates.HasValue 
-            ? coordinatesEvent.Coordinates.Value 
-            : Transform(user).Coordinates;
+        // Get shooting coordinates - use mech coordinates if user is piloting a mech
+        var fromCoordinates = Transform(user).Coordinates;
+        if (TryComp<MechPilotComponent>(user, out var mechPilot))
+        {
+            fromCoordinates = Transform(mechPilot.Mech).Coordinates;
+        }
         
         // Remove ammo
         var ev = new TakeAmmoEvent(shots, new List<(EntityUid? Entity, IShootable Shootable)>(), fromCoordinates, user);
@@ -409,12 +410,12 @@ public abstract partial class SharedGunSystem : EntitySystem
 
         if (userImpulse)
         {
-            // Get the entity that should receive recoil, allow systems to override (e.g., mechs)
-            var recoilEvent = new GetRecoilEntityEvent();
-            RaiseLocalEvent(user, ref recoilEvent);
-            var recoilEntity = recoilEvent.Handled && recoilEvent.Entity.HasValue 
-                ? recoilEvent.Entity.Value 
-                : user;
+            // Apply recoil to mech if user is piloting one, otherwise to user
+            var recoilEntity = user;
+            if (TryComp<MechPilotComponent>(user, out var mechPilot))
+            {
+                recoilEntity = mechPilot.Mech;
+            }
                 
             if (TryComp<PhysicsComponent>(recoilEntity, out var recoilPhysics))
             {
