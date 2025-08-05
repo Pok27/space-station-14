@@ -337,7 +337,13 @@ public abstract partial class SharedGunSystem : EntitySystem
             return;
         }
 
-        var fromCoordinates = Transform(user).Coordinates;
+        // Get shooting coordinates, allow systems to override (e.g., mechs)
+        var coordinatesEvent = new GetShootCoordinatesEvent();
+        RaiseLocalEvent(user, ref coordinatesEvent);
+        var fromCoordinates = coordinatesEvent.Handled && coordinatesEvent.Coordinates.HasValue 
+            ? coordinatesEvent.Coordinates.Value 
+            : Transform(user).Coordinates;
+        
         // Remove ammo
         var ev = new TakeAmmoEvent(shots, new List<(EntityUid? Entity, IShootable Shootable)>(), fromCoordinates, user);
 
@@ -401,10 +407,20 @@ public abstract partial class SharedGunSystem : EntitySystem
         var shotEv = new GunShotEvent(user, ev.Ammo);
         RaiseLocalEvent(gunUid, ref shotEv);
 
-        if (userImpulse && TryComp<PhysicsComponent>(user, out var userPhysics))
+        if (userImpulse)
         {
-            if (_gravity.IsWeightless(user, userPhysics))
-                CauseImpulse(fromCoordinates, toCoordinates.Value, user, userPhysics);
+            // Get the entity that should receive recoil, allow systems to override (e.g., mechs)
+            var recoilEvent = new GetRecoilEntityEvent();
+            RaiseLocalEvent(user, ref recoilEvent);
+            var recoilEntity = recoilEvent.Handled && recoilEvent.Entity.HasValue 
+                ? recoilEvent.Entity.Value 
+                : user;
+                
+            if (TryComp<PhysicsComponent>(recoilEntity, out var recoilPhysics))
+            {
+                if (_gravity.IsWeightless(recoilEntity, recoilPhysics))
+                    CauseImpulse(fromCoordinates, toCoordinates.Value, recoilEntity, recoilPhysics);
+            }
         }
     }
 

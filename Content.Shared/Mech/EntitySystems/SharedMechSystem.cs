@@ -58,6 +58,8 @@ public abstract partial class SharedMechSystem : EntitySystem
 
         SubscribeLocalEvent<MechPilotComponent, GetMeleeWeaponEvent>(OnGetMeleeWeapon);
         SubscribeLocalEvent<MechPilotComponent, GetActiveWeaponEvent>(OnGetActiveWeapon);
+        SubscribeLocalEvent<MechPilotComponent, GetShootCoordinatesEvent>(OnGetShootCoordinates);
+        SubscribeLocalEvent<MechPilotComponent, GetRecoilEntityEvent>(OnGetRecoilEntity);
         SubscribeLocalEvent<MechPilotComponent, CanAttackFromContainerEvent>(OnCanAttackFromContainer);
         SubscribeLocalEvent<MechPilotComponent, AttackAttemptEvent>(OnAttackAttempt);
 
@@ -424,6 +426,26 @@ public abstract partial class SharedMechSystem : EntitySystem
         // Use the currently selected equipment if available, otherwise the mech itself
         var weapon = mech.CurrentSelectedEquipment ?? component.Mech;
         args.Weapon = weapon;
+        args.Handled = true;
+    }
+
+    private void OnGetShootCoordinates(EntityUid uid, MechPilotComponent component, ref GetShootCoordinatesEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        // Provide the mech's coordinates instead of the pilot's coordinates for shooting
+        args.Coordinates = Transform(component.Mech).Coordinates;
+        args.Handled = true;
+    }
+
+    private void OnGetRecoilEntity(EntityUid uid, MechPilotComponent component, ref GetRecoilEntityEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        // Apply recoil to the mech instead of the pilot
+        args.Entity = component.Mech;
         args.Handled = true;
     }
 
