@@ -26,6 +26,7 @@ using Content.Shared.Whitelist;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Containers;
+using Robust.Shared.Log;
 using Robust.Shared.Map;
 using Robust.Shared.Network;
 using Robust.Shared.Physics;
@@ -344,6 +345,9 @@ public abstract partial class SharedGunSystem : EntitySystem
             ? shootingEvent.ShootingEntity.Value 
             : user;
         var fromCoordinates = Transform(shootingEntity).Coordinates;
+        
+        // Debug logging
+        Logger.InfoS("gun", $"User: {user}, ShootingEntity: {shootingEntity}, Handled: {shootingEvent.Handled}, FromCoords: {fromCoordinates}");
         
         // Remove ammo
         var ev = new TakeAmmoEvent(shots, new List<(EntityUid? Entity, IShootable Shootable)>(), fromCoordinates, user);
