@@ -11,7 +11,6 @@ using Content.Shared.Examine;
 using Content.Shared.Gravity;
 using Content.Shared.Hands;
 using Content.Shared.Hands.Components;
-using Content.Shared.Mech.Components;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Popups;
 using Content.Shared.Projectiles;
@@ -134,9 +133,6 @@ public abstract partial class SharedGunSystem : EntitySystem
         if (user == null || !_combatMode.IsInCombatMode(user))
             return;
 
-        if (TryComp<MechPilotComponent>(user.Value, out var mechPilot))
-            user = mechPilot.Mech;
-
         if (!TryGetGun(user.Value, out var ent, out var gun))
             return;
 
@@ -156,9 +152,6 @@ public abstract partial class SharedGunSystem : EntitySystem
 
         if (user == null)
             return;
-
-        if (TryComp<MechPilotComponent>(user.Value, out var mechPilot))
-            user = mechPilot.Mech;
 
         if (!TryGetGun(user.Value, out var ent, out var gun))
             return;
@@ -181,6 +174,16 @@ public abstract partial class SharedGunSystem : EntitySystem
     {
         gunEntity = default;
         gunComp = null;
+
+        var weaponEvent = new GetActiveWeaponEvent();
+        RaiseLocalEvent(entity, ref weaponEvent);
+
+        if (weaponEvent.Handled && weaponEvent.Weapon.HasValue && TryComp(weaponEvent.Weapon.Value, out GunComponent? eventGun))
+        {
+            gunEntity = weaponEvent.Weapon.Value;
+            gunComp = eventGun;
+            return true;
+        }
 
         if (_hands.GetActiveItem(entity) is { } held &&
             TryComp(held, out GunComponent? gun))
