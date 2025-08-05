@@ -20,6 +20,7 @@ using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Whitelist;
 using Robust.Shared.Containers;
+using Robust.Shared.Log;
 using Robust.Shared.Network;
 using Robust.Shared.Serialization;
 using Robust.Shared.Timing;
@@ -58,6 +59,7 @@ public abstract partial class SharedMechSystem : EntitySystem
 
         SubscribeLocalEvent<MechPilotComponent, GetMeleeWeaponEvent>(OnGetMeleeWeapon);
         SubscribeLocalEvent<MechPilotComponent, GetActiveWeaponEvent>(OnGetActiveWeapon);
+        SubscribeLocalEvent<MechPilotComponent, GetShootingEntityEvent>(OnGetShootingEntity);
         SubscribeLocalEvent<MechPilotComponent, CanAttackFromContainerEvent>(OnCanAttackFromContainer);
         SubscribeLocalEvent<MechPilotComponent, AttackAttemptEvent>(OnAttackAttempt);
 
@@ -425,6 +427,19 @@ public abstract partial class SharedMechSystem : EntitySystem
         var weapon = mech.CurrentSelectedEquipment ?? component.Mech;
         args.Weapon = weapon;
         args.Handled = true;
+    }
+
+    private void OnGetShootingEntity(EntityUid uid, MechPilotComponent component, ref GetShootingEntityEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        // Use the mech entity for shooting coordinates and physics instead of the pilot
+        args.ShootingEntity = component.Mech;
+        args.Handled = true;
+
+        // Debug logging
+        Logger.InfoS("mech", $"Mech system handled GetShootingEntity: pilot {uid} -> mech {component.Mech}");
     }
 
     private void OnCanAttackFromContainer(EntityUid uid, MechPilotComponent component, CanAttackFromContainerEvent args)

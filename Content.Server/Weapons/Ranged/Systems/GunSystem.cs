@@ -22,6 +22,7 @@ using Content.Shared.Weapons.Ranged.Systems;
 using Content.Shared.Weapons.Reflect;
 using Content.Shared.Damage.Components;
 using Robust.Shared.Audio;
+using Robust.Shared.Log;
 using Robust.Shared.Map;
 using Robust.Shared.Physics;
 using Robust.Shared.Player;
@@ -68,6 +69,9 @@ public sealed partial class GunSystem : SharedGunSystem
         EntityCoordinates fromCoordinates, EntityCoordinates toCoordinates, out bool userImpulse, EntityUid? user = null, bool throwItems = false)
     {
         userImpulse = true;
+
+        // Debug logging
+        Logger.InfoS("gun", $"Server Shoot called with fromCoordinates: {fromCoordinates}, user: {user}");
 
         if (user != null)
         {
@@ -116,6 +120,7 @@ public sealed partial class GunSystem : SharedGunSystem
                     if (!cartridge.Spent)
                     {
                         var uid = Spawn(cartridge.Prototype, fromEnt);
+                        Logger.InfoS("gun", $"Server spawned cartridge projectile at fromEnt: {fromEnt}");
                         CreateAndFireProjectiles(uid, cartridge);
 
                         RaiseLocalEvent(ent!.Value, new AmmoShotEvent()
