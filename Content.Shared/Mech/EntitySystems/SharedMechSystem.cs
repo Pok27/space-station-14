@@ -413,7 +413,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         args.Handled = true;
     }
 
-    private void OnGetActiveWeapon(EntityUid uid, MechPilotComponent component, ref GetActiveWeaponEvent args)
+    private void OnGetActiveWeapon(EntityUid uid, MechPilotComponent component, GetActiveWeaponEvent args)
     {
         if (args.Handled)
             return;

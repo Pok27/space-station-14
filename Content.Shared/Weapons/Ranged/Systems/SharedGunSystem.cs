@@ -177,7 +177,7 @@ public abstract partial class SharedGunSystem : EntitySystem
 
         // First, try to get a weapon via the event system (allows mechs and other systems to override)
         var weaponEvent = new GetActiveWeaponEvent();
-        RaiseLocalEvent(entity, ref weaponEvent);
+        RaiseLocalEvent(entity, weaponEvent);
         
         if (weaponEvent.Handled && weaponEvent.Weapon.HasValue && TryComp(weaponEvent.Weapon.Value, out GunComponent? eventGun))
         {
