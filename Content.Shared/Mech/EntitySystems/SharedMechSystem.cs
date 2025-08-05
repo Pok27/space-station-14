@@ -60,6 +60,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         SubscribeLocalEvent<MechPilotComponent, GetMeleeWeaponEvent>(OnGetMeleeWeapon);
         SubscribeLocalEvent<MechPilotComponent, GetActiveWeaponEvent>(OnGetActiveWeapon);
         SubscribeLocalEvent<MechPilotComponent, GetShootingEntityEvent>(OnGetShootingEntity);
+        SubscribeLocalEvent<MechPilotComponent, GetProjectileShooterEvent>(OnGetProjectileShooter);
         SubscribeLocalEvent<MechPilotComponent, CanAttackFromContainerEvent>(OnCanAttackFromContainer);
         SubscribeLocalEvent<MechPilotComponent, AttackAttemptEvent>(OnAttackAttempt);
 
@@ -437,9 +438,16 @@ public abstract partial class SharedMechSystem : EntitySystem
         // Use the mech entity for shooting coordinates and physics instead of the pilot
         args.ShootingEntity = component.Mech;
         args.Handled = true;
+    }
 
-        // Debug logging
-        Logger.InfoS("mech", $"Mech system handled GetShootingEntity: pilot {uid} -> mech {component.Mech}");
+    private void OnGetProjectileShooter(EntityUid uid, MechPilotComponent component, ref GetProjectileShooterEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        // Use the mech entity as the shooter for projectiles to prevent self-damage
+        args.ProjectileShooter = component.Mech;
+        args.Handled = true;
     }
 
     private void OnCanAttackFromContainer(EntityUid uid, MechPilotComponent component, CanAttackFromContainerEvent args)

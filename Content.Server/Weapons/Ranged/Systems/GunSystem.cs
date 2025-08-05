@@ -70,9 +70,6 @@ public sealed partial class GunSystem : SharedGunSystem
     {
         userImpulse = true;
 
-        // Debug logging
-        Logger.InfoS("gun", $"Server Shoot called with fromCoordinates: {fromCoordinates}, user: {user}");
-
         if (user != null)
         {
             var selfEvent = new SelfBeforeGunShotEvent(user.Value, (gunUid, gun), ammo);
@@ -161,8 +158,14 @@ public sealed partial class GunSystem : SharedGunSystem
                     var fromEffect = fromCoordinates;
                     var dir = mapDirection.Normalized();
 
+                    var shooterEvent = new GetProjectileShooterEvent();
+                    if (user != null)
+                        RaiseLocalEvent(user.Value, ref shooterEvent);
+
+                    var effectiveShooter = shooterEvent.ProjectileShooter ?? user ?? gunUid;
+
                     //in the situation when user == null, means that the cannon fires on its own (via signals). And we need the gun to not fire by itself in this case
-                    var lastUser = user ?? gunUid;
+                    var lastUser = effectiveShooter;
 
                     if (hitscan.Reflective != ReflectType.None)
                     {
@@ -198,7 +201,7 @@ public sealed partial class GunSystem : SharedGunSystem
 
                             FireEffects(fromEffect, result.Distance, dir.Normalized().ToAngle(), hitscan, hit);
 
-                            var ev = new HitScanReflectAttemptEvent(user, gunUid, hitscan.Reflective, dir, false);
+                            var ev = new HitScanReflectAttemptEvent(effectiveShooter, gunUid, hitscan.Reflective, dir, false);
                             RaiseLocalEvent(hit, ref ev);
 
                             if (!ev.Reflected)
@@ -215,13 +218,13 @@ public sealed partial class GunSystem : SharedGunSystem
                     {
                         var hitEntity = lastHit.Value;
                         if (hitscan.StaminaDamage > 0f)
-                            _stamina.TakeStaminaDamage(hitEntity, hitscan.StaminaDamage, source: user);
+                            _stamina.TakeStaminaDamage(hitEntity, hitscan.StaminaDamage, source: effectiveShooter);
 
                         var dmg = hitscan.Damage;
 
                         var hitName = ToPrettyString(hitEntity);
                         if (dmg != null)
-                            dmg = Damageable.TryChangeDamage(hitEntity, dmg * Damageable.UniversalHitscanDamageModifier, origin: user);
+                            dmg = Damageable.TryChangeDamage(hitEntity, dmg * Damageable.UniversalHitscanDamageModifier, origin: effectiveShooter);
 
                         // check null again, as TryChangeDamage returns modified damage values
                         if (dmg != null)
@@ -237,16 +240,8 @@ public sealed partial class GunSystem : SharedGunSystem
                                 PlayImpactSound(hitEntity, dmg, hitscan.Sound, hitscan.ForceSound);
                             }
 
-                            if (user != null)
-                            {
-                                Logs.Add(LogType.HitScanHit,
-                                    $"{ToPrettyString(user.Value):user} hit {hitName:target} using hitscan and dealt {dmg.GetTotal():damage} damage");
-                            }
-                            else
-                            {
-                                Logs.Add(LogType.HitScanHit,
-                                    $"{hitName:target} hit by hitscan dealing {dmg.GetTotal():damage} damage");
-                            }
+                            Logs.Add(LogType.HitScanHit,
+                                $"{ToPrettyString(effectiveShooter):user} hit {hitName:target} using hitscan and dealt {dmg.GetTotal():damage} damage");
                         }
                     }
                     else

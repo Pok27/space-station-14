@@ -26,7 +26,6 @@ using Content.Shared.Whitelist;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Containers;
-using Robust.Shared.Log;
 using Robust.Shared.Map;
 using Robust.Shared.Network;
 using Robust.Shared.Physics;
@@ -340,13 +339,8 @@ public abstract partial class SharedGunSystem : EntitySystem
 
         var shootingEvent = new GetShootingEntityEvent();
         RaiseLocalEvent(user, ref shootingEvent);
-        var shootingEntity = shootingEvent.Handled && shootingEvent.ShootingEntity.HasValue
-            ? shootingEvent.ShootingEntity.Value
-            : user;
+        var shootingEntity = shootingEvent.ShootingEntity ?? user;
         var fromCoordinates = Transform(shootingEntity).Coordinates;
-
-        // Debug logging
-        Logger.InfoS("gun", $"User: {user}, ShootingEntity: {shootingEntity}, Handled: {shootingEvent.Handled}, FromCoords: {fromCoordinates}");
 
         // Remove ammo
         var ev = new TakeAmmoEvent(shots, new List<(EntityUid? Entity, IShootable Shootable)>(), fromCoordinates, user);
@@ -454,7 +448,13 @@ public abstract partial class SharedGunSystem : EntitySystem
 
         var projectile = EnsureComp<ProjectileComponent>(uid);
         projectile.Weapon = gunUid;
-        var shooter = user ?? gunUid;
+
+        var shooterEvent = new GetProjectileShooterEvent();
+        if (user != null)
+            RaiseLocalEvent(user.Value, ref shooterEvent);
+
+        var shooter = shooterEvent.ProjectileShooter ?? user ?? gunUid;
+
         if (shooter != null)
             Projectiles.SetShooter(uid, projectile, shooter.Value);
 
