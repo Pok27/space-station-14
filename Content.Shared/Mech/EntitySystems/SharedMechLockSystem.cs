@@ -41,6 +41,7 @@ public abstract partial class SharedMechLockSystem : EntitySystem
             Dirty(uid, component);
             var lockEvent = new MechLockStateChangedEvent(component.IsLocked);
             RaiseLocalEvent(uid, lockEvent);
+            UpdateMechUI(uid);
         }
     }
 
@@ -63,6 +64,7 @@ public abstract partial class SharedMechLockSystem : EntitySystem
         Dirty(uid, component);
 
         _popup.PopupEntity(Loc.GetString("mech-lock-dna-registered"), uid, user);
+        UpdateMechUI(uid);
         return true;
     }
 
@@ -103,6 +105,7 @@ public abstract partial class SharedMechLockSystem : EntitySystem
         UpdateLockState(uid, component);
 
         _popup.PopupEntity(Loc.GetString("mech-lock-reset-success"), uid, user);
+        UpdateMechUI(uid);
         return true;
     }
 
@@ -125,6 +128,7 @@ public abstract partial class SharedMechLockSystem : EntitySystem
         Dirty(uid, component);
 
         _popup.PopupEntity(Loc.GetString("mech-lock-card-registered"), uid, user);
+        UpdateMechUI(uid);
         return true;
     }
 
@@ -165,6 +169,7 @@ public abstract partial class SharedMechLockSystem : EntitySystem
         UpdateLockState(uid, component);
 
         _popup.PopupEntity(Loc.GetString("mech-lock-reset-success"), uid, user);
+        UpdateMechUI(uid);
         return true;
     }
 
@@ -201,6 +206,14 @@ public abstract partial class SharedMechLockSystem : EntitySystem
         var messageKey = isActivating ? "mech-lock-activated" : "mech-lock-deactivated";
         _popup.PopupEntity(Loc.GetString(messageKey), uid, user);
     }
+
+    /// <summary>
+    /// Updates mech UI when lock state changes. Override in server systems.
+    /// </summary>
+    protected virtual void UpdateMechUI(EntityUid uid)
+    {
+        // Base implementation does nothing - override in server systems
+    }
 }
 
 /// <summary>
@@ -214,11 +227,4 @@ public sealed class MechLockStateChangedEvent : EntityEventArgs
     {
         IsLocked = isLocked;
     }
-}
-
-/// <summary>
-/// Event to request mech UI update
-/// </summary>
-public sealed class UpdateMechUiEvent : EntityEventArgs
-{
 }

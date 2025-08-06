@@ -426,15 +426,7 @@ public sealed partial class MechSystem : SharedMechSystem
         var state = new MechBoundUiState
         {
             Equipment = equipment,
-            IsAirtight = component.Airtight,
-            // Default values for lock system
-            DnaLockRegistered = false,
-            DnaLockActive = false,
-            CardLockRegistered = false,
-            CardLockActive = false,
-            OwnerDna = null,
-            OwnerCardName = null,
-            IsLocked = false
+            IsAirtight = component.Airtight
         };
 
         // Update lock system state if MechLockComponent is present

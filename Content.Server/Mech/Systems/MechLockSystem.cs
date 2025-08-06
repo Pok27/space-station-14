@@ -2,9 +2,15 @@ using Content.Server.Access.Systems;
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.EntitySystems;
 using Content.Shared.Popups;
-using Robust.Server.GameObjects;
 
 namespace Content.Server.Mech.Systems;
+
+/// <summary>
+/// Event to request mech UI update (server-side only)
+/// </summary>
+public sealed class UpdateMechUiEvent : EntityEventArgs
+{
+}
 
 /// <summary>
 /// Server-side system for mech lock functionality
@@ -12,7 +18,6 @@ namespace Content.Server.Mech.Systems;
 public sealed class MechLockSystem : SharedMechLockSystem
 {
     [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly UserInterfaceSystem _ui = default!;
 
     public override void Initialize()
     {
@@ -24,9 +29,6 @@ public sealed class MechLockSystem : SharedMechLockSystem
         SubscribeLocalEvent<MechLockComponent, MechCardLockRegisterEvent>(OnCardLockRegister);
         SubscribeLocalEvent<MechLockComponent, MechCardLockToggleEvent>(OnCardLockToggle);
         SubscribeLocalEvent<MechLockComponent, MechCardLockResetEvent>(OnCardLockReset);
-        
-        // Listen to lock state changes to update UI
-        SubscribeLocalEvent<MechLockComponent, MechLockStateChangedEvent>(OnLockStateChanged);
     }
 
     private void OnDnaLockRegister(EntityUid uid, MechLockComponent component, MechDnaLockRegisterEvent args)
@@ -35,10 +37,7 @@ public sealed class MechLockSystem : SharedMechLockSystem
         if (user == EntityUid.Invalid)
             return;
 
-        if (TryRegisterDnaLock(uid, user, component))
-        {
-            UpdateMechUI(uid);
-        }
+        TryRegisterDnaLock(uid, user, component);
     }
 
     private void OnDnaLockToggle(EntityUid uid, MechLockComponent component, MechDnaLockToggleEvent args)
@@ -50,7 +49,6 @@ public sealed class MechLockSystem : SharedMechLockSystem
         if (TryToggleDnaLock(uid, component))
         {
             ShowLockMessage(uid, user, component, component.DnaLockActive);
-            UpdateMechUI(uid);
         }
     }
 
@@ -60,10 +58,7 @@ public sealed class MechLockSystem : SharedMechLockSystem
         if (user == EntityUid.Invalid)
             return;
 
-        if (TryResetDnaLock(uid, user, component))
-        {
-            UpdateMechUI(uid);
-        }
+        TryResetDnaLock(uid, user, component);
     }
 
     private void OnCardLockRegister(EntityUid uid, MechLockComponent component, MechCardLockRegisterEvent args)
@@ -72,10 +67,7 @@ public sealed class MechLockSystem : SharedMechLockSystem
         if (user == EntityUid.Invalid)
             return;
 
-        if (TryRegisterCardLock(uid, user, component))
-        {
-            UpdateMechUI(uid);
-        }
+        TryRegisterCardLock(uid, user, component);
     }
 
     private void OnCardLockToggle(EntityUid uid, MechLockComponent component, MechCardLockToggleEvent args)
@@ -87,7 +79,6 @@ public sealed class MechLockSystem : SharedMechLockSystem
         if (TryToggleCardLock(uid, component))
         {
             ShowLockMessage(uid, user, component, component.CardLockActive);
-            UpdateMechUI(uid);
         }
     }
 
@@ -97,18 +88,10 @@ public sealed class MechLockSystem : SharedMechLockSystem
         if (user == EntityUid.Invalid)
             return;
 
-        if (TryResetCardLock(uid, user, component))
-        {
-            UpdateMechUI(uid);
-        }
+        TryResetCardLock(uid, user, component);
     }
 
-    private void OnLockStateChanged(EntityUid uid, MechLockComponent component, MechLockStateChangedEvent args)
-    {
-        UpdateMechUI(uid);
-    }
-
-    private void UpdateMechUI(EntityUid uid)
+    protected override void UpdateMechUI(EntityUid uid)
     {
         // Forward to MechSystem for UI update
         var ev = new UpdateMechUiEvent();
