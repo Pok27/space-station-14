@@ -314,6 +314,9 @@ public sealed partial class MechSystem : SharedMechSystem
         {
             EquipmentStates = ev.States
         };
+
+        // Get Airtight status from component
+        state.IsAirtight = component.Airtight;
         _ui.SetUiState(uid, MechUiKey.Key, state);
     }
 
@@ -395,6 +398,8 @@ public sealed partial class MechSystem : SharedMechSystem
 
         if (mech.Airtight)
             args.Gas = mechAir.Air;
+
+        UpdateUserInterface(component.Mech, mech);
     }
 
     private void OnExhale(EntityUid uid, MechPilotComponent component, ExhaleLocationEvent args)
@@ -407,6 +412,8 @@ public sealed partial class MechSystem : SharedMechSystem
 
         if (mech.Airtight)
             args.Gas = mechAir.Air;
+
+        UpdateUserInterface(component.Mech, mech);
     }
 
     private void OnExpose(EntityUid uid, MechPilotComponent component, ref AtmosExposedGetAirEvent args)
@@ -424,11 +431,13 @@ public sealed partial class MechSystem : SharedMechSystem
             return;
         }
 
-        args.Gas =  _atmosphere.GetContainingMixture(component.Mech, excite: args.Excite);
+        args.Gas = _atmosphere.GetContainingMixture(component.Mech, excite: args.Excite);
         args.Handled = true;
+
+        UpdateUserInterface(component.Mech, mech);
     }
 
-    private void OnGetFilterAir(EntityUid uid, MechAirComponent comp, ref GetFilterAirEvent args)
+    private void OnGetFilterAir(EntityUid uid, MechAirComponent component, ref GetFilterAirEvent args)
     {
         if (args.Air != null)
             return;
@@ -437,7 +446,7 @@ public sealed partial class MechSystem : SharedMechSystem
         if (!TryComp<MechComponent>(uid, out var mech) || !mech.Airtight)
             return;
 
-        args.Air = comp.Air;
+        args.Air = component.Air;
     }
     #endregion
 }

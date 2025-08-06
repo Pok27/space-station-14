@@ -16,6 +16,10 @@ mech-energy-display = Energy: {$amount}%
 mech-energy-missing = Energy: MISSING
 mech-slot-display = Open Slots: {$amount}
 
+mech-air-cabin-label = Cabin air:
+mech-air-internal = On
+mech-air-external = Off
+
 mech-no-enter = You cannot pilot this.
 
 mech-eject-pilot-alert = {$user} is pulling the pilot out of the {$item}!

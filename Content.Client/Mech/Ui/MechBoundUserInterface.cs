@@ -28,17 +28,25 @@ public sealed class MechBoundUserInterface : BoundUserInterface
         {
             SendMessage(new MechEquipmentRemoveMessage(EntMan.GetNetEntity(uid)));
         };
+
+        _menu.OnAirtightChanged += isAirtight =>
+        {
+            var mechComp = EntMan.GetComponent<MechComponent>(Owner);
+            mechComp.Airtight = isAirtight;
+            EntMan.Dirty(Owner, mechComp);
+        };
     }
 
     protected override void UpdateState(BoundUserInterfaceState state)
     {
         base.UpdateState(state);
 
-        if (state is not MechBoundUiState msg)
+        if (state is not MechBoundUiState msg || _menu == null)
             return;
         UpdateEquipmentControls(msg);
-        _menu?.UpdateMechStats();
-        _menu?.UpdateEquipmentView();
+        _menu.UpdateState(msg);
+        _menu.UpdateMechStats();
+        _menu.UpdateEquipmentView();
     }
 
     public void UpdateEquipmentControls(MechBoundUiState state)
@@ -66,4 +74,3 @@ public sealed class MechBoundUserInterface : BoundUserInterface
         return component?.Ui;
     }
 }
-

@@ -129,11 +129,8 @@ public sealed partial class MechComponent : Component
 
     /// <summary>
     /// Whether or not the mech is airtight.
+    /// When true, the mech uses internal air storage. When false, it uses external air.
     /// </summary>
-    /// <remarks>
-    /// This needs to be redone
-    /// when mech internals are added
-    /// </remarks>
     [DataField, ViewVariables(VVAccess.ReadWrite)]
     public bool Airtight;
 
