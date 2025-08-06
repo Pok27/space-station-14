@@ -15,6 +15,12 @@ public sealed partial class MechMenu : FancyWindow
     [Dependency] private readonly IEntityManager _ent = default!;
 
     private EntityUid _mech;
+    
+    // Track current button states to avoid duplicate subscriptions
+    private bool _dnaLockRegistered = false;
+    private bool _dnaLockActive = false;
+    private bool _cardLockRegistered = false;
+    private bool _cardLockActive = false;
 
     public event Action<EntityUid>? OnRemoveButtonPressed;
 
@@ -51,10 +57,34 @@ public sealed partial class MechMenu : FancyWindow
             }
         };
 
-        DnaLockButton.OnPressed += _ => OnDnaLockRegister?.Invoke();
+        DnaLockButton.OnPressed += OnDnaLockButtonPressed;
         DnaLockResetButton.OnPressed += _ => OnDnaLockReset?.Invoke();
-        CardLockButton.OnPressed += _ => OnCardLockRegister?.Invoke();
+        CardLockButton.OnPressed += OnCardLockButtonPressed;
         CardLockResetButton.OnPressed += _ => OnCardLockReset?.Invoke();
+    }
+
+    private void OnDnaLockButtonPressed(BaseButton.ButtonEventArgs _)
+    {
+        if (_dnaLockRegistered)
+        {
+            OnDnaLockToggle?.Invoke();
+        }
+        else
+        {
+            OnDnaLockRegister?.Invoke();
+        }
+    }
+
+    private void OnCardLockButtonPressed(BaseButton.ButtonEventArgs _)
+    {
+        if (_cardLockRegistered)
+        {
+            OnCardLockToggle?.Invoke();
+        }
+        else
+        {
+            OnCardLockRegister?.Invoke();
+        }
     }
 
     public void SetEntity(EntityUid uid)
@@ -63,6 +93,12 @@ public sealed partial class MechMenu : FancyWindow
         _mech = uid;
 
         NameLabel.Text = _ent.GetComponent<MetaDataComponent>(_mech).EntityName;
+        
+        // Reset lock state tracking for new mech
+        _dnaLockRegistered = false;
+        _dnaLockActive = false;
+        _cardLockRegistered = false;
+        _cardLockActive = false;
     }
 
     public void UpdateMechStats()
@@ -107,8 +143,12 @@ public sealed partial class MechMenu : FancyWindow
 
     private void UpdateDnaLockButton(MechBoundUiState state)
     {
-        // Clear existing event subscriptions to prevent multiple subscriptions
-        DnaLockButton.OnPressed = null;
+        // Only update if state has actually changed to avoid duplicate subscriptions
+        if (_dnaLockRegistered == state.DnaLockRegistered && _dnaLockActive == state.DnaLockActive)
+            return;
+
+        _dnaLockRegistered = state.DnaLockRegistered;
+        _dnaLockActive = state.DnaLockActive;
 
         if (state.DnaLockRegistered)
         {
@@ -116,13 +156,11 @@ public sealed partial class MechMenu : FancyWindow
             {
                 DnaLockButton.Text = Loc.GetString("mech-lock-deactivate");
                 DnaLockButton.Pressed = true; // Button appears pressed/active when lock is active
-                DnaLockButton.OnPressed += _ => OnDnaLockToggle?.Invoke();
             }
             else
             {
                 DnaLockButton.Text = Loc.GetString("mech-lock-activate");
                 DnaLockButton.Pressed = false; // Button appears normal when lock is inactive
-                DnaLockButton.OnPressed += _ => OnDnaLockToggle?.Invoke();
             }
             DnaLockResetButton.Visible = true;
         }
@@ -130,15 +168,18 @@ public sealed partial class MechMenu : FancyWindow
         {
             DnaLockButton.Text = Loc.GetString("mech-lock-register");
             DnaLockButton.Pressed = false; // Button appears normal when not registered
-            DnaLockButton.OnPressed += _ => OnDnaLockRegister?.Invoke();
             DnaLockResetButton.Visible = false;
         }
     }
 
     private void UpdateCardLockButton(MechBoundUiState state)
     {
-        // Clear existing event subscriptions to prevent multiple subscriptions
-        CardLockButton.OnPressed = null;
+        // Only update if state has actually changed to avoid duplicate subscriptions
+        if (_cardLockRegistered == state.CardLockRegistered && _cardLockActive == state.CardLockActive)
+            return;
+
+        _cardLockRegistered = state.CardLockRegistered;
+        _cardLockActive = state.CardLockActive;
 
         if (state.CardLockRegistered)
         {
@@ -146,13 +187,11 @@ public sealed partial class MechMenu : FancyWindow
             {
                 CardLockButton.Text = Loc.GetString("mech-lock-deactivate");
                 CardLockButton.Pressed = true; // Button appears pressed/active when lock is active
-                CardLockButton.OnPressed += _ => OnCardLockToggle?.Invoke();
             }
             else
             {
                 CardLockButton.Text = Loc.GetString("mech-lock-activate");
                 CardLockButton.Pressed = false; // Button appears normal when lock is inactive
-                CardLockButton.OnPressed += _ => OnCardLockToggle?.Invoke();
             }
             CardLockResetButton.Visible = true;
         }
@@ -160,7 +199,6 @@ public sealed partial class MechMenu : FancyWindow
         {
             CardLockButton.Text = Loc.GetString("mech-lock-register");
             CardLockButton.Pressed = false; // Button appears normal when not registered
-            CardLockButton.OnPressed += _ => OnCardLockRegister?.Invoke();
             CardLockResetButton.Visible = false;
         }
     }
