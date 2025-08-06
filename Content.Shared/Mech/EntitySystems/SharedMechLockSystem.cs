@@ -1,4 +1,4 @@
-using Content.Shared.Access.Systems;
+using Content.Shared.Access.Components;
 using Content.Shared.Forensics.Components;
 using Content.Shared.Mech.Components;
 using Content.Shared.Popups;
@@ -11,7 +11,6 @@ namespace Content.Shared.Mech.EntitySystems;
 public abstract partial class SharedMechLockSystem : EntitySystem
 {
     [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly IdCardSystem _idCard = default!;
 
     public override void Initialize()
     {
@@ -117,7 +116,7 @@ public abstract partial class SharedMechLockSystem : EntitySystem
         if (!Resolve(uid, ref component))
             return false;
 
-        if (!_idCard.TryFindIdCard(user, out var idCard))
+        if (!TryFindIdCard(user, out var idCard))
         {
             _popup.PopupEntity(Loc.GetString("mech-lock-no-card"), uid, user);
             return false;
@@ -157,7 +156,7 @@ public abstract partial class SharedMechLockSystem : EntitySystem
         if (!Resolve(uid, ref component))
             return false;
 
-        if (!_idCard.TryFindIdCard(user, out var idCard) || idCard.Comp.FullName != component.OwnerCardName)
+        if (!TryFindIdCard(user, out var idCard) || idCard.Comp.FullName != component.OwnerCardName)
         {
             _popup.PopupEntity(Loc.GetString("mech-lock-access-denied"), uid, user);
             return false;
@@ -191,7 +190,7 @@ public abstract partial class SharedMechLockSystem : EntitySystem
         // Check card lock
         if (component.CardLockActive && component.OwnerCardName != null)
         {
-            if (_idCard.TryFindIdCard(user, out var idCard) && idCard.Comp.FullName == component.OwnerCardName)
+            if (TryFindIdCard(user, out var idCard) && idCard.Comp.FullName == component.OwnerCardName)
                 return true;
         }
 
@@ -213,6 +212,15 @@ public abstract partial class SharedMechLockSystem : EntitySystem
     protected virtual void UpdateMechUI(EntityUid uid)
     {
         // Base implementation does nothing - override in server systems
+    }
+
+    /// <summary>
+    /// Tries to find an ID card. Override in server systems.
+    /// </summary>
+    protected virtual bool TryFindIdCard(EntityUid user, out Entity<IdCardComponent> idCard)
+    {
+        idCard = default;
+        return false;
     }
 }
 

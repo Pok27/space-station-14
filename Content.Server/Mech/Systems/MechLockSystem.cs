@@ -1,4 +1,5 @@
 using Content.Server.Access.Systems;
+using Content.Shared.Access.Components;
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.EntitySystems;
 using Content.Shared.Popups;
@@ -18,6 +19,7 @@ public sealed class UpdateMechUiEvent : EntityEventArgs
 public sealed class MechLockSystem : SharedMechLockSystem
 {
     [Dependency] private readonly SharedPopupSystem _popup = default!;
+    [Dependency] private readonly IdCardSystem _idCard = default!;
 
     public override void Initialize()
     {
@@ -96,5 +98,10 @@ public sealed class MechLockSystem : SharedMechLockSystem
         // Forward to MechSystem for UI update
         var ev = new UpdateMechUiEvent();
         RaiseLocalEvent(uid, ev);
+    }
+
+    protected override bool TryFindIdCard(EntityUid user, out Entity<IdCardComponent> idCard)
+    {
+        return _idCard.TryFindIdCard(user, out idCard);
     }
 }
