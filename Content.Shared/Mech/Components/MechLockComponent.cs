@@ -1,14 +1,23 @@
 using Robust.Shared.GameStates;
+using Robust.Shared.Serialization;
 
 namespace Content.Shared.Mech.Components;
 
 /// <summary>
+/// Types of mech locks
+/// </summary>
+public enum MechLockType
+{
+    Dna,
+    Card
+}
+
+/// <summary>
 /// Component for managing mech lock system (DNA and Card locks)
 /// </summary>
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true)]
 public sealed partial class MechLockComponent : Component
 {
-    #region DNA Lock
     /// <summary>
     /// Whether DNA lock is registered
     /// </summary>
@@ -26,9 +35,7 @@ public sealed partial class MechLockComponent : Component
     /// </summary>
     [DataField, AutoNetworkedField]
     public string? OwnerDna;
-    #endregion
 
-    #region Card Lock
     /// <summary>
     /// Whether ID card lock is registered
     /// </summary>
@@ -46,13 +53,10 @@ public sealed partial class MechLockComponent : Component
     /// </summary>
     [DataField, AutoNetworkedField]
     public string? OwnerCardName;
-    #endregion
 
-    #region Lock State
     /// <summary>
     /// Whether the mech is locked (prevents unauthorized access)
     /// </summary>
     [DataField, AutoNetworkedField]
     public bool IsLocked = false;
-    #endregion
 }

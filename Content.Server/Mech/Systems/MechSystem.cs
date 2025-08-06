@@ -42,7 +42,7 @@ public sealed partial class MechSystem : SharedMechSystem
     [Dependency] private readonly DamageableSystem _damageable = default!;
     [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly UserInterfaceSystem _ui = default!;
+    [Dependency] private readonly SharedUserInterfaceSystem _ui = default!;
     [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
     [Dependency] private readonly SharedToolSystem _toolSystem = default!;
     [Dependency] private readonly MechLockSystem _lockSystem = default!;
@@ -439,6 +439,17 @@ public sealed partial class MechSystem : SharedMechSystem
             state.OwnerDna = lockComp.OwnerDna;
             state.OwnerCardName = lockComp.OwnerCardName;
             state.IsLocked = lockComp.IsLocked;
+
+            var actors = _ui.GetActors(uid, MechUiKey.Key);
+            if (actors.Any())
+            {
+                var user = actors.First();
+                state.HasAccess = _lockSystem.HasAccess(user, lockComp);
+            }
+            else
+            {
+                state.HasAccess = false;
+            }
         }
 
         _ui.SetUiState(uid, MechUiKey.Key, state);

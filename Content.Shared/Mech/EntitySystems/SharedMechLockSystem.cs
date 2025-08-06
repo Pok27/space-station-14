@@ -2,6 +2,7 @@ using Content.Shared.Access.Components;
 using Content.Shared.Forensics.Components;
 using Content.Shared.Mech.Components;
 using Content.Shared.Popups;
+using System.Linq;
 
 namespace Content.Shared.Mech.EntitySystems;
 
@@ -45,154 +46,162 @@ public abstract partial class SharedMechLockSystem : EntitySystem
     }
 
     /// <summary>
-    /// Attempts to register DNA lock for the specified user
+    /// Attempts to register a lock for the specified user
     /// </summary>
-    public bool TryRegisterDnaLock(EntityUid uid, EntityUid user, MechLockComponent? component = null)
+    public bool TryRegisterLock(EntityUid uid, EntityUid user, MechLockType lockType, MechLockComponent? component = null)
     {
         if (!Resolve(uid, ref component))
             return false;
 
-        if (!TryComp<DnaComponent>(user, out var dnaComp))
-        {
-            _popup.PopupEntity(Loc.GetString("mech-lock-no-dna"), uid, user);
-            return false;
-        }
-
-        component.DnaLockRegistered = true;
-        component.OwnerDna = dnaComp.DNA;
-        Dirty(uid, component);
-
-        _popup.PopupEntity(Loc.GetString("mech-lock-dna-registered"), uid, user);
-        UpdateMechUI(uid);
-        return true;
-    }
-
-    /// <summary>
-    /// Toggles DNA lock state
-    /// </summary>
-    public bool TryToggleDnaLock(EntityUid uid, MechLockComponent? component = null)
-    {
-        if (!Resolve(uid, ref component))
-            return false;
-
-        if (!component.DnaLockRegistered)
-            return false;
-
-        component.DnaLockActive = !component.DnaLockActive;
-        UpdateLockState(uid, component);
-
-        return true;
-    }
-
-    /// <summary>
-    /// Resets DNA lock system
-    /// </summary>
-    public bool TryResetDnaLock(EntityUid uid, EntityUid user, MechLockComponent? component = null)
-    {
-        if (!Resolve(uid, ref component))
-            return false;
-
-        if (!TryComp<DnaComponent>(user, out var dnaComp) || dnaComp.DNA != component.OwnerDna)
+        // Check if user has access to manage locks
+        if (!HasAccess(user, component))
         {
             _popup.PopupEntity(Loc.GetString("mech-lock-access-denied"), uid, user);
             return false;
         }
 
-        component.DnaLockRegistered = false;
-        component.DnaLockActive = false;
-        component.OwnerDna = null;
-        UpdateLockState(uid, component);
+        switch (lockType)
+        {
+            case MechLockType.Dna:
+                if (!TryComp<DnaComponent>(user, out var dnaComp))
+                {
+                    _popup.PopupEntity(Loc.GetString("mech-lock-no-dna"), uid, user);
+                    return false;
+                }
+                component.DnaLockRegistered = true;
+                component.OwnerDna = dnaComp.DNA;
+                _popup.PopupEntity(Loc.GetString("mech-lock-dna-registered"), uid, user);
+                break;
 
+            case MechLockType.Card:
+                if (!TryFindIdCard(user, out var idCard))
+                {
+                    _popup.PopupEntity(Loc.GetString("mech-lock-no-card"), uid, user);
+                    return false;
+                }
+                component.CardLockRegistered = true;
+                component.OwnerCardName = idCard.Comp.FullName;
+                _popup.PopupEntity(Loc.GetString("mech-lock-card-registered"), uid, user);
+                break;
+        }
+
+        Dirty(uid, component);
+        UpdateMechUI(uid);
+        return true;
+    }
+
+    /// <summary>
+    /// Toggles lock state
+    /// </summary>
+    public bool TryToggleLock(EntityUid uid, EntityUid user, MechLockType lockType, MechLockComponent? component = null)
+    {
+        if (!Resolve(uid, ref component))
+            return false;
+
+        // Check if user has access to manage locks
+        if (!HasAccess(user, component))
+        {
+            _popup.PopupEntity(Loc.GetString("mech-lock-access-denied"), uid, user);
+            return false;
+        }
+
+        switch (lockType)
+        {
+            case MechLockType.Dna:
+                if (!component.DnaLockRegistered)
+                    return false;
+                component.DnaLockActive = !component.DnaLockActive;
+                break;
+
+            case MechLockType.Card:
+                if (!component.CardLockRegistered)
+                    return false;
+                component.CardLockActive = !component.CardLockActive;
+                break;
+        }
+
+        UpdateLockState(uid, component);
+        return true;
+    }
+
+    /// <summary>
+    /// Resets lock system
+    /// </summary>
+    public bool TryResetLock(EntityUid uid, EntityUid user, MechLockType lockType, MechLockComponent? component = null)
+    {
+        if (!Resolve(uid, ref component))
+            return false;
+
+        // Check if user has access to manage locks
+        if (!HasAccess(user, component))
+        {
+            _popup.PopupEntity(Loc.GetString("mech-lock-access-denied"), uid, user);
+            return false;
+        }
+
+        switch (lockType)
+        {
+            case MechLockType.Dna:
+                component.DnaLockRegistered = false;
+                component.DnaLockActive = false;
+                component.OwnerDna = null;
+                break;
+
+            case MechLockType.Card:
+                component.CardLockRegistered = false;
+                component.CardLockActive = false;
+                component.OwnerCardName = null;
+                break;
+        }
+
+        UpdateLockState(uid, component);
         _popup.PopupEntity(Loc.GetString("mech-lock-reset-success"), uid, user);
         UpdateMechUI(uid);
         return true;
     }
 
     /// <summary>
-    /// Attempts to register card lock for the specified user
+    /// Gets lock state for a specific lock type
     /// </summary>
-    public bool TryRegisterCardLock(EntityUid uid, EntityUid user, MechLockComponent? component = null)
+    public (bool IsRegistered, bool IsActive, string? OwnerId) GetLockState(MechLockType lockType, MechLockComponent component)
     {
-        if (!Resolve(uid, ref component))
-            return false;
-
-        if (!TryFindIdCard(user, out var idCard))
+        return lockType switch
         {
-            _popup.PopupEntity(Loc.GetString("mech-lock-no-card"), uid, user);
-            return false;
-        }
-
-        component.CardLockRegistered = true;
-        component.OwnerCardName = idCard.Comp.FullName;
-        Dirty(uid, component);
-
-        _popup.PopupEntity(Loc.GetString("mech-lock-card-registered"), uid, user);
-        UpdateMechUI(uid);
-        return true;
+            MechLockType.Dna => (component.DnaLockRegistered, component.DnaLockActive, component.OwnerDna),
+            MechLockType.Card => (component.CardLockRegistered, component.CardLockActive, component.OwnerCardName),
+            _ => (false, false, null)
+        };
     }
 
     /// <summary>
-    /// Toggles card lock state
-    /// </summary>
-    public bool TryToggleCardLock(EntityUid uid, MechLockComponent? component = null)
-    {
-        if (!Resolve(uid, ref component))
-            return false;
-
-        if (!component.CardLockRegistered)
-            return false;
-
-        component.CardLockActive = !component.CardLockActive;
-        UpdateLockState(uid, component);
-
-        return true;
-    }
-
-    /// <summary>
-    /// Resets card lock system
-    /// </summary>
-    public bool TryResetCardLock(EntityUid uid, EntityUid user, MechLockComponent? component = null)
-    {
-        if (!Resolve(uid, ref component))
-            return false;
-
-        if (!TryFindIdCard(user, out var idCard) || idCard.Comp.FullName != component.OwnerCardName)
-        {
-            _popup.PopupEntity(Loc.GetString("mech-lock-access-denied"), uid, user);
-            return false;
-        }
-
-        component.CardLockRegistered = false;
-        component.CardLockActive = false;
-        component.OwnerCardName = null;
-        UpdateLockState(uid, component);
-
-        _popup.PopupEntity(Loc.GetString("mech-lock-reset-success"), uid, user);
-        UpdateMechUI(uid);
-        return true;
-    }
-
-    /// <summary>
-    /// Checks if a user has access to a locked mech
+    /// Checks if a user has access to a locked mech and can manage locks
     /// </summary>
     public bool HasAccess(EntityUid user, MechLockComponent component)
     {
-        if (!component.IsLocked)
+        // Check if user has access through any registered lock (active or not)
+        foreach (MechLockType lockType in Enum.GetValues<MechLockType>())
+        {
+            var (isRegistered, _, ownerId) = GetLockState(lockType, component);
+            if (isRegistered && ownerId != null)
+            {
+                switch (lockType)
+                {
+                    case MechLockType.Dna:
+                        if (TryComp<DnaComponent>(user, out var dnaComp) && dnaComp.DNA == ownerId)
+                            return true;
+                        break;
+
+                    case MechLockType.Card:
+                        if (TryFindIdCard(user, out var idCard) && idCard.Comp.FullName == ownerId)
+                            return true;
+                        break;
+                }
+            }
+        }
+
+        // If no locks are registered, anyone can access
+        if (!component.DnaLockRegistered && !component.CardLockRegistered)
             return true;
-
-        // Check DNA lock
-        if (component.DnaLockActive && component.OwnerDna != null)
-        {
-            if (TryComp<DnaComponent>(user, out var dnaComp) && dnaComp.DNA == component.OwnerDna)
-                return true;
-        }
-
-        // Check card lock
-        if (component.CardLockActive && component.OwnerCardName != null)
-        {
-            if (TryFindIdCard(user, out var idCard) && idCard.Comp.FullName == component.OwnerCardName)
-                return true;
-        }
 
         return false;
     }

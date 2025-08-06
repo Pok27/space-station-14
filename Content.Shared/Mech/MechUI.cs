@@ -1,4 +1,5 @@
 ﻿using Robust.Shared.Serialization;
+using Content.Shared.Mech.Components;
 
 namespace Content.Shared.Mech;
 
@@ -131,6 +132,7 @@ public sealed class MechBoundUiState : BoundUserInterfaceState
     public string? OwnerDna;
     public string? OwnerCardName;
     public bool IsLocked;
+    public bool HasAccess;
 }
 
 [Serializable, NetSerializable]

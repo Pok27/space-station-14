@@ -39,7 +39,7 @@ public sealed class MechLockSystem : SharedMechLockSystem
         if (user == EntityUid.Invalid)
             return;
 
-        TryRegisterDnaLock(uid, user, component);
+        TryRegisterLock(uid, user, MechLockType.Dna, component);
     }
 
     private void OnDnaLockToggle(EntityUid uid, MechLockComponent component, MechDnaLockToggleEvent args)
@@ -48,9 +48,10 @@ public sealed class MechLockSystem : SharedMechLockSystem
         if (user == EntityUid.Invalid)
             return;
 
-        if (TryToggleDnaLock(uid, component))
+        if (TryToggleLock(uid, user, MechLockType.Dna, component))
         {
-            ShowLockMessage(uid, user, component, component.DnaLockActive);
+            var (_, isActive, _) = GetLockState(MechLockType.Dna, component);
+            ShowLockMessage(uid, user, component, isActive);
         }
     }
 
@@ -60,7 +61,7 @@ public sealed class MechLockSystem : SharedMechLockSystem
         if (user == EntityUid.Invalid)
             return;
 
-        TryResetDnaLock(uid, user, component);
+        TryResetLock(uid, user, MechLockType.Dna, component);
     }
 
     private void OnCardLockRegister(EntityUid uid, MechLockComponent component, MechCardLockRegisterEvent args)
@@ -69,7 +70,7 @@ public sealed class MechLockSystem : SharedMechLockSystem
         if (user == EntityUid.Invalid)
             return;
 
-        TryRegisterCardLock(uid, user, component);
+        TryRegisterLock(uid, user, MechLockType.Card, component);
     }
 
     private void OnCardLockToggle(EntityUid uid, MechLockComponent component, MechCardLockToggleEvent args)
@@ -78,9 +79,10 @@ public sealed class MechLockSystem : SharedMechLockSystem
         if (user == EntityUid.Invalid)
             return;
 
-        if (TryToggleCardLock(uid, component))
+        if (TryToggleLock(uid, user, MechLockType.Card, component))
         {
-            ShowLockMessage(uid, user, component, component.CardLockActive);
+            var (_, isActive, _) = GetLockState(MechLockType.Card, component);
+            ShowLockMessage(uid, user, component, isActive);
         }
     }
 
@@ -90,7 +92,7 @@ public sealed class MechLockSystem : SharedMechLockSystem
         if (user == EntityUid.Invalid)
             return;
 
-        TryResetCardLock(uid, user, component);
+        TryResetLock(uid, user, MechLockType.Card, component);
     }
 
     protected override void UpdateMechUI(EntityUid uid)
