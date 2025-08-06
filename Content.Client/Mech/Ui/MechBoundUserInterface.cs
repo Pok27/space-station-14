@@ -4,6 +4,8 @@ using Content.Shared.Mech.Components;
 using JetBrains.Annotations;
 using Robust.Client.GameObjects;
 using Robust.Client.UserInterface;
+using Robust.Client.Timing;
+using Content.Client.UserInterface;
 
 namespace Content.Client.Mech.Ui;
 
@@ -12,6 +14,7 @@ public sealed class MechBoundUserInterface : BoundUserInterface
 {
     [ViewVariables]
     private MechMenu? _menu;
+    private BuiPredictionState? _pred;
 
     public MechBoundUserInterface(EntityUid owner, Enum uiKey) : base(owner, uiKey)
     {
@@ -24,16 +27,16 @@ public sealed class MechBoundUserInterface : BoundUserInterface
         _menu = this.CreateWindowCenteredLeft<MechMenu>();
         _menu.SetEntity(Owner);
 
+        _pred = new BuiPredictionState(this, IoCManager.Resolve<IClientGameTiming>());
+
         _menu.OnRemoveButtonPressed += uid =>
         {
-            SendMessage(new MechEquipmentRemoveMessage(EntMan.GetNetEntity(uid)));
+            _pred!.SendMessage(new MechEquipmentRemoveMessage(EntMan.GetNetEntity(uid)));
         };
 
         _menu.OnAirtightChanged += isAirtight =>
         {
-            var mechComp = EntMan.GetComponent<MechComponent>(Owner);
-            mechComp.Airtight = isAirtight;
-            EntMan.Dirty(Owner, mechComp);
+            _pred!.SendMessage(new MechAirtightMessage(isAirtight));
         };
     }
 
@@ -43,34 +46,22 @@ public sealed class MechBoundUserInterface : BoundUserInterface
 
         if (state is not MechBoundUiState msg || _menu == null)
             return;
-        UpdateEquipmentControls(msg);
+
+        foreach (var predMsg in _pred!.MessagesToReplay())
+        {
+            if (predMsg is MechEquipmentRemoveMessage removeMsg)
+                msg.Equipment.Remove(removeMsg.Equipment);
+        }
+
         _menu.UpdateState(msg);
         _menu.UpdateMechStats();
-        _menu.UpdateEquipmentView();
+        _menu.UpdateEquipmentView(msg.Equipment);
     }
 
-    public void UpdateEquipmentControls(MechBoundUiState state)
+    protected override void Dispose(bool disposing)
     {
-        if (!EntMan.TryGetComponent<MechComponent>(Owner, out var mechComp))
-            return;
-
-        foreach (var ent in mechComp.EquipmentContainer.ContainedEntities)
-        {
-            var ui = GetEquipmentUi(ent);
-            if (ui == null)
-                continue;
-            foreach (var (attached, estate) in state.EquipmentStates)
-            {
-                if (ent == EntMan.GetEntity(attached))
-                    ui.UpdateState(estate);
-            }
-        }
-    }
-
-    public UIFragment? GetEquipmentUi(EntityUid? uid)
-    {
-        var component = EntMan.GetComponentOrNull<UIFragmentComponent>(uid);
-        component?.Ui?.Setup(this, uid);
-        return component?.Ui;
+        base.Dispose(disposing);
+        if (disposing)
+            _menu?.Dispose();
     }
 }

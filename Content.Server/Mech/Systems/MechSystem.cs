@@ -57,6 +57,7 @@ public sealed partial class MechSystem : SharedMechSystem
         SubscribeLocalEvent<MechComponent, RemoveBatteryEvent>(OnRemoveBattery);
         SubscribeLocalEvent<MechComponent, MechEntryEvent>(OnMechEntry);
         SubscribeLocalEvent<MechComponent, MechExitEvent>(OnMechExit);
+        SubscribeLocalEvent<MechComponent, MechAirtightMessage>(OnAirtightMessage);
 
         SubscribeLocalEvent<MechComponent, DamageChangedEvent>(OnDamageChanged);
         SubscribeLocalEvent<MechComponent, MechEquipmentRemoveMessage>(OnRemoveEquipmentMessage);
@@ -165,6 +166,13 @@ public sealed partial class MechSystem : SharedMechSystem
     {
         args.Handled = true;
         ToggleMechUi(uid, component);
+    }
+
+    private void OnAirtightMessage(EntityUid uid, MechComponent component, MechAirtightMessage args)
+    {
+        component.Airtight = args.IsAirtight;
+        Dirty(uid, component);
+        UpdateUserInterface(uid, component);
     }
 
     private void OnToolUseAttempt(EntityUid uid, MechPilotComponent component, ref ToolUserAttemptUseEvent args)
@@ -302,21 +310,17 @@ public sealed partial class MechSystem : SharedMechSystem
         if (!Resolve(uid, ref component))
             return;
 
-        base.UpdateUserInterface(uid, component);
-
-        var ev = new MechEquipmentUiStateReadyEvent();
+        var equipment = new List<NetEntity>();
         foreach (var ent in component.EquipmentContainer.ContainedEntities)
         {
-            RaiseLocalEvent(ent, ev);
+            equipment.Add(GetNetEntity(ent));
         }
 
         var state = new MechBoundUiState
         {
-            EquipmentStates = ev.States
+            Equipment = equipment,
+            IsAirtight = component.Airtight
         };
-
-        // Get Airtight status from component
-        state.IsAirtight = component.Airtight;
         _ui.SetUiState(uid, MechUiKey.Key, state);
     }
 

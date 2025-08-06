@@ -83,6 +83,20 @@ public sealed class MechSoundboardPlayMessage : MechEquipmentUiMessage
 }
 
 /// <summary>
+/// Event raised to toggle the airtight mode of a mech
+/// </summary>
+[Serializable, NetSerializable]
+public sealed class MechAirtightMessage : BoundUserInterfaceMessage
+{
+    public bool IsAirtight;
+
+    public MechAirtightMessage(bool isAirtight)
+    {
+        IsAirtight = isAirtight;
+    }
+}
+
+/// <summary>
 /// BUI state for mechs that also contains all equipment ui states.
 /// </summary>
 /// <remarks>
@@ -106,7 +120,7 @@ public sealed class MechSoundboardPlayMessage : MechEquipmentUiMessage
 [Serializable, NetSerializable]
 public sealed class MechBoundUiState : BoundUserInterfaceState
 {
-    public Dictionary<NetEntity, BoundUserInterfaceState> EquipmentStates = new();
+    public List<NetEntity> Equipment = new();
     public bool IsAirtight;
 }
 
