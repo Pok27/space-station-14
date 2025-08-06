@@ -45,7 +45,7 @@ public sealed partial class MechSystem : SharedMechSystem
     [Dependency] private readonly UserInterfaceSystem _ui = default!;
     [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
     [Dependency] private readonly SharedToolSystem _toolSystem = default!;
-    [Dependency] private readonly IdCardSystem _idCard = default!;
+    [Dependency] private readonly MechLockSystem _lockSystem = default!;
 
     private static readonly ProtoId<ToolQualityPrototype> PryingQuality = "Prying";
 
@@ -83,14 +83,8 @@ public sealed partial class MechSystem : SharedMechSystem
         #endregion
 
         #region Lock system
-        SubscribeLocalEvent<MechComponent, MechDnaLockRegisterEvent>(OnDnaLockRegister);
-        SubscribeLocalEvent<MechComponent, MechDnaLockToggleEvent>(OnDnaLockToggle);
-        SubscribeLocalEvent<MechComponent, MechDnaLockResetEvent>(OnDnaLockReset);
-        SubscribeLocalEvent<MechComponent, MechCardLockRegisterEvent>(OnCardLockRegister);
-        SubscribeLocalEvent<MechComponent, MechCardLockToggleEvent>(OnCardLockToggle);
-        SubscribeLocalEvent<MechComponent, MechCardLockResetEvent>(OnCardLockReset);
-
         SubscribeLocalEvent<MechComponent, BoundUserInterfaceMessageAttempt>(OnBoundUIAttempt);
+        SubscribeLocalEvent<MechComponent, UpdateMechUiEvent>(OnUpdateMechUi);
         #endregion
     }
 
@@ -100,9 +94,11 @@ public sealed partial class MechSystem : SharedMechSystem
             args.Cancel();
 
         // Check if mech is locked and pilot doesn't have access
-        if (component.IsLocked && component.PilotSlot.ContainedEntity != null)
+        if (TryComp<MechLockComponent>(uid, out var lockComp) && 
+            lockComp.IsLocked && 
+            component.PilotSlot.ContainedEntity != null)
         {
-            if (!HasAccess(component.PilotSlot.ContainedEntity.Value, component))
+            if (!_lockSystem.HasAccess(component.PilotSlot.ContainedEntity.Value, lockComp))
             {
                 args.Cancel();
             }
@@ -112,7 +108,9 @@ public sealed partial class MechSystem : SharedMechSystem
     private void OnInteractUsing(EntityUid uid, MechComponent component, InteractUsingEvent args)
     {
         // Check if mech is locked and user doesn't have access
-        if (component.IsLocked && !HasAccess(args.User, component))
+        if (TryComp<MechLockComponent>(uid, out var lockComp) && 
+            lockComp.IsLocked && 
+            !_lockSystem.HasAccess(args.User, lockComp))
         {
             _popup.PopupEntity(Loc.GetString("mech-lock-access-denied"), uid, args.User);
             args.Handled = true;
@@ -201,7 +199,9 @@ public sealed partial class MechSystem : SharedMechSystem
         var user = args.Performer;
 
         // Check if mech is locked and user doesn't have access
-        if (component.IsLocked && !HasAccess(user, component))
+        if (TryComp<MechLockComponent>(uid, out var lockComp) && 
+            lockComp.IsLocked && 
+            !_lockSystem.HasAccess(user, lockComp))
         {
             _popup.PopupEntity(Loc.GetString("mech-lock-access-denied"), uid, user);
             return;
@@ -224,8 +224,8 @@ public sealed partial class MechSystem : SharedMechSystem
             args.Cancelled = true;
 
         // Check if mech is locked and pilot doesn't have access
-        if (TryComp<MechComponent>(component.Mech, out var mechComp) &&
-            mechComp.IsLocked && !HasAccess(uid, mechComp))
+        if (TryComp<MechLockComponent>(component.Mech, out var lockComp) &&
+            lockComp.IsLocked && !_lockSystem.HasAccess(uid, lockComp))
         {
             args.Cancelled = true;
         }
@@ -237,7 +237,9 @@ public sealed partial class MechSystem : SharedMechSystem
             return;
 
         // Check if mech is locked and user doesn't have access
-        if (component.IsLocked && !HasAccess(args.User, component))
+        if (TryComp<MechLockComponent>(uid, out var lockComp) && 
+            lockComp.IsLocked && 
+            !_lockSystem.HasAccess(args.User, lockComp))
             return;
 
         if (CanInsert(uid, args.User, component))
@@ -296,7 +298,9 @@ public sealed partial class MechSystem : SharedMechSystem
             return;
 
         // Check if mech is locked and user doesn't have access
-        if (component.IsLocked && !HasAccess(args.User, component))
+        if (TryComp<MechLockComponent>(uid, out var lockComp) && 
+            lockComp.IsLocked && 
+            !_lockSystem.HasAccess(args.User, lockComp))
         {
             _popup.PopupEntity(Loc.GetString("mech-lock-access-denied"), uid, args.User);
             return;
@@ -366,142 +370,7 @@ public sealed partial class MechSystem : SharedMechSystem
         }
     }
 
-    #region Lock System
-    private void OnDnaLockRegister(EntityUid uid, MechComponent component, MechDnaLockRegisterEvent args)
-    {
-        var user = GetEntity(args.User);
-        if (user == EntityUid.Invalid)
-            return;
 
-        // Check if user has DNA
-        if (!TryComp<DnaComponent>(user, out var dnaComp))
-        {
-            _popup.PopupEntity(Loc.GetString("mech-lock-no-dna"), uid, user);
-            return;
-        }
-
-        // Register DNA lock
-        component.DnaLockRegistered = true;
-        component.OwnerDna = dnaComp.DNA;
-        Dirty(uid, component);
-
-        _popup.PopupEntity(Loc.GetString("mech-lock-dna-registered"), uid, user);
-        UpdateUserInterface(uid, component);
-    }
-
-    private void OnDnaLockToggle(EntityUid uid, MechComponent component, MechDnaLockToggleEvent args)
-    {
-        var user = GetEntity(args.User);
-        if (user == EntityUid.Invalid)
-            return;
-
-        // Toggle DNA lock
-        component.DnaLockActive = !component.DnaLockActive;
-
-        // Update locked status
-        component.IsLocked = component.DnaLockActive || component.CardLockActive;
-        Dirty(uid, component);
-
-        if (component.DnaLockActive)
-            _popup.PopupEntity(Loc.GetString("mech-lock-activated"), uid, user);
-        else
-            _popup.PopupEntity(Loc.GetString("mech-lock-deactivated"), uid, user);
-        UpdateUserInterface(uid, component);
-    }
-
-    private void OnCardLockRegister(EntityUid uid, MechComponent component, MechCardLockRegisterEvent args)
-    {
-        var user = GetEntity(args.User);
-        if (user == EntityUid.Invalid)
-            return;
-
-        // Check if user has ID card
-        if (!_idCard.TryFindIdCard(user, out var idCard))
-        {
-            _popup.PopupEntity(Loc.GetString("mech-lock-no-card"), uid, user);
-            return;
-        }
-
-        // Register card lock
-        component.CardLockRegistered = true;
-        component.OwnerCardName = idCard.Comp.FullName;
-        Dirty(uid, component);
-
-        _popup.PopupEntity(Loc.GetString("mech-lock-card-registered"), uid, user);
-        UpdateUserInterface(uid, component);
-    }
-
-    private void OnCardLockToggle(EntityUid uid, MechComponent component, MechCardLockToggleEvent args)
-    {
-        var user = GetEntity(args.User);
-        if (user == EntityUid.Invalid)
-            return;
-
-        // Toggle card lock
-        component.CardLockActive = !component.CardLockActive;
-
-        // Update locked status
-        component.IsLocked = component.DnaLockActive || component.CardLockActive;
-        Dirty(uid, component);
-
-        if (component.CardLockActive)
-            _popup.PopupEntity(Loc.GetString("mech-lock-activated"), uid, user);
-        else
-            _popup.PopupEntity(Loc.GetString("mech-lock-deactivated"), uid, user);
-        UpdateUserInterface(uid, component);
-    }
-
-    private void OnDnaLockReset(EntityUid uid, MechComponent component, MechDnaLockResetEvent args)
-    {
-        var user = GetEntity(args.User);
-        if (user == EntityUid.Invalid)
-            return;
-
-        // Check if user is the original registrator
-        if (!TryComp<DnaComponent>(user, out var dnaComp) || dnaComp.DNA != component.OwnerDna)
-        {
-            _popup.PopupEntity(Loc.GetString("mech-lock-access-denied"), uid, user);
-            return;
-        }
-
-        // Reset DNA lock completely
-        component.DnaLockRegistered = false;
-        component.DnaLockActive = false;
-        component.OwnerDna = null;
-
-        // Update locked status
-        component.IsLocked = component.CardLockActive;
-        Dirty(uid, component);
-
-        _popup.PopupEntity(Loc.GetString("mech-lock-reset-success"), uid, user);
-        UpdateUserInterface(uid, component);
-    }
-
-    private void OnCardLockReset(EntityUid uid, MechComponent component, MechCardLockResetEvent args)
-    {
-        var user = GetEntity(args.User);
-        if (user == EntityUid.Invalid)
-            return;
-
-        // Check if user is the original registrator
-        if (!_idCard.TryFindIdCard(user, out var idCard) || idCard.Comp.FullName != component.OwnerCardName)
-        {
-            _popup.PopupEntity(Loc.GetString("mech-lock-access-denied"), uid, user);
-            return;
-        }
-
-        // Reset card lock completely
-        component.CardLockRegistered = false;
-        component.CardLockActive = false;
-        component.OwnerCardName = null;
-
-        // Update locked status
-        component.IsLocked = component.DnaLockActive;
-        Dirty(uid, component);
-
-        _popup.PopupEntity(Loc.GetString("mech-lock-reset-success"), uid, user);
-        UpdateUserInterface(uid, component);
-    }
 
     private void OnBoundUIAttempt(Entity<MechComponent> ent, ref BoundUserInterfaceMessageAttempt args)
     {
@@ -511,54 +380,37 @@ public sealed partial class MechSystem : SharedMechSystem
         var actor = args.Actor;
         var message = args.Message;
 
-        switch (message)
+        // Forward lock-related messages to MechLockComponent if it exists
+        if (HasComp<MechLockComponent>(ent.Owner))
         {
-            case MechDnaLockRegisterMessage:
-                RaiseLocalEvent(ent.Owner, new MechDnaLockRegisterEvent { User = GetNetEntity(actor) });
-                break;
-            case MechDnaLockToggleMessage:
-                RaiseLocalEvent(ent.Owner, new MechDnaLockToggleEvent { User = GetNetEntity(actor) });
-                break;
-            case MechDnaLockResetMessage:
-                RaiseLocalEvent(ent.Owner, new MechDnaLockResetEvent { User = GetNetEntity(actor) });
-                break;
-            case MechCardLockRegisterMessage:
-                RaiseLocalEvent(ent.Owner, new MechCardLockRegisterEvent { User = GetNetEntity(actor) });
-                break;
-            case MechCardLockToggleMessage:
-                RaiseLocalEvent(ent.Owner, new MechCardLockToggleEvent { User = GetNetEntity(actor) });
-                break;
-            case MechCardLockResetMessage:
-                RaiseLocalEvent(ent.Owner, new MechCardLockResetEvent { User = GetNetEntity(actor) });
-                break;
+            switch (message)
+            {
+                case MechDnaLockRegisterMessage:
+                    RaiseLocalEvent(ent.Owner, new MechDnaLockRegisterEvent { User = GetNetEntity(actor) });
+                    break;
+                case MechDnaLockToggleMessage:
+                    RaiseLocalEvent(ent.Owner, new MechDnaLockToggleEvent { User = GetNetEntity(actor) });
+                    break;
+                case MechDnaLockResetMessage:
+                    RaiseLocalEvent(ent.Owner, new MechDnaLockResetEvent { User = GetNetEntity(actor) });
+                    break;
+                case MechCardLockRegisterMessage:
+                    RaiseLocalEvent(ent.Owner, new MechCardLockRegisterEvent { User = GetNetEntity(actor) });
+                    break;
+                case MechCardLockToggleMessage:
+                    RaiseLocalEvent(ent.Owner, new MechCardLockToggleEvent { User = GetNetEntity(actor) });
+                    break;
+                case MechCardLockResetMessage:
+                    RaiseLocalEvent(ent.Owner, new MechCardLockResetEvent { User = GetNetEntity(actor) });
+                    break;
+            }
         }
     }
 
-    /// <summary>
-    /// Checks if a user has access to a locked mech
-    /// </summary>
-    public bool HasAccess(EntityUid user, MechComponent component)
+    private void OnUpdateMechUi(EntityUid uid, MechComponent component, UpdateMechUiEvent args)
     {
-        if (!component.IsLocked)
-            return true;
-
-        // Check DNA lock
-        if (component.DnaLockActive && component.OwnerDna != null)
-        {
-            if (TryComp<DnaComponent>(user, out var dnaComp) && dnaComp.DNA == component.OwnerDna)
-                return true;
-        }
-
-        // Check card lock
-        if (component.CardLockActive && component.OwnerCardName != null)
-        {
-            if (_idCard.TryFindIdCard(user, out var idCard) && idCard.Comp.FullName == component.OwnerCardName)
-                return true;
-        }
-
-        return false;
+        UpdateUserInterface(uid, component);
     }
-    #endregion
 
     public override void UpdateUserInterface(EntityUid uid, MechComponent? component = null)
     {
@@ -575,14 +427,28 @@ public sealed partial class MechSystem : SharedMechSystem
         {
             Equipment = equipment,
             IsAirtight = component.Airtight,
-            DnaLockRegistered = component.DnaLockRegistered,
-            DnaLockActive = component.DnaLockActive,
-            CardLockRegistered = component.CardLockRegistered,
-            CardLockActive = component.CardLockActive,
-            OwnerDna = component.OwnerDna,
-            OwnerCardName = component.OwnerCardName,
-            IsLocked = component.IsLocked
+            // Default values for lock system
+            DnaLockRegistered = false,
+            DnaLockActive = false,
+            CardLockRegistered = false,
+            CardLockActive = false,
+            OwnerDna = null,
+            OwnerCardName = null,
+            IsLocked = false
         };
+
+        // Update lock system state if MechLockComponent is present
+        if (TryComp<MechLockComponent>(uid, out var lockComp))
+        {
+            state.DnaLockRegistered = lockComp.DnaLockRegistered;
+            state.DnaLockActive = lockComp.DnaLockActive;
+            state.CardLockRegistered = lockComp.CardLockRegistered;
+            state.CardLockActive = lockComp.CardLockActive;
+            state.OwnerDna = lockComp.OwnerDna;
+            state.OwnerCardName = lockComp.OwnerCardName;
+            state.IsLocked = lockComp.IsLocked;
+        }
+
         _ui.SetUiState(uid, MechUiKey.Key, state);
     }
 

@@ -45,9 +45,8 @@
   components:
   - type: MobMover
   - type: Mech
-    # Lock system is enabled by default
-    dnaLockEnabled: false
-    cardLockEnabled: false
+  - type: MechLock
+    # Lock system is available but not pre-registered
     isLocked: false
   - type: MechAir
   - type: AirFilter

@@ -1,4 +1,4 @@
-﻿<controls:FancyWindow xmlns="https://spacestation14.io"
+<controls:FancyWindow xmlns="https://spacestation14.io"
                       xmlns:gfx="clr-namespace:Robust.Client.Graphics;assembly=Robust.Client"
                       xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
                       xmlns:customControls="clr-namespace:Content.Client.Administration.UI.CustomControls"
@@ -59,12 +59,12 @@
                     </BoxContainer>
                     <Label StyleClasses="StatusFieldTitle" Text="{Loc 'mech-lock-dna-label'}"/>
                     <BoxContainer Orientation="Horizontal" HorizontalExpand="True">
-                        <Button Name="DnaLockButton" Text="" ToggleMode="False" Margin="2 0 2 0" HorizontalExpand="True"/>
+                        <Button Name="DnaLockButton" Text="" ToggleMode="True" Margin="2 0 2 0" HorizontalExpand="True"/>
                         <Button Name="DnaLockResetButton" Text="{Loc 'mech-lock-reset'}" ToggleMode="False" Margin="2 0 2 0" HorizontalExpand="True" Visible="False"/>
                     </BoxContainer>
                     <Label StyleClasses="StatusFieldTitle" Text="{Loc 'mech-lock-card-label'}"/>
                     <BoxContainer Orientation="Horizontal" HorizontalExpand="True">
-                        <Button Name="CardLockButton" Text="" ToggleMode="False" Margin="2 0 2 0" HorizontalExpand="True"/>
+                        <Button Name="CardLockButton" Text="" ToggleMode="True" Margin="2 0 2 0" HorizontalExpand="True"/>
                         <Button Name="CardLockResetButton" Text="{Loc 'mech-lock-reset'}" ToggleMode="False" Margin="2 0 2 0" HorizontalExpand="True" Visible="False"/>
                     </BoxContainer>
             </GridContainer>

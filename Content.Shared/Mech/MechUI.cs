@@ -1,4 +1,4 @@
-﻿using Robust.Shared.Serialization;
+using Robust.Shared.Serialization;
 
 namespace Content.Shared.Mech;
 
@@ -123,7 +123,7 @@ public sealed class MechBoundUiState : BoundUserInterfaceState
     public List<NetEntity> Equipment = new();
     public bool IsAirtight;
 
-    // Lock system state
+    // Lock system state - extracted from MechLockComponent
     public bool DnaLockRegistered;
     public bool DnaLockActive;
     public bool CardLockRegistered;
