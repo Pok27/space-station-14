@@ -101,17 +101,24 @@ public sealed partial class MechMenu : FancyWindow
 
     private void UpdateLockButtons(MechBoundUiState state)
     {
-        // Update DNA lock buttons
+        UpdateDnaLockButton(state);
+        UpdateCardLockButton(state);
+    }
+
+    private void UpdateDnaLockButton(MechBoundUiState state)
+    {
         if (state.DnaLockRegistered)
         {
             if (state.DnaLockActive)
             {
                 DnaLockButton.Text = Loc.GetString("mech-lock-deactivate");
+                DnaLockButton.Pressed = true;
                 DnaLockButton.OnPressed += _ => OnDnaLockToggle?.Invoke();
             }
             else
             {
                 DnaLockButton.Text = Loc.GetString("mech-lock-activate");
+                DnaLockButton.Pressed = false;
                 DnaLockButton.OnPressed += _ => OnDnaLockToggle?.Invoke();
             }
             DnaLockResetButton.Visible = true;
@@ -119,21 +126,26 @@ public sealed partial class MechMenu : FancyWindow
         else
         {
             DnaLockButton.Text = Loc.GetString("mech-lock-register");
+            DnaLockButton.Pressed = false;
             DnaLockButton.OnPressed += _ => OnDnaLockRegister?.Invoke();
             DnaLockResetButton.Visible = false;
         }
+    }
 
-        // Update card lock buttons
+    private void UpdateCardLockButton(MechBoundUiState state)
+    {
         if (state.CardLockRegistered)
         {
             if (state.CardLockActive)
             {
                 CardLockButton.Text = Loc.GetString("mech-lock-deactivate");
+                CardLockButton.Pressed = true;
                 CardLockButton.OnPressed += _ => OnCardLockToggle?.Invoke();
             }
             else
             {
                 CardLockButton.Text = Loc.GetString("mech-lock-activate");
+                CardLockButton.Pressed = false;
                 CardLockButton.OnPressed += _ => OnCardLockToggle?.Invoke();
             }
             CardLockResetButton.Visible = true;
@@ -141,6 +153,7 @@ public sealed partial class MechMenu : FancyWindow
         else
         {
             CardLockButton.Text = Loc.GetString("mech-lock-register");
+            CardLockButton.Pressed = false;
             CardLockButton.OnPressed += _ => OnCardLockRegister?.Invoke();
             CardLockResetButton.Visible = false;
         }

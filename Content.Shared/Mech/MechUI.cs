@@ -123,7 +123,7 @@ public sealed class MechBoundUiState : BoundUserInterfaceState
     public List<NetEntity> Equipment = new();
     public bool IsAirtight;
 
-    // Lock system state
+    // Lock system
     public bool DnaLockRegistered;
     public bool DnaLockActive;
     public bool CardLockRegistered;

@@ -162,48 +162,4 @@ public sealed partial class MechComponent : Component
     [DataField] public EntityUid? MechCycleActionEntity;
     [DataField] public EntityUid? MechUiActionEntity;
     [DataField] public EntityUid? MechEjectActionEntity;
-
-    #region Lock System
-    /// <summary>
-    /// Whether DNA lock is registered
-    /// </summary>
-    [DataField, AutoNetworkedField]
-    public bool DnaLockRegistered = false;
-
-    /// <summary>
-    /// Whether ID card lock is registered
-    /// </summary>
-    [DataField, AutoNetworkedField]
-    public bool CardLockRegistered = false;
-
-    /// <summary>
-    /// Whether DNA lock is active (prevents access)
-    /// </summary>
-    [DataField, AutoNetworkedField]
-    public bool DnaLockActive = false;
-
-    /// <summary>
-    /// Whether ID card lock is active (prevents access)
-    /// </summary>
-    [DataField, AutoNetworkedField]
-    public bool CardLockActive = false;
-
-    /// <summary>
-    /// DNA of the lock owner
-    /// </summary>
-    [DataField, AutoNetworkedField]
-    public string? OwnerDna;
-
-    /// <summary>
-    /// ID card name of the lock owner
-    /// </summary>
-    [DataField, AutoNetworkedField]
-    public string? OwnerCardName;
-
-    /// <summary>
-    /// Whether the mech is locked (prevents unauthorized access)
-    /// </summary>
-    [DataField, AutoNetworkedField]
-    public bool IsLocked = false;
-    #endregion
 }
