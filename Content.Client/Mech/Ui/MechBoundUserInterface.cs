@@ -1,6 +1,7 @@
 using Content.Client.UserInterface.Fragments;
 using Content.Shared.Mech;
 using Content.Shared.Mech.Components;
+using Content.Shared.Mech.EntitySystems;
 using JetBrains.Annotations;
 using Robust.Client.GameObjects;
 using Robust.Client.UserInterface;
@@ -37,6 +38,36 @@ public sealed class MechBoundUserInterface : BoundUserInterface
         _menu.OnAirtightChanged += isAirtight =>
         {
             _pred!.SendMessage(new MechAirtightMessage(isAirtight));
+        };
+
+        _menu.OnDnaLockRegister += () =>
+        {
+            _pred!.SendMessage(new MechDnaLockRegisterMessage());
+        };
+
+        _menu.OnDnaLockToggle += () =>
+        {
+            _pred!.SendMessage(new MechDnaLockToggleMessage());
+        };
+
+        _menu.OnDnaLockReset += () =>
+        {
+            _pred!.SendMessage(new MechDnaLockResetMessage());
+        };
+
+        _menu.OnCardLockRegister += () =>
+        {
+            _pred!.SendMessage(new MechCardLockRegisterMessage());
+        };
+
+        _menu.OnCardLockToggle += () =>
+        {
+            _pred!.SendMessage(new MechCardLockToggleMessage());
+        };
+
+        _menu.OnCardLockReset += () =>
+        {
+            _pred!.SendMessage(new MechCardLockResetMessage());
         };
     }
 

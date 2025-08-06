@@ -21,6 +21,12 @@ public sealed partial class MechMenu : FancyWindow
     public Action<string>? NameChanged;
 
     public event Action<bool>? OnAirtightChanged;
+    public event Action? OnDnaLockRegister;
+    public event Action? OnDnaLockToggle;
+    public event Action? OnDnaLockReset;
+    public event Action? OnCardLockRegister;
+    public event Action? OnCardLockToggle;
+    public event Action? OnCardLockReset;
 
     public MechMenu()
     {
@@ -44,6 +50,11 @@ public sealed partial class MechMenu : FancyWindow
                 OnAirtightChanged?.Invoke(true);
             }
         };
+
+        DnaLockButton.OnPressed += _ => OnDnaLockRegister?.Invoke();
+        DnaLockResetButton.OnPressed += _ => OnDnaLockReset?.Invoke();
+        CardLockButton.OnPressed += _ => OnCardLockRegister?.Invoke();
+        CardLockResetButton.OnPressed += _ => OnCardLockReset?.Invoke();
     }
 
     public void SetEntity(EntityUid uid)
@@ -83,6 +94,56 @@ public sealed partial class MechMenu : FancyWindow
     {
         ExternalButton.Pressed = !state.IsAirtight;
         InternalButton.Pressed = state.IsAirtight;
+
+        // Update lock buttons
+        UpdateLockButtons(state);
+    }
+
+    private void UpdateLockButtons(MechBoundUiState state)
+    {
+        // Update DNA lock buttons
+        if (state.DnaLockRegistered)
+        {
+            if (state.DnaLockActive)
+            {
+                DnaLockButton.Text = Loc.GetString("mech-lock-deactivate");
+                DnaLockButton.OnPressed += _ => OnDnaLockToggle?.Invoke();
+            }
+            else
+            {
+                DnaLockButton.Text = Loc.GetString("mech-lock-activate");
+                DnaLockButton.OnPressed += _ => OnDnaLockToggle?.Invoke();
+            }
+            DnaLockResetButton.Visible = true;
+        }
+        else
+        {
+            DnaLockButton.Text = Loc.GetString("mech-lock-register");
+            DnaLockButton.OnPressed += _ => OnDnaLockRegister?.Invoke();
+            DnaLockResetButton.Visible = false;
+        }
+
+        // Update card lock buttons
+        if (state.CardLockRegistered)
+        {
+            if (state.CardLockActive)
+            {
+                CardLockButton.Text = Loc.GetString("mech-lock-deactivate");
+                CardLockButton.OnPressed += _ => OnCardLockToggle?.Invoke();
+            }
+            else
+            {
+                CardLockButton.Text = Loc.GetString("mech-lock-activate");
+                CardLockButton.OnPressed += _ => OnCardLockToggle?.Invoke();
+            }
+            CardLockResetButton.Visible = true;
+        }
+        else
+        {
+            CardLockButton.Text = Loc.GetString("mech-lock-register");
+            CardLockButton.OnPressed += _ => OnCardLockRegister?.Invoke();
+            CardLockResetButton.Visible = false;
+        }
     }
 
     public void UpdateEquipmentView(List<NetEntity>? equipment = null)

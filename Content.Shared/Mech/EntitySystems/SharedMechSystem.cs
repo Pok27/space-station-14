@@ -527,3 +527,71 @@ public sealed partial class MechExitEvent : SimpleDoAfterEvent
 public sealed partial class MechEntryEvent : SimpleDoAfterEvent
 {
 }
+
+#region Lock Events
+[Serializable, NetSerializable]
+public sealed partial class MechDnaLockRegisterEvent : EntityEventArgs
+{
+    public NetEntity User;
+}
+
+[Serializable, NetSerializable]
+public sealed partial class MechDnaLockToggleEvent : EntityEventArgs
+{
+    public NetEntity User;
+}
+
+[Serializable, NetSerializable]
+public sealed partial class MechDnaLockResetEvent : EntityEventArgs
+{
+    public NetEntity User;
+}
+
+[Serializable, NetSerializable]
+public sealed partial class MechCardLockRegisterEvent : EntityEventArgs
+{
+    public NetEntity User;
+}
+
+[Serializable, NetSerializable]
+public sealed partial class MechCardLockToggleEvent : EntityEventArgs
+{
+    public NetEntity User;
+}
+
+[Serializable, NetSerializable]
+public sealed partial class MechCardLockResetEvent : EntityEventArgs
+{
+    public NetEntity User;
+}
+
+[Serializable, NetSerializable]
+public sealed partial class MechDnaLockRegisterMessage : BoundUserInterfaceMessage
+{
+}
+
+[Serializable, NetSerializable]
+public sealed partial class MechDnaLockToggleMessage : BoundUserInterfaceMessage
+{
+}
+
+[Serializable, NetSerializable]
+public sealed partial class MechDnaLockResetMessage : BoundUserInterfaceMessage
+{
+}
+
+[Serializable, NetSerializable]
+public sealed partial class MechCardLockRegisterMessage : BoundUserInterfaceMessage
+{
+}
+
+[Serializable, NetSerializable]
+public sealed partial class MechCardLockToggleMessage : BoundUserInterfaceMessage
+{
+}
+
+[Serializable, NetSerializable]
+public sealed partial class MechCardLockResetMessage : BoundUserInterfaceMessage
+{
+}
+#endregion

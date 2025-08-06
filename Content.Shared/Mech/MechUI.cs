@@ -122,6 +122,15 @@ public sealed class MechBoundUiState : BoundUserInterfaceState
 {
     public List<NetEntity> Equipment = new();
     public bool IsAirtight;
+
+    // Lock system state
+    public bool DnaLockRegistered;
+    public bool DnaLockActive;
+    public bool CardLockRegistered;
+    public bool CardLockActive;
+    public string? OwnerDna;
+    public string? OwnerCardName;
+    public bool IsLocked;
 }
 
 [Serializable, NetSerializable]
