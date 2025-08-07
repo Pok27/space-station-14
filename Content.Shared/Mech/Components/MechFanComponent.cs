@@ -1,4 +1,5 @@
 using Content.Shared.FixedPoint;
+using Content.Shared.Mech;
 using Robust.Shared.GameStates;
 
 namespace Content.Shared.Mech.Components;
@@ -11,6 +12,12 @@ public sealed partial class MechFanComponent : Component
     /// </summary>
     [DataField, ViewVariables(VVAccess.ReadWrite), AutoNetworkedField]
     public bool IsActive = false;
+
+    /// <summary>
+    /// Current fan state (Off, On, Idle)
+    /// </summary>
+    [DataField, ViewVariables(VVAccess.ReadWrite), AutoNetworkedField]
+    public MechFanState State = MechFanState.Off;
 
     /// <summary>
     /// How much energy the fan consumes per second when active

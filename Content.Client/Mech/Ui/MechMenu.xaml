@@ -61,15 +61,36 @@
                         <Button Name="FanOnButton" Text="{Loc 'mech-fan-on'}" ToggleMode="True" Margin="2 0 2 0" HorizontalExpand="True"/>
                         <Button Name="FanOffButton" Text="{Loc 'mech-fan-off'}" ToggleMode="True" Margin="2 0 2 0" HorizontalExpand="True"/>
                     </BoxContainer>
+                    <BoxContainer Orientation="Horizontal" HorizontalExpand="True" Margin="0 5 0 0">
+                        <Label Name="FanStatusLabel"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            HorizontalExpand="True"
+                            SetHeight="20" />
+                    </BoxContainer>
                     <Label StyleClasses="StatusFieldTitle" Text="{Loc 'mech-lock-dna-label'}"/>
                     <BoxContainer Orientation="Horizontal" HorizontalExpand="True">
                         <Button Name="DnaLockButton" Text="" ToggleMode="True" Margin="2 0 2 0" HorizontalExpand="True"/>
                         <Button Name="DnaLockResetButton" Text="{Loc 'mech-lock-reset'}" ToggleMode="False" Margin="2 0 2 0" HorizontalExpand="True" Visible="False"/>
                     </BoxContainer>
+                    <BoxContainer Orientation="Horizontal" HorizontalExpand="True" Margin="0 5 0 0">
+                        <Label Name="DnaLockInfoLabel"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            HorizontalExpand="True"
+                            SetHeight="20" />
+                    </BoxContainer>
                     <Label StyleClasses="StatusFieldTitle" Text="{Loc 'mech-lock-card-label'}"/>
                     <BoxContainer Orientation="Horizontal" HorizontalExpand="True">
                         <Button Name="CardLockButton" Text="" ToggleMode="True" Margin="2 0 2 0" HorizontalExpand="True"/>
                         <Button Name="CardLockResetButton" Text="{Loc 'mech-lock-reset'}" ToggleMode="False" Margin="2 0 2 0" HorizontalExpand="True" Visible="False"/>
+                    </BoxContainer>
+                    <BoxContainer Orientation="Horizontal" HorizontalExpand="True" Margin="0 5 0 0">
+                        <Label Name="CardLockInfoLabel"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            HorizontalExpand="True"
+                            SetHeight="20" />
                     </BoxContainer>
                     <Label StyleClasses="StatusFieldTitle" Text="{Loc 'mech-cabin-gas-label'}"/>
                     <BoxContainer Orientation="Horizontal" HorizontalExpand="True" Margin="0 5 0 0">

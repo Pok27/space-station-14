@@ -2,6 +2,9 @@ using Content.Shared.Access.Components;
 using Content.Shared.Forensics.Components;
 using Content.Shared.Mech.Components;
 using Content.Shared.Popups;
+using Content.Shared.Audio;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 using System.Linq;
 
 namespace Content.Shared.Mech.EntitySystems;
@@ -12,6 +15,7 @@ namespace Content.Shared.Mech.EntitySystems;
 public abstract partial class SharedMechLockSystem : EntitySystem
 {
     [Dependency] private readonly SharedPopupSystem _popup = default!;
+    [Dependency] private readonly SharedAudioSystem _audio = default!;
 
     public override void Initialize()
     {
@@ -45,6 +49,42 @@ public abstract partial class SharedMechLockSystem : EntitySystem
     }
 
     /// <summary>
+    /// Checks if user has access without any feedback (for UI/verb visibility)
+    /// </summary>
+    /// <param name="uid">Mech entity</param>
+    /// <param name="user">User trying to access</param>
+    /// <param name="component">Lock component (optional)</param>
+    /// <returns>True if access granted, false if denied</returns>
+    public bool CheckAccess(EntityUid uid, EntityUid user, MechLockComponent? component = null)
+    {
+        if (!Resolve(uid, ref component, false))
+            return true; // No lock component = no restrictions
+
+        return !component.IsLocked || HasAccess(user, component);
+    }
+
+    /// <summary>
+    /// Checks if user has access and plays deny sound if not
+    /// </summary>
+    /// <param name="uid">Mech entity</param>
+    /// <param name="user">User trying to access</param>
+    /// <param name="component">Lock component (optional)</param>
+    /// <returns>True if access granted, false if denied</returns>
+    public bool CheckAccessWithFeedback(EntityUid uid, EntityUid user, MechLockComponent? component = null)
+    {
+        if (!Resolve(uid, ref component, false))
+            return true; // No lock component = no restrictions
+
+        if (!component.IsLocked || HasAccess(user, component))
+            return true;
+
+        // Access denied - show popup and play sound
+        _popup.PopupEntity(Loc.GetString("mech-lock-access-denied"), uid, user);
+        _audio.PlayPvs("/Audio/Machines/airlock_deny.ogg", uid, AudioParams.Default.WithVolume(-5f));
+        return false;
+    }
+
+    /// <summary>
     /// Attempts to register a lock for the specified user
     /// </summary>
     public bool TryRegisterLock(EntityUid uid, EntityUid user, MechLockType lockType, MechLockComponent? component = null)
@@ -53,11 +93,8 @@ public abstract partial class SharedMechLockSystem : EntitySystem
             return false;
 
         // Check if user has access to manage locks
-        if (!HasAccess(user, component))
-        {
-            _popup.PopupEntity(Loc.GetString("mech-lock-access-denied"), uid, user);
+        if (!CheckAccessWithFeedback(uid, user, component))
             return false;
-        }
 
         switch (lockType)
         {
@@ -98,11 +135,8 @@ public abstract partial class SharedMechLockSystem : EntitySystem
             return false;
 
         // Check if user has access to manage locks
-        if (!HasAccess(user, component))
-        {
-            _popup.PopupEntity(Loc.GetString("mech-lock-access-denied"), uid, user);
+        if (!CheckAccessWithFeedback(uid, user, component))
             return false;
-        }
 
         switch (lockType)
         {
@@ -133,11 +167,8 @@ public abstract partial class SharedMechLockSystem : EntitySystem
             return false;
 
         // Check if user has access to manage locks
-        if (!HasAccess(user, component))
-        {
-            _popup.PopupEntity(Loc.GetString("mech-lock-access-denied"), uid, user);
+        if (!CheckAccessWithFeedback(uid, user, component))
             return false;
-        }
 
         switch (lockType)
         {

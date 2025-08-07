@@ -11,6 +11,17 @@ public enum MechUiKey : byte
 }
 
 /// <summary>
+/// Fan states for the mech air system
+/// </summary>
+[Serializable, NetSerializable]
+public enum MechFanState : byte
+{
+    Off,
+    On,
+    Idle  // Fan is on but not consuming energy due to unsuitable atmosphere
+}
+
+/// <summary>
 /// Event raised to collect BUI states for each of the mech's equipment items
 /// </summary>
 public sealed class MechEquipmentUiStateReadyEvent : EntityEventArgs
@@ -153,6 +164,7 @@ public sealed class MechBoundUiState : BoundUserInterfaceState
     public List<NetEntity> Equipment = new();
     public bool IsAirtight;
     public bool FanActive;
+    public MechFanState FanState = MechFanState.Off;
     public float CabinGasLevel;
 
     // Lock system

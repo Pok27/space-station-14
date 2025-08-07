@@ -31,6 +31,9 @@ using Content.Shared.Forensics.Components;
 using Content.Shared.Access.Systems;
 using Content.Shared.Mech.Components;
 using Content.Shared.Atmos;
+using Content.Shared.Audio;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 
 namespace Content.Server.Mech.Systems;
 
@@ -48,6 +51,7 @@ public sealed partial class MechSystem : SharedMechSystem
     [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
     [Dependency] private readonly SharedToolSystem _toolSystem = default!;
     [Dependency] private readonly MechLockSystem _lockSystem = default!;
+    [Dependency] private readonly SharedAudioSystem _audio = default!;
 
     private static readonly ProtoId<ToolQualityPrototype> PryingQuality = "Prying";
 
@@ -97,29 +101,15 @@ public sealed partial class MechSystem : SharedMechSystem
             args.Cancel();
 
         // Check if mech is locked and pilot doesn't have access
-        if (TryComp<MechLockComponent>(uid, out var lockComp) &&
-            lockComp.IsLocked &&
-            component.PilotSlot.ContainedEntity != null)
+        if (component.PilotSlot.ContainedEntity != null &&
+            !_lockSystem.CheckAccess(uid, component.PilotSlot.ContainedEntity.Value))
         {
-            if (!_lockSystem.HasAccess(component.PilotSlot.ContainedEntity.Value, lockComp))
-            {
-                args.Cancel();
-            }
+            args.Cancel();
         }
     }
 
     private void OnInteractUsing(EntityUid uid, MechComponent component, InteractUsingEvent args)
     {
-        // Check if mech is locked and user doesn't have access
-        if (TryComp<MechLockComponent>(uid, out var lockComp) &&
-            lockComp.IsLocked &&
-            !_lockSystem.HasAccess(args.User, lockComp))
-        {
-            _popup.PopupEntity(Loc.GetString("mech-lock-access-denied"), uid, args.User);
-            args.Handled = true;
-            return;
-        }
-
         if (TryComp<WiresPanelComponent>(uid, out var panel) && !panel.Open)
             return;
 
@@ -201,15 +191,7 @@ public sealed partial class MechSystem : SharedMechSystem
         // For InstantActionEvent, we need to get the user from the event context
         var user = args.Performer;
 
-        // Check if mech is locked and user doesn't have access
-        if (TryComp<MechLockComponent>(uid, out var lockComp) &&
-            lockComp.IsLocked &&
-            !_lockSystem.HasAccess(user, lockComp))
-        {
-            _popup.PopupEntity(Loc.GetString("mech-lock-access-denied"), uid, user);
-            return;
-        }
-
+        // UI can always be opened, access control is handled in the UI itself
         args.Handled = true;
         ToggleMechUi(uid, component);
     }
@@ -253,24 +235,11 @@ public sealed partial class MechSystem : SharedMechSystem
     {
         if (args.Target == component.Mech)
             args.Cancelled = true;
-
-        // Check if mech is locked and pilot doesn't have access
-        if (TryComp<MechLockComponent>(component.Mech, out var lockComp) &&
-            lockComp.IsLocked && !_lockSystem.HasAccess(uid, lockComp))
-        {
-            args.Cancelled = true;
-        }
     }
 
     private void OnAlternativeVerb(EntityUid uid, MechComponent component, GetVerbsEvent<AlternativeVerb> args)
     {
         if (!args.CanAccess || !args.CanInteract || component.Broken)
-            return;
-
-        // Check if mech is locked and user doesn't have access
-        if (TryComp<MechLockComponent>(uid, out var lockComp) &&
-            lockComp.IsLocked &&
-            !_lockSystem.HasAccess(args.User, lockComp))
             return;
 
         if (CanInsert(uid, args.User, component))
@@ -329,13 +298,8 @@ public sealed partial class MechSystem : SharedMechSystem
             return;
 
         // Check if mech is locked and user doesn't have access
-        if (TryComp<MechLockComponent>(uid, out var lockComp) &&
-            lockComp.IsLocked &&
-            !_lockSystem.HasAccess(args.User, lockComp))
-        {
-            _popup.PopupEntity(Loc.GetString("mech-lock-access-denied"), uid, args.User);
+        if (!_lockSystem.CheckAccessWithFeedback(uid, args.User))
             return;
-        }
 
         if (_whitelistSystem.IsWhitelistFail(component.PilotWhitelist, args.User))
         {
@@ -450,18 +414,56 @@ public sealed partial class MechSystem : SharedMechSystem
         while (query.MoveNext(out var uid, out var mechComp, out var fanComp))
         {
             if (!fanComp.IsActive)
-                continue;
-
-            // Consume energy from battery
-            var energyConsumption = fanComp.EnergyConsumption * frameTime;
-            if (!TryChangeEnergy(uid, -energyConsumption, mechComp))
             {
-                // If not enough energy, turn off fan
-                fanComp.IsActive = false;
+                fanComp.State = MechFanState.Off;
                 Dirty(uid, fanComp);
                 continue;
             }
+
+            // Check if there's suitable atmosphere for gas processing
+            var canProcessGas = CanProcessGas(uid, mechComp);
+
+            if (canProcessGas)
+            {
+                // Consume energy from battery
+                var energyConsumption = fanComp.EnergyConsumption * frameTime;
+                if (TryChangeEnergy(uid, -energyConsumption, mechComp))
+                {
+                    fanComp.State = MechFanState.On;
+                    // Process gas here if needed
+                }
+                else
+                {
+                    // If not enough energy, turn off fan
+                    fanComp.IsActive = false;
+                    fanComp.State = MechFanState.Off;
+                }
+            }
+            else
+            {
+                // Fan is active but can't process gas - idle state (no energy consumption)
+                fanComp.State = MechFanState.Idle;
+            }
+
+            Dirty(uid, fanComp);
         }
+    }
+
+    /// <summary>
+    /// Checks if the fan can process gas based on atmospheric conditions
+    /// </summary>
+    private bool CanProcessGas(EntityUid uid, MechComponent mechComp)
+    {
+        // Simple check - if mech is airtight and has air component, can process
+        if (!mechComp.Airtight)
+            return false;
+
+        if (!TryComp<MechAirComponent>(uid, out var airComp))
+            return false;
+
+        // Add more sophisticated checks here if needed
+        // For now, assume it can always process if airtight and has air component
+        return true;
     }
 
     public override void UpdateUserInterface(EntityUid uid, MechComponent? component = null)
@@ -475,11 +477,15 @@ public sealed partial class MechSystem : SharedMechSystem
             equipment.Add(GetNetEntity(ent));
         }
 
+        var fanActive = TryComp<MechFanComponent>(uid, out var fanComp) && fanComp.IsActive;
+        var fanState = fanComp?.State ?? MechFanState.Off;
+
         var state = new MechBoundUiState
         {
             Equipment = equipment,
             IsAirtight = component.Airtight,
-            FanActive = TryComp<MechFanComponent>(uid, out var fanComp) && fanComp.IsActive,
+            FanActive = fanActive,
+            FanState = fanState,
             CabinGasLevel = TryComp<MechAirComponent>(uid, out var airComp) ?
                 airComp.Air.Pressure : 0f
         };

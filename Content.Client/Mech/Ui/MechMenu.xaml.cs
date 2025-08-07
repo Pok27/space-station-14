@@ -17,6 +17,7 @@ public sealed partial class MechMenu : FancyWindow
     [Dependency] private readonly IEntityManager _ent = default!;
 
     private EntityUid _mech;
+    private bool _hasAccess = true;
 
     public event Action<EntityUid>? OnRemoveButtonPressed;
 
@@ -40,23 +41,33 @@ public sealed partial class MechMenu : FancyWindow
 
         DnaLockButton.OnPressed += args =>
         {
+            if (!CheckAccess()) return;
+
             var (isRegistered, isActive, _) = GetCurrentLockState(MechLockType.Dna);
             if (isRegistered)
                 OnDnaLockToggle?.Invoke();
             else
                 OnDnaLockRegister?.Invoke();
         };
-        DnaLockResetButton.OnPressed += args => OnLockAction(args, OnDnaLockReset, DnaLockResetButton);
+        DnaLockResetButton.OnPressed += args => {
+            if (CheckAccess())
+                OnLockAction(args, OnDnaLockReset, DnaLockResetButton);
+        };
 
         CardLockButton.OnPressed += args =>
         {
+            if (!CheckAccess()) return;
+
             var (isRegistered, isActive, _) = GetCurrentLockState(MechLockType.Card);
             if (isRegistered)
                 OnCardLockToggle?.Invoke();
             else
                 OnCardLockRegister?.Invoke();
         };
-        CardLockResetButton.OnPressed += args => OnLockAction(args, OnCardLockReset, CardLockResetButton);
+        CardLockResetButton.OnPressed += args => {
+            if (CheckAccess())
+                OnLockAction(args, OnCardLockReset, CardLockResetButton);
+        };
 
         FanOffButton.OnToggled += args =>
         {
@@ -75,6 +86,11 @@ public sealed partial class MechMenu : FancyWindow
                 OnFanToggle?.Invoke(true);
             }
         };
+    }
+
+    private bool CheckAccess()
+    {
+        return _hasAccess;
     }
 
     public void SetEntity(EntityUid uid)
@@ -124,11 +140,51 @@ public sealed partial class MechMenu : FancyWindow
         if (FanOnButton.Pressed != state.FanActive)
             FanOnButton.Pressed = state.FanActive;
 
+        // Update fan status display
+        UpdateFanStatusDisplay(state.FanState);
+
         // Update cabin gas level
         var maxPressure = Atmospherics.OneAtmosphere;
         CabinGasLabel.Text = Loc.GetString("mech-cabin-gas-level", ("level", $"{state.CabinGasLevel:F1} / {maxPressure:F1}"));
 
         UpdateLockButtons(state);
+        UpdateLockInfoLabels(state);
+    }
+
+    private void UpdateFanStatusDisplay(MechFanState fanState)
+    {
+        var statusText = fanState switch
+        {
+            MechFanState.Off => Loc.GetString("mech-fan-status-off"),
+            MechFanState.On => Loc.GetString("mech-fan-status-on"),
+            MechFanState.Idle => Loc.GetString("mech-fan-status-idle"),
+            _ => Loc.GetString("mech-fan-status-unknown")
+        };
+
+        FanStatusLabel.Text = statusText;
+    }
+
+    private void UpdateLockInfoLabels(MechBoundUiState state)
+    {
+        // Update DNA lock info
+        if (state.DnaLockRegistered && !string.IsNullOrEmpty(state.OwnerDna))
+        {
+            DnaLockInfoLabel.Text = Loc.GetString("mech-lock-dna-info", ("dna", state.OwnerDna));
+        }
+        else
+        {
+            DnaLockInfoLabel.Text = Loc.GetString("mech-lock-not-set");
+        }
+
+        // Update Card lock info
+        if (state.CardLockRegistered && !string.IsNullOrEmpty(state.OwnerCardName))
+        {
+            CardLockInfoLabel.Text = Loc.GetString("mech-lock-card-info", ("name", state.OwnerCardName));
+        }
+        else
+        {
+            CardLockInfoLabel.Text = Loc.GetString("mech-lock-not-set");
+        }
     }
 
     private void UpdateLockButtons(MechBoundUiState state)
@@ -219,7 +275,6 @@ public sealed partial class MechMenu : FancyWindow
             var ui = uicomp?.Ui?.GetUIFragmentRoot();
 
             var control = new MechEquipmentControl(ent, metaData.EntityName, ui);
-
             var entityToRemove = ent;
             control.OnRemoveButtonPressed += () => OnRemoveButtonPressed?.Invoke(entityToRemove);
 
