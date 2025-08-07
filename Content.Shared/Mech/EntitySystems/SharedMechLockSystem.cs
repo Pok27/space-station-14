@@ -121,7 +121,7 @@ public abstract partial class SharedMechLockSystem : EntitySystem
                 break;
         }
 
-        Dirty(uid, component);
+        UpdateLockState(uid, component);
         UpdateMechUI(uid);
         return true;
     }

@@ -25,10 +25,11 @@ mech-fan-label = Fan:
 mech-fan-on = On
 mech-fan-off = Off
 mech-fan-toggle = Toggle Fan
-mech-fan-status-off = Status: Off
-mech-fan-status-on = Status: On
-mech-fan-status-idle = Status: Idle
-mech-fan-status-unknown = Status: Unknown
+mech-fan-status = Status: { $state ->
+    [idle] Idle
+    [on] On
+    *[off] Off
+}
 mech-cabin-gas-label = Cabin Pressure:
 mech-cabin-gas-level = {$level} kPa
 

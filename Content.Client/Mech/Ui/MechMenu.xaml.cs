@@ -42,6 +42,7 @@ public sealed partial class MechMenu : FancyWindow
         DnaLockButton.OnPressed += args =>
         {
             if (!CheckAccess()) return;
+            OnLockAction(args, OnDnaLockToggle, DnaLockButton);
 
             var (isRegistered, isActive, _) = GetCurrentLockState(MechLockType.Dna);
             if (isRegistered)
@@ -50,13 +51,14 @@ public sealed partial class MechMenu : FancyWindow
                 OnDnaLockRegister?.Invoke();
         };
         DnaLockResetButton.OnPressed += args => {
-            if (CheckAccess())
-                OnLockAction(args, OnDnaLockReset, DnaLockResetButton);
+            if (!CheckAccess()) return;
+            OnLockAction(args, OnDnaLockReset, DnaLockResetButton);
         };
 
         CardLockButton.OnPressed += args =>
         {
             if (!CheckAccess()) return;
+            OnLockAction(args, OnCardLockToggle, CardLockButton);
 
             var (isRegistered, isActive, _) = GetCurrentLockState(MechLockType.Card);
             if (isRegistered)
@@ -65,8 +67,8 @@ public sealed partial class MechMenu : FancyWindow
                 OnCardLockRegister?.Invoke();
         };
         CardLockResetButton.OnPressed += args => {
-            if (CheckAccess())
-                OnLockAction(args, OnCardLockReset, CardLockResetButton);
+            if (!CheckAccess()) return;
+            OnLockAction(args, OnCardLockReset, CardLockResetButton);
         };
 
         FanOffButton.OnToggled += args =>
@@ -153,15 +155,13 @@ public sealed partial class MechMenu : FancyWindow
 
     private void UpdateFanStatusDisplay(MechFanState fanState)
     {
-        var statusText = fanState switch
+        var stateKey = fanState switch
         {
-            MechFanState.Off => Loc.GetString("mech-fan-status-off"),
-            MechFanState.On => Loc.GetString("mech-fan-status-on"),
-            MechFanState.Idle => Loc.GetString("mech-fan-status-idle"),
-            _ => Loc.GetString("mech-fan-status-unknown")
+            MechFanState.Off => "off",
+            MechFanState.On => "on",
+            MechFanState.Idle => "idle"
         };
-
-        FanStatusLabel.Text = statusText;
+        FanStatusLabel.Text = Loc.GetString("mech-fan-status", ("state", stateKey));
     }
 
     private void UpdateLockInfoLabels(MechBoundUiState state)
@@ -208,13 +208,11 @@ public sealed partial class MechMenu : FancyWindow
             {
                 lockButton.Text = Loc.GetString("mech-lock-deactivate");
                 lockButton.Pressed = true;
-                lockButton.Disabled = false;
             }
             else
             {
                 lockButton.Text = Loc.GetString("mech-lock-activate");
                 lockButton.Pressed = false;
-                lockButton.Disabled = false;
             }
             resetButton.Visible = true;
         }
@@ -222,7 +220,6 @@ public sealed partial class MechMenu : FancyWindow
         {
             lockButton.Text = Loc.GetString("mech-lock-register");
             lockButton.Pressed = false;
-            lockButton.Disabled = !state.HasAccess;
             resetButton.Visible = false;
         }
     }
