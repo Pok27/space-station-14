@@ -85,6 +85,7 @@ public abstract partial class SharedMechLockSystem : EntitySystem
         }
 
         Dirty(uid, component);
+        UpdateMechUI(uid);
         return true;
     }
 
@@ -119,6 +120,7 @@ public abstract partial class SharedMechLockSystem : EntitySystem
         }
 
         UpdateLockState(uid, component);
+        UpdateMechUI(uid);
         return true;
     }
 
@@ -153,6 +155,7 @@ public abstract partial class SharedMechLockSystem : EntitySystem
         }
 
         UpdateLockState(uid, component);
+        UpdateMechUI(uid);
         _popup.PopupEntity(Loc.GetString("mech-lock-reset-success"), uid, user);
         return true;
     }

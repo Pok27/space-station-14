@@ -228,6 +228,7 @@ public sealed partial class MechSystem : SharedMechSystem
 
         fanComp.IsActive = args.IsActive;
         Dirty(uid, fanComp);
+        UpdateUserInterface(uid, component);
     }
 
     private void OnEquipmentSelectMessage(EntityUid uid, MechComponent component, MechEquipmentSelectMessage args)

@@ -72,8 +72,6 @@ public abstract partial class SharedMechSystem : EntitySystem
         if (args.Handled)
             return;
 
-        // On client, this will trigger the radial menu
-        // On server, we'll just cycle equipment for now (fallback)
         if (_net.IsServer)
         {
             CycleEquipment(uid);
@@ -81,9 +79,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         }
         else
         {
-            // On client, open the radial menu
-            // We need to get the actor from the event
-            _ui.TryOpenUi(uid, MechUiKey.Equipment, args.Performer);
+            RaiseLocalEvent(uid, new MechOpenEquipmentRadialEvent());
             args.Handled = true;
         }
     }

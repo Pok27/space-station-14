@@ -8,39 +8,51 @@ using Robust.Client.UserInterface;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Localization;
+using Robust.Shared.Utility;
+using Robust.Client.GameObjects;
 
 namespace Content.Client.Mech.Ui;
 
 [UsedImplicitly]
-public sealed class MechEquipmentRadialBoundUserInterface : BoundUserInterface
+public sealed class MechEquipmentRadialUIController
 {
     [Dependency] private readonly IEntityManager _entManager = default!;
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
 
     private SimpleRadialMenu? _menu;
+    private EntityUid? _currentMech;
 
-    public MechEquipmentRadialBoundUserInterface(EntityUid owner, Enum uiKey) : base(owner, uiKey)
+    public MechEquipmentRadialUIController()
     {
         IoCManager.InjectDependencies(this);
     }
 
-    protected override void Open()
+    public void OpenRadialMenu(EntityUid mechEntity)
     {
-        base.Open();
+        if (_menu != null)
+        {
+            CloseMenu();
+        }
 
-        if (!_entManager.TryGetComponent<MechComponent>(Owner, out var mechComp))
+        if (!_entManager.TryGetComponent<MechComponent>(mechEntity, out var mechComp))
             return;
 
-        _menu = this.CreateWindow<SimpleRadialMenu>();
-        _menu.Track(Owner);
+        _currentMech = mechEntity;
 
+        _menu = new SimpleRadialMenu();
+        var options = ConvertToButtons(mechComp);
+        _menu.SetButtons(options);
+        _menu.OpenCentered();
+    }
+
+    private IEnumerable<RadialMenuOption> ConvertToButtons(MechComponent mechComp)
+    {
         var options = new List<RadialMenuOption>();
 
         // Add "No Equipment" option
         options.Add(new RadialMenuActionOption<string>(data =>
         {
-            SendMessage(new MechEquipmentSelectMessage(null));
-            Close();
+            _entManager.RaisePredictiveEvent(new MechEquipmentSelectMessage(null));
         }, "no_equipment")
         {
             ToolTip = Loc.GetString("mech-radial-no-equipment"),
@@ -59,19 +71,26 @@ public sealed class MechEquipmentRadialBoundUserInterface : BoundUserInterface
             string tooltip = metaData.EntityName;
             SpriteSpecifier? sprite = null;
 
+            // Try to get sprite from tool quality
             if (_entManager.TryGetComponent<ToolComponent>(equipment, out var toolComp))
             {
-                if (_prototypeManager.TryIndex(toolComp.Qualities.FirstOrDefault(), out ToolQualityPrototype? qualityProto))
+                foreach (var quality in toolComp.Qualities)
                 {
-                    tooltip = qualityProto.Name;
-                    sprite = qualityProto.Icon;
+                    if (_prototypeManager.TryIndex(quality, out ToolQualityPrototype? qualityProto))
+                    {
+                        tooltip = qualityProto.Name;
+                        if (qualityProto.Icon != null && qualityProto.Icon != SpriteSpecifier.Invalid)
+                        {
+                            sprite = qualityProto.Icon;
+                        }
+                    }
+                    break;
                 }
             }
 
             options.Add(new RadialMenuActionOption<string>(data =>
             {
-                SendMessage(new MechEquipmentSelectMessage(_entManager.GetNetEntity(equipmentEntity)));
-                Close();
+                _entManager.RaisePredictiveEvent(new MechEquipmentSelectMessage(_entManager.GetNetEntity(equipmentEntity)));
             }, metaData.EntityName)
             {
                 ToolTip = tooltip,
@@ -79,14 +98,16 @@ public sealed class MechEquipmentRadialBoundUserInterface : BoundUserInterface
             });
         }
 
-        _menu.SetButtons(options);
-        _menu.OpenOverMouseScreenPosition();
+        return options;
     }
 
-    protected override void Dispose(bool disposing)
+    private void CloseMenu()
     {
-        base.Dispose(disposing);
-        if (disposing)
-            _menu?.Dispose();
+        if (_menu == null)
+            return;
+
+        _menu.Dispose();
+        _menu = null;
+        _currentMech = null;
     }
 }

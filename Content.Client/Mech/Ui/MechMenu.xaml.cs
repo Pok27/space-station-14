@@ -36,23 +36,7 @@ public sealed partial class MechMenu : FancyWindow
         RobustXamlLoader.Load(this);
         IoCManager.InjectDependencies(this);
 
-        ExternalButton.OnToggled += args =>
-        {
-            if (args.Pressed)
-            {
-                InternalButton.Pressed = false;
-                OnAirtightChanged?.Invoke(false);
-            }
-        };
-
-        InternalButton.OnToggled += args =>
-        {
-            if (args.Pressed)
-            {
-                ExternalButton.Pressed = false;
-                OnAirtightChanged?.Invoke(true);
-            }
-        };
+        AirtightButton.OnToggled += args => OnAirtightChanged?.Invoke(args.Pressed);
 
         DnaLockButton.OnPressed += args =>
         {
@@ -74,7 +58,23 @@ public sealed partial class MechMenu : FancyWindow
         };
         CardLockResetButton.OnPressed += args => OnLockAction(args, OnCardLockReset, CardLockResetButton);
 
-        FanButton.OnToggled += args => OnFanToggle?.Invoke(args.Pressed);
+        FanOffButton.OnToggled += args =>
+        {
+            if (args.Pressed)
+            {
+                FanOnButton.Pressed = false;
+                OnFanToggle?.Invoke(false);
+            }
+        };
+
+        FanOnButton.OnToggled += args =>
+        {
+            if (args.Pressed)
+            {
+                FanOffButton.Pressed = false;
+                OnFanToggle?.Invoke(true);
+            }
+        };
     }
 
     public void SetEntity(EntityUid uid)
@@ -114,14 +114,15 @@ public sealed partial class MechMenu : FancyWindow
     {
         _lastState = state;
 
-        if (ExternalButton.Pressed != !state.IsAirtight)
-            ExternalButton.Pressed = !state.IsAirtight;
-        if (InternalButton.Pressed != state.IsAirtight)
-            InternalButton.Pressed = state.IsAirtight;
+        // Update airtight button state
+        if (AirtightButton.Pressed != state.IsAirtight)
+            AirtightButton.Pressed = state.IsAirtight;
 
-        // Update fan button state
-        if (FanButton.Pressed != state.FanActive)
-            FanButton.Pressed = state.FanActive;
+        // Update fan button states
+        if (FanOffButton.Pressed != !state.FanActive)
+            FanOffButton.Pressed = !state.FanActive;
+        if (FanOnButton.Pressed != state.FanActive)
+            FanOnButton.Pressed = state.FanActive;
 
         // Update cabin gas level
         var maxPressure = Atmospherics.OneAtmosphere;

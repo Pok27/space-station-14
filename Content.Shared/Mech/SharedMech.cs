@@ -53,6 +53,10 @@ public sealed partial class MechToggleEquipmentEvent : InstantActionEvent
 {
 }
 
+public sealed class MechOpenEquipmentRadialEvent : EntityEventArgs
+{
+}
+
 public sealed partial class MechOpenUiEvent : InstantActionEvent
 {
 }

@@ -19,12 +19,14 @@ mech-energy-missing = Energy: MISSING
 mech-slot-display = Open Slots: {$amount}
 
 mech-air-cabin-label = Cabin air:
-mech-air-internal = On
-mech-air-external = Off
+mech-air-toggle = Toggle Cabin
 
 mech-fan-label = Fan:
+mech-fan-on = On
+mech-fan-off = Off
 mech-fan-toggle = Toggle Fan
-mech-cabin-gas-level = Cabin Pressure: {$level} kPa
+mech-cabin-gas-label = Cabin Pressure:
+mech-cabin-gas-level = {$level} kPa
 
 mech-no-enter = You cannot pilot this.
 
@@ -34,9 +36,9 @@ mech-eject-pilot-alert = {$user} is pulling the pilot out of the {$item}!
 mech-lock-dna-label = DNA Lock:
 mech-lock-card-label = ID Lock:
 mech-lock-register = Register Lock
-mech-lock-activate = Activate Lock
-mech-lock-deactivate = Deactivate Lock
-mech-lock-reset = Reset Lock
+mech-lock-activate = Activate
+mech-lock-deactivate = Deactivate
+mech-lock-reset = Reset
 mech-lock-no-dna = You don't have DNA to lock with!
 mech-lock-no-card = You don't have an ID card to lock with!
 mech-lock-registered = Lock registered!
