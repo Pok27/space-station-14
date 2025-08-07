@@ -67,11 +67,10 @@ public sealed class MechEquipmentRadialUIController
 
             var equipmentEntity = equipment;
 
-            // Get tool prototype info if available
             string tooltip = metaData.EntityName;
             SpriteSpecifier? sprite = null;
 
-            // Try to get sprite from tool quality
+            // Prefer tool quality icon if present
             if (_entManager.TryGetComponent<ToolComponent>(equipment, out var toolComp))
             {
                 foreach (var quality in toolComp.Qualities)
@@ -86,6 +85,12 @@ public sealed class MechEquipmentRadialUIController
                     }
                     break;
                 }
+            }
+
+            // Fallback to equipment prototype sprite icon
+            if (sprite == null && metaData.EntityPrototype != null)
+            {
+                sprite = new SpriteSpecifier.EntityPrototype(metaData.EntityPrototype.ID);
             }
 
             options.Add(new RadialMenuActionOption<string>(data =>

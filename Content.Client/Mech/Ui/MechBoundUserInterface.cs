@@ -16,6 +16,7 @@ public sealed class MechBoundUserInterface : BoundUserInterface
     [ViewVariables]
     private MechMenu? _menu;
     private BuiPredictionState? _pred;
+    private TimeSpan _lastStatsUpdate;
 
     public MechBoundUserInterface(EntityUid owner, Enum uiKey) : base(owner, uiKey)
     {
@@ -90,7 +91,15 @@ public sealed class MechBoundUserInterface : BoundUserInterface
         }
 
         _menu.UpdateState(msg);
-        _menu.UpdateMechStats();
+
+        // Throttle stats updates to avoid UI spam (e.g., fan energy consumption)
+        var timing = IoCManager.Resolve<IClientGameTiming>();
+        if (timing.CurTime - _lastStatsUpdate > TimeSpan.FromSeconds(0.25))
+        {
+            _menu.UpdateMechStats();
+            _lastStatsUpdate = timing.CurTime;
+        }
+
         _menu.UpdateEquipmentView(msg.Equipment);
     }
 

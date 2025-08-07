@@ -30,8 +30,12 @@ mech-fan-status = Status: { $state ->
     [on] On
     *[off] Off
 }
+mech-fan-missing = No fan module installed
 mech-cabin-gas-label = Cabin Pressure:
-mech-cabin-gas-level = {$level} kPa
+mech-cabin-gas-level = { $state ->
+    [ok] {$level} kPa
+    *[na] N/A
+}
 
 mech-no-enter = You cannot pilot this.
 

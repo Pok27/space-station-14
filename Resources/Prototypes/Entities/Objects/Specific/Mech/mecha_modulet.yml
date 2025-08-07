@@ -1,0 +1,36 @@
+- type: entity
+  id: MechModuleBase
+  parent: BaseItem
+  abstract: true
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Mech/mecha_equipment.rsi
+  - type: Item
+    sprite: Objects/Specific/Mech/mecha_equipment.rsi
+    size: Ginormous
+  - type: MechModule
+  - type: GuideHelp
+    guides:
+    - Robotics
+
+- type: entity
+  id: MechModuleFan
+  parent: MechModuleBase
+  name: mech fan module
+  description: A ventilation unit for mechs.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Mech/mecha_equipment.rsi
+    state: mecha_air_tank # mecha_wholegen
+  - type: MechFanModule
+
+- type: entity
+  id: MechModuleGasCylinder
+  parent: MechModuleBase
+  name: mech gas cylinder
+  description: Provides internal air storage for airtight mechs.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Mech/mecha_equipment.rsi
+    state: mecha_air_tank
+  - type: MechGasCylinderModule

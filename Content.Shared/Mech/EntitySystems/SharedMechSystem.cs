@@ -25,6 +25,7 @@ using Robust.Shared.Network;
 using Robust.Shared.Serialization;
 using Robust.Shared.Timing;
 
+
 namespace Content.Shared.Mech.EntitySystems;
 
 /// <summary>
@@ -113,6 +114,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         component.PilotSlot = _container.EnsureContainer<ContainerSlot>(uid, component.PilotSlotId);
         component.EquipmentContainer = _container.EnsureContainer<Container>(uid, component.EquipmentContainerId);
         component.BatterySlot = _container.EnsureContainer<ContainerSlot>(uid, component.BatterySlotId);
+        component.ModuleContainer = _container.EnsureContainer<Container>(uid, component.ModuleContainerId);
         UpdateAppearance(uid, component);
     }
 
@@ -535,6 +537,14 @@ public sealed partial class MechExitEvent : SimpleDoAfterEvent
 /// </summary>
 [Serializable, NetSerializable]
 public sealed partial class MechEntryEvent : SimpleDoAfterEvent
+{
+}
+
+/// <summary>
+///     Event raised when a passive module is removed from the mech via tool
+/// </summary>
+[Serializable, NetSerializable]
+public sealed partial class RemoveModuleEvent : SimpleDoAfterEvent
 {
 }
 

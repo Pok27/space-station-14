@@ -57,6 +57,20 @@ public sealed class MechEquipmentRemoveMessage : BoundUserInterfaceMessage
 }
 
 /// <summary>
+/// UI event raised to remove a passive module from a mech
+/// </summary>
+[Serializable, NetSerializable]
+public sealed class MechModuleRemoveMessage : BoundUserInterfaceMessage
+{
+    public NetEntity Module;
+
+    public MechModuleRemoveMessage(NetEntity module)
+    {
+        Module = module;
+    }
+}
+
+/// <summary>
 /// base for all mech ui messages
 /// </summary>
 [Serializable, NetSerializable]
@@ -162,6 +176,7 @@ public sealed class MechEquipmentSelectMessage : BoundUserInterfaceMessage
 public sealed class MechBoundUiState : BoundUserInterfaceState
 {
     public List<NetEntity> Equipment = new();
+    public List<NetEntity> Modules = new();
     public bool IsAirtight;
     public bool FanActive;
     public MechFanState FanState = MechFanState.Off;
@@ -176,6 +191,10 @@ public sealed class MechBoundUiState : BoundUserInterfaceState
     public string? OwnerJobTitle;
     public bool IsLocked;
     public bool HasAccess;
+
+    // Passive modules presence
+    public bool HasFanModule;
+    public bool HasGasModule;
 }
 
 [Serializable, NetSerializable]

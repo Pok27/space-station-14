@@ -15,6 +15,7 @@
                     Scale="1 1"
                     RectClipContent="True"/>
                 <RichTextLabel Name="EquipmentName" VerticalAlignment="Center"/>
+                <Label Name="EquipmentSize" VerticalAlignment="Center" Margin="6 0 0 0"/>
                 <BoxContainer Orientation="Vertical" HorizontalExpand="True" HorizontalAlignment="Right" VerticalAlignment="Center">
                     <TextureButton Name="RemoveButton" Scale="0.5 0.5"></TextureButton>
                 </BoxContainer>

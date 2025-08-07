@@ -16,6 +16,11 @@ public sealed partial class MechEquipmentComponent : Component
     [DataField("installDuration")] public float InstallDuration = 5;
 
     /// <summary>
+    /// Space units this equipment occupies in the mech (for UI display)
+    /// </summary>
+    [DataField("size")] public int Size = 1;
+
+    /// <summary>
     /// The mech that the equipment is inside of.
     /// </summary>
     [ViewVariables] public EntityUid? EquipmentOwner;

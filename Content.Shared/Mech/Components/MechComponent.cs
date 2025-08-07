@@ -16,7 +16,7 @@ public sealed partial class MechComponent : Component
     /// <summary>
     /// Whether or not an emag disables it.
     /// </summary>
-    [DataField("breakOnEmag")]
+    [DataField]
     [AutoNetworkedField]
     public bool BreakOnEmag = true;
 
@@ -87,7 +87,7 @@ public sealed partial class MechComponent : Component
     /// <summary>
     /// The maximum amount of equipment items that can be installed in the mech
     /// </summary>
-    [DataField("maxEquipmentAmount"), ViewVariables(VVAccess.ReadWrite)]
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
     public int MaxEquipmentAmount = 3;
 
     /// <summary>
@@ -107,6 +107,33 @@ public sealed partial class MechComponent : Component
 
     [ViewVariables]
     public readonly string EquipmentContainerId = "mech-equipment-container";
+
+    /// <summary>
+    /// A container for storing passive module entities.
+    /// </summary>
+    [ViewVariables(VVAccess.ReadWrite)]
+    public Container ModuleContainer = default!;
+
+    [ViewVariables]
+    public readonly string ModuleContainerId = "mech-passive-module-container";
+
+    /// <summary>
+    /// Max passive module capacity in space units.
+    /// </summary>
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
+    public int MaxModuleSpace = 4;
+
+    /// <summary>
+    /// How long it takes to remove a passive module with a prying tool
+    /// </summary>
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
+    public float ModuleRemovalDelay = 2f;
+
+    /// <summary>
+    /// Whitelist for passive modules allowed to be installed
+    /// </summary>
+    [DataField]
+    public EntityWhitelist? ModuleWhitelist;
 
     /// <summary>
     /// How long it takes to enter the mech.

@@ -7,6 +7,9 @@
     equipmentWhitelist:
       tags:
       - CombatMech
+    moduleWhitelist:
+      tags:
+      - MechModule
 
 - type: entity
   id: IndustrialMech
@@ -47,8 +50,6 @@
   - type: Mech
   - type: MechLock
     isLocked: false
-  - type: MechAir
-  - type: MechFan
   - type: AirFilter
     # everything except oxygen and nitrogen
     gases:
@@ -126,6 +127,7 @@
       mech-pilot-slot: !type:ContainerSlot
       mech-equipment-container: !type:Container
       mech-battery-slot: !type:ContainerSlot
+      mech-passive-module-container: !type:Container
   - type: Damageable
     damageContainer: Inorganic
     damageModifierSet: LightArmor
