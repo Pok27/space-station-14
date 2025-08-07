@@ -100,11 +100,11 @@ public sealed partial class MechSystem : SharedMechSystem
         if (component.Broken || component.Integrity <= 0 || component.Energy <= 0)
             args.Cancel();
 
-        // Check if mech is locked and pilot doesn't have access
-        if (component.PilotSlot.ContainedEntity != null &&
-            !_lockSystem.CheckAccess(uid, component.PilotSlot.ContainedEntity.Value))
+        // Only block movement if locks are active and pilot lacks access
+        if (component.PilotSlot.ContainedEntity != null && TryComp<MechLockComponent>(uid, out var lockComp))
         {
-            args.Cancel();
+            if (lockComp.IsLocked && !_lockSystem.HasAccess(component.PilotSlot.ContainedEntity.Value, lockComp))
+                args.Cancel();
         }
     }
 
@@ -297,9 +297,12 @@ public sealed partial class MechSystem : SharedMechSystem
         if (args.Cancelled || args.Handled)
             return;
 
-        // Check if mech is locked and user doesn't have access
-        if (!_lockSystem.CheckAccessWithFeedback(uid, args.User))
+        // Allow entry if locks are not active; block only if active and user lacks access
+        if (TryComp<MechLockComponent>(uid, out var lockComp) && lockComp.IsLocked && !_lockSystem.HasAccess(args.User, lockComp))
+        {
+            _lockSystem.CheckAccessWithFeedback(uid, args.User, lockComp);
             return;
+        }
 
         if (_whitelistSystem.IsWhitelistFail(component.PilotWhitelist, args.User))
         {
@@ -498,7 +501,7 @@ public sealed partial class MechSystem : SharedMechSystem
             state.CardLockRegistered = lockComp.CardLockRegistered;
             state.CardLockActive = lockComp.CardLockActive;
             state.OwnerDna = lockComp.OwnerDna;
-            state.OwnerCardName = lockComp.OwnerCardName;
+            state.OwnerJobTitle = lockComp.OwnerJobTitle;
             state.IsLocked = lockComp.IsLocked;
 
             var actors = _ui.GetActors(uid, MechUiKey.Key);

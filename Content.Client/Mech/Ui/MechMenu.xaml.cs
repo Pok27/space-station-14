@@ -42,13 +42,12 @@ public sealed partial class MechMenu : FancyWindow
         DnaLockButton.OnPressed += args =>
         {
             if (!CheckAccess()) return;
-            OnLockAction(args, OnDnaLockToggle, DnaLockButton);
 
             var (isRegistered, isActive, _) = GetCurrentLockState(MechLockType.Dna);
             if (isRegistered)
-                OnDnaLockToggle?.Invoke();
+                OnLockAction(args, OnDnaLockToggle, DnaLockButton);
             else
-                OnDnaLockRegister?.Invoke();
+                OnLockAction(args, OnDnaLockRegister, DnaLockButton);
         };
         DnaLockResetButton.OnPressed += args => {
             if (!CheckAccess()) return;
@@ -58,13 +57,12 @@ public sealed partial class MechMenu : FancyWindow
         CardLockButton.OnPressed += args =>
         {
             if (!CheckAccess()) return;
-            OnLockAction(args, OnCardLockToggle, CardLockButton);
 
             var (isRegistered, isActive, _) = GetCurrentLockState(MechLockType.Card);
             if (isRegistered)
-                OnCardLockToggle?.Invoke();
+                OnLockAction(args, OnCardLockToggle, CardLockButton);
             else
-                OnCardLockRegister?.Invoke();
+                OnLockAction(args, OnCardLockRegister, CardLockButton);
         };
         CardLockResetButton.OnPressed += args => {
             if (!CheckAccess()) return;
@@ -132,6 +130,9 @@ public sealed partial class MechMenu : FancyWindow
     {
         _lastState = state;
 
+        // Reflect access in UI
+        _hasAccess = state.HasAccess;
+
         // Update airtight button state
         if (AirtightButton.Pressed != state.IsAirtight)
             AirtightButton.Pressed = state.IsAirtight;
@@ -177,9 +178,9 @@ public sealed partial class MechMenu : FancyWindow
         }
 
         // Update Card lock info
-        if (state.CardLockRegistered && !string.IsNullOrEmpty(state.OwnerCardName))
+        if (state.CardLockRegistered && !string.IsNullOrEmpty(state.OwnerJobTitle))
         {
-            CardLockInfoLabel.Text = Loc.GetString("mech-lock-card-info", ("name", state.OwnerCardName));
+            CardLockInfoLabel.Text = Loc.GetString("mech-lock-card-info", ("name", state.OwnerJobTitle));
         }
         else
         {
@@ -201,6 +202,7 @@ public sealed partial class MechMenu : FancyWindow
     {
         var (isRegistered, isActive, _) = GetLockState(state, lockType);
 
+        // Note: actual access checks happen server-side; keep buttons enabled so the user can see feedback
         // Update button state without changing event handlers
         if (isRegistered)
         {
@@ -226,12 +228,13 @@ public sealed partial class MechMenu : FancyWindow
 
     private MechBoundUiState? _lastState;
 
+
     private (bool IsRegistered, bool IsActive, string? OwnerId) GetLockState(MechBoundUiState state, MechLockType lockType)
     {
         return lockType switch
         {
             MechLockType.Dna => (state.DnaLockRegistered, state.DnaLockActive, state.OwnerDna),
-            MechLockType.Card => (state.CardLockRegistered, state.CardLockActive, state.OwnerCardName),
+            MechLockType.Card => (state.CardLockRegistered, state.CardLockActive, state.OwnerJobTitle),
             _ => (false, false, null)
         };
     }

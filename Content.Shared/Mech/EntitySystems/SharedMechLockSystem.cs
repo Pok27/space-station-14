@@ -5,7 +5,10 @@ using Content.Shared.Popups;
 using Content.Shared.Audio;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
+using Robust.Shared.Prototypes;
+using Content.Shared.Access;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace Content.Shared.Mech.EntitySystems;
 
@@ -60,7 +63,7 @@ public abstract partial class SharedMechLockSystem : EntitySystem
         if (!Resolve(uid, ref component, false))
             return true; // No lock component = no restrictions
 
-        return !component.IsLocked || HasAccess(user, component);
+        return HasAccess(user, component);
     }
 
     /// <summary>
@@ -75,7 +78,7 @@ public abstract partial class SharedMechLockSystem : EntitySystem
         if (!Resolve(uid, ref component, false))
             return true; // No lock component = no restrictions
 
-        if (!component.IsLocked || HasAccess(user, component))
+        if (HasAccess(user, component))
             return true;
 
         // Access denied - show popup and play sound
@@ -92,8 +95,10 @@ public abstract partial class SharedMechLockSystem : EntitySystem
         if (!Resolve(uid, ref component))
             return false;
 
-        // Check if user has access to manage locks
-        if (!CheckAccessWithFeedback(uid, user, component))
+        // Determine if this action requires access: only if the lock type is already registered
+        var requiresAccess = component.DnaLockRegistered || component.CardLockRegistered;
+
+        if (requiresAccess && !CheckAccessWithFeedback(uid, user, component))
             return false;
 
         switch (lockType)
@@ -116,7 +121,11 @@ public abstract partial class SharedMechLockSystem : EntitySystem
                     return false;
                 }
                 component.CardLockRegistered = true;
-                component.OwnerCardName = idCard.Comp.FullName;
+                component.OwnerJobTitle = idCard.Comp.LocalizedJobTitle;
+                if (TryComp<AccessComponent>(idCard.Owner, out var access))
+                {
+                    component.CardAccessTags = new HashSet<ProtoId<AccessLevelPrototype>>(access.Tags);
+                }
                 _popup.PopupEntity(Loc.GetString("mech-lock-card-registered"), uid, user);
                 break;
         }
@@ -181,7 +190,8 @@ public abstract partial class SharedMechLockSystem : EntitySystem
             case MechLockType.Card:
                 component.CardLockRegistered = false;
                 component.CardLockActive = false;
-                component.OwnerCardName = null;
+                component.OwnerJobTitle = null;
+                component.CardAccessTags = null;
                 break;
         }
 
@@ -199,7 +209,8 @@ public abstract partial class SharedMechLockSystem : EntitySystem
         return lockType switch
         {
             MechLockType.Dna => (component.DnaLockRegistered, component.DnaLockActive, component.OwnerDna),
-            MechLockType.Card => (component.CardLockRegistered, component.CardLockActive, component.OwnerCardName),
+            // For card, return the job title as the display string
+            MechLockType.Card => (component.CardLockRegistered, component.CardLockActive, component.OwnerJobTitle),
             _ => (false, false, null)
         };
     }
@@ -223,8 +234,16 @@ public abstract partial class SharedMechLockSystem : EntitySystem
                         break;
 
                     case MechLockType.Card:
-                        if (TryFindIdCard(user, out var idCard) && idCard.Comp.FullName == ownerId)
-                            return true;
+                        // Compare access tags with those captured during registration
+                        if (component.CardAccessTags != null && TryFindIdCard(user, out var idCard))
+                        {
+                            if (TryComp<AccessComponent>(idCard.Owner, out var access))
+                            {
+                                // Ensure the user's card has at least the registered tags
+                                if (component.CardAccessTags.All(tag => access.Tags.Contains(tag)))
+                                    return true;
+                            }
+                        }
                         break;
                 }
             }

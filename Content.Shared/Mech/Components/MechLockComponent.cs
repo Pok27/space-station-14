@@ -1,5 +1,7 @@
 using Robust.Shared.GameStates;
 using Robust.Shared.Serialization;
+using Robust.Shared.Prototypes;
+using Content.Shared.Access;
 
 namespace Content.Shared.Mech.Components;
 
@@ -49,10 +51,16 @@ public sealed partial class MechLockComponent : Component
     public bool CardLockActive = false;
 
     /// <summary>
-    /// ID card name of the lock owner
+    /// Localized job title of the lock owner (for UI display)
     /// </summary>
     [DataField, AutoNetworkedField]
-    public string? OwnerCardName;
+    public string? OwnerJobTitle;
+
+    /// <summary>
+    /// Access tags captured from the registered ID card
+    /// </summary>
+    [DataField, AutoNetworkedField]
+    public HashSet<ProtoId<AccessLevelPrototype>>? CardAccessTags;
 
     /// <summary>
     /// Whether the mech is locked (prevents unauthorized access)

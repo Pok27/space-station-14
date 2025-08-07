@@ -173,7 +173,7 @@ public sealed class MechBoundUiState : BoundUserInterfaceState
     public bool CardLockRegistered;
     public bool CardLockActive;
     public string? OwnerDna;
-    public string? OwnerCardName;
+    public string? OwnerJobTitle;
     public bool IsLocked;
     public bool HasAccess;
 }
