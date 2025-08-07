@@ -7,6 +7,8 @@ mech-equipment-finish-install = Finished installing the {THE($item)}
 mech-equipment-select-popup = {$item} selected
 mech-equipment-select-none-popup = Nothing selected
 
+mech-radial-no-equipment = No Equipment
+
 mech-ui-open-verb = Open control panel
 
 mech-menu-title = mech control panel
@@ -19,6 +21,10 @@ mech-slot-display = Open Slots: {$amount}
 mech-air-cabin-label = Cabin air:
 mech-air-internal = On
 mech-air-external = Off
+
+mech-fan-label = Fan:
+mech-fan-toggle = Toggle Fan
+mech-cabin-gas-level = Cabin Pressure: {$level} kPa
 
 mech-no-enter = You cannot pilot this.
 

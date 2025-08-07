@@ -40,6 +40,11 @@ public sealed class MechBoundUserInterface : BoundUserInterface
             _pred!.SendMessage(new MechAirtightMessage(isAirtight));
         };
 
+        _menu.OnFanToggle += isActive =>
+        {
+            _pred!.SendMessage(new MechFanToggleMessage(isActive));
+        };
+
         _menu.OnDnaLockRegister += () =>
         {
             _pred!.SendMessage(new MechDnaLockRegisterMessage());

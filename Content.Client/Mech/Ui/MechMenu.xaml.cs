@@ -23,6 +23,7 @@ public sealed partial class MechMenu : FancyWindow
     public Action<string>? NameChanged;
 
     public event Action<bool>? OnAirtightChanged;
+    public event Action<bool>? OnFanToggle;
     public event Action? OnDnaLockRegister;
     public event Action? OnDnaLockToggle;
     public event Action? OnDnaLockReset;
@@ -53,10 +54,27 @@ public sealed partial class MechMenu : FancyWindow
             }
         };
 
-        DnaLockButton.OnPressed += _ => OnDnaLockRegister?.Invoke();
+        DnaLockButton.OnPressed += args =>
+        {
+            var (isRegistered, isActive, _) = GetCurrentLockState(MechLockType.Dna);
+            if (isRegistered)
+                OnDnaLockToggle?.Invoke();
+            else
+                OnDnaLockRegister?.Invoke();
+        };
         DnaLockResetButton.OnPressed += args => OnLockAction(args, OnDnaLockReset, DnaLockResetButton);
-        CardLockButton.OnPressed += _ => OnCardLockRegister?.Invoke();
+
+        CardLockButton.OnPressed += args =>
+        {
+            var (isRegistered, isActive, _) = GetCurrentLockState(MechLockType.Card);
+            if (isRegistered)
+                OnCardLockToggle?.Invoke();
+            else
+                OnCardLockRegister?.Invoke();
+        };
         CardLockResetButton.OnPressed += args => OnLockAction(args, OnCardLockReset, CardLockResetButton);
+
+        FanButton.OnToggled += args => OnFanToggle?.Invoke(args.Pressed);
     }
 
     public void SetEntity(EntityUid uid)
@@ -94,10 +112,20 @@ public sealed partial class MechMenu : FancyWindow
 
     public void UpdateState(MechBoundUiState state)
     {
+        _lastState = state;
+
         if (ExternalButton.Pressed != !state.IsAirtight)
             ExternalButton.Pressed = !state.IsAirtight;
         if (InternalButton.Pressed != state.IsAirtight)
             InternalButton.Pressed = state.IsAirtight;
+
+        // Update fan button state
+        if (FanButton.Pressed != state.FanActive)
+            FanButton.Pressed = state.FanActive;
+
+        // Update cabin gas level
+        var maxPressure = Atmospherics.OneAtmosphere;
+        CabinGasLabel.Text = Loc.GetString("mech-cabin-gas-level", ("level", $"{state.CabinGasLevel:F1} / {maxPressure:F1}"));
 
         UpdateLockButtons(state);
     }
@@ -114,11 +142,9 @@ public sealed partial class MechMenu : FancyWindow
         Button lockButton, BaseButton resetButton,
         Action? registerAction, Action? toggleAction, Action? resetAction)
     {
-        // Clear existing event handlers to prevent accumulation
-        lockButton.OnPressed -= args => OnLockAction(args, registerAction, lockButton);
-        lockButton.OnPressed -= args => OnLockAction(args, toggleAction, lockButton);
-
         var (isRegistered, isActive, _) = GetLockState(state, lockType);
+
+        // Update button state without changing event handlers
         if (isRegistered)
         {
             if (isActive)
@@ -126,14 +152,12 @@ public sealed partial class MechMenu : FancyWindow
                 lockButton.Text = Loc.GetString("mech-lock-deactivate");
                 lockButton.Pressed = true;
                 lockButton.Disabled = false;
-                lockButton.OnPressed += args => OnLockAction(args, toggleAction, lockButton);
             }
             else
             {
                 lockButton.Text = Loc.GetString("mech-lock-activate");
                 lockButton.Pressed = false;
                 lockButton.Disabled = false;
-                lockButton.OnPressed += args => OnLockAction(args, toggleAction, lockButton);
             }
             resetButton.Visible = true;
         }
@@ -142,10 +166,11 @@ public sealed partial class MechMenu : FancyWindow
             lockButton.Text = Loc.GetString("mech-lock-register");
             lockButton.Pressed = false;
             lockButton.Disabled = !state.HasAccess;
-            lockButton.OnPressed += args => OnLockAction(args, registerAction, lockButton);
             resetButton.Visible = false;
         }
     }
+
+    private MechBoundUiState? _lastState;
 
     private (bool IsRegistered, bool IsActive, string? OwnerId) GetLockState(MechBoundUiState state, MechLockType lockType)
     {
@@ -155,6 +180,14 @@ public sealed partial class MechMenu : FancyWindow
             MechLockType.Card => (state.CardLockRegistered, state.CardLockActive, state.OwnerCardName),
             _ => (false, false, null)
         };
+    }
+
+    private (bool IsRegistered, bool IsActive, string? OwnerId) GetCurrentLockState(MechLockType lockType)
+    {
+        if (_lastState == null)
+            return (false, false, null);
+
+        return GetLockState(_lastState, lockType);
     }
 
     private void OnLockAction(ButtonEventArgs args, Action? action, BaseButton button)

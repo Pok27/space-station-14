@@ -29,6 +29,8 @@ using Content.Server.Access.Systems;
 using Content.Server.Forensics;
 using Content.Shared.Forensics.Components;
 using Content.Shared.Access.Systems;
+using Content.Shared.Mech.Components;
+using Content.Shared.Atmos;
 
 namespace Content.Server.Mech.Systems;
 
@@ -63,12 +65,13 @@ public sealed partial class MechSystem : SharedMechSystem
         SubscribeLocalEvent<MechComponent, MechEntryEvent>(OnMechEntry);
         SubscribeLocalEvent<MechComponent, MechExitEvent>(OnMechExit);
         SubscribeLocalEvent<MechComponent, MechAirtightMessage>(OnAirtightMessage);
+        SubscribeLocalEvent<MechComponent, MechFanToggleMessage>(OnFanToggleMessage);
+        SubscribeLocalEvent<MechComponent, MechEquipmentSelectMessage>(OnEquipmentSelectMessage);
 
         SubscribeLocalEvent<MechComponent, DamageChangedEvent>(OnDamageChanged);
         SubscribeLocalEvent<MechComponent, MechEquipmentRemoveMessage>(OnRemoveEquipmentMessage);
 
         SubscribeLocalEvent<MechComponent, UpdateCanMoveEvent>(OnMechCanMoveEvent);
-
 
         SubscribeLocalEvent<MechPilotComponent, ToolUserAttemptUseEvent>(OnToolUseAttempt);
         SubscribeLocalEvent<MechPilotComponent, InhaleLocationEvent>(OnInhale);
@@ -216,6 +219,33 @@ public sealed partial class MechSystem : SharedMechSystem
         component.Airtight = args.IsAirtight;
         Dirty(uid, component);
         UpdateUserInterface(uid, component);
+    }
+
+    private void OnFanToggleMessage(EntityUid uid, MechComponent component, MechFanToggleMessage args)
+    {
+        if (!TryComp<MechFanComponent>(uid, out var fanComp))
+            return;
+
+        fanComp.IsActive = args.IsActive;
+        Dirty(uid, fanComp);
+    }
+
+    private void OnEquipmentSelectMessage(EntityUid uid, MechComponent component, MechEquipmentSelectMessage args)
+    {
+        if (args.Equipment == null)
+        {
+            component.CurrentSelectedEquipment = null;
+        }
+        else
+        {
+            var equipment = GetEntity(args.Equipment);
+            if (Exists(equipment) && component.EquipmentContainer.ContainedEntities.Any(e => e == equipment))
+            {
+                component.CurrentSelectedEquipment = equipment;
+            }
+        }
+
+        Dirty(uid, component);
     }
 
     private void OnToolUseAttempt(EntityUid uid, MechPilotComponent component, ref ToolUserAttemptUseEvent args)
@@ -370,8 +400,6 @@ public sealed partial class MechSystem : SharedMechSystem
         }
     }
 
-
-
     private void OnBoundUIAttempt(Entity<MechComponent> ent, ref BoundUserInterfaceMessageAttempt args)
     {
         if (args.UiKey is not MechUiKey.Key)
@@ -412,6 +440,29 @@ public sealed partial class MechSystem : SharedMechSystem
         UpdateUserInterface(uid, component);
     }
 
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        // Update fan energy consumption and gas processing
+        var query = EntityQueryEnumerator<MechComponent, MechFanComponent>();
+        while (query.MoveNext(out var uid, out var mechComp, out var fanComp))
+        {
+            if (!fanComp.IsActive)
+                continue;
+
+            // Consume energy from battery
+            var energyConsumption = fanComp.EnergyConsumption * frameTime;
+            if (!TryChangeEnergy(uid, -energyConsumption, mechComp))
+            {
+                // If not enough energy, turn off fan
+                fanComp.IsActive = false;
+                Dirty(uid, fanComp);
+                continue;
+            }
+        }
+    }
+
     public override void UpdateUserInterface(EntityUid uid, MechComponent? component = null)
     {
         if (!Resolve(uid, ref component))
@@ -426,7 +477,10 @@ public sealed partial class MechSystem : SharedMechSystem
         var state = new MechBoundUiState
         {
             Equipment = equipment,
-            IsAirtight = component.Airtight
+            IsAirtight = component.Airtight,
+            FanActive = TryComp<MechFanComponent>(uid, out var fanComp) && fanComp.IsActive,
+            CabinGasLevel = TryComp<MechAirComponent>(uid, out var airComp) ?
+                airComp.Air.Pressure : 0f
         };
 
         // Update lock system state if MechLockComponent is present
@@ -520,6 +574,11 @@ public sealed partial class MechSystem : SharedMechSystem
 
         Dirty(uid, component);
         UpdateUserInterface(uid, component);
+    }
+
+    public override bool CanInsert(EntityUid uid, EntityUid toInsert, MechComponent? component = null)
+    {
+        return base.CanInsert(uid, toInsert, component) && _actionBlocker.CanMove(toInsert);
     }
 
     #region Atmos Handling

@@ -41,7 +41,6 @@ public abstract partial class SharedMechLockSystem : EntitySystem
             Dirty(uid, component);
             var lockEvent = new MechLockStateChangedEvent(component.IsLocked);
             RaiseLocalEvent(uid, lockEvent);
-            UpdateMechUI(uid);
         }
     }
 
@@ -86,7 +85,6 @@ public abstract partial class SharedMechLockSystem : EntitySystem
         }
 
         Dirty(uid, component);
-        UpdateMechUI(uid);
         return true;
     }
 
@@ -156,7 +154,6 @@ public abstract partial class SharedMechLockSystem : EntitySystem
 
         UpdateLockState(uid, component);
         _popup.PopupEntity(Loc.GetString("mech-lock-reset-success"), uid, user);
-        UpdateMechUI(uid);
         return true;
     }
 

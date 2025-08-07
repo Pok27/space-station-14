@@ -48,6 +48,7 @@
   - type: MechLock
     isLocked: false
   - type: MechAir
+  - type: MechFan
   - type: AirFilter
     # everything except oxygen and nitrogen
     gases:
@@ -83,6 +84,8 @@
     interfaces:
       enum.MechUiKey.Key:
         type: MechBoundUserInterface
+      enum.MechUiKey.Equipment:
+        type: MechEquipmentRadialBoundUserInterface
   - type: MeleeWeapon
     hidden: true
     attackRate: 0.75

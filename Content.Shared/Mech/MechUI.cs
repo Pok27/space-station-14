@@ -6,7 +6,8 @@ namespace Content.Shared.Mech;
 [Serializable, NetSerializable]
 public enum MechUiKey : byte
 {
-    Key
+    Key,
+    Equipment
 }
 
 /// <summary>
@@ -98,6 +99,34 @@ public sealed class MechAirtightMessage : BoundUserInterfaceMessage
 }
 
 /// <summary>
+/// Event raised to toggle the fan state of a mech
+/// </summary>
+[Serializable, NetSerializable]
+public sealed class MechFanToggleMessage : BoundUserInterfaceMessage
+{
+    public bool IsActive;
+
+    public MechFanToggleMessage(bool isActive)
+    {
+        IsActive = isActive;
+    }
+}
+
+/// <summary>
+/// Event raised to select equipment in the radial menu
+/// </summary>
+[Serializable, NetSerializable]
+public sealed class MechEquipmentSelectMessage : BoundUserInterfaceMessage
+{
+    public NetEntity? Equipment;
+
+    public MechEquipmentSelectMessage(NetEntity? equipment)
+    {
+        Equipment = equipment;
+    }
+}
+
+/// <summary>
 /// BUI state for mechs that also contains all equipment ui states.
 /// </summary>
 /// <remarks>
@@ -123,6 +152,8 @@ public sealed class MechBoundUiState : BoundUserInterfaceState
 {
     public List<NetEntity> Equipment = new();
     public bool IsAirtight;
+    public bool FanActive;
+    public float CabinGasLevel;
 
     // Lock system
     public bool DnaLockRegistered;
