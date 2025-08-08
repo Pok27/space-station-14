@@ -117,15 +117,8 @@ public sealed class MechModuleSystem : EntitySystem
         // Insert into module container
         _container.Insert(uid, mechComp.ModuleContainer);
 
-        // Apply module effects (mech-level internal air tank)
-        if (HasComp<MechGasCylinderModuleComponent>(uid))
-        {
-            var air = EnsureComp<MechAirComponent>(mech);
-            if (TryComp<MechGasCylinderModuleComponent>(uid, out var cyl))
-            {
-                air.SetVolume(cyl.TankVolume);
-            }
-        }
+        // Apply module effects
+        // No additional components to add; fan state and gas volume tracked elsewhere
 
         _popup.PopupEntity(Loc.GetString("mech-equipment-finish-install", ("item", uid)), mech);
         _mech.UpdateUserInterface(mech, mechComp);
