@@ -7,9 +7,7 @@ namespace Content.Server.Mech.Components;
 public sealed partial class MechAirComponent : Component
 {
     [DataField, ViewVariables(VVAccess.ReadWrite)]
-    public GasMixture Air = new(DefaultGasMixVolume);
-
-    public const float DefaultGasMixVolume = 70f;
+    public GasMixture Air = new(70f);
 
     public void SetVolume(float volume)
     {

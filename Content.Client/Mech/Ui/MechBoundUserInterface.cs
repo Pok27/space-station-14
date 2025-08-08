@@ -1,12 +1,11 @@
+using Content.Client.UserInterface;
 using Content.Client.UserInterface.Fragments;
 using Content.Shared.Mech;
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.EntitySystems;
 using JetBrains.Annotations;
-using Robust.Client.GameObjects;
-using Robust.Client.UserInterface;
 using Robust.Client.Timing;
-using Content.Client.UserInterface;
+using Robust.Client.UserInterface;
 
 namespace Content.Client.Mech.Ui;
 

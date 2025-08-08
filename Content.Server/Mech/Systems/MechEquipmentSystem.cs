@@ -40,7 +40,7 @@ public sealed class MechEquipmentSystem : EntitySystem
         // Block install if pilot inside
         if (mechComp.PilotSlot.ContainedEntity != null)
         {
-            _popup.PopupEntity(Loc.GetString("mech-install-blocked-pilot", ("item", uid)), args.User);
+            _popup.PopupEntity(Loc.GetString("mech-install-blocked-pilot-popup", ("item", uid)), args.User);
             return;
         }
 
@@ -55,7 +55,7 @@ public sealed class MechEquipmentSystem : EntitySystem
             {
                 if (TryComp<MetaDataComponent>(ent, out var md2) && md2.EntityPrototype != null && md2.EntityPrototype.ID == id)
                 {
-                    _popup.PopupEntity(Loc.GetString("mech-duplicate-equipment"), args.User);
+                    _popup.PopupEntity(Loc.GetString("mech-duplicate-equipment-popup"), args.User);
                     return;
                 }
             }
@@ -63,14 +63,14 @@ public sealed class MechEquipmentSystem : EntitySystem
 
         if (mechComp.EquipmentContainer.ContainedEntities.Count >= mechComp.MaxEquipmentAmount)
         {
-            _popup.PopupEntity(Loc.GetString("mech-capacity-equipment-full"), args.User);
+            _popup.PopupEntity(Loc.GetString("mech-capacity-equipment-full-popup"), args.User);
             return;
         }
 
         if (_whitelistSystem.IsWhitelistFail(mechComp.EquipmentWhitelist, args.Used))
             return;
 
-        _popup.PopupEntity(Loc.GetString("mech-equipment-begin-install", ("item", uid)), mech);
+        _popup.PopupEntity(Loc.GetString("mech-equipment-begin-install-popup", ("item", uid)), mech);
 
         var doAfterEventArgs = new DoAfterArgs(EntityManager, args.User, component.InstallDuration, new InsertEquipmentEvent(), uid, target: mech, used: uid)
         {
@@ -85,7 +85,7 @@ public sealed class MechEquipmentSystem : EntitySystem
         if (args.Handled || args.Cancelled || args.Args.Target == null)
             return;
 
-        _popup.PopupEntity(Loc.GetString("mech-equipment-finish-install", ("item", uid)), args.Args.Target.Value);
+        _popup.PopupEntity(Loc.GetString("mech-equipment-finish-install-popup", ("item", uid)), args.Args.Target.Value);
         _mech.InsertEquipment(args.Args.Target.Value, uid);
 
         args.Handled = true;

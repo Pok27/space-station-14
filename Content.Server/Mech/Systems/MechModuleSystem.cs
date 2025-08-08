@@ -4,10 +4,8 @@ using Content.Shared.Interaction;
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.Equipment.Components;
 using Content.Shared.Whitelist;
-using Content.Server.Mech.Systems;
-using Robust.Server.Containers;
 using Content.Server.Mech.Components;
-using Robust.Shared.GameObjects;
+using Robust.Server.Containers;
 
 namespace Content.Server.Mech.Systems;
 
@@ -43,7 +41,7 @@ public sealed class MechModuleSystem : EntitySystem
         // Block install if pilot inside
         if (mechComp.PilotSlot.ContainedEntity != null)
         {
-            _popup.PopupEntity(Loc.GetString("mech-install-blocked-pilot", ("item", uid)), args.User);
+            _popup.PopupEntity(Loc.GetString("mech-install-blocked-pilot-popup", ("item", uid)), args.User);
             return;
         }
 
@@ -62,7 +60,7 @@ public sealed class MechModuleSystem : EntitySystem
             {
                 if (TryComp<MetaDataComponent>(ent, out var md2) && md2.EntityPrototype != null && md2.EntityPrototype.ID == id)
                 {
-                    _popup.PopupEntity(Loc.GetString("mech-duplicate-module"), args.User);
+                    _popup.PopupEntity(Loc.GetString("mech-duplicate-module-popup"), args.User);
                     return;
                 }
             }
@@ -78,7 +76,7 @@ public sealed class MechModuleSystem : EntitySystem
         }
         if ((hasFan && HasComp<MechFanModuleComponent>(uid)) || (hasGas && HasComp<MechGasCylinderModuleComponent>(uid)))
         {
-            _popup.PopupEntity(Loc.GetString("mech-duplicate-module"), args.User);
+            _popup.PopupEntity(Loc.GetString("mech-duplicate-module-popup"), args.User);
             return;
         }
 
@@ -91,11 +89,11 @@ public sealed class MechModuleSystem : EntitySystem
         }
         if (used + module.Size > mechComp.MaxModuleSpace)
         {
-            _popup.PopupEntity(Loc.GetString("mech-capacity-modules-full"), args.User);
+            _popup.PopupEntity(Loc.GetString("mech-capacity-modules-full-popup"), args.User);
             return;
         }
 
-        _popup.PopupEntity(Loc.GetString("mech-equipment-begin-install", ("item", uid)), mech);
+        _popup.PopupEntity(Loc.GetString("mech-equipment-begin-install-popup", ("item", uid)), mech);
 
         var doAfterEventArgs = new DoAfterArgs(EntityManager, args.User, module.InstallDuration, new InsertModuleEvent(), uid, target: mech, used: uid)
         {
@@ -120,7 +118,7 @@ public sealed class MechModuleSystem : EntitySystem
         // Apply module effects
         // No additional components to add; fan state and gas volume tracked elsewhere
 
-        _popup.PopupEntity(Loc.GetString("mech-equipment-finish-install", ("item", uid)), mech);
+        _popup.PopupEntity(Loc.GetString("mech-equipment-finish-install-popup", ("item", uid)), mech);
         _mech.UpdateUserInterface(mech, mechComp);
 
         args.Handled = true;

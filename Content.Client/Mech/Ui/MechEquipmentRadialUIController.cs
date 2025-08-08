@@ -4,6 +4,7 @@ using Content.Shared.Mech.Components;
 using Content.Shared.Tools;
 using Content.Shared.Tools.Components;
 using JetBrains.Annotations;
+using Robust.Client.UserInterface.Controllers;
 using Robust.Client.UserInterface;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
@@ -14,7 +15,7 @@ using Robust.Client.GameObjects;
 namespace Content.Client.Mech.Ui;
 
 [UsedImplicitly]
-public sealed class MechEquipmentRadialUIController
+public sealed class MechEquipmentRadialUIController : UIController
 {
     [Dependency] private readonly IEntityManager _entManager = default!;
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;

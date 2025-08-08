@@ -1,13 +1,13 @@
 using Content.Client.Mech.Ui;
 using Content.Shared.Mech;
 using Content.Shared.Mech.Components;
-using Robust.Shared.GameObjects;
+using Robust.Client.UserInterface;
 
 namespace Content.Client.Mech.Systems;
 
 public sealed class MechEquipmentRadialSystem : EntitySystem
 {
-    private MechEquipmentRadialUIController? _uiController;
+    [Dependency] private readonly IUserInterfaceManager _uiManager = default!;
 
     public override void Initialize()
     {
@@ -17,8 +17,7 @@ public sealed class MechEquipmentRadialSystem : EntitySystem
 
     private void OnOpenEquipmentRadial(EntityUid uid, MechComponent component, MechOpenEquipmentRadialEvent args)
     {
-        _uiController ??= new MechEquipmentRadialUIController();
-
-        _uiController.OpenRadialMenu(uid);
+        var controller = _uiManager.GetUIController<MechEquipmentRadialUIController>();
+        controller.OpenRadialMenu(uid);
     }
 }

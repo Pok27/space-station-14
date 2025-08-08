@@ -82,7 +82,7 @@ public abstract partial class SharedMechLockSystem : EntitySystem
             return true;
 
         // Access denied - show popup and play sound
-        _popup.PopupEntity(Loc.GetString("mech-lock-access-denied"), uid, user);
+        _popup.PopupEntity(Loc.GetString("mech-lock-access-denied-popup"), uid, user);
         _audio.PlayPvs("/Audio/Machines/airlock_deny.ogg", uid, AudioParams.Default.WithVolume(-5f));
         return false;
     }
@@ -106,18 +106,18 @@ public abstract partial class SharedMechLockSystem : EntitySystem
             case MechLockType.Dna:
                 if (!TryComp<DnaComponent>(user, out var dnaComp))
                 {
-                    _popup.PopupEntity(Loc.GetString("mech-lock-no-dna"), uid, user);
+                    _popup.PopupEntity(Loc.GetString("mech-lock-no-dna-popup"), uid, user);
                     return false;
                 }
                 component.DnaLockRegistered = true;
                 component.OwnerDna = dnaComp.DNA;
-                _popup.PopupEntity(Loc.GetString("mech-lock-dna-registered"), uid, user);
+                _popup.PopupEntity(Loc.GetString("mech-lock-dna-registered-popup"), uid, user);
                 break;
 
             case MechLockType.Card:
                 if (!TryFindIdCard(user, out var idCard))
                 {
-                    _popup.PopupEntity(Loc.GetString("mech-lock-no-card"), uid, user);
+                    _popup.PopupEntity(Loc.GetString("mech-lock-no-card-popup"), uid, user);
                     return false;
                 }
                 component.CardLockRegistered = true;
@@ -126,7 +126,7 @@ public abstract partial class SharedMechLockSystem : EntitySystem
                 {
                     component.CardAccessTags = new HashSet<ProtoId<AccessLevelPrototype>>(access.Tags);
                 }
-                _popup.PopupEntity(Loc.GetString("mech-lock-card-registered"), uid, user);
+                _popup.PopupEntity(Loc.GetString("mech-lock-card-registered-popup"), uid, user);
                 break;
         }
 
@@ -197,7 +197,7 @@ public abstract partial class SharedMechLockSystem : EntitySystem
 
         UpdateLockState(uid, component);
         UpdateMechUI(uid);
-        _popup.PopupEntity(Loc.GetString("mech-lock-reset-success"), uid, user);
+        _popup.PopupEntity(Loc.GetString("mech-lock-reset-success-popup"), uid, user);
         return true;
     }
 
@@ -261,7 +261,7 @@ public abstract partial class SharedMechLockSystem : EntitySystem
     /// </summary>
     public void ShowLockMessage(EntityUid uid, EntityUid user, MechLockComponent component, bool isActivating)
     {
-        var messageKey = isActivating ? "mech-lock-activated" : "mech-lock-deactivated";
+        var messageKey = isActivating ? "mech-lock-activated-popup" : "mech-lock-deactivated-popup";
         _popup.PopupEntity(Loc.GetString(messageKey), uid, user);
     }
 
