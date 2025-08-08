@@ -96,6 +96,7 @@ public sealed class MechBoundUserInterface : BoundUserInterface
         }
 
         _menu.UpdateState(msg);
+        _menu.UpdateMechStats();
 
         _menu.UpdateEquipmentView(msg.Equipment);
         _menu.UpdateModuleView(msg.Modules);
