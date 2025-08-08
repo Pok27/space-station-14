@@ -111,6 +111,14 @@
                             HorizontalExpand="True"
                             SetHeight="20" />
                     </BoxContainer>
+                    <Label StyleClasses="StatusFieldTitle" Text="{Loc 'mech-tank-volume-label'}"/>
+                    <BoxContainer Orientation="Horizontal" HorizontalExpand="True" Margin="0 5 0 0">
+                        <Label Name="TankVolumeLabel"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            HorizontalExpand="True"
+                            SetHeight="20" />
+                    </BoxContainer>
             </GridContainer>
         </BoxContainer>
         <customControls:VSeparator/>

@@ -37,3 +37,8 @@
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
     state: mecha_air_tank
   - type: MechGasCylinderModule
+  - type: GasTank
+    outputPressure: 101.3
+    air:
+      volume: 50
+      temperature: 293.15

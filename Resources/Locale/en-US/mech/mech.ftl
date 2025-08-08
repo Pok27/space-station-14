@@ -34,6 +34,8 @@ mech-cabin-gas-level = { $state ->
     [ok] {$level} kPa
     *[na] N/A
 }
+mech-tank-volume-label = Gas Amount:
+mech-tank-volume = {$volume} L
 
 # Fan system
 mech-fan-label = Fan:

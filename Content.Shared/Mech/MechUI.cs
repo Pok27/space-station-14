@@ -181,7 +181,7 @@ public sealed class MechBoundUiState : BoundUserInterfaceState
     public bool FanActive;
     public MechFanState FanState = MechFanState.Off;
     public float CabinGasLevel;
-    public float TankVolume;
+    public float GasAmountLiters;
 
     // Lock system
     public bool DnaLockRegistered;

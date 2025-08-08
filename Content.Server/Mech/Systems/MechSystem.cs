@@ -31,6 +31,8 @@ using Content.Shared.Audio;
 using Content.Shared.Mech.Equipment.Components;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
+using Content.Shared.Atmos.Components;
+using Content.Shared.Atmos;
 
 namespace Content.Server.Mech.Systems;
 
@@ -58,36 +60,20 @@ public sealed partial class MechSystem : SharedMechSystem
 
         SubscribeLocalEvent<MechComponent, InteractUsingEvent>(OnInteractUsing);
         SubscribeLocalEvent<MechComponent, EntInsertedIntoContainerMessage>(OnInsertBattery);
-        SubscribeLocalEvent<MechComponent, MapInitEvent>(OnMapInit);
-        SubscribeLocalEvent<MechComponent, GetVerbsEvent<AlternativeVerb>>(OnAlternativeVerb);
-        SubscribeLocalEvent<MechComponent, MechOpenUiEvent>(OnOpenUi);
         SubscribeLocalEvent<MechComponent, RemoveBatteryEvent>(OnRemoveBattery);
         SubscribeLocalEvent<MechComponent, MechEntryEvent>(OnMechEntry);
         SubscribeLocalEvent<MechComponent, MechExitEvent>(OnMechExit);
-
-        SubscribeLocalEvent<MechComponent, MechEquipmentSelectMessage>(OnEquipmentSelectMessage);
-        SubscribeAllEvent<RequestMechEquipmentSelectEvent>(OnEquipmentSelectRequest);
-        SubscribeLocalEvent<MechComponent, MechModuleRemoveMessage>(OnRemoveModuleMessage);
-
         SubscribeLocalEvent<MechComponent, DamageChangedEvent>(OnDamageChanged);
-        SubscribeLocalEvent<MechComponent, MechEquipmentRemoveMessage>(OnRemoveEquipmentMessage);
-
-        SubscribeLocalEvent<MechComponent, UpdateCanMoveEvent>(OnMechCanMoveEvent);
-
-        SubscribeLocalEvent<MechPilotComponent, ToolUserAttemptUseEvent>(OnToolUseAttempt);
-
-
-        #region Equipment UI message relays
-        SubscribeLocalEvent<MechComponent, MechGrabberEjectMessage>(ReceiveEquipmentUiMesssages);
-        SubscribeLocalEvent<MechComponent, MechSoundboardPlayMessage>(ReceiveEquipmentUiMesssages);
-        #endregion
-
-        #region Lock system
         SubscribeLocalEvent<MechComponent, BoundUserInterfaceMessageAttempt>(OnBoundUIAttempt);
         SubscribeLocalEvent<MechComponent, UpdateMechUiEvent>(OnUpdateMechUi);
-        #endregion
-
-
+        SubscribeLocalEvent<MechComponent, MapInitEvent>(OnMapInit);
+        SubscribeLocalEvent<MechPilotComponent, ToolUserAttemptUseEvent>(OnToolUseAttempt);
+        SubscribeLocalEvent<MechComponent, GetVerbsEvent<AlternativeVerb>>(OnAlternativeVerb);
+        SubscribeLocalEvent<MechComponent, MechEquipmentSelectMessage>(OnEquipmentSelectMessage);
+        SubscribeLocalEvent<RequestMechEquipmentSelectEvent>(OnEquipmentSelectRequest);
+        SubscribeLocalEvent<MechComponent, MechOpenUiEvent>(OnOpenUi);
+        SubscribeLocalEvent<MechComponent, MechEquipmentRemoveMessage>(OnRemoveEquipmentMessage);
+        SubscribeLocalEvent<MechComponent, MechModuleRemoveMessage>(OnRemoveModuleMessage);
     }
 
     private void OnMechCanMoveEvent(EntityUid uid, MechComponent component, UpdateCanMoveEvent args)
@@ -163,13 +149,11 @@ public sealed partial class MechSystem : SharedMechSystem
             InsertEquipment(uid, ent, component);
         }
 
-        // Spawn and insert starting passive modules
         foreach (var module in component.StartingModules)
         {
             var ent = Spawn(module, xform.Coordinates);
             if (TryComp<MechModuleComponent>(ent, out var modComp))
             {
-                // Capacity check
                 var used = 0;
                 foreach (var e in component.ModuleContainer.ContainedEntities)
                 {
@@ -179,13 +163,6 @@ public sealed partial class MechSystem : SharedMechSystem
                 if (used + modComp.Size <= component.MaxModuleSpace)
                 {
                     _container.Insert(ent, component.ModuleContainer);
-
-
-                    if (TryComp<MechGasCylinderModuleComponent>(ent, out var gasModuleComp))
-                    {
-                        var airComp = EnsureComp<MechAirComponent>(uid);
-                        airComp.SetVolume(gasModuleComp.TankVolume);
-                    }
                 }
                 else
                 {
@@ -240,10 +217,6 @@ public sealed partial class MechSystem : SharedMechSystem
             return;
 
         _container.Remove(mod, component.ModuleContainer);
-
-
-        if (HasComp<MechGasCylinderModuleComponent>(mod) && HasComp<MechAirComponent>(uid))
-            RemComp<MechAirComponent>(uid);
 
         UpdateUserInterface(uid, component);
     }
@@ -486,9 +459,27 @@ public sealed partial class MechSystem : SharedMechSystem
         UpdateUserInterface(uid, component);
     }
 
+    public bool TryGetGasModuleAir(EntityUid mechUid, out GasMixture? air)
+    {
+        air = null;
+        if (!TryComp<MechComponent>(mechUid, out var mech))
+            return false;
 
+        foreach (var ent in mech.ModuleContainer.ContainedEntities)
+        {
+            if (TryComp<MechGasCylinderModuleComponent>(ent, out _))
+            {
+                if (TryComp<GasTankComponent>(ent, out var tank))
+                {
+                    air = tank.Air;
+                    return true;
+                }
+                return false;
+            }
+        }
 
-
+        return false;
+    }
 
     public override void UpdateUserInterface(EntityUid uid, MechComponent? component = null)
     {
@@ -511,7 +502,6 @@ public sealed partial class MechSystem : SharedMechSystem
         var fanActive = fanModule?.IsActive ?? false;
         var fanState = fanModule?.State ?? MechFanState.Off;
 
-        // Passive modules presence
         var hasFanModule = false;
         var hasGasModule = false;
         var moduleUsed = 0;
@@ -525,6 +515,19 @@ public sealed partial class MechSystem : SharedMechSystem
                 moduleUsed += m.Size;
         }
 
+        var cabinPressure = 0f;
+        var gasAmountLiters = 0f;
+        if (TryGetGasModuleAir(uid, out var air) && air != null)
+        {
+            cabinPressure = air.Pressure;
+            // Amount in liters at current conditions: use volume directly as storage size, and show current gas volume equivalent
+            // Convert moles to liters at current temperature and pressure: V = n * R * T / P
+            if (cabinPressure > 0)
+                gasAmountLiters = air.TotalMoles * Atmospherics.R * air.Temperature / cabinPressure;
+            else
+                gasAmountLiters = 0f;
+        }
+
         var state = new MechBoundUiState
         {
             Equipment = equipment,
@@ -532,15 +535,14 @@ public sealed partial class MechSystem : SharedMechSystem
             IsAirtight = component.Airtight,
             FanActive = fanActive,
             FanState = fanState,
-            CabinGasLevel = TryComp<MechAirComponent>(uid, out var airComp) ?
-                airComp.Air.Pressure : 0f,
+            CabinGasLevel = cabinPressure,
+            GasAmountLiters = gasAmountLiters,
             HasFanModule = hasFanModule,
             HasGasModule = hasGasModule,
             ModuleSpaceMax = component.MaxModuleSpace,
             ModuleSpaceUsed = moduleUsed
         };
 
-        // Update lock system state if MechLockComponent is present
         if (TryComp<MechLockComponent>(uid, out var lockComp))
         {
             state.DnaLockRegistered = lockComp.DnaLockRegistered;
@@ -579,24 +581,13 @@ public sealed partial class MechSystem : SharedMechSystem
         if (!Resolve(uid, ref component))
             return false;
 
-        if (!base.TryChangeEnergy(uid, delta, component))
+        var newEnergy = component.Energy + delta;
+        if (newEnergy < 0 || newEnergy > component.MaxEnergy)
             return false;
 
-        var battery = component.BatterySlot.ContainedEntity;
-        if (battery == null)
-            return false;
-
-        if (!TryComp<BatteryComponent>(battery, out var batteryComp))
-            return false;
-
-        _battery.SetCharge(battery!.Value, batteryComp.CurrentCharge + delta.Float(), batteryComp);
-        if (batteryComp.CurrentCharge != component.Energy) //if there's a discrepency, we have to resync them
-        {
-            Log.Debug($"Battery charge was not equal to mech charge. Battery {batteryComp.CurrentCharge}. Mech {component.Energy}");
-            component.Energy = batteryComp.CurrentCharge;
-            Dirty(uid, component);
-        }
-        _actionBlocker.UpdateCanMove(uid);
+        component.Energy = newEnergy;
+        Dirty(uid, component);
+        UpdateUserInterface(uid, component);
         return true;
     }
 

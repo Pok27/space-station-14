@@ -168,12 +168,15 @@ public sealed partial class MechMenu : FancyWindow
         var maxPressure = Atmospherics.OneAtmosphere;
         if (state.HasGasModule)
         {
-            CabinGasLabel.Text = Loc.GetString("mech-cabin-gas-level", ("state", "ok"), ("level", $"{state.CabinGasLevel:F1} / {maxPressure:F1}"));
+            CabinGasLabel.Text = Loc.GetString("mech-cabin-gas-level", ("state", "ok"), ("level", $"{state.CabinGasLevel:F1}"));
         }
         else
         {
             CabinGasLabel.Text = Loc.GetString("mech-cabin-gas-level", ("state", "na"));
         }
+
+        // Update gas amount in liters
+        TankVolumeLabel.Text = Loc.GetString("mech-tank-volume", ("volume", state.GasAmountLiters.ToString("F1")));
 
         // Update module capacity label from state too (kept in sync even if local calc misses)
         ModuleSlotDisplay.Text = Loc.GetString("mech-module-slot-display",
