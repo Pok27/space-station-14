@@ -8,6 +8,7 @@
   - type: Item
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
     size: Ginormous
+  - type: MultiHandedItem
   - type: MechModule
   - type: GuideHelp
     guides:
@@ -19,13 +20,26 @@
 - type: entity
   id: MechModuleFan
   parent: MechModuleBase
-  name: mech fan module
-  description: A ventilation unit for mechs.
+  name: mecha_wholegen
+  description: mecha_wholegen.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Mech/mecha_equipment.rsi
+    state: mecha_air_tank # mecha_advanced_wholegen
+  - type: MechFanModule
+
+- type: entity
+  id: MechModuleAdvancedFan
+  parent: MechModuleBase
+  name: mecha_wholegen
+  description: mecha_wholegen.
   components:
   - type: Sprite
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
     state: mecha_air_tank # mecha_wholegen
   - type: MechFanModule
+    energyConsumption: 7.5
+    gasProcessingRate: 1.0
 
 - type: entity
   id: MechModuleGasCylinder
@@ -40,5 +54,19 @@
   - type: GasTank
     outputPressure: 101.3
     air:
-      volume: 50
-      temperature: 293.15
+      volume: 5
+
+- type: entity
+  id: MechModuleAdvancedGasCylinder
+  parent: MechModuleBase
+  name: mech advanced gas cylinder
+  description: Provides internal air storage for airtight mechs.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Mech/mecha_equipment.rsi
+    state: mecha_air_tank # mecha_advanced_air_tank
+  - type: MechGasCylinderModule
+  - type: GasTank
+    outputPressure: 101.3
+    air:
+      volume: 15

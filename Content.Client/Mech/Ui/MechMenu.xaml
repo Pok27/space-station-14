@@ -111,9 +111,9 @@
                             HorizontalExpand="True"
                             SetHeight="20" />
                     </BoxContainer>
-                    <Label StyleClasses="StatusFieldTitle" Text="{Loc 'mech-tank-volume-label'}"/>
+                    <Label StyleClasses="StatusFieldTitle" Text="{Loc 'mech-tank-pressure-label'}"/>
                     <BoxContainer Orientation="Horizontal" HorizontalExpand="True" Margin="0 5 0 0">
-                        <Label Name="TankVolumeLabel"
+                        <Label Name="TankPressureLabel"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
                             HorizontalExpand="True"

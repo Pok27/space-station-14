@@ -28,5 +28,5 @@ public sealed partial class MechFanModuleComponent : Component
     /// How much gas the fan can process per second when active
     /// </summary>
     [DataField, ViewVariables(VVAccess.ReadWrite)]
-    public float GasProcessingRate = 10.0f;
+    public float GasProcessingRate = 0.5f;
 }

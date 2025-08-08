@@ -164,19 +164,14 @@ public sealed partial class MechMenu : FancyWindow
             UpdateFanStatusDisplay(state.FanState);
         }
 
-        // Update cabin gas level
-        var maxPressure = Atmospherics.OneAtmosphere;
-        if (state.HasGasModule)
-        {
-            CabinGasLabel.Text = Loc.GetString("mech-cabin-gas-level", ("state", "ok"), ("level", $"{state.CabinGasLevel:F1}"));
-        }
-        else
-        {
-            CabinGasLabel.Text = Loc.GetString("mech-cabin-gas-level", ("state", "na"));
-        }
+        // Update cabin gas level (always show)
+        CabinGasLabel.Text = Loc.GetString("mech-cabin-pressure-level", ("level", $"{state.CabinGasLevel:F1}"));
 
-        // Update gas amount in liters
-        TankVolumeLabel.Text = Loc.GetString("mech-tank-volume", ("volume", state.GasAmountLiters.ToString("F1")));
+        // Update tank pressure (or N/A if no cylinder)
+        if (state.HasGasModule)
+            TankPressureLabel.Text = Loc.GetString("mech-tank-pressure-level", ("state", "ok"), ("pressure", state.TankPressure.ToString("0.##")));
+        else
+            TankPressureLabel.Text = Loc.GetString("mech-tank-pressure-level", ("state", "na"));
 
         // Update module capacity label from state too (kept in sync even if local calc misses)
         ModuleSlotDisplay.Text = Loc.GetString("mech-module-slot-display",
@@ -192,7 +187,8 @@ public sealed partial class MechMenu : FancyWindow
         {
             MechFanState.Off => "off",
             MechFanState.On => "on",
-            MechFanState.Idle => "idle"
+            MechFanState.Idle => "idle",
+            _ => "off"
         };
         FanStatusLabel.Text = Loc.GetString("mech-fan-status", ("state", stateKey));
     }

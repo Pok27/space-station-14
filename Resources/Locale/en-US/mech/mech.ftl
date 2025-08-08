@@ -29,13 +29,12 @@ mech-module-slot-display = Modules: {$used}/{$max} used
 # Atmospheric system
 mech-air-cabin-label = Cabin air:
 mech-air-toggle = Toggle Cabin
-mech-cabin-gas-label = Cabin Pressure:
-mech-cabin-gas-level = { $state ->
-    [ok] {$level} kPa
+mech-cabin-pressure-level = Cabin Pressure: {$level} kPa
+mech-tank-pressure-label = Tank Pressure:
+mech-tank-pressure-level = { $state ->
+    [ok] {$pressure} kPa
     *[na] N/A
 }
-mech-tank-volume-label = Gas Amount:
-mech-tank-volume = {$volume} L
 
 # Fan system
 mech-fan-label = Fan:

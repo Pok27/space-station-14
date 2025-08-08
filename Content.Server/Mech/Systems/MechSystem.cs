@@ -175,6 +175,9 @@ public sealed partial class MechSystem : SharedMechSystem
             }
         }
 
+        // Ensure cabin pressure component is present for airtight operation
+        EnsureComp<MechCabinPressureComponent>(uid);
+
         component.Integrity = component.MaxIntegrity;
         component.Energy = component.MaxEnergy;
 
@@ -517,13 +520,18 @@ public sealed partial class MechSystem : SharedMechSystem
 
         var cabinPressure = 0f;
         var gasAmountLiters = 0f;
-        if (TryGetGasModuleAir(uid, out var air) && air != null)
+        var tankPressure = 0f;
+        if (TryComp<MechCabinPressureComponent>(uid, out var cabin))
         {
-            cabinPressure = air.Pressure;
-            // Amount in liters at current conditions: use volume directly as storage size, and show current gas volume equivalent
-            // Convert moles to liters at current temperature and pressure: V = n * R * T / P
-            if (cabinPressure > 0)
-                gasAmountLiters = air.TotalMoles * Atmospherics.R * air.Temperature / cabinPressure;
+            cabinPressure = cabin.Air.Pressure;
+        }
+        if (TryGetGasModuleAir(uid, out var tankAir) && tankAir != null)
+        {
+            // Pressure straight from tank and amount in liters
+            tankPressure = tankAir.Pressure;
+            var pressure = MathF.Max(tankAir.Pressure, 0f);
+            if (pressure > 0)
+                gasAmountLiters = tankAir.TotalMoles * Atmospherics.R * tankAir.Temperature / pressure;
             else
                 gasAmountLiters = 0f;
         }
@@ -537,6 +545,7 @@ public sealed partial class MechSystem : SharedMechSystem
             FanState = fanState,
             CabinGasLevel = cabinPressure,
             GasAmountLiters = gasAmountLiters,
+            TankPressure = tankPressure,
             HasFanModule = hasFanModule,
             HasGasModule = hasGasModule,
             ModuleSpaceMax = component.MaxModuleSpace,
