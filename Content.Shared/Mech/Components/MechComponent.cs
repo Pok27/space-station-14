@@ -168,6 +168,12 @@ public sealed partial class MechComponent : Component
     [DataField]
     public List<EntProtoId> StartingEquipment = new();
 
+    /// <summary>
+    /// The passive modules that the mech initially has when it spawns.
+    /// </summary>
+    [DataField]
+    public List<EntProtoId> StartingModules = new();
+
     #region Action Prototypes
     [DataField]
     public EntProtoId MechCycleAction = "ActionMechCycleEquipment";

@@ -52,7 +52,7 @@ public sealed class MechEquipmentRadialUIController
         // Add "No Equipment" option
         options.Add(new RadialMenuActionOption<string>(data =>
         {
-            _entManager.RaisePredictiveEvent(new MechEquipmentSelectMessage(null));
+            _entManager.RaisePredictiveEvent(new RequestMechEquipmentSelectEvent { Equipment = null });
         }, "no_equipment")
         {
             ToolTip = Loc.GetString("mech-radial-no-equipment"),
@@ -95,7 +95,7 @@ public sealed class MechEquipmentRadialUIController
 
             options.Add(new RadialMenuActionOption<string>(data =>
             {
-                _entManager.RaisePredictiveEvent(new MechEquipmentSelectMessage(_entManager.GetNetEntity(equipmentEntity)));
+                _entManager.RaisePredictiveEvent(new RequestMechEquipmentSelectEvent { Equipment = _entManager.GetNetEntity(equipmentEntity) });
             }, metaData.EntityName)
             {
                 ToolTip = tooltip,

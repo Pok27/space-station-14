@@ -1,0 +1,135 @@
+using Content.Server.Popups;
+using Content.Shared.DoAfter;
+using Content.Shared.Interaction;
+using Content.Shared.Mech.Components;
+using Content.Shared.Mech.Equipment.Components;
+using Content.Shared.Whitelist;
+using Content.Server.Mech.Systems;
+using Robust.Server.Containers;
+using Content.Server.Mech.Components;
+using Robust.Shared.GameObjects;
+
+namespace Content.Server.Mech.Systems;
+
+/// <summary>
+/// Handles the insertion of mech passive modules into mechs analogous to equipment, but into a different container.
+/// </summary>
+public sealed class MechModuleSystem : EntitySystem
+{
+    [Dependency] private readonly MechSystem _mech = default!;
+    [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
+    [Dependency] private readonly PopupSystem _popup = default!;
+    [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
+    [Dependency] private readonly ContainerSystem _container = default!;
+
+    public override void Initialize()
+    {
+        SubscribeLocalEvent<MechModuleComponent, AfterInteractEvent>(OnUsed);
+        SubscribeLocalEvent<MechModuleComponent, InsertModuleEvent>(OnInsertModule);
+    }
+
+    private void OnUsed(EntityUid uid, MechModuleComponent module, AfterInteractEvent args)
+    {
+        if (args.Handled || !args.CanReach || args.Target == null)
+            return;
+
+        var mech = args.Target.Value;
+        if (!TryComp<MechComponent>(mech, out var mechComp))
+            return;
+
+        if (mechComp.Broken)
+            return;
+
+        // Block install if pilot inside
+        if (mechComp.PilotSlot.ContainedEntity != null)
+        {
+            _popup.PopupEntity(Loc.GetString("mech-install-blocked-pilot", ("item", uid)), args.User);
+            return;
+        }
+
+        // Cannot install from inside while piloting, same as equipment
+        if (args.User == mechComp.PilotSlot.ContainedEntity)
+            return;
+
+        if (_whitelistSystem.IsWhitelistFail(mechComp.ModuleWhitelist, args.Used))
+            return;
+
+        // Duplicate by prototype id
+        if (TryComp<MetaDataComponent>(uid, out var md) && md.EntityPrototype != null)
+        {
+            var id = md.EntityPrototype.ID;
+            foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
+            {
+                if (TryComp<MetaDataComponent>(ent, out var md2) && md2.EntityPrototype != null && md2.EntityPrototype.ID == id)
+                {
+                    _popup.PopupEntity(Loc.GetString("mech-duplicate-module"), args.User);
+                    return;
+                }
+            }
+        }
+
+        // Duplicate by component type (e.g., only 1 fan, only 1 gas cylinder)
+        var hasFan = false;
+        var hasGas = false;
+        foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
+        {
+            hasFan |= HasComp<MechFanModuleComponent>(ent);
+            hasGas |= HasComp<MechGasCylinderModuleComponent>(ent);
+        }
+        if ((hasFan && HasComp<MechFanModuleComponent>(uid)) || (hasGas && HasComp<MechGasCylinderModuleComponent>(uid)))
+        {
+            _popup.PopupEntity(Loc.GetString("mech-duplicate-module"), args.User);
+            return;
+        }
+
+        // Capacity check (sum sizes in module container)
+        var used = 0;
+        foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
+        {
+            if (TryComp<MechModuleComponent>(ent, out var m))
+                used += m.Size;
+        }
+        if (used + module.Size > mechComp.MaxModuleSpace)
+        {
+            _popup.PopupEntity(Loc.GetString("mech-capacity-modules-full"), args.User);
+            return;
+        }
+
+        _popup.PopupEntity(Loc.GetString("mech-equipment-begin-install", ("item", uid)), mech);
+
+        var doAfterEventArgs = new DoAfterArgs(EntityManager, args.User, module.InstallDuration, new InsertModuleEvent(), uid, target: mech, used: uid)
+        {
+            BreakOnMove = true,
+        };
+
+        _doAfter.TryStartDoAfter(doAfterEventArgs);
+    }
+
+    private void OnInsertModule(EntityUid uid, MechModuleComponent module, InsertModuleEvent args)
+    {
+        if (args.Handled || args.Cancelled || args.Args.Target == null)
+            return;
+
+        var mech = args.Args.Target.Value;
+        if (!TryComp<MechComponent>(mech, out var mechComp))
+            return;
+
+        // Insert into module container
+        _container.Insert(uid, mechComp.ModuleContainer);
+
+        // Apply module effects (mech-level internal air tank)
+        if (HasComp<MechGasCylinderModuleComponent>(uid))
+        {
+            var air = EnsureComp<MechAirComponent>(mech);
+            if (TryComp<MechGasCylinderModuleComponent>(uid, out var cyl))
+            {
+                air.SetVolume(cyl.TankVolume);
+            }
+        }
+
+        _popup.PopupEntity(Loc.GetString("mech-equipment-finish-install", ("item", uid)), mech);
+        _mech.UpdateUserInterface(mech, mechComp);
+
+        args.Handled = true;
+    }
+}

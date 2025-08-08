@@ -21,6 +21,7 @@ public sealed partial class MechMenu : FancyWindow
     private bool _hasAccess = true;
 
     public event Action<EntityUid>? OnRemoveButtonPressed;
+    public event Action<EntityUid>? OnRemoveModuleButtonPressed;
 
     public Action<string>? NameChanged;
 
@@ -123,8 +124,16 @@ public sealed partial class MechMenu : FancyWindow
             EnergyDisplay.Text = Loc.GetString("mech-energy-missing");
         }
 
-        SlotDisplay.Text = Loc.GetString("mech-slot-display",
-            ("amount", mechComp.MaxEquipmentAmount - mechComp.EquipmentContainer.ContainedEntities.Count));
+        var equipUsed = mechComp.EquipmentContainer.ContainedEntities.Count;
+        SlotDisplay.Text = Loc.GetString("mech-equipment-slot-display",
+            ("used", equipUsed), ("max", mechComp.MaxEquipmentAmount));
+
+        // Module capacity label uses consumed space out of total
+        var usedSpace = 0;
+        foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
+            usedSpace += _ent.GetComponentOrNull<MechModuleComponent>(ent)?.Size ?? 1;
+        ModuleSlotDisplay.Text = Loc.GetString("mech-module-slot-display",
+            ("used", usedSpace), ("max", mechComp.MaxModuleSpace));
     }
 
     public void UpdateState(MechBoundUiState state)
@@ -164,6 +173,10 @@ public sealed partial class MechMenu : FancyWindow
         {
             CabinGasLabel.Text = Loc.GetString("mech-cabin-gas-level", ("state", "na"));
         }
+
+        // Update module capacity label from state too (kept in sync even if local calc misses)
+        ModuleSlotDisplay.Text = Loc.GetString("mech-module-slot-display",
+            ("used", state.ModuleSpaceUsed), ("max", state.ModuleSpaceMax));
 
         UpdateLockButtons(state);
         UpdateLockInfoLabels(state);
@@ -293,6 +306,32 @@ public sealed partial class MechMenu : FancyWindow
             control.OnRemoveButtonPressed += () => OnRemoveButtonPressed?.Invoke(entityToRemove);
 
             EquipmentControlContainer.AddChild(control);
+        }
+    }
+
+    public void UpdateModuleView(List<NetEntity>? modules = null)
+    {
+        if (modules == null)
+        {
+            if (!_ent.TryGetComponent<MechComponent>(_mech, out var mechComp))
+                return;
+            modules = new List<NetEntity>();
+            foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
+                modules.Add(_ent.GetNetEntity(ent));
+        }
+
+        ModuleControlContainer.Children.Clear();
+        foreach (var netEnt in modules)
+        {
+            var ent = _ent.GetEntity(netEnt);
+            if (!_ent.TryGetComponent<MetaDataComponent>(ent, out var metaData))
+                continue;
+
+            var size = _ent.GetComponentOrNull<MechModuleComponent>(ent)?.Size ?? 1;
+            var control = new MechEquipmentControl(ent, metaData.EntityName, null, size);
+            var entityToRemove = ent;
+            control.OnRemoveButtonPressed += () => OnRemoveModuleButtonPressed?.Invoke(entityToRemove);
+            ModuleControlContainer.AddChild(control);
         }
     }
 }

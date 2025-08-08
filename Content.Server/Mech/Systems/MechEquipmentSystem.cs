@@ -4,6 +4,7 @@ using Content.Shared.Interaction;
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.Equipment.Components;
 using Content.Shared.Whitelist;
+using Robust.Shared.GameObjects;
 
 namespace Content.Server.Mech.Systems;
 
@@ -36,11 +37,35 @@ public sealed class MechEquipmentSystem : EntitySystem
         if (mechComp.Broken)
             return;
 
+        // Block install if pilot inside
+        if (mechComp.PilotSlot.ContainedEntity != null)
+        {
+            _popup.PopupEntity(Loc.GetString("mech-install-blocked-pilot", ("item", uid)), args.User);
+            return;
+        }
+
         if (args.User == mechComp.PilotSlot.ContainedEntity)
             return;
 
+        // Duplicate by prototype id
+        if (TryComp<MetaDataComponent>(uid, out var md) && md.EntityPrototype != null)
+        {
+            var id = md.EntityPrototype.ID;
+            foreach (var ent in mechComp.EquipmentContainer.ContainedEntities)
+            {
+                if (TryComp<MetaDataComponent>(ent, out var md2) && md2.EntityPrototype != null && md2.EntityPrototype.ID == id)
+                {
+                    _popup.PopupEntity(Loc.GetString("mech-duplicate-equipment"), args.User);
+                    return;
+                }
+            }
+        }
+
         if (mechComp.EquipmentContainer.ContainedEntities.Count >= mechComp.MaxEquipmentAmount)
+        {
+            _popup.PopupEntity(Loc.GetString("mech-capacity-equipment-full"), args.User);
             return;
+        }
 
         if (_whitelistSystem.IsWhitelistFail(mechComp.EquipmentWhitelist, args.Used))
             return;

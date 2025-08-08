@@ -995,6 +995,9 @@
   id: MechThruster
 
 - type: Tag
+  id: MechModule
+
+- type: Tag
   id: Medal
 
 - type: Tag

@@ -75,7 +75,7 @@ public abstract partial class SharedMechSystem : EntitySystem
 
         if (_net.IsServer)
         {
-            CycleEquipment(uid);
+            // Сервер не циклично переключает при нажатии; клиент откроет радиалку предиктивно
             args.Handled = true;
         }
         else
@@ -187,40 +187,6 @@ public abstract partial class SharedMechSystem : EntitySystem
     }
 
     /// <summary>
-    /// Cycles through the currently selected equipment.
-    /// </summary>
-    /// <param name="uid"></param>
-    /// <param name="component"></param>
-    public void CycleEquipment(EntityUid uid, MechComponent? component = null)
-    {
-        if (!Resolve(uid, ref component))
-            return;
-
-        var allEquipment = component.EquipmentContainer.ContainedEntities.ToList();
-
-        var equipmentIndex = -1;
-        if (component.CurrentSelectedEquipment != null)
-        {
-            bool StartIndex(EntityUid u) => u == component.CurrentSelectedEquipment;
-            equipmentIndex = allEquipment.FindIndex(StartIndex);
-        }
-
-        equipmentIndex++;
-        component.CurrentSelectedEquipment = equipmentIndex >= allEquipment.Count
-            ? null
-            : allEquipment[equipmentIndex];
-
-        var popupString = component.CurrentSelectedEquipment != null
-            ? Loc.GetString("mech-equipment-select-popup", ("item", component.CurrentSelectedEquipment))
-            : Loc.GetString("mech-equipment-select-none-popup");
-
-        if (_net.IsServer)
-            _popup.PopupEntity(popupString, uid);
-
-        Dirty(uid, component);
-    }
-
-    /// <summary>
     /// Inserts an equipment item into the mech.
     /// </summary>
     /// <param name="uid"></param>
@@ -278,7 +244,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         RaiseLocalEvent(toRemove, ref ev);
 
         if (component.CurrentSelectedEquipment == toRemove)
-            CycleEquipment(uid, component);
+            component.CurrentSelectedEquipment = null;
 
         equipmentComponent.EquipmentOwner = null;
         _container.Remove(toRemove, component.EquipmentContainer);

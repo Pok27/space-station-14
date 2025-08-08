@@ -12,6 +12,9 @@
   - type: GuideHelp
     guides:
     - Robotics
+  - type: Tag
+    tags:
+    - MechModule
 
 - type: entity
   id: MechModuleFan

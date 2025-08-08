@@ -181,6 +181,7 @@ public sealed class MechBoundUiState : BoundUserInterfaceState
     public bool FanActive;
     public MechFanState FanState = MechFanState.Off;
     public float CabinGasLevel;
+    public float TankVolume;
 
     // Lock system
     public bool DnaLockRegistered;
@@ -195,6 +196,10 @@ public sealed class MechBoundUiState : BoundUserInterfaceState
     // Passive modules presence
     public bool HasFanModule;
     public bool HasGasModule;
+
+    // Module capacity
+    public int ModuleSpaceMax;
+    public int ModuleSpaceUsed;
 }
 
 [Serializable, NetSerializable]

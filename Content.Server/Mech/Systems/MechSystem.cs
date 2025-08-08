@@ -72,6 +72,7 @@ public sealed partial class MechSystem : SharedMechSystem
         SubscribeLocalEvent<MechComponent, MechAirtightMessage>(OnAirtightMessage);
         SubscribeLocalEvent<MechComponent, MechFanToggleMessage>(OnFanToggleMessage);
         SubscribeLocalEvent<MechComponent, MechEquipmentSelectMessage>(OnEquipmentSelectMessage);
+        SubscribeAllEvent<RequestMechEquipmentSelectEvent>(OnEquipmentSelectRequest);
         SubscribeLocalEvent<MechComponent, MechModuleRemoveMessage>(OnRemoveModuleMessage);
 
         SubscribeLocalEvent<MechComponent, DamageChangedEvent>(OnDamageChanged);
@@ -84,7 +85,7 @@ public sealed partial class MechSystem : SharedMechSystem
         SubscribeLocalEvent<MechPilotComponent, ExhaleLocationEvent>(OnExhale);
         SubscribeLocalEvent<MechPilotComponent, AtmosExposedGetAirEvent>(OnExpose);
 
-        SubscribeLocalEvent<MechAirComponent, GetFilterAirEvent>(OnGetFilterAir);
+        // Removed MechAirComponent; no filter air subscription
 
         #region Equipment UI message relays
         SubscribeLocalEvent<MechComponent, MechGrabberEjectMessage>(ReceiveEquipmentUiMesssages);
@@ -96,9 +97,7 @@ public sealed partial class MechSystem : SharedMechSystem
         SubscribeLocalEvent<MechComponent, UpdateMechUiEvent>(OnUpdateMechUi);
         #endregion
 
-        // Passive modules: mirror equipment workflow via AfterInteract on the module
-        SubscribeLocalEvent<MechModuleComponent, AfterInteractEvent>(OnModuleUsed);
-        SubscribeLocalEvent<MechModuleComponent, InsertModuleEvent>(OnInsertModuleDoAfter);
+
     }
 
     private void OnMechCanMoveEvent(EntityUid uid, MechComponent component, UpdateCanMoveEvent args)
@@ -141,64 +140,6 @@ public sealed partial class MechSystem : SharedMechSystem
         // Passive modules insert/remove mirror active equipment via UI; no prying removal here.
     }
 
-    private void OnModuleUsed(EntityUid uid, MechModuleComponent moduleComp, AfterInteractEvent args)
-    {
-        if (args.Handled || !args.CanReach || args.Target == null)
-            return;
-
-        var mech = args.Target.Value;
-        if (!TryComp<MechComponent>(mech, out var mechComp))
-            return;
-
-        if (mechComp.Broken)
-            return;
-
-        if (_whitelistSystem.IsWhitelistFail(mechComp.ModuleWhitelist, uid))
-            return;
-
-        // Capacity check
-        var used = 0;
-        foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
-        {
-            if (TryComp<MechModuleComponent>(ent, out var p))
-                used += p.Size;
-        }
-        if (used + moduleComp.Size > mechComp.MaxModuleSpace)
-            return;
-
-        _popup.PopupEntity(Loc.GetString("mech-equipment-begin-install", ("item", uid)), mech);
-
-        var doAfterEventArgs = new DoAfterArgs(EntityManager, args.User, moduleComp.InstallDuration, new InsertModuleEvent(), uid, target: mech, used: uid)
-        {
-            BreakOnMove = true,
-        };
-
-        _doAfter.TryStartDoAfter(doAfterEventArgs);
-    }
-
-    private void OnInsertModuleDoAfter(EntityUid uid, MechModuleComponent moduleComp, InsertModuleEvent args)
-    {
-        if (args.Handled || args.Cancelled || args.Args.Target == null)
-            return;
-
-        var mech = args.Args.Target.Value;
-        if (!TryComp<MechComponent>(mech, out var mechComp))
-            return;
-
-        _container.Insert(uid, mechComp.ModuleContainer);
-
-        // Apply module effects
-        if (HasComp<MechFanModuleComponent>(uid) && !HasComp<MechFanComponent>(mech))
-            EnsureComp<MechFanComponent>(mech);
-        if (HasComp<MechGasCylinderModuleComponent>(uid))
-            EnsureComp<MechAirComponent>(mech);
-
-        _popup.PopupEntity(Loc.GetString("mech-equipment-finish-install", ("item", uid)), mech);
-        UpdateUserInterface(mech, mechComp);
-
-        args.Handled = true;
-    }
-
     private void OnInsertBattery(EntityUid uid, MechComponent component, EntInsertedIntoContainerMessage args)
     {
         if (args.Container != component.BatterySlot || !TryComp<BatteryComponent>(args.Entity, out var battery))
@@ -234,6 +175,36 @@ public sealed partial class MechSystem : SharedMechSystem
             InsertEquipment(uid, ent, component);
         }
 
+        // Spawn and insert starting passive modules
+        foreach (var module in component.StartingModules)
+        {
+            var ent = Spawn(module, xform.Coordinates);
+            if (TryComp<MechModuleComponent>(ent, out var modComp))
+            {
+                // Capacity check
+                var used = 0;
+                foreach (var e in component.ModuleContainer.ContainedEntities)
+                {
+                    if (TryComp<MechModuleComponent>(e, out var m))
+                        used += m.Size;
+                }
+                if (used + modComp.Size <= component.MaxModuleSpace)
+                {
+                    _container.Insert(ent, component.ModuleContainer);
+
+                    // No additional components to add
+                }
+                else
+                {
+                    Del(ent);
+                }
+            }
+            else
+            {
+                Del(ent);
+            }
+        }
+
         // TODO: this should just be damage and battery
         component.Integrity = component.MaxIntegrity;
         component.Energy = component.MaxEnergy;
@@ -244,6 +215,12 @@ public sealed partial class MechSystem : SharedMechSystem
 
     private void OnRemoveEquipmentMessage(EntityUid uid, MechComponent component, MechEquipmentRemoveMessage args)
     {
+        // Block removal if a pilot is present
+        if (component.PilotSlot.ContainedEntity != null)
+        {
+            _popup.PopupEntity(Loc.GetString("mech-remove-blocked-pilot"), uid);
+            return;
+        }
         var equip = GetEntity(args.Equipment);
 
         if (!Exists(equip) || Deleted(equip))
@@ -257,6 +234,12 @@ public sealed partial class MechSystem : SharedMechSystem
 
     private void OnRemoveModuleMessage(EntityUid uid, MechComponent component, MechModuleRemoveMessage args)
     {
+        // Block removal if a pilot is present
+        if (component.PilotSlot.ContainedEntity != null)
+        {
+            _popup.PopupEntity(Loc.GetString("mech-remove-blocked-pilot"), uid);
+            return;
+        }
         var mod = GetEntity(args.Module);
         if (!Exists(mod) || Deleted(mod))
             return;
@@ -266,10 +249,7 @@ public sealed partial class MechSystem : SharedMechSystem
 
         _container.Remove(mod, component.ModuleContainer);
 
-        if (HasComp<MechFanModuleComponent>(mod) && HasComp<MechFanComponent>(uid))
-            RemComp<MechFanComponent>(uid);
-        if (HasComp<MechGasCylinderModuleComponent>(mod) && HasComp<MechAirComponent>(uid))
-            RemComp<MechAirComponent>(uid);
+        // No dedicated components to remove; state resides on modules
 
         UpdateUserInterface(uid, component);
     }
@@ -281,7 +261,7 @@ public sealed partial class MechSystem : SharedMechSystem
 
         // UI can always be opened, access control is handled in the UI itself
         args.Handled = true;
-        ToggleMechUi(uid, component);
+        ToggleMechUi(uid, component, user);
     }
 
     private void OnAirtightMessage(EntityUid uid, MechComponent component, MechAirtightMessage args)
@@ -293,11 +273,16 @@ public sealed partial class MechSystem : SharedMechSystem
 
     private void OnFanToggleMessage(EntityUid uid, MechComponent component, MechFanToggleMessage args)
     {
-        if (!TryComp<MechFanComponent>(uid, out var fanComp))
-            return;
-
-        fanComp.IsActive = args.IsActive;
-        Dirty(uid, fanComp);
+        // Toggle the fan module's IsActive
+        foreach (var ent in component.ModuleContainer.ContainedEntities)
+        {
+            if (TryComp<MechFanModuleComponent>(ent, out var fan))
+            {
+                fan.IsActive = args.IsActive;
+                Dirty(ent, fan);
+                break;
+            }
+        }
         UpdateUserInterface(uid, component);
     }
 
@@ -306,6 +291,7 @@ public sealed partial class MechSystem : SharedMechSystem
         if (args.Equipment == null)
         {
             component.CurrentSelectedEquipment = null;
+            _popup.PopupEntity(Loc.GetString("mech-equipment-select-none-popup"), uid);
         }
         else
         {
@@ -313,10 +299,40 @@ public sealed partial class MechSystem : SharedMechSystem
             if (Exists(equipment) && component.EquipmentContainer.ContainedEntities.Any(e => e == equipment))
             {
                 component.CurrentSelectedEquipment = equipment;
+                _popup.PopupEntity(Loc.GetString("mech-equipment-select-popup", ("item", equipment)), uid);
             }
         }
 
         Dirty(uid, component);
+    }
+
+    private void OnEquipmentSelectRequest(RequestMechEquipmentSelectEvent args, EntitySessionEventArgs session)
+    {
+        var user = session.SenderSession.AttachedEntity;
+        if (user == null)
+            return;
+        if (!TryComp<MechPilotComponent>(user.Value, out var pilot))
+            return;
+        var mech = pilot.Mech;
+        if (!TryComp<MechComponent>(mech, out var mechComp))
+            return;
+
+        if (args.Equipment == null)
+        {
+            mechComp.CurrentSelectedEquipment = null;
+            _popup.PopupEntity(Loc.GetString("mech-equipment-select-none-popup"), mech);
+        }
+        else
+        {
+            var equipment = GetEntity(args.Equipment);
+            if (Exists(equipment) && mechComp.EquipmentContainer.ContainedEntities.Any(e => e == equipment))
+            {
+                mechComp.CurrentSelectedEquipment = equipment;
+                _popup.PopupEntity(Loc.GetString("mech-equipment-select-popup", ("item", equipment)), mech);
+            }
+        }
+
+        Dirty(mech, mechComp);
     }
 
     private void OnToolUseAttempt(EntityUid uid, MechPilotComponent component, ref ToolUserAttemptUseEvent args)
@@ -329,6 +345,14 @@ public sealed partial class MechSystem : SharedMechSystem
     {
         if (!args.CanAccess || !args.CanInteract || component.Broken)
             return;
+
+        // Always add UI open verb
+        var openUiVerb = new AlternativeVerb
+        {
+            Act = () => ToggleMechUi(uid, component, args.User),
+            Text = Loc.GetString("mech-ui-open-verb")
+        };
+        args.Verbs.Add(openUiVerb);
 
         if (CanInsert(uid, args.User, component))
         {
@@ -345,13 +369,7 @@ public sealed partial class MechSystem : SharedMechSystem
                     _doAfter.TryStartDoAfter(doAfterEventArgs);
                 }
             };
-            var openUiVerb = new AlternativeVerb //can't hijack someone else's mech
-            {
-                Act = () => ToggleMechUi(uid, component, args.User),
-                Text = Loc.GetString("mech-ui-open-verb")
-            };
             args.Verbs.Add(enterVerb);
-            args.Verbs.Add(openUiVerb);
         }
         else if (!IsEmpty(component))
         {
@@ -501,71 +519,70 @@ public sealed partial class MechSystem : SharedMechSystem
         base.Update(frameTime);
 
         // Update fan energy consumption and gas processing
-        var query = EntityQueryEnumerator<MechComponent, MechFanComponent>();
-        while (query.MoveNext(out var uid, out var mechComp, out var fanComp))
+        var query = EntityQueryEnumerator<MechComponent>();
+        while (query.MoveNext(out var uid, out var mechComp))
         {
-            if (!fanComp.IsActive)
+            // Find fan module if present
+            MechFanModuleComponent? fanMod = null;
+            EntityUid fanModUid = default;
+            var hasGasModule = false;
+            foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
             {
-                fanComp.State = MechFanState.Off;
-                Dirty(uid, fanComp);
+                if (!hasGasModule && HasComp<MechGasCylinderModuleComponent>(ent))
+                    hasGasModule = true;
+                if (fanMod == null && TryComp<MechFanModuleComponent>(ent, out var fm))
+                {
+                    fanMod = fm;
+                    fanModUid = ent;
+                }
+            }
+
+            if (fanMod == null)
+                continue;
+
+            if (!fanMod.IsActive)
+            {
+                fanMod.State = MechFanState.Off;
+                Dirty(fanModUid, fanMod);
                 continue;
             }
 
-            // Check if there's suitable atmosphere for gas processing
-            var canProcessGas = CanProcessGas(uid, mechComp);
-
-            if (canProcessGas)
+            // Require airtight and gas module
+            if (!mechComp.Airtight || !hasGasModule)
             {
-                // Consume energy from battery
-                var energyConsumption = fanComp.EnergyConsumption * frameTime;
-                if (TryChangeEnergy(uid, -energyConsumption, mechComp))
-                {
-                    fanComp.State = MechFanState.On;
-                    // Process gas here if needed
-                }
-                else
-                {
-                    // If not enough energy, turn off fan
-                    fanComp.IsActive = false;
-                    fanComp.State = MechFanState.Off;
-                }
+                fanMod.State = MechFanState.Off;
+                Dirty(fanModUid, fanMod);
+                continue;
+            }
+
+            // External atmosphere availability
+            var external = _atmosphere.GetContainingMixture(uid);
+            var externalOk = external != null && external.Pressure > 0.5f;
+            var externalPressure = external?.Pressure ?? 0f;
+
+            // Internal pressure surrogate: track in Bound UI state using CabinGasLevel (already updated elsewhere). Here, re-evaluate via last known cabin pressure in UI is not accessible.
+            // Fallback: use HasFan/Gas presence; Idle if external not ok
+            if (!externalOk)
+            {
+                fanMod.State = MechFanState.Idle;
+                Dirty(fanModUid, fanMod);
+                continue;
+            }
+
+            // Consume energy
+            var energyConsumption = fanMod.EnergyConsumption * frameTime;
+            if (TryChangeEnergy(uid, -energyConsumption, mechComp))
+            {
+                fanMod.State = MechFanState.On;
             }
             else
             {
-                // Fan is active but can't process gas - idle state (no energy consumption)
-                fanComp.State = MechFanState.Idle;
+                fanMod.IsActive = false;
+                fanMod.State = MechFanState.Off;
             }
 
-            Dirty(uid, fanComp);
+            Dirty(fanModUid, fanMod);
         }
-    }
-
-    /// <summary>
-    /// Checks if the fan can process gas based on atmospheric conditions
-    /// </summary>
-    private bool CanProcessGas(EntityUid uid, MechComponent mechComp)
-    {
-        // Require airtight and gas cylinder module to process
-        if (!mechComp.Airtight)
-            return false;
-
-        if (!TryComp<MechAirComponent>(uid, out var _))
-            return false;
-
-        // Must have gas cylinder module installed
-        var hasGasModule = false;
-        foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
-        {
-            if (HasComp<MechGasCylinderModuleComponent>(ent))
-            {
-                hasGasModule = true;
-                break;
-            }
-        }
-        if (!hasGasModule)
-            return false;
-
-        return true;
     }
 
     public override void UpdateUserInterface(EntityUid uid, MechComponent? component = null)
@@ -585,19 +602,41 @@ public sealed partial class MechSystem : SharedMechSystem
             Modules.Add(GetNetEntity(ent));
         }
 
-        var fanActive = TryComp<MechFanComponent>(uid, out var fanComp) && fanComp.IsActive;
-        var fanState = fanComp?.State ?? MechFanState.Off;
-
         // Passive modules presence
         var hasFanModule = false;
         var hasGasModule = false;
+        var moduleUsed = 0;
+        float tankVolume = 0f;
         foreach (var ent in component.ModuleContainer.ContainedEntities)
         {
             if (HasComp<MechFanModuleComponent>(ent))
                 hasFanModule = true;
             if (HasComp<MechGasCylinderModuleComponent>(ent))
+            {
                 hasGasModule = true;
+                if (TryComp<MechGasCylinderModuleComponent>(ent, out var cyl))
+                    tankVolume = cyl.TankVolume;
+            }
+            if (TryComp<MechModuleComponent>(ent, out var m))
+                moduleUsed += m.Size;
         }
+
+        // Fan state
+        var fanActive = false;
+        var fanState = MechFanState.Off;
+        foreach (var ent in component.ModuleContainer.ContainedEntities)
+        {
+            if (TryComp<MechFanModuleComponent>(ent, out var fan))
+            {
+                fanActive = fan.IsActive;
+                fanState = fan.State;
+                break;
+            }
+        }
+
+        var external = _atmosphere.GetContainingMixture(uid);
+        var externalOk = external != null && external.Pressure > 0.5f;
+        var externalPressure = external?.Pressure ?? 0f;
 
         var state = new MechBoundUiState
         {
@@ -606,13 +645,14 @@ public sealed partial class MechSystem : SharedMechSystem
             IsAirtight = component.Airtight,
             FanActive = fanActive,
             FanState = fanState,
-            CabinGasLevel = TryComp<MechAirComponent>(uid, out var airComp) ?
-                airComp.Air.Pressure : 0f,
+            CabinGasLevel = externalPressure,
+            TankVolume = tankVolume,
             HasFanModule = hasFanModule,
-            HasGasModule = hasGasModule
+            HasGasModule = hasGasModule,
+            ModuleSpaceMax = component.MaxModuleSpace,
+            ModuleSpaceUsed = moduleUsed
         };
 
-        // Update lock system state if MechLockComponent is present
         if (TryComp<MechLockComponent>(uid, out var lockComp))
         {
             state.DnaLockRegistered = lockComp.DnaLockRegistered;
@@ -713,29 +753,21 @@ public sealed partial class MechSystem : SharedMechSystem
     #region Atmos Handling
     private void OnInhale(EntityUid uid, MechPilotComponent component, InhaleLocationEvent args)
     {
-        if (!TryComp<MechComponent>(component.Mech, out var mech) ||
-            !TryComp<MechAirComponent>(component.Mech, out var mechAir))
-        {
+        // Without internal tank component we always use external air when not airtight
+        if (!TryComp<MechComponent>(component.Mech, out var mech))
             return;
-        }
-
-        if (mech.Airtight)
-            args.Gas = mechAir.Air;
-
+        if (!mech.Airtight)
+            return;
+        // Airtight but no internal tank supported anymore; do nothing
         UpdateUserInterface(component.Mech, mech);
     }
 
     private void OnExhale(EntityUid uid, MechPilotComponent component, ExhaleLocationEvent args)
     {
-        if (!TryComp<MechComponent>(component.Mech, out var mech) ||
-            !TryComp<MechAirComponent>(component.Mech, out var mechAir))
-        {
+        if (!TryComp<MechComponent>(component.Mech, out var mech))
             return;
-        }
-
-        if (mech.Airtight)
-            args.Gas = mechAir.Air;
-
+        if (!mech.Airtight)
+            return;
         UpdateUserInterface(component.Mech, mech);
     }
 
@@ -743,33 +775,12 @@ public sealed partial class MechSystem : SharedMechSystem
     {
         if (args.Handled)
             return;
-
         if (!TryComp(component.Mech, out MechComponent? mech))
             return;
-
-        if (mech.Airtight && TryComp(component.Mech, out MechAirComponent? air))
-        {
-            args.Handled = true;
-            args.Gas = air.Air;
-            return;
-        }
-
+        // If airtight without internal tank, just use external mixture
         args.Gas = _atmosphere.GetContainingMixture(component.Mech, excite: args.Excite);
         args.Handled = true;
-
         UpdateUserInterface(component.Mech, mech);
-    }
-
-    private void OnGetFilterAir(EntityUid uid, MechAirComponent component, ref GetFilterAirEvent args)
-    {
-        if (args.Air != null)
-            return;
-
-        // only airtight mechs get internal air
-        if (!TryComp<MechComponent>(uid, out var mech) || !mech.Airtight)
-            return;
-
-        args.Air = component.Air;
     }
     #endregion
 }

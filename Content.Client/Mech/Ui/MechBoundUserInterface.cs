@@ -16,7 +16,6 @@ public sealed class MechBoundUserInterface : BoundUserInterface
     [ViewVariables]
     private MechMenu? _menu;
     private BuiPredictionState? _pred;
-    private TimeSpan _lastStatsUpdate;
 
     public MechBoundUserInterface(EntityUid owner, Enum uiKey) : base(owner, uiKey)
     {
@@ -34,6 +33,10 @@ public sealed class MechBoundUserInterface : BoundUserInterface
         _menu.OnRemoveButtonPressed += uid =>
         {
             _pred!.SendMessage(new MechEquipmentRemoveMessage(EntMan.GetNetEntity(uid)));
+        };
+        _menu.OnRemoveModuleButtonPressed += uid =>
+        {
+            _pred!.SendMessage(new MechModuleRemoveMessage(EntMan.GetNetEntity(uid)));
         };
 
         _menu.OnAirtightChanged += isAirtight =>
@@ -88,19 +91,14 @@ public sealed class MechBoundUserInterface : BoundUserInterface
         {
             if (predMsg is MechEquipmentRemoveMessage removeMsg)
                 msg.Equipment.Remove(removeMsg.Equipment);
+            if (predMsg is MechModuleRemoveMessage removeModMsg)
+                msg.Modules.Remove(removeModMsg.Module);
         }
 
         _menu.UpdateState(msg);
 
-        // Throttle stats updates to avoid UI spam (e.g., fan energy consumption)
-        var timing = IoCManager.Resolve<IClientGameTiming>();
-        if (timing.CurTime - _lastStatsUpdate > TimeSpan.FromSeconds(0.25))
-        {
-            _menu.UpdateMechStats();
-            _lastStatsUpdate = timing.CurTime;
-        }
-
         _menu.UpdateEquipmentView(msg.Equipment);
+        _menu.UpdateModuleView(msg.Modules);
     }
 
     protected override void Dispose(bool disposing)

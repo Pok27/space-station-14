@@ -16,7 +16,10 @@ mech-menu-title = mech control panel
 mech-integrity-display = Integrity: {$amount}%
 mech-energy-display = Energy: {$amount}%
 mech-energy-missing = Energy: MISSING
-mech-slot-display = Open Slots: {$amount}
+mech-equipment-slot-display = Equipment: {$used}/{$max} used
+mech-equipment-label = Equipment
+mech-modules-label = Modules
+mech-module-slot-display = Modules: {$used}/{$max} used
 
 mech-air-cabin-label = Cabin air:
 mech-air-toggle = Toggle Cabin
@@ -40,6 +43,14 @@ mech-cabin-gas-level = { $state ->
 mech-no-enter = You cannot pilot this.
 
 mech-eject-pilot-alert = {$user} is pulling the pilot out of the {$item}!
+
+# Constraints
+mech-install-blocked-pilot = Cannot install while a pilot is inside!
+mech-remove-blocked-pilot = Cannot remove while a pilot is inside!
+mech-capacity-equipment-full = No free equipment slots.
+mech-capacity-modules-full = No free module capacity.
+mech-duplicate-equipment = Identical equipment already installed.
+mech-duplicate-module = Identical module already installed.
 
 # Lock system
 mech-lock-dna-label = DNA Lock:

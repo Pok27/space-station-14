@@ -64,3 +64,9 @@ public sealed partial class MechOpenUiEvent : InstantActionEvent
 public sealed partial class MechEjectPilotEvent : InstantActionEvent
 {
 }
+
+[Serializable, NetSerializable]
+public sealed partial class RequestMechEquipmentSelectEvent : EntityEventArgs
+{
+    public NetEntity? Equipment;
+}
