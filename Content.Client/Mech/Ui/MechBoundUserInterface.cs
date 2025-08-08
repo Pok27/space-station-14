@@ -105,6 +105,6 @@ public sealed class MechBoundUserInterface : BoundUserInterface
     {
         base.Dispose(disposing);
         if (disposing)
-            _menu?.Dispose();
+            _menu?.Close();
     }
 }

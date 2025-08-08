@@ -43,7 +43,6 @@ public abstract partial class SharedMechSystem : EntitySystem
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
     [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
-    [Dependency] private readonly SharedUserInterfaceSystem _ui = default!;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -99,7 +98,6 @@ public abstract partial class SharedMechSystem : EntitySystem
         if (pilot == null)
             return;
 
-        // TODO why is this being blocked?
         if (!_timing.IsFirstTimePredicted)
             return;
 
@@ -480,35 +478,21 @@ public abstract partial class SharedMechSystem : EntitySystem
     }
 }
 
-/// <summary>
-///     Event raised when the battery is successfully removed from the mech,
-///     on both success and failure
-/// </summary>
 [Serializable, NetSerializable]
 public sealed partial class RemoveBatteryEvent : SimpleDoAfterEvent
 {
 }
 
-/// <summary>
-///     Event raised when a person removes someone from a mech,
-///     on both success and failure
-/// </summary>
 [Serializable, NetSerializable]
 public sealed partial class MechExitEvent : SimpleDoAfterEvent
 {
 }
 
-/// <summary>
-///     Event raised when a person enters a mech, on both success and failure
-/// </summary>
 [Serializable, NetSerializable]
 public sealed partial class MechEntryEvent : SimpleDoAfterEvent
 {
 }
 
-/// <summary>
-///     Event raised when a passive module is removed from the mech via tool
-/// </summary>
 [Serializable, NetSerializable]
 public sealed partial class RemoveModuleEvent : SimpleDoAfterEvent
 {

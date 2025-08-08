@@ -1,196 +1,297 @@
-using Content.Server.Atmos.EntitySystems;
-using Content.Server.Body.Systems;
-using Content.Server.Mech.Components;
-using Content.Server.Power.EntitySystems;
-using Content.Shared.Atmos;
-using Content.Shared.FixedPoint;
-using Content.Shared.Mech;
+using Content.Shared.Access.Components;
+using Content.Shared.Forensics.Components;
 using Content.Shared.Mech.Components;
+using Content.Shared.Popups;
+using Content.Shared.Audio;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
+using Robust.Shared.Prototypes;
+using Content.Shared.Access;
+using System.Linq;
+using System.Collections.Generic;
 
-namespace Content.Server.Mech.Systems;
+namespace Content.Shared.Mech.EntitySystems;
 
 /// <summary>
-/// Handles atmospheric systems for mechs including air circulation, fans, and life support
+/// System for managing mech lock functionality (DNA and Card locks)
 /// </summary>
-public sealed class MechAtmosphereSystem : EntitySystem
+public abstract partial class SharedMechLockSystem : EntitySystem
 {
-    [Dependency] private readonly AtmosphereSystem _atmosphere = default!;
-    [Dependency] private readonly BatterySystem _battery = default!;
-    [Dependency] private readonly MechSystem _mech = default!;
+    [Dependency] private readonly SharedPopupSystem _popup = default!;
+    [Dependency] private readonly SharedAudioSystem _audio = default!;
 
     public override void Initialize()
     {
         base.Initialize();
 
-        SubscribeLocalEvent<MechComponent, MechAirtightMessage>(OnAirtightMessage);
-        SubscribeLocalEvent<MechComponent, MechFanToggleMessage>(OnFanToggleMessage);
-
-        SubscribeLocalEvent<MechPilotComponent, InhaleLocationEvent>(OnInhale);
-        SubscribeLocalEvent<MechPilotComponent, ExhaleLocationEvent>(OnExhale);
-        SubscribeLocalEvent<MechPilotComponent, AtmosExposedGetAirEvent>(OnExpose);
-
-        SubscribeLocalEvent<MechAirComponent, GetFilterAirEvent>(OnGetFilterAir);
+        SubscribeLocalEvent<MechLockComponent, ComponentStartup>(OnLockStartup);
     }
 
-    public override void Update(float frameTime)
+    private void OnLockStartup(EntityUid uid, MechLockComponent component, ComponentStartup args)
     {
-        base.Update(frameTime);
+        UpdateLockState(uid, component);
+    }
 
-        // Update fan energy consumption and gas processing
-        var query = EntityQueryEnumerator<MechComponent>();
-        while (query.MoveNext(out var uid, out var mechComp))
+    /// <summary>
+    /// Updates the overall lock state based on individual lock states
+    /// </summary>
+    public void UpdateLockState(EntityUid uid, MechLockComponent? component = null)
+    {
+        if (!Resolve(uid, ref component))
+            return;
+
+        var wasLocked = component.IsLocked;
+        component.IsLocked = component.DnaLockActive || component.CardLockActive;
+
+        if (wasLocked != component.IsLocked)
         {
-            var fanModule = GetFanModule(uid, mechComp);
-            if (fanModule == null)
-                continue;
+            Dirty(uid, component);
+            var lockEvent = new MechLockStateChangedEvent(component.IsLocked);
+            RaiseLocalEvent(uid, lockEvent);
+        }
+    }
 
-            if (!fanModule.IsActive)
-            {
-                fanModule.State = MechFanState.Off;
-                Dirty(fanModule.Owner, fanModule);
-                continue;
-            }
+    /// <summary>
+    /// Checks if user has access without any feedback (for UI/verb visibility)
+    /// </summary>
+    /// <param name="uid">Mech entity</param>
+    /// <param name="user">User trying to access</param>
+    /// <param name="component">Lock component (optional)</param>
+    /// <returns>True if access granted, false if denied</returns>
+    public bool CheckAccess(EntityUid uid, EntityUid user, MechLockComponent? component = null)
+    {
+        if (!Resolve(uid, ref component, false))
+            return true; // No lock component = no restrictions
 
-            // If not airtight or missing internal tank or gas module, fan cannot operate -> Off
-            if (!mechComp.Airtight || !TryComp<MechAirComponent>(uid, out var airComp))
-            {
-                fanModule.State = MechFanState.Off;
-                Dirty(fanModule.Owner, fanModule);
-                continue;
-            }
+        return HasAccess(user, component);
+    }
 
-            var hasGasModule = false;
-            foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
-            {
-                if (HasComp<MechGasCylinderModuleComponent>(ent))
+    /// <summary>
+    /// Checks if user has access and plays deny sound if not
+    /// </summary>
+    /// <param name="uid">Mech entity</param>
+    /// <param name="user">User trying to access</param>
+    /// <param name="component">Lock component (optional)</param>
+    /// <returns>True if access granted, false if denied</returns>
+    public bool CheckAccessWithFeedback(EntityUid uid, EntityUid user, MechLockComponent? component = null)
+    {
+        if (!Resolve(uid, ref component, false))
+            return true; // No lock component = no restrictions
+
+        if (HasAccess(user, component))
+            return true;
+
+        // Access denied - show popup and play sound
+        _popup.PopupEntity(Loc.GetString("mech-lock-access-denied-popup"), uid, user);
+        _audio.PlayPvs(new SoundPathSpecifier("/Audio/Machines/airlock_deny.ogg"), uid, AudioParams.Default.WithVolume(-5f));
+        return false;
+    }
+
+    /// <summary>
+    /// Attempts to register a lock for the specified user
+    /// </summary>
+    public bool TryRegisterLock(EntityUid uid, EntityUid user, MechLockType lockType, MechLockComponent? component = null)
+    {
+        if (!Resolve(uid, ref component))
+            return false;
+
+        // Determine if this action requires access: only if the lock type is already registered
+        var requiresAccess = component.DnaLockRegistered || component.CardLockRegistered;
+
+        if (requiresAccess && !CheckAccessWithFeedback(uid, user, component))
+            return false;
+
+        switch (lockType)
+        {
+            case MechLockType.Dna:
+                if (!TryComp<DnaComponent>(user, out var dnaComp))
                 {
-                    hasGasModule = true;
-                    break;
+                    _popup.PopupEntity(Loc.GetString("mech-lock-no-dna-popup"), uid, user);
+                    return false;
+                }
+                component.DnaLockRegistered = true;
+                component.OwnerDna = dnaComp.DNA;
+                _popup.PopupEntity(Loc.GetString("mech-lock-dna-registered-popup"), uid, user);
+                break;
+
+            case MechLockType.Card:
+                if (!TryFindIdCard(user, out var idCard))
+                {
+                    _popup.PopupEntity(Loc.GetString("mech-lock-no-card-popup"), uid, user);
+                    return false;
+                }
+                component.CardLockRegistered = true;
+                component.OwnerJobTitle = idCard.Comp.LocalizedJobTitle;
+                if (TryComp<AccessComponent>(idCard.Owner, out var access))
+                {
+                    component.CardAccessTags = new HashSet<ProtoId<AccessLevelPrototype>>(access.Tags);
+                }
+                _popup.PopupEntity(Loc.GetString("mech-lock-card-registered-popup"), uid, user);
+                break;
+        }
+
+        UpdateLockState(uid, component);
+        UpdateMechUI(uid);
+        return true;
+    }
+
+    /// <summary>
+    /// Toggles lock state
+    /// </summary>
+    public bool TryToggleLock(EntityUid uid, EntityUid user, MechLockType lockType, MechLockComponent? component = null)
+    {
+        if (!Resolve(uid, ref component))
+            return false;
+
+        // Check if user has access to manage locks
+        if (!CheckAccessWithFeedback(uid, user, component))
+            return false;
+
+        switch (lockType)
+        {
+            case MechLockType.Dna:
+                if (!component.DnaLockRegistered)
+                    return false;
+                component.DnaLockActive = !component.DnaLockActive;
+                break;
+
+            case MechLockType.Card:
+                if (!component.CardLockRegistered)
+                    return false;
+                component.CardLockActive = !component.CardLockActive;
+                break;
+        }
+
+        UpdateLockState(uid, component);
+        UpdateMechUI(uid);
+        return true;
+    }
+
+    /// <summary>
+    /// Resets lock system
+    /// </summary>
+    public bool TryResetLock(EntityUid uid, EntityUid user, MechLockType lockType, MechLockComponent? component = null)
+    {
+        if (!Resolve(uid, ref component))
+            return false;
+
+        // Check if user has access to manage locks
+        if (!CheckAccessWithFeedback(uid, user, component))
+            return false;
+
+        switch (lockType)
+        {
+            case MechLockType.Dna:
+                component.DnaLockRegistered = false;
+                component.DnaLockActive = false;
+                component.OwnerDna = null;
+                break;
+
+            case MechLockType.Card:
+                component.CardLockRegistered = false;
+                component.CardLockActive = false;
+                component.OwnerJobTitle = null;
+                component.CardAccessTags = null;
+                break;
+        }
+
+        UpdateLockState(uid, component);
+        UpdateMechUI(uid);
+        _popup.PopupEntity(Loc.GetString("mech-lock-reset-success-popup"), uid, user);
+        return true;
+    }
+
+    /// <summary>
+    /// Gets lock state for a specific lock type
+    /// </summary>
+    public (bool IsRegistered, bool IsActive, string? OwnerId) GetLockState(MechLockType lockType, MechLockComponent component)
+    {
+        return lockType switch
+        {
+            MechLockType.Dna => (component.DnaLockRegistered, component.DnaLockActive, component.OwnerDna),
+            // For card, return the job title as the display string
+            MechLockType.Card => (component.CardLockRegistered, component.CardLockActive, component.OwnerJobTitle),
+            _ => (false, false, null)
+        };
+    }
+
+    /// <summary>
+    /// Checks if a user has access to a locked mech and can manage locks
+    /// </summary>
+    public bool HasAccess(EntityUid user, MechLockComponent component)
+    {
+        // Check if user has access through any registered lock (active or not)
+        foreach (MechLockType lockType in Enum.GetValues<MechLockType>())
+        {
+            var (isRegistered, _, ownerId) = GetLockState(lockType, component);
+            if (isRegistered && ownerId != null)
+            {
+                switch (lockType)
+                {
+                    case MechLockType.Dna:
+                        if (TryComp<DnaComponent>(user, out var dnaComp) && dnaComp.DNA == ownerId)
+                            return true;
+                        break;
+
+                    case MechLockType.Card:
+                        // Compare access tags with those captured during registration
+                        if (component.CardAccessTags != null && TryFindIdCard(user, out var idCard))
+                        {
+                            if (TryComp<AccessComponent>(idCard.Owner, out var access))
+                            {
+                                // Ensure the user's card has at least the registered tags
+                                if (component.CardAccessTags.All(tag => access.Tags.Contains(tag)))
+                                    return true;
+                            }
+                        }
+                        break;
                 }
             }
-            if (!hasGasModule)
-            {
-                fanModule.State = MechFanState.Off;
-                Dirty(fanModule.Owner, fanModule);
-                continue;
-            }
-
-            // Determine if external atmosphere is available
-            var external = _atmosphere.GetContainingMixture(uid);
-            var externalOk = external != null && external.Pressure > 0.5f;
-
-            // Idle if no external gas or internal pressure is at/above external (nothing to intake)
-            var internalPressure = airComp.Air.Pressure;
-            var externalPressure = external?.Pressure ?? 0f;
-            if (!externalOk || internalPressure >= externalPressure - 0.1f)
-            {
-                fanModule.State = MechFanState.Idle;
-                Dirty(fanModule.Owner, fanModule);
-                continue;
-            }
-
-            // Process gas: consume energy; if not enough energy, turn off
-            var energyConsumption = fanModule.EnergyConsumption * frameTime;
-            if (_mech.TryChangeEnergy(uid, -energyConsumption, mechComp))
-            {
-                fanModule.State = MechFanState.On;
-            }
-            else
-            {
-                fanModule.IsActive = false;
-                fanModule.State = MechFanState.Off;
-            }
-
-            Dirty(fanModule.Owner, fanModule);
-        }
-    }
-
-    private void OnAirtightMessage(EntityUid uid, MechComponent component, MechAirtightMessage args)
-    {
-        component.Airtight = args.IsAirtight;
-        Dirty(uid, component);
-        _mech.UpdateUserInterface(uid, component);
-    }
-
-    private void OnFanToggleMessage(EntityUid uid, MechComponent component, MechFanToggleMessage args)
-    {
-        var fanModule = GetFanModule(uid, component);
-        if (fanModule == null)
-            return;
-
-        fanModule.IsActive = args.IsActive;
-        Dirty(fanModule.Owner, fanModule);
-        _mech.UpdateUserInterface(uid, component);
-    }
-
-    private void OnInhale(EntityUid uid, MechPilotComponent component, InhaleLocationEvent args)
-    {
-        if (!TryComp<MechComponent>(component.Mech, out var mech) ||
-            !TryComp<MechAirComponent>(component.Mech, out var mechAir))
-        {
-            return;
         }
 
-        if (mech.Airtight)
-            args.Gas = mechAir.Air;
+        // If no locks are registered, anyone can access
+        if (!component.DnaLockRegistered && !component.CardLockRegistered)
+            return true;
 
-        _mech.UpdateUserInterface(component.Mech, mech);
+        return false;
     }
 
-    private void OnExhale(EntityUid uid, MechPilotComponent component, ExhaleLocationEvent args)
+    /// <summary>
+    /// Shows appropriate lock state message to user
+    /// </summary>
+    public void ShowLockMessage(EntityUid uid, EntityUid user, MechLockComponent component, bool isActivating)
     {
-        if (!TryComp<MechComponent>(component.Mech, out var mech) ||
-            !TryComp<MechAirComponent>(component.Mech, out var mechAir))
-        {
-            return;
-        }
-
-        if (mech.Airtight)
-            args.Gas = mechAir.Air;
-
-        _mech.UpdateUserInterface(component.Mech, mech);
+        var messageKey = isActivating ? "mech-lock-activated-popup" : "mech-lock-deactivated-popup";
+        _popup.PopupEntity(Loc.GetString(messageKey), uid, user);
     }
 
-    private void OnExpose(EntityUid uid, MechPilotComponent component, ref AtmosExposedGetAirEvent args)
+    /// <summary>
+    /// Updates mech UI when lock state changes. Override in server systems.
+    /// </summary>
+    protected virtual void UpdateMechUI(EntityUid uid)
     {
-        if (args.Handled)
-            return;
-
-        if (!TryComp(component.Mech, out MechComponent? mech))
-            return;
-
-        if (mech.Airtight && TryComp(component.Mech, out MechAirComponent? air))
-        {
-            args.Handled = true;
-            args.Gas = air.Air;
-            return;
-        }
-
-        args.Gas = _atmosphere.GetContainingMixture(component.Mech, excite: args.Excite);
-        args.Handled = true;
-
-        _mech.UpdateUserInterface(component.Mech, mech);
+        // Base implementation does nothing - override in server systems
     }
 
-    private void OnGetFilterAir(EntityUid uid, MechAirComponent component, ref GetFilterAirEvent args)
+    /// <summary>
+    /// Tries to find an ID card. Override in server systems.
+    /// </summary>
+    protected virtual bool TryFindIdCard(EntityUid user, out Entity<IdCardComponent> idCard)
     {
-        if (args.Air != null)
-            return;
-
-        // only airtight mechs get internal air
-        if (!TryComp<MechComponent>(uid, out var mech) || !mech.Airtight)
-            return;
-
-        args.Air = component.Air;
+        idCard = default;
+        return false;
     }
+}
 
-    private MechFanModuleComponent? GetFanModule(EntityUid mech, MechComponent mechComp)
+/// <summary>
+/// Event raised when the mech lock state changes
+/// </summary>
+public sealed class MechLockStateChangedEvent : EntityEventArgs
+{
+    public bool IsLocked { get; }
+
+    public MechLockStateChangedEvent(bool isLocked)
     {
-        foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
-        {
-            if (TryComp<MechFanModuleComponent>(ent, out var fanModule))
-                return fanModule;
-        }
-        return null;
+        IsLocked = isLocked;
     }
 }

@@ -53,12 +53,14 @@ public sealed class MechModuleSystem : EntitySystem
             return;
 
         // Duplicate by prototype id
-        if (TryComp<MetaDataComponent>(uid, out var md) && md.EntityPrototype != null)
+        var md = EntityManager.GetComponentOrNull<MetaDataComponent>(uid);
+        if (md != null && md.EntityPrototype != null)
         {
             var id = md.EntityPrototype.ID;
             foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
             {
-                if (TryComp<MetaDataComponent>(ent, out var md2) && md2.EntityPrototype != null && md2.EntityPrototype.ID == id)
+                var md2 = EntityManager.GetComponentOrNull<MetaDataComponent>(ent);
+                if (md2 != null && md2.EntityPrototype != null && md2.EntityPrototype.ID == id)
                 {
                     _popup.PopupEntity(Loc.GetString("mech-duplicate-module-popup"), args.User);
                     return;
@@ -115,8 +117,6 @@ public sealed class MechModuleSystem : EntitySystem
         // Insert into module container
         _container.Insert(uid, mechComp.ModuleContainer);
 
-        // Apply module effects
-        // No additional components to add; fan state and gas volume tracked elsewhere
 
         _popup.PopupEntity(Loc.GetString("mech-equipment-finish-install-popup", ("item", uid)), mech);
         _mech.UpdateUserInterface(mech, mechComp);

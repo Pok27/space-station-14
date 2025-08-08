@@ -48,12 +48,14 @@ public sealed class MechEquipmentSystem : EntitySystem
             return;
 
         // Duplicate by prototype id
-        if (TryComp<MetaDataComponent>(uid, out var md) && md.EntityPrototype != null)
+        var md = EntityManager.GetComponentOrNull<MetaDataComponent>(uid);
+        if (md != null && md.EntityPrototype != null)
         {
             var id = md.EntityPrototype.ID;
             foreach (var ent in mechComp.EquipmentContainer.ContainedEntities)
             {
-                if (TryComp<MetaDataComponent>(ent, out var md2) && md2.EntityPrototype != null && md2.EntityPrototype.ID == id)
+                var md2 = EntityManager.GetComponentOrNull<MetaDataComponent>(ent);
+                if (md2 != null && md2.EntityPrototype != null && md2.EntityPrototype.ID == id)
                 {
                     _popup.PopupEntity(Loc.GetString("mech-duplicate-equipment-popup"), args.User);
                     return;

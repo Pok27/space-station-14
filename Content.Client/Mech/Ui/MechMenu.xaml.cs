@@ -9,6 +9,7 @@ using Robust.Client.UserInterface.XAML;
 using Robust.Client.UserInterface.Controls;
 using System.Linq;
 using static Robust.Client.UserInterface.Controls.BaseButton;
+using Robust.Client.UserInterface;
 
 namespace Content.Client.Mech.Ui;
 
@@ -279,59 +280,60 @@ public sealed partial class MechMenu : FancyWindow
         button.Pressed = false;
     }
 
-    public void UpdateEquipmentView(List<NetEntity>? equipment = null)
+    private void UpdateEntityListView<TComponent>(
+        List<NetEntity>? entities,
+        BoxContainer container,
+        Func<MechComponent, IEnumerable<EntityUid>> getEntities,
+        Func<EntityUid, int> getSize,
+        Action<EntityUid> onRemove,
+        Func<EntityUid, Control?>? getFragment = null)
+        where TComponent : class
     {
-        if (equipment == null)
+        if (entities == null)
         {
             if (!_ent.TryGetComponent<MechComponent>(_mech, out var mechComp))
                 return;
-            equipment = new List<NetEntity>();
-            foreach (var ent in mechComp.EquipmentContainer.ContainedEntities)
-                equipment.Add(_ent.GetNetEntity(ent));
+            entities = new List<NetEntity>();
+            foreach (var ent in getEntities(mechComp))
+                entities.Add(_ent.GetNetEntity(ent));
         }
 
-        EquipmentControlContainer.Children.Clear();
-        foreach (var netEnt in equipment)
+        container.Children.Clear();
+        foreach (var netEnt in entities)
         {
             var ent = _ent.GetEntity(netEnt);
             if (!_ent.TryGetComponent<MetaDataComponent>(ent, out var metaData))
                 continue;
-
-            var uicomp = _ent.GetComponentOrNull<UIFragmentComponent>(ent);
-            var ui = uicomp?.Ui?.GetUIFragmentRoot();
-
-            var size = _ent.GetComponentOrNull<MechEquipmentComponent>(ent)?.Size ?? 1;
-            var control = new MechEquipmentControl(ent, metaData.EntityName, ui, size);
+            var size = getSize(ent);
+            var fragment = getFragment?.Invoke(ent);
+            var control = new MechEquipmentControl(ent, metaData.EntityName, fragment, size);
             var entityToRemove = ent;
-            control.OnRemoveButtonPressed += () => OnRemoveButtonPressed?.Invoke(entityToRemove);
-
-            EquipmentControlContainer.AddChild(control);
+            control.OnRemoveButtonPressed += () => onRemove(entityToRemove);
+            container.AddChild(control);
         }
+    }
+
+    public void UpdateEquipmentView(List<NetEntity>? equipment = null)
+    {
+        UpdateEntityListView<MechEquipmentComponent>(
+            equipment,
+            EquipmentControlContainer,
+            mech => mech.EquipmentContainer.ContainedEntities,
+            ent => _ent.GetComponentOrNull<MechEquipmentComponent>(ent)?.Size ?? 1,
+            ent => OnRemoveButtonPressed?.Invoke(ent),
+            ent => _ent.GetComponentOrNull<UIFragmentComponent>(ent)?.Ui?.GetUIFragmentRoot()
+        );
     }
 
     public void UpdateModuleView(List<NetEntity>? modules = null)
     {
-        if (modules == null)
-        {
-            if (!_ent.TryGetComponent<MechComponent>(_mech, out var mechComp))
-                return;
-            modules = new List<NetEntity>();
-            foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
-                modules.Add(_ent.GetNetEntity(ent));
-        }
-
-        ModuleControlContainer.Children.Clear();
-        foreach (var netEnt in modules)
-        {
-            var ent = _ent.GetEntity(netEnt);
-            if (!_ent.TryGetComponent<MetaDataComponent>(ent, out var metaData))
-                continue;
-
-            var size = _ent.GetComponentOrNull<MechModuleComponent>(ent)?.Size ?? 1;
-            var control = new MechEquipmentControl(ent, metaData.EntityName, null, size);
-            var entityToRemove = ent;
-            control.OnRemoveButtonPressed += () => OnRemoveModuleButtonPressed?.Invoke(entityToRemove);
-            ModuleControlContainer.AddChild(control);
-        }
+        UpdateEntityListView<MechModuleComponent>(
+            modules,
+            ModuleControlContainer,
+            mech => mech.ModuleContainer.ContainedEntities,
+            ent => _ent.GetComponentOrNull<MechModuleComponent>(ent)?.Size ?? 1,
+            ent => OnRemoveModuleButtonPressed?.Invoke(ent),
+            null
+        );
     }
 }

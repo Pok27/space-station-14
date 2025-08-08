@@ -112,7 +112,7 @@ public sealed class MechEquipmentRadialUIController : UIController
         if (_menu == null)
             return;
 
-        _menu.Dispose();
+        _menu.Close();
         _menu = null;
         _currentMech = null;
     }

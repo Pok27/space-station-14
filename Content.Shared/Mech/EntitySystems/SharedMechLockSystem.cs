@@ -83,7 +83,7 @@ public abstract partial class SharedMechLockSystem : EntitySystem
 
         // Access denied - show popup and play sound
         _popup.PopupEntity(Loc.GetString("mech-lock-access-denied-popup"), uid, user);
-        _audio.PlayPvs("/Audio/Machines/airlock_deny.ogg", uid, AudioParams.Default.WithVolume(-5f));
+        _audio.PlayPvs(new SoundPathSpecifier("/Audio/Machines/airlock_deny.ogg"), uid, AudioParams.Default.WithVolume(-5f));
         return false;
     }
 
