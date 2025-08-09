@@ -18,7 +18,6 @@ public sealed class UpdateMechUiEvent : EntityEventArgs
 /// </summary>
 public sealed class MechLockSystem : SharedMechLockSystem
 {
-    [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly IdCardSystem _idCard = default!;
 
     public override void Initialize()

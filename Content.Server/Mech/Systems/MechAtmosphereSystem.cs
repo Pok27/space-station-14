@@ -16,7 +16,6 @@ namespace Content.Server.Mech.Systems;
 public sealed class MechAtmosphereSystem : EntitySystem
 {
     [Dependency] private readonly AtmosphereSystem _atmosphere = default!;
-    [Dependency] private readonly BatterySystem _battery = default!;
     [Dependency] private readonly MechSystem _mech = default!;
 
     public override void Initialize()
@@ -111,8 +110,8 @@ public sealed class MechAtmosphereSystem : EntitySystem
 
                                 if (external != null)
                                 {
-                                    // Compute moles needed to reach target pressure incrementally
-                                    var desiredDeltaP = MathF.Min(5f, targetTankPressure - tankPressure); // pump up to 5 kPa per tick
+                                    // Compute moles needed to reach target pressure (limited by processing rate below)
+                                    var desiredDeltaP = MathF.Max(0f, targetTankPressure - tankPressure);
                                     if (desiredDeltaP > 0)
                                     {
                                         var neededMoles = desiredDeltaP * internalAir.Volume / (internalAir.Temperature * Atmospherics.R);
@@ -147,8 +146,8 @@ public sealed class MechAtmosphereSystem : EntitySystem
             // Maintain cabin pressure from the cylinder when airtight
             if (mechComp.Airtight && TryComp<MechCabinPressureComponent>(uid, out var cabin))
             {
-                var purging = TryComp<MechCabinPurgeComponent>(uid, out var purgeComp) && purgeComp.CooldownRemaining > 0;
-                if (!purging && _mech.TryGetGasModuleAir(uid, out var tankAir) && tankAir != null)
+                var purgingActive = TryComp<MechCabinPurgeComponent>(uid, out var purgeComp) && purgeComp.CooldownRemaining > 0;
+                if (!purgingActive && _mech.TryGetGasModuleAir(uid, out var tankAir) && tankAir != null)
                 {
                     var cabinVolume = cabin.Air.Volume > 0 ? cabin.Air.Volume : Atmospherics.CellVolume;
                     var targetMoles = cabin.TargetPressure * cabinVolume / (Atmospherics.R * cabin.Air.Temperature);
