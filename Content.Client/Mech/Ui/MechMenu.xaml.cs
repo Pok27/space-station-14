@@ -54,7 +54,8 @@ public sealed partial class MechMenu : FancyWindow
             else
                 OnLockAction(args, OnDnaLockRegister, DnaLockButton);
         };
-        DnaLockResetButton.OnPressed += args => {
+        DnaLockResetButton.OnPressed += args =>
+        {
             if (!CheckAccess()) return;
             OnLockAction(args, OnDnaLockReset, DnaLockResetButton);
         };
@@ -69,7 +70,8 @@ public sealed partial class MechMenu : FancyWindow
             else
                 OnLockAction(args, OnCardLockRegister, CardLockButton);
         };
-        CardLockResetButton.OnPressed += args => {
+        CardLockResetButton.OnPressed += args =>
+        {
             if (!CheckAccess()) return;
             OnLockAction(args, OnCardLockReset, CardLockResetButton);
         };
@@ -192,10 +194,16 @@ public sealed partial class MechMenu : FancyWindow
         {
             MechFanState.Off => "off",
             MechFanState.On => "on",
-            MechFanState.Idle => "idle",
-            _ => "off"
+            MechFanState.Idle => "idle"
+        };
+        var stateColorKey = fanState switch
+        {
+            MechFanState.Off => Color.Red,
+            MechFanState.On => Color.Green,
+            MechFanState.Idle => Color.Yellow
         };
         FanStatusLabel.Text = Loc.GetString("mech-fan-status", ("state", stateKey));
+        FanStatusLabel.FontColorOverride = stateColorKey;
     }
 
     private void UpdateLockInfoLabels(MechBoundUiState state)

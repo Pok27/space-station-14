@@ -14,7 +14,7 @@ public sealed partial class MechEquipmentControl : Control
     {
         RobustXamlLoader.Load(this);
         EquipmentName.SetMessage(itemName);
-        EquipmentSize.Text = $"({size})";
+        EquipmentSize.Text = $"[{size}]";
         EquipmentView.SetEntity(entity);
         RemoveButton.TexturePath = "/Textures/Interface/Nano/cross.svg.png";
 

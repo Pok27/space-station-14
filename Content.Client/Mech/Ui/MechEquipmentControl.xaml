@@ -5,8 +5,13 @@
             HorizontalExpand="True"
             VerticalExpand="True"
             StyleClasses="ButtonSquare">
-        <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalExpand="True" VerticalAlignment="Top">
-            <BoxContainer HorizontalExpand="True" VerticalExpand="True" Orientation="Horizontal">
+        <BoxContainer Orientation="Vertical"
+                HorizontalExpand="True"
+                VerticalExpand="True"
+                VerticalAlignment="Top">
+            <BoxContainer HorizontalExpand="True"
+                    VerticalExpand="True"
+                    Orientation="Horizontal">
                 <SpriteView
                     Name="EquipmentView"
                     OverrideDirection="South"
@@ -14,14 +19,33 @@
                     SetSize="32 32"
                     Scale="1 1"
                     RectClipContent="True"/>
-                <RichTextLabel Name="EquipmentName" VerticalAlignment="Center"/>
-                <Label Name="EquipmentSize" VerticalAlignment="Center" Margin="6 0 0 0"/>
-                <BoxContainer Orientation="Vertical" HorizontalExpand="True" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <TextureButton Name="RemoveButton" Scale="0.5 0.5"></TextureButton>
+                <RichTextLabel Name="EquipmentName"
+                        VerticalAlignment="Center"/>
+                <BoxContainer Orientation="Vertical"
+                        HorizontalExpand="True">
+                    <BoxContainer Orientation="Vertical"
+                            HorizontalExpand="True"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Margin="0 5">
+                        <TextureButton Name="RemoveButton"
+                                MinSize="10 10"
+                                Scale="0.5 0.5"></TextureButton>
+                    </BoxContainer>
+                    <Label Name="EquipmentSize"
+                            MinSize="10 10"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Bottom"
+                            StyleClasses="WindowFooterText"/>
                 </BoxContainer>
             </BoxContainer>
-            <customControls:HSeparator Name="Separator" StyleClasses="LowDivider" Visible="False"/>
-            <BoxContainer Name="CustomControlContainer" Margin="0 10 0 0" HorizontalExpand="True" VerticalExpand="True"></BoxContainer>
+            <customControls:HSeparator Name="Separator"
+                    StyleClasses="LowDivider"
+                    Visible="False"/>
+            <BoxContainer Name="CustomControlContainer"
+                    Margin="0 10 0 0"
+                    HorizontalExpand="True"
+                    VerticalExpand="True"></BoxContainer>
         </BoxContainer>
     </Button>
 </Control>

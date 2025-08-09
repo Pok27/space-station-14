@@ -20,17 +20,19 @@ mech-equipment-select-none-popup = Nothing selected
 mech-radial-no-equipment = No Equipment
 
 # Status displays
-mech-integrity-display = Integrity: {$amount}%
-mech-energy-display = Energy: {$amount}%
+mech-integrity-display-label = Integrity
+mech-integrity-display = {$amount} %
+mech-energy-display-label = Energy
+mech-energy-display = {$amount} %
 mech-energy-missing = Energy: MISSING
 mech-equipment-slot-display = Equipment: {$used}/{$max} used
 mech-module-slot-display = Modules: {$used}/{$max} used
 
 # Atmospheric system
-mech-air-cabin-pressure-label = Cabin air:
-mech-air-toggle = Toggle Cabin
-mech-cabin-pressure-level = Cabin Pressure: {$level} kPa
-mech-cabin-purge = Purge Cabin
+mech-air-cabin-pressure-label = Cabin Air:
+mech-air-toggle = Toggle
+mech-cabin-pressure-level = {$level} kPa
+mech-cabin-purge = Purge
 
 mech-tank-pressure-label = Tank Pressure:
 mech-tank-pressure-level = { $state ->
@@ -43,7 +45,8 @@ mech-fan-label = Fan:
 mech-fan-on = On
 mech-fan-off = Off
 mech-fan-toggle = Toggle Fan
-mech-fan-status = Status: { $state ->
+mech-fan-status-label = Fan Status:
+mech-fan-status = { $state ->
     [idle] Idle
     [on] On
     *[off] Off
