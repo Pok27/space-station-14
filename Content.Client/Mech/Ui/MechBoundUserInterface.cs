@@ -10,25 +10,34 @@ using Robust.Client.UserInterface;
 namespace Content.Client.Mech.Ui;
 
 [UsedImplicitly]
-public sealed class MechBoundUserInterface : BoundUserInterface
+public sealed class MechBoundUserInterface : BoundUserInterface, IBuiPreTickUpdate
 {
+    [Dependency] private readonly IClientGameTiming _gameTiming = null!;
+
     [ViewVariables]
     private MechMenu? _menu;
     private BuiPredictionState? _pred;
 
+    // Input coalescers for performance optimization
+    private InputCoalescer<bool> _airtightCoalescer;
+    private InputCoalescer<bool> _fanCoalescer;
+    private InputCoalescer<bool> _filterCoalescer;
+
     public MechBoundUserInterface(EntityUid owner, Enum uiKey) : base(owner, uiKey)
     {
+        IoCManager.InjectDependencies(this);
     }
 
     protected override void Open()
     {
         base.Open();
 
+        _pred = new BuiPredictionState(this, _gameTiming);
+
         _menu = this.CreateWindowCenteredLeft<MechMenu>();
         _menu.SetEntity(Owner);
 
-        _pred = new BuiPredictionState(this, IoCManager.Resolve<IClientGameTiming>());
-
+        // Equipment and module removal events
         _menu.OnRemoveButtonPressed += uid =>
         {
             _pred!.SendMessage(new MechEquipmentRemoveMessage(EntMan.GetNetEntity(uid)));
@@ -38,87 +47,75 @@ public sealed class MechBoundUserInterface : BoundUserInterface
             _pred!.SendMessage(new MechModuleRemoveMessage(EntMan.GetNetEntity(uid)));
         };
 
-        _menu.OnAirtightChanged += isAirtight =>
-        {
-            _pred!.SendMessage(new MechAirtightMessage(isAirtight));
-        };
+        // Cabin control events - use coalescers for performance
+        _menu.OnAirtightChanged += isAirtight => _airtightCoalescer.Set(isAirtight);
+        _menu.OnFanToggle += isActive => _fanCoalescer.Set(isActive);
+        _menu.OnFilterToggle += enabled => _filterCoalescer.Set(enabled);
 
-        _menu.OnFanToggle += isActive =>
-        {
-            _pred!.SendMessage(new MechFanToggleMessage(isActive));
-        };
+        // Direct action events (no coalescing needed)
+        _menu.OnCabinPurge += () => _pred!.SendMessage(new MechCabinPurgeMessage());
 
-        _menu.OnCabinPurge += () =>
-        {
-            _pred!.SendMessage(new MechCabinPurgeMessage());
-        };
+        // DNA lock events
+        _menu.OnDnaLockRegister += () => _pred!.SendMessage(new MechDnaLockRegisterMessage());
+        _menu.OnDnaLockToggle += () => _pred!.SendMessage(new MechDnaLockToggleMessage());
+        _menu.OnDnaLockReset += () => _pred!.SendMessage(new MechDnaLockResetMessage());
 
-        _menu.OnDnaLockRegister += () =>
-        {
-            _pred!.SendMessage(new MechDnaLockRegisterMessage());
-        };
+        // Card lock events
+        _menu.OnCardLockRegister += () => _pred!.SendMessage(new MechCardLockRegisterMessage());
+        _menu.OnCardLockToggle += () => _pred!.SendMessage(new MechCardLockToggleMessage());
+        _menu.OnCardLockReset += () => _pred!.SendMessage(new MechCardLockResetMessage());
 
-        _menu.OnDnaLockToggle += () =>
-        {
-            _pred!.SendMessage(new MechDnaLockToggleMessage());
-        };
+        // Access denied handler
+        _menu.OnAccessDeniedAttempt += () => _pred!.SendMessage(new MechAccessSyncMessage(false));
+    }
 
-        _menu.OnDnaLockReset += () =>
-        {
-            _pred!.SendMessage(new MechDnaLockResetMessage());
-        };
+    void IBuiPreTickUpdate.PreTickUpdate()
+    {
+        // Send coalesced input events
+        if (_airtightCoalescer.CheckIsModified(out var airtightValue))
+            _pred!.SendMessage(new MechAirtightMessage(airtightValue));
 
-        _menu.OnCardLockRegister += () =>
-        {
-            _pred!.SendMessage(new MechCardLockRegisterMessage());
-        };
+        if (_fanCoalescer.CheckIsModified(out var fanValue))
+            _pred!.SendMessage(new MechFanToggleMessage(fanValue));
 
-        _menu.OnCardLockToggle += () =>
-        {
-            _pred!.SendMessage(new MechCardLockToggleMessage());
-        };
-
-        _menu.OnCardLockReset += () =>
-        {
-            _pred!.SendMessage(new MechCardLockResetMessage());
-        };
-
-        _menu.OnFilterToggle += enabled =>
-        {
-            _pred!.SendMessage(new MechFilterToggleMessage(enabled));
-        };
+        if (_filterCoalescer.CheckIsModified(out var filterValue))
+            _pred!.SendMessage(new MechFilterToggleMessage(filterValue));
     }
 
     protected override void UpdateState(BoundUserInterfaceState state)
     {
-        base.UpdateState(state);
-
-        if (state is not MechBoundUiState msg || _menu == null)
+        if (state is not MechBoundUiState mechState)
             return;
 
-        foreach (var predMsg in _pred!.MessagesToReplay())
+        // Apply any pending predicted messages to state
+        foreach (var replayMsg in _pred!.MessagesToReplay())
         {
-            if (predMsg is MechEquipmentRemoveMessage removeMsg)
-                msg.Equipment.Remove(removeMsg.Equipment);
-            if (predMsg is MechModuleRemoveMessage removeModMsg)
-                msg.Modules.Remove(removeModMsg.Module);
+            switch (replayMsg)
+            {
+                case MechAirtightMessage airtight:
+                    mechState.IsAirtight = airtight.IsAirtight;
+                    break;
+
+                case MechFanToggleMessage fanToggle:
+                    mechState.FanActive = fanToggle.IsActive;
+                    break;
+
+                case MechFilterToggleMessage filterToggle:
+                    mechState.FilterEnabled = filterToggle.Enabled;
+                    break;
+            }
         }
 
-        _menu.UpdateState(msg);
-        _menu.UpdateMechStats();
-
-        _menu.UpdateEquipmentView(msg.Equipment);
-        _menu.UpdateModuleView(msg.Modules);
+        _menu?.UpdateState(mechState);
     }
 
     protected override void ReceiveMessage(BoundUserInterfaceMessage message)
     {
         base.ReceiveMessage(message);
-        if (_menu == null)
-            return;
+
         if (message is MechAccessSyncMessage access)
         {
-            _menu.OverrideAccessAndRefresh(access.HasAccess);
+            _menu?.OverrideAccessAndRefresh(access.HasAccess);
         }
     }
 
@@ -126,6 +123,8 @@ public sealed class MechBoundUserInterface : BoundUserInterface
     {
         base.Dispose(disposing);
         if (disposing)
-            _menu?.Close();
+        {
+            _menu?.Dispose();
+        }
     }
 }

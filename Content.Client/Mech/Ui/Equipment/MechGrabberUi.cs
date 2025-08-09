@@ -5,8 +5,14 @@ using Robust.Client.UserInterface;
 
 namespace Content.Client.Mech.Ui.Equipment;
 
+/// <summary>
+/// UI fragment for mech grabber equipment.
+/// </summary>
+/// <seealso cref="MechGrabberUiFragment"/>
 public sealed partial class MechGrabberUi : UIFragment
 {
+    [Dependency] private readonly IEntityManager _entityManager = default!;
+
     private MechGrabberUiFragment? _fragment;
 
     public override Control GetUIFragmentRoot()
@@ -19,12 +25,15 @@ public sealed partial class MechGrabberUi : UIFragment
         if (fragmentOwner == null)
             return;
 
+        IoCManager.InjectDependencies(this);
+
         _fragment = new MechGrabberUiFragment();
 
-        _fragment.OnEjectAction += e =>
+        _fragment.OnEjectAction += entityUid =>
         {
-            var entManager = IoCManager.Resolve<IEntityManager>();
-            userInterface.SendMessage(new MechGrabberEjectMessage(entManager.GetNetEntity(fragmentOwner.Value), entManager.GetNetEntity(e)));
+            var equipmentNetEntity = _entityManager.GetNetEntity(fragmentOwner.Value);
+            var itemNetEntity = _entityManager.GetNetEntity(entityUid);
+            userInterface.SendMessage(new MechGrabberEjectMessage(equipmentNetEntity, itemNetEntity));
         };
     }
 

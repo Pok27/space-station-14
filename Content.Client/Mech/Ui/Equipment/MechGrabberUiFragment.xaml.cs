@@ -5,10 +5,14 @@ using Robust.Client.UserInterface.XAML;
 
 namespace Content.Client.Mech.Ui.Equipment;
 
+/// <summary>
+/// UI fragment for displaying and managing items in a mech grabber.
+/// </summary>
 [GenerateTypedNameReferences]
 public sealed partial class MechGrabberUiFragment : BoxContainer
 {
-    [Dependency] private readonly IEntityManager _entity = default!;
+    [Dependency] private readonly IEntityManager _entityManager = default!;
+    [Dependency] private readonly ILocalizationManager _loc = default!;
 
     public event Action<EntityUid>? OnEjectAction;
 
@@ -20,16 +24,23 @@ public sealed partial class MechGrabberUiFragment : BoxContainer
 
     public void UpdateContents(MechGrabberUiState state)
     {
-        SpaceLabel.Text = $"{state.Contents.Count}/{state.MaxContents}";
-        for (var i = 0; i < state.Contents.Count; i++)
-        {
-            var ent = _entity.GetEntity(state.Contents[i]);
+        // Clear existing items
+        ItemList.Clear();
 
-            if (!_entity.TryGetComponent<MetaDataComponent>(ent, out var meta))
+        // Update capacity display
+        SpaceLabel.Text = _loc.GetString("mech-grabber-capacity",
+            ("current", state.Contents.Count), ("max", state.MaxContents));
+
+        // Add items to list
+        foreach (var netEntity in state.Contents)
+        {
+            var entity = _entityManager.GetEntity(netEntity);
+
+            if (!_entityManager.TryGetComponent<MetaDataComponent>(entity, out var meta))
                 continue;
 
-            ItemList.AddItem(meta.EntityName);
-            ItemList[i].OnSelected += _ => OnEjectAction?.Invoke(ent);
+            var item = ItemList.AddItem(meta.EntityName);
+            item.OnSelected += _ => OnEjectAction?.Invoke(entity);
         }
     }
 }

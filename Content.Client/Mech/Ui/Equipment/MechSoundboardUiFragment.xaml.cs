@@ -5,9 +5,14 @@ using Robust.Client.UserInterface.XAML;
 
 namespace Content.Client.Mech.Ui.Equipment;
 
+/// <summary>
+/// UI fragment for the mech soundboard equipment.
+/// </summary>
 [GenerateTypedNameReferences]
 public sealed partial class MechSoundboardUiFragment : BoxContainer
 {
+    [Dependency] private readonly ILocalizationManager _loc = default!;
+
     public event Action<int>? OnPlayAction;
 
     public MechSoundboardUiFragment()
@@ -18,11 +23,18 @@ public sealed partial class MechSoundboardUiFragment : BoxContainer
 
     public void UpdateContents(MechSoundboardUiState state)
     {
-        foreach (var sound in state.Sounds)
+        // Clear existing sounds
+        Sounds.Clear();
+
+        // Add available sounds
+        for (var i = 0; i < state.Sounds.Count; i++)
         {
-            Sounds.AddItem(Loc.GetString($"mech-soundboard-{sound}")).OnSelected += item => {
-                OnPlayAction?.Invoke(Sounds.IndexOf(item));
-            };
+            var soundIndex = i; // Capture for closure
+            var soundId = state.Sounds[i];
+            var localizedName = _loc.GetString($"mech-soundboard-{soundId}");
+
+            var item = Sounds.AddItem(localizedName);
+            item.OnSelected += _ => OnPlayAction?.Invoke(soundIndex);
         }
     }
 }

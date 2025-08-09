@@ -27,6 +27,7 @@ mech-energy-display = {$amount} %
 mech-energy-missing = Energy: MISSING
 mech-equipment-slot-display = Equipment: {$used}/{$max} used
 mech-module-slot-display = Modules: {$used}/{$max} used
+mech-grabber-capacity = {$current}/{$max}
 
 # Atmospheric system
 mech-air-cabin-pressure-label = Cabin Air:

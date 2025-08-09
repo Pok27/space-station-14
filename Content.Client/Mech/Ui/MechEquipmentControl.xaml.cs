@@ -5,35 +5,52 @@ using Robust.Client.UserInterface.XAML;
 
 namespace Content.Client.Mech.Ui;
 
+/// <summary>
+/// Control for displaying individual mech equipment items in the UI.
+/// </summary>
+/// <seealso cref="MechMenu"/>
 [GenerateTypedNameReferences]
 public sealed partial class MechEquipmentControl : Control
 {
-    public event Action? OnRemoveButtonPressed;
+    [Dependency] private readonly ILocalizationManager _loc = default!;
 
-    public void SetRemoveDisabled(bool disabled)
-    {
-        RemoveButton.Disabled = disabled;
-        if (disabled)
-            RemoveButton.ToolTip = Loc.GetString("mech-remove-disabled-tooltip");
-        else
-            RemoveButton.ToolTip = null;
-    }
+    public event Action? OnRemoveButtonPressed;
 
     public MechEquipmentControl(EntityUid entity, string itemName, Control? fragment, int size)
     {
         RobustXamlLoader.Load(this);
+        IoCManager.InjectDependencies(this);
+
+        InitializeControl(entity, itemName, fragment, size);
+    }
+
+    public void SetRemoveDisabled(bool disabled)
+    {
+        RemoveButton.Disabled = disabled;
+        RemoveButton.ToolTip = disabled
+            ? _loc.GetString("mech-remove-disabled-tooltip")
+            : null;
+    }
+
+    private void InitializeControl(EntityUid entity, string itemName, Control? fragment, int size)
+    {
+        // Set equipment information
         EquipmentName.SetMessage(itemName);
         EquipmentSize.Text = $"[{size}]";
         EquipmentView.SetEntity(entity);
-        RemoveButton.TexturePath = "/Textures/Interface/Nano/cross.svg.png";
-        SetRemoveDisabled(true);
 
+        // Configure remove button
+        RemoveButton.TexturePath = "/Textures/Interface/Nano/cross.svg.png";
+        SetRemoveDisabled(true); // Default to disabled until access is verified
+
+        // Add fragment if provided
         if (fragment != null)
         {
             Separator.Visible = true;
             CustomControlContainer.AddChild(fragment);
         }
 
+        // Wire up events
         RemoveButton.OnPressed += _ => OnRemoveButtonPressed?.Invoke();
     }
 }

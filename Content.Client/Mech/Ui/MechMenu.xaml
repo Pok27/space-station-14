@@ -150,19 +150,11 @@
                                Text="{Loc 'mech-fan-label'}"
                                Margin="0 0 0 3"/>
                         <BoxContainer>
-                            <Button Name="FanOnButton"
-                                    Text="{Loc 'mech-fan-on'}"
-                                    StyleClasses="OpenRight"
-                                    ToggleMode="True"
-                                    HorizontalExpand="False"/>
-                            <Button Name="FanOffButton"
-                                    Text="{Loc 'mech-fan-off'}"
-                                    StyleClasses="OpenLeft"
-                                    ToggleMode="True"
-                                    HorizontalExpand="False"/>
-                                <CheckBox Name="FilterEnabledCheck" Margin="6 0"
-                                          Text="{Loc 'mech-filter-enabled'}"
-                                          VerticalAlignment="Bottom"/>
+                            <controls:OnOffButton Name="FanToggle" />
+                            <CheckBox Name="FilterEnabledCheck"
+                                      Margin="6 0"
+                                      Text="{Loc 'mech-filter-enabled'}"
+                                      VerticalAlignment="Bottom"/>
                             <Label Name="FanMissingLabel"
                                    Visible="False"
                                    HorizontalAlignment="Right"
