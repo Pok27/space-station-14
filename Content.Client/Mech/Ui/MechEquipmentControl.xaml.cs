@@ -10,6 +10,15 @@ public sealed partial class MechEquipmentControl : Control
 {
     public event Action? OnRemoveButtonPressed;
 
+    public void SetRemoveDisabled(bool disabled)
+    {
+        RemoveButton.Disabled = disabled;
+        if (disabled)
+            RemoveButton.ToolTip = Loc.GetString("mech-remove-disabled-tooltip");
+        else
+            RemoveButton.ToolTip = null;
+    }
+
     public MechEquipmentControl(EntityUid entity, string itemName, Control? fragment, int size)
     {
         RobustXamlLoader.Load(this);
@@ -17,6 +26,7 @@ public sealed partial class MechEquipmentControl : Control
         EquipmentSize.Text = $"[{size}]";
         EquipmentView.SetEntity(entity);
         RemoveButton.TexturePath = "/Textures/Interface/Nano/cross.svg.png";
+        SetRemoveDisabled(true);
 
         if (fragment != null)
         {

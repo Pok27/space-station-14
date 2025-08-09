@@ -21,9 +21,11 @@ public sealed partial class MechMenu : FancyWindow
 
     private EntityUid _mech;
     private bool _hasAccess = true;
+    private bool _pilotPresent = false;
 
     public event Action<EntityUid>? OnRemoveButtonPressed;
     public event Action<EntityUid>? OnRemoveModuleButtonPressed;
+    public event Action? OnAccessDeniedAttempt;
 
     public Action<string>? NameChanged;
 
@@ -43,44 +45,38 @@ public sealed partial class MechMenu : FancyWindow
         RobustXamlLoader.Load(this);
         IoCManager.InjectDependencies(this);
 
-        AirtightButton.OnToggled += args => OnAirtightChanged?.Invoke(args.Pressed);
-        CabinPurgeButton.OnPressed += _ => OnCabinPurge?.Invoke();
+        AirtightButton.OnToggled += args => { if (!CheckAccess()) { OnAccessDeniedPing(); return; } OnAirtightChanged?.Invoke(args.Pressed); };
+        CabinPurgeButton.OnPressed += _ => { if (!CheckAccess()) { OnAccessDeniedPing(); return; } OnCabinPurge?.Invoke(); };
 
         DnaLockRegisterButton.OnPressed += args =>
         {
-            if (!CheckAccess()) return;
             var (isRegistered, _, _) = GetCurrentLockState(MechLockType.Dna);
             if (!isRegistered)
                 OnLockAction(args, OnDnaLockRegister, DnaLockRegisterButton);
         };
         DnaLockBlockButton.OnPressed += args =>
         {
-            if (!CheckAccess()) return;
             var (isRegistered, _, _) = GetCurrentLockState(MechLockType.Dna);
             if (isRegistered)
                 OnLockAction(args, OnDnaLockToggle, DnaLockBlockButton);
         };
         DnaLockResetButton.OnPressed += args => {
-            if (!CheckAccess()) return;
             OnLockAction(args, OnDnaLockReset, DnaLockResetButton);
         };
 
         CardLockRegisterButton.OnPressed += args =>
         {
-            if (!CheckAccess()) return;
             var (isRegistered, _, _) = GetCurrentLockState(MechLockType.Card);
             if (!isRegistered)
                 OnLockAction(args, OnCardLockRegister, CardLockRegisterButton);
         };
         CardLockBlockButton.OnPressed += args =>
         {
-            if (!CheckAccess()) return;
             var (isRegistered, _, _) = GetCurrentLockState(MechLockType.Card);
             if (isRegistered)
                 OnLockAction(args, OnCardLockToggle, CardLockBlockButton);
         };
         CardLockResetButton.OnPressed += args => {
-            if (!CheckAccess()) return;
             OnLockAction(args, OnCardLockReset, CardLockResetButton);
         };
 
@@ -89,6 +85,7 @@ public sealed partial class MechMenu : FancyWindow
             if (args.Pressed)
             {
                 FanOnButton.Pressed = false;
+                if (!CheckAccess()) { OnAccessDeniedPing(); return; }
                 OnFanToggle?.Invoke(false);
             }
         };
@@ -98,6 +95,7 @@ public sealed partial class MechMenu : FancyWindow
             if (args.Pressed)
             {
                 FanOffButton.Pressed = false;
+                if (!CheckAccess()) { OnAccessDeniedPing(); return; }
                 OnFanToggle?.Invoke(true);
             }
         };
@@ -105,9 +103,14 @@ public sealed partial class MechMenu : FancyWindow
         // Raise filter toggle event to be handled by BUI
         FilterEnabledCheck.OnToggled += args =>
         {
-            if (!CheckAccess()) return;
+            if (!CheckAccess()) { OnAccessDeniedPing(); return; }
             OnFilterToggle?.Invoke(args.Pressed);
         };
+    }
+
+    private void OnAccessDeniedPing()
+    {
+        OnAccessDeniedAttempt?.Invoke();
     }
 
     private bool CheckAccess()
@@ -166,9 +169,7 @@ public sealed partial class MechMenu : FancyWindow
         FanStatusLabel.Visible = state.HasFanModule;
         FilterEnabledCheck.Visible = state.HasFanModule;
         FanMissingLabel.Visible = !state.HasFanModule;
-        _hasAccess = state.HasAccess;
 
-        CabinPurgeButton.Disabled = !state.CabinPurgeAvailable;
         CabinPurgeButton.Text = Loc.GetString("mech-cabin-purge");
 
         // Update airtight button state
@@ -269,6 +270,20 @@ public sealed partial class MechMenu : FancyWindow
 
     private MechBoundUiState? _lastState;
 
+    public void OverrideAccessAndRefresh(bool hasAccess)
+    {
+        _hasAccess = hasAccess;
+        var isLocked = _lastState?.IsLocked ?? true;
+        var noAccessActive = isLocked && !_hasAccess;
+        SettingsGrid.Visible = !noAccessActive;
+        SettingsNoAccessPanel.Visible = noAccessActive;
+        AirtightButton.Disabled = noAccessActive;
+        FanOnButton.Disabled = noAccessActive;
+        FanOffButton.Disabled = noAccessActive;
+        FilterEnabledCheck.Disabled = noAccessActive;
+        CabinPurgeButton.Disabled = noAccessActive || (_lastState != null && !_lastState.CabinPurgeAvailable);
+    }
+
     private (bool IsRegistered, bool IsActive, string? OwnerId) GetLockState(MechBoundUiState state, MechLockType lockType)
     {
         return lockType switch
@@ -322,6 +337,9 @@ public sealed partial class MechMenu : FancyWindow
             var control = new MechEquipmentControl(ent, metaData.EntityName, fragment, size);
             var entityToRemove = ent;
             control.OnRemoveButtonPressed += () => onRemove(entityToRemove);
+            // Disable removal if a pilot is inside or if user lacks access when locked
+            var disableRemove = _pilotPresent || !_hasAccess;
+            control.SetRemoveDisabled(disableRemove);
             container.AddChild(control);
         }
     }

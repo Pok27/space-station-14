@@ -81,6 +81,8 @@ public sealed partial class MechSystem : SharedMechSystem
 
         // Cabin purge BUI message
         SubscribeLocalEvent<MechComponent, MechCabinPurgeMessage>(OnCabinPurgeMessage);
+
+        // Access denied ping removed
     }
 
     private void OnMechCanMoveEvent(EntityUid uid, MechComponent component, UpdateCanMoveEvent args)
@@ -431,70 +433,50 @@ public sealed partial class MechSystem : SharedMechSystem
 
     private void OnDnaLockRegisterMessage(EntityUid uid, MechComponent component, MechDnaLockRegisterMessage args)
     {
-        ForwardLockEvent(uid, new MechDnaLockRegisterEvent());
+        if (!HasComp<MechLockComponent>(uid))
+            return;
+        var ev = new MechDnaLockRegisterEvent { User = GetNetEntity(args.Actor) };
+        RaiseLocalEvent(uid, ev);
     }
 
     private void OnDnaLockToggleMessage(EntityUid uid, MechComponent component, MechDnaLockToggleMessage args)
     {
-        ForwardLockEvent(uid, new MechDnaLockToggleEvent());
+        if (!HasComp<MechLockComponent>(uid))
+            return;
+        var ev = new MechDnaLockToggleEvent { User = GetNetEntity(args.Actor) };
+        RaiseLocalEvent(uid, ev);
     }
 
     private void OnDnaLockResetMessage(EntityUid uid, MechComponent component, MechDnaLockResetMessage args)
     {
-        ForwardLockEvent(uid, new MechDnaLockResetEvent());
+        if (!HasComp<MechLockComponent>(uid))
+            return;
+        var ev = new MechDnaLockResetEvent { User = GetNetEntity(args.Actor) };
+        RaiseLocalEvent(uid, ev);
     }
 
     private void OnCardLockRegisterMessage(EntityUid uid, MechComponent component, MechCardLockRegisterMessage args)
     {
-        ForwardLockEvent(uid, new MechCardLockRegisterEvent());
+        if (!HasComp<MechLockComponent>(uid))
+            return;
+        var ev = new MechCardLockRegisterEvent { User = GetNetEntity(args.Actor) };
+        RaiseLocalEvent(uid, ev);
     }
 
     private void OnCardLockToggleMessage(EntityUid uid, MechComponent component, MechCardLockToggleMessage args)
     {
-        ForwardLockEvent(uid, new MechCardLockToggleEvent());
+        if (!HasComp<MechLockComponent>(uid))
+            return;
+        var ev = new MechCardLockToggleEvent { User = GetNetEntity(args.Actor) };
+        RaiseLocalEvent(uid, ev);
     }
 
     private void OnCardLockResetMessage(EntityUid uid, MechComponent component, MechCardLockResetMessage args)
     {
-        ForwardLockEvent(uid, new MechCardLockResetEvent());
-    }
-
-    private void ForwardLockEvent(EntityUid mech, EntityEventArgs ev)
-    {
-        if (!HasComp<MechLockComponent>(mech))
+        if (!HasComp<MechLockComponent>(uid))
             return;
-        // Determine the actor interacting with this mech UI
-        var actors = _ui.GetActors(mech, MechUiKey.Key);
-        if (!actors.Any())
-            return;
-        var user = actors.First();
-        switch (ev)
-        {
-            case MechDnaLockRegisterEvent e:
-                e.User = GetNetEntity(user);
-                RaiseLocalEvent(mech, e);
-                break;
-            case MechDnaLockToggleEvent e:
-                e.User = GetNetEntity(user);
-                RaiseLocalEvent(mech, e);
-                break;
-            case MechDnaLockResetEvent e:
-                e.User = GetNetEntity(user);
-                RaiseLocalEvent(mech, e);
-                break;
-            case MechCardLockRegisterEvent e:
-                e.User = GetNetEntity(user);
-                RaiseLocalEvent(mech, e);
-                break;
-            case MechCardLockToggleEvent e:
-                e.User = GetNetEntity(user);
-                RaiseLocalEvent(mech, e);
-                break;
-            case MechCardLockResetEvent e:
-                e.User = GetNetEntity(user);
-                RaiseLocalEvent(mech, e);
-                break;
-        }
+        var ev = new MechCardLockResetEvent { User = GetNetEntity(args.Actor) };
+        RaiseLocalEvent(uid, ev);
     }
 
     private void OnCabinPurgeMessage(EntityUid uid, MechComponent component, MechCabinPurgeMessage args)
@@ -611,7 +593,8 @@ public sealed partial class MechSystem : SharedMechSystem
             HasFanModule = hasFanModule,
             HasGasModule = hasGasModule,
             ModuleSpaceMax = component.MaxModuleSpace,
-            ModuleSpaceUsed = moduleUsed
+            ModuleSpaceUsed = moduleUsed,
+            PilotPresent = component.PilotSlot.ContainedEntity != null
         };
 
         // Cabin purge availability
@@ -632,11 +615,21 @@ public sealed partial class MechSystem : SharedMechSystem
             {
                 var user = actors.First();
                 state.HasAccess = _lockSystem.HasAccess(user, lockComp);
+                // Also send per-actor sync for all open actors, to ensure their clients see correct access
+                foreach (var actor in actors)
+                {
+                    var perActorHasAccess = _lockSystem.HasAccess(actor, lockComp);
+                    _ui.ServerSendUiMessage(uid, MechUiKey.Key, new MechAccessSyncMessage(perActorHasAccess), actor);
+                }
             }
             else
             {
                 state.HasAccess = false;
             }
+        }
+        else
+        {
+            state.HasAccess = true;
         }
 
         _ui.SetUiState(uid, MechUiKey.Key, state);

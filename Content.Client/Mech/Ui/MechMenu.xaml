@@ -113,7 +113,13 @@
 
             <!-- Settings -->
             <!-- Top block -->
-            <GridContainer Columns="2">
+            <BoxContainer Orientation="Vertical" Name="SettingsAccessWrapper">
+                <PanelContainer Name="SettingsNoAccessPanel" Visible="False" StyleClasses="Inset" Margin="0 0 0 5">
+                    <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalExpand="False" Margin="8">
+                        <Label Text="{Loc 'mech-settings-no-access'}" HorizontalAlignment="Center"/>
+                    </BoxContainer>
+                </PanelContainer>
+                <GridContainer Columns="2" Name="SettingsGrid">
                 <PanelContainer StyleClasses="Inset"
                                 Margin="0 0 0 5"
                                 HorizontalExpand="True">
@@ -155,7 +161,8 @@
                                     ToggleMode="True"
                                     HorizontalExpand="False"/>
                                 <CheckBox Name="FilterEnabledCheck" Margin="6 0"
-                                          Text="{Loc 'mech-filter-enabled'}"/>
+                                          Text="{Loc 'mech-filter-enabled'}"
+                                          VerticalAlignment="Bottom"/>
                             <Label Name="FanMissingLabel"
                                    Visible="False"
                                    HorizontalAlignment="Right"
@@ -164,7 +171,8 @@
                         </BoxContainer>
                     </BoxContainer>
                 </PanelContainer>
-            </GridContainer>
+                </GridContainer>
+            </BoxContainer>
 
             <!-- Bottom block -->
             <PanelContainer StyleClasses="Inset"

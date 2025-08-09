@@ -90,3 +90,7 @@ mech-lock-reset-success-popup = Lock reset!
 mech-lock-dna-info = DNA: {$dna}
 mech-lock-card-info = ID: {$name}
 mech-lock-not-set = Not set
+
+# Settings access banner
+mech-settings-no-access = Access denied. You do not have permission to change settings.
+mech-remove-disabled-tooltip = Cannot remove while pilot is inside or access is denied.

@@ -111,6 +111,17 @@ public sealed class MechBoundUserInterface : BoundUserInterface
         _menu.UpdateModuleView(msg.Modules);
     }
 
+    protected override void ReceiveMessage(BoundUserInterfaceMessage message)
+    {
+        base.ReceiveMessage(message);
+        if (_menu == null)
+            return;
+        if (message is MechAccessSyncMessage access)
+        {
+            _menu.OverrideAccessAndRefresh(access.HasAccess);
+        }
+    }
+
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);

@@ -225,6 +225,9 @@ public sealed class MechBoundUiState : BoundUserInterfaceState
     // Module capacity
     public int ModuleSpaceMax;
     public int ModuleSpaceUsed;
+
+    // Whether a pilot is currently seated in the mech
+    public bool PilotPresent;
 }
 
 [Serializable, NetSerializable]
@@ -241,4 +244,15 @@ public sealed class MechGrabberUiState : BoundUserInterfaceState
 public sealed class MechSoundboardUiState : BoundUserInterfaceState
 {
     public List<string> Sounds = new();
+}
+
+[Serializable, NetSerializable]
+public sealed class MechAccessSyncMessage : BoundUserInterfaceMessage
+{
+    public bool HasAccess;
+
+    public MechAccessSyncMessage(bool hasAccess)
+    {
+        HasAccess = hasAccess;
+    }
 }
