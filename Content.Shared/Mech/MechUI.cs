@@ -146,6 +146,20 @@ public sealed class MechFanToggleMessage : BoundUserInterfaceMessage
 }
 
 /// <summary>
+/// Event raised to toggle the fan module's filter on/off
+/// </summary>
+[Serializable, NetSerializable]
+public sealed class MechFilterToggleMessage : BoundUserInterfaceMessage
+{
+    public bool Enabled;
+
+    public MechFilterToggleMessage(bool enabled)
+    {
+        Enabled = enabled;
+    }
+}
+
+/// <summary>
 /// Event raised to select equipment in the radial menu
 /// </summary>
 [Serializable, NetSerializable]
@@ -188,6 +202,7 @@ public sealed class MechBoundUiState : BoundUserInterfaceState
     public bool IsAirtight;
     public bool FanActive;
     public MechFanState FanState = MechFanState.Off;
+    public bool FilterEnabled;
     public float CabinGasLevel;
     public float GasAmountLiters;
     public float TankPressure;

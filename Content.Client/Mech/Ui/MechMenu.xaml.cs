@@ -10,6 +10,7 @@ using Robust.Client.UserInterface.Controls;
 using System.Linq;
 using static Robust.Client.UserInterface.Controls.BaseButton;
 using Robust.Client.UserInterface;
+using Content.Shared.Mech.EntitySystems;
 
 namespace Content.Client.Mech.Ui;
 
@@ -28,6 +29,7 @@ public sealed partial class MechMenu : FancyWindow
 
     public event Action<bool>? OnAirtightChanged;
     public event Action<bool>? OnFanToggle;
+    public event Action<bool>? OnFilterToggle;
     public event Action? OnDnaLockRegister;
     public event Action? OnDnaLockToggle;
     public event Action? OnDnaLockReset;
@@ -44,34 +46,40 @@ public sealed partial class MechMenu : FancyWindow
         AirtightButton.OnToggled += args => OnAirtightChanged?.Invoke(args.Pressed);
         CabinPurgeButton.OnPressed += _ => OnCabinPurge?.Invoke();
 
-        DnaLockButton.OnPressed += args =>
+        DnaLockRegisterButton.OnPressed += args =>
         {
             if (!CheckAccess()) return;
-
-            var (isRegistered, isActive, _) = GetCurrentLockState(MechLockType.Dna);
-            if (isRegistered)
-                OnLockAction(args, OnDnaLockToggle, DnaLockButton);
-            else
-                OnLockAction(args, OnDnaLockRegister, DnaLockButton);
+            var (isRegistered, _, _) = GetCurrentLockState(MechLockType.Dna);
+            if (!isRegistered)
+                OnLockAction(args, OnDnaLockRegister, DnaLockRegisterButton);
         };
-        DnaLockResetButton.OnPressed += args =>
+        DnaLockBlockButton.OnPressed += args =>
         {
+            if (!CheckAccess()) return;
+            var (isRegistered, _, _) = GetCurrentLockState(MechLockType.Dna);
+            if (isRegistered)
+                OnLockAction(args, OnDnaLockToggle, DnaLockBlockButton);
+        };
+        DnaLockResetButton.OnPressed += args => {
             if (!CheckAccess()) return;
             OnLockAction(args, OnDnaLockReset, DnaLockResetButton);
         };
 
-        CardLockButton.OnPressed += args =>
+        CardLockRegisterButton.OnPressed += args =>
         {
             if (!CheckAccess()) return;
-
-            var (isRegistered, isActive, _) = GetCurrentLockState(MechLockType.Card);
-            if (isRegistered)
-                OnLockAction(args, OnCardLockToggle, CardLockButton);
-            else
-                OnLockAction(args, OnCardLockRegister, CardLockButton);
+            var (isRegistered, _, _) = GetCurrentLockState(MechLockType.Card);
+            if (!isRegistered)
+                OnLockAction(args, OnCardLockRegister, CardLockRegisterButton);
         };
-        CardLockResetButton.OnPressed += args =>
+        CardLockBlockButton.OnPressed += args =>
         {
+            if (!CheckAccess()) return;
+            var (isRegistered, _, _) = GetCurrentLockState(MechLockType.Card);
+            if (isRegistered)
+                OnLockAction(args, OnCardLockToggle, CardLockBlockButton);
+        };
+        CardLockResetButton.OnPressed += args => {
             if (!CheckAccess()) return;
             OnLockAction(args, OnCardLockReset, CardLockResetButton);
         };
@@ -92,6 +100,13 @@ public sealed partial class MechMenu : FancyWindow
                 FanOffButton.Pressed = false;
                 OnFanToggle?.Invoke(true);
             }
+        };
+
+        // Raise filter toggle event to be handled by BUI
+        FilterEnabledCheck.OnToggled += args =>
+        {
+            if (!CheckAccess()) return;
+            OnFilterToggle?.Invoke(args.Pressed);
         };
     }
 
@@ -149,6 +164,7 @@ public sealed partial class MechMenu : FancyWindow
         FanOnButton.Visible = state.HasFanModule;
         FanOffButton.Visible = state.HasFanModule;
         FanStatusLabel.Visible = state.HasFanModule;
+        FilterEnabledCheck.Visible = state.HasFanModule;
         FanMissingLabel.Visible = !state.HasFanModule;
         _hasAccess = state.HasAccess;
 
@@ -166,6 +182,9 @@ public sealed partial class MechMenu : FancyWindow
                 FanOffButton.Pressed = !state.FanActive;
             if (FanOnButton.Pressed != state.FanActive)
                 FanOnButton.Pressed = state.FanActive;
+
+            if (FilterEnabledCheck.Pressed != state.FilterEnabled)
+                FilterEnabledCheck.Pressed = state.FilterEnabled;
 
             // Update fan status display
             UpdateFanStatusDisplay(state.FanState);
@@ -231,39 +250,21 @@ public sealed partial class MechMenu : FancyWindow
 
     private void UpdateLockButtons(MechBoundUiState state)
     {
-        UpdateLockButton(state, MechLockType.Dna, DnaLockButton, DnaLockResetButton,
-            OnDnaLockRegister, OnDnaLockToggle, OnDnaLockReset);
-        UpdateLockButton(state, MechLockType.Card, CardLockButton, CardLockResetButton,
-            OnCardLockRegister, OnCardLockToggle, OnCardLockReset);
-    }
+        // DNA
+        var (dnaRegistered, dnaActive, _) = GetLockState(state, MechLockType.Dna);
+        DnaLockRegisterButton.Visible = !dnaRegistered;
+        DnaLockBlockButton.Visible = dnaRegistered;
+        DnaLockResetButton.Visible = dnaRegistered;
+        DnaLockBlockButton.Text = Loc.GetString(dnaActive ? "mech-lock-deactivate" : "mech-lock-activate");
+        DnaLockBlockButton.Pressed = dnaActive;
 
-    private void UpdateLockButton(MechBoundUiState state, MechLockType lockType,
-        Button lockButton, BaseButton resetButton,
-        Action? registerAction, Action? toggleAction, Action? resetAction)
-    {
-        var (isRegistered, isActive, _) = GetLockState(state, lockType);
-
-        // Update button state without changing event handlers
-        if (isRegistered)
-        {
-            if (isActive)
-            {
-                lockButton.Text = Loc.GetString("mech-lock-deactivate");
-                lockButton.Pressed = true;
-            }
-            else
-            {
-                lockButton.Text = Loc.GetString("mech-lock-activate");
-                lockButton.Pressed = false;
-            }
-            resetButton.Visible = true;
-        }
-        else
-        {
-            lockButton.Text = Loc.GetString("mech-lock-register");
-            lockButton.Pressed = false;
-            resetButton.Visible = false;
-        }
+        // Card
+        var (cardRegistered, cardActive, _) = GetLockState(state, MechLockType.Card);
+        CardLockRegisterButton.Visible = !cardRegistered;
+        CardLockBlockButton.Visible = cardRegistered;
+        CardLockResetButton.Visible = cardRegistered;
+        CardLockBlockButton.Text = Loc.GetString(cardActive ? "mech-lock-deactivate" : "mech-lock-activate");
+        CardLockBlockButton.Pressed = cardActive;
     }
 
     private MechBoundUiState? _lastState;

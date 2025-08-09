@@ -4,7 +4,7 @@
                       xmlns:customControls="clr-namespace:Content.Client.Administration.UI.CustomControls"
                       Title="{Loc 'mech-menu-title'}"
                       MinSize="600 540"
-                      SetSize="680 540">
+                      SetSize="700 540">
     <BoxContainer Orientation="Horizontal"
                   HorizontalExpand="True"
                   VerticalExpand="True"
@@ -15,7 +15,7 @@
                       VerticalExpand="True"
                       HorizontalExpand="False"
                       Margin="0 0 4 0"
-                      SetWidth="360">
+                      SetWidth="380">
             <BoxContainer Orientation="Horizontal"
                           Margin="0 0 0 6">
                 <controls:StripeBack HorizontalExpand="True">
@@ -91,13 +91,13 @@
                                     <Label Text="{Loc 'mech-air-cabin-pressure-label'}"
                                            StyleClasses="StatusFieldTitle"/>
                                     <Label Name="CabinGasLabel"
-                                        FontColorOverride="White"
+                                           FontColorOverride="White"
                                            SetHeight="18"/>
 
                                     <Label Text="{Loc 'mech-tank-pressure-label'}"
                                            StyleClasses="StatusFieldTitle"/>
                                     <Label Name="TankPressureLabel"
-                                        FontColorOverride="White"
+                                           FontColorOverride="White"
                                            SetHeight="18"/>
 
                                     <Label Text="{Loc 'mech-fan-status-label'}"
@@ -144,18 +144,18 @@
                                Text="{Loc 'mech-fan-label'}"
                                Margin="0 0 0 3"/>
                         <BoxContainer>
-                                <Button Name="FanOnButton"
-                                        Text="{Loc 'mech-fan-on'}"
-                                        StyleClasses="OpenRight"
-                                        ToggleMode="True"
-                                        MinWidth="60"
-                                        HorizontalExpand="False"/>
-                                <Button Name="FanOffButton"
-                                        Text="{Loc 'mech-fan-off'}"
-                                        StyleClasses="OpenLeft"
-                                        ToggleMode="True"
-                                        MinWidth="60"
-                                        HorizontalExpand="False"/>
+                            <Button Name="FanOnButton"
+                                    Text="{Loc 'mech-fan-on'}"
+                                    StyleClasses="OpenRight"
+                                    ToggleMode="True"
+                                    HorizontalExpand="False"/>
+                            <Button Name="FanOffButton"
+                                    Text="{Loc 'mech-fan-off'}"
+                                    StyleClasses="OpenLeft"
+                                    ToggleMode="True"
+                                    HorizontalExpand="False"/>
+                                <CheckBox Name="FilterEnabledCheck" Margin="6 0"
+                                          Text="{Loc 'mech-filter-enabled'}"/>
                             <Label Name="FanMissingLabel"
                                    Visible="False"
                                    HorizontalAlignment="Right"
@@ -174,12 +174,18 @@
                            Text="{Loc 'mech-lock-dna-label'}"
                            Margin="0 0 0 3"/>
                     <BoxContainer Orientation="Vertical"
-                            Margin="0 0 0 3">
+                                  Margin="0 0 0 3">
                         <BoxContainer>
-                            <Button Name="DnaLockButton"
+                            <Button Name="DnaLockRegisterButton"
                                     Text="{Loc 'mech-lock-register'}"
-                                    ToggleMode="True"
+                                    ToggleMode="False"
                                     HorizontalExpand="False"/>
+                            <Button Name="DnaLockBlockButton"
+                                    Text="{Loc 'dna-lock-activate'}"
+                                    StyleClasses="OpenRight"
+                                    ToggleMode="True"
+                                    HorizontalExpand="False"
+                                    Visible="False"/>
                             <Button StyleClasses="OpenLeft"
                                     Name="DnaLockResetButton"
                                     ToolTip="{Loc 'mech-lock-reset'}">
@@ -202,12 +208,18 @@
                            Text="{Loc 'mech-lock-card-label'}"
                            Margin="0 0 0 3"/>
                     <BoxContainer Orientation="Vertical"
-                            Margin="0 0 0 3">
+                                  Margin="0 0 0 3">
                         <BoxContainer>
-                            <Button Name="CardLockButton"
+                            <Button Name="CardLockRegisterButton"
                                     Text="{Loc 'mech-lock-register'}"
-                                    ToggleMode="True"
+                                    ToggleMode="False"
                                     HorizontalExpand="False"/>
+                            <Button Name="CardLockBlockButton"
+                                    Text="{Loc 'mech-lock-activate'}"
+                                    StyleClasses="OpenRight"
+                                    ToggleMode="True"
+                                    HorizontalExpand="False"
+                                    Visible="False"/>
                             <Button StyleClasses="OpenLeft"
                                     Name="CardLockResetButton"
                                     ToolTip="{Loc 'mech-lock-reset'}">

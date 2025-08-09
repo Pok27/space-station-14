@@ -50,28 +50,6 @@
   - type: Mech
   - type: MechLock
     isLocked: false
-  - type: AirFilter
-    # everything except oxygen and nitrogen
-    gases:
-    - CarbonDioxide
-    - Plasma
-    - Tritium
-    - WaterVapor
-    - Ammonia
-    - NitrousOxide
-    - Frezon
-    #- Helium3 TODO: fusion
-    # remove everything except oxygen to maintain oxygen ratio
-    overflowGases:
-    - Nitrogen
-    - CarbonDioxide
-    - Plasma
-    - Tritium
-    - WaterVapor
-    - Ammonia
-    - NitrousOxide
-    - Frezon
-    #- Helium3 TODO: fusion
   - type: AirIntake
   # for intake and filter to work
   - type: AtmosDevice

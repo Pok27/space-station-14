@@ -24,6 +24,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
 
         SubscribeLocalEvent<MechComponent, MechAirtightMessage>(OnAirtightMessage);
         SubscribeLocalEvent<MechComponent, MechFanToggleMessage>(OnFanToggleMessage);
+        SubscribeLocalEvent<MechComponent, MechFilterToggleMessage>(OnFilterToggleMessage);
 
         SubscribeLocalEvent<MechPilotComponent, InhaleLocationEvent>(OnInhale);
         SubscribeLocalEvent<MechPilotComponent, ExhaleLocationEvent>(OnExhale);
@@ -184,6 +185,17 @@ public sealed class MechAtmosphereSystem : EntitySystem
         _mech.UpdateUserInterface(uid, component);
     }
 
+    private void OnFilterToggleMessage(EntityUid uid, MechComponent component, MechFilterToggleMessage args)
+    {
+        var fanModule = GetFanModule(uid, component);
+        if (fanModule == null)
+            return;
+
+        fanModule.FilterEnabled = args.Enabled;
+        Dirty(fanModule.Owner, fanModule);
+        _mech.UpdateUserInterface(uid, component);
+    }
+
     private void OnInhale(EntityUid uid, MechPilotComponent component, InhaleLocationEvent args)
     {
         if (!TryComp<MechComponent>(component.Mech, out var mech))
@@ -240,12 +252,13 @@ public sealed class MechAtmosphereSystem : EntitySystem
         if (args.Air != null)
             return;
 
-        // only OPEN (non-airtight) cabins mix with external atmosphere
-        if (component.Airtight)
+        var fan = GetFanModule(uid, component);
+        if (fan == null || !fan.FilterEnabled)
             return;
 
-        if (TryComp(uid, out MechCabinPressureComponent? cabin))
-            args.Air = cabin.Air;
+        // Source for filter is the gas cylinder module's tank air
+        if (_mech.TryGetGasModuleAir(uid, out var tankAir) && tankAir != null)
+            args.Air = tankAir;
     }
 
     private MechFanModuleComponent? GetFanModule(EntityUid mech, MechComponent mechComp)

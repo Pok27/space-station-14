@@ -52,6 +52,7 @@ mech-fan-status = { $state ->
     *[off] Off
 }
 mech-fan-missing = No fan module installed
+mech-filter-enabled = Filter
 
 # Access restriction
 mech-no-enter-popup = You cannot pilot this.

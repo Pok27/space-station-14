@@ -564,6 +564,7 @@ public sealed partial class MechSystem : SharedMechSystem
         var fanModule = GetFanModule(uid, component);
         var fanActive = fanModule?.IsActive ?? false;
         var fanState = fanModule?.State ?? MechFanState.Off;
+        var filterEnabled = fanModule?.FilterEnabled ?? false;
 
         var hasFanModule = false;
         var hasGasModule = false;
@@ -603,6 +604,7 @@ public sealed partial class MechSystem : SharedMechSystem
             IsAirtight = component.Airtight,
             FanActive = fanActive,
             FanState = fanState,
+            FilterEnabled = filterEnabled,
             CabinGasLevel = cabinPressure,
             GasAmountLiters = gasAmountLiters,
             TankPressure = tankPressure,

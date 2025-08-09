@@ -27,6 +27,10 @@
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
     state: mecha_air_tank # mecha_advanced_wholegen
   - type: MechFanModule
+  - type: AirFilter
+    gases: [ Plasma, CarbonDioxide ]
+    overflowGases: [ Nitrogen ]
+    targetOxygen: 0.21
 
 - type: entity
   id: MechModuleAdvancedFan
@@ -38,8 +42,12 @@
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
     state: mecha_air_tank # mecha_wholegen
   - type: MechFanModule
-    energyConsumption: 7.5
+    energyConsumption: 30
     gasProcessingRate: 1.0
+  - type: AirFilter
+    gases: [ Plasma, CarbonDioxide, NitrousOxide ]
+    overflowGases: [ Nitrogen ]
+    targetOxygen: 0.21
 
 - type: entity
   id: MechModuleGasCylinder
@@ -54,7 +62,7 @@
   - type: GasTank
     outputPressure: 101.3
     air:
-      volume: 5
+      volume: 50
 
 - type: entity
   id: MechModuleAdvancedGasCylinder
@@ -69,4 +77,4 @@
   - type: GasTank
     outputPressure: 101.3
     air:
-      volume: 15
+      volume: 75

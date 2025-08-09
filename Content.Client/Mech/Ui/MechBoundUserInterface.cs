@@ -82,6 +82,11 @@ public sealed class MechBoundUserInterface : BoundUserInterface
         {
             _pred!.SendMessage(new MechCardLockResetMessage());
         };
+
+        _menu.OnFilterToggle += enabled =>
+        {
+            _pred!.SendMessage(new MechFilterToggleMessage(enabled));
+        };
     }
 
     protected override void UpdateState(BoundUserInterfaceState state)
