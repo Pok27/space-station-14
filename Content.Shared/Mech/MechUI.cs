@@ -80,6 +80,14 @@ public abstract class MechEquipmentUiMessage : BoundUserInterfaceMessage
 }
 
 /// <summary>
+/// Purge cabin air message
+/// </summary>
+[Serializable, NetSerializable]
+public sealed class MechCabinPurgeMessage : BoundUserInterfaceMessage
+{
+}
+
+/// <summary>
 /// event raised for the grabber equipment to eject an item from it's storage
 /// </summary>
 [Serializable, NetSerializable]
@@ -183,6 +191,7 @@ public sealed class MechBoundUiState : BoundUserInterfaceState
     public float CabinGasLevel;
     public float GasAmountLiters;
     public float TankPressure;
+    public bool CabinPurgeAvailable;
 
     // Lock system
     public bool DnaLockRegistered;

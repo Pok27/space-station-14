@@ -27,9 +27,11 @@ mech-equipment-slot-display = Equipment: {$used}/{$max} used
 mech-module-slot-display = Modules: {$used}/{$max} used
 
 # Atmospheric system
-mech-air-cabin-label = Cabin air:
+mech-air-cabin-pressure-label = Cabin air:
 mech-air-toggle = Toggle Cabin
 mech-cabin-pressure-level = Cabin Pressure: {$level} kPa
+mech-cabin-purge = Purge Cabin
+
 mech-tank-pressure-label = Tank Pressure:
 mech-tank-pressure-level = { $state ->
     [ok] {$pressure} kPa

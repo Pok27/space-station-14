@@ -16,5 +16,5 @@ public sealed partial class MechCabinPressureComponent : Component
     /// Internal cabin air mixture separate from any attached gas cylinder.
     /// </summary>
     [DataField]
-    public GasMixture Air { get; set; } = new(Atmospherics.CellVolume);
+    public GasMixture Air { get; set; } = new(10f);
 }

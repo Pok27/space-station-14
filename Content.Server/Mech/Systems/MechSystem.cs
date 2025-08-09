@@ -33,6 +33,7 @@ using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Atmos;
+using Content.Server.Atmos.EntitySystems;
 
 namespace Content.Server.Mech.Systems;
 
@@ -455,6 +456,29 @@ public sealed partial class MechSystem : SharedMechSystem
                     break;
             }
         }
+
+        // Handle cabin purge
+        if (message is MechCabinPurgeMessage)
+        {
+            if (TryComp<MechCabinPressureComponent>(ent.Owner, out var cabin))
+            {
+                // Vent cabin air to the external atmosphere, then start cooldown
+                var environment = EntityManager.System<AtmosphereSystem>().GetContainingMixture(ent.Owner, false, true);
+                if (environment != null)
+                {
+                    var removed = cabin.Air.RemoveRatio(1f);
+                    EntityManager.System<AtmosphereSystem>().Merge(environment, removed);
+                }
+                else
+                {
+                    cabin.Air.Clear();
+                }
+
+                EnsureComp<MechCabinPurgeComponent>(ent.Owner).CooldownRemaining = 3f;
+                UpdateUserInterface(ent.Owner);
+            }
+            args.Cancel();
+        }
     }
 
     private void OnUpdateMechUi(EntityUid uid, MechComponent component, UpdateMechUiEvent args)
@@ -551,6 +575,9 @@ public sealed partial class MechSystem : SharedMechSystem
             ModuleSpaceMax = component.MaxModuleSpace,
             ModuleSpaceUsed = moduleUsed
         };
+
+        // Cabin purge availability
+        state.CabinPurgeAvailable = !TryComp<MechCabinPurgeComponent>(uid, out var purgeComp) || purgeComp.CooldownRemaining <= 0;
 
         if (TryComp<MechLockComponent>(uid, out var lockComp))
         {

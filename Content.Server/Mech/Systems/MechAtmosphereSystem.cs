@@ -43,6 +43,18 @@ public sealed class MechAtmosphereSystem : EntitySystem
         while (query.MoveNext(out var uid, out var mechComp))
         {
             var uiDirty = false;
+
+            // Tick purge cooldown
+            if (TryComp<MechCabinPurgeComponent>(uid, out var purge))
+            {
+                if (purge.CooldownRemaining > 0)
+                {
+                    purge.CooldownRemaining -= frameTime;
+                    if (purge.CooldownRemaining <= 0)
+                        RemCompDeferred<MechCabinPurgeComponent>(uid);
+                }
+            }
+
             var fanModule = GetFanModule(uid, mechComp);
             if (fanModule != null)
             {
@@ -135,7 +147,8 @@ public sealed class MechAtmosphereSystem : EntitySystem
             // Maintain cabin pressure from the cylinder when airtight
             if (mechComp.Airtight && TryComp<MechCabinPressureComponent>(uid, out var cabin))
             {
-                if (_mech.TryGetGasModuleAir(uid, out var tankAir) && tankAir != null)
+                var purging = TryComp<MechCabinPurgeComponent>(uid, out var purgeComp) && purgeComp.CooldownRemaining > 0;
+                if (!purging && _mech.TryGetGasModuleAir(uid, out var tankAir) && tankAir != null)
                 {
                     var cabinVolume = cabin.Air.Volume > 0 ? cabin.Air.Volume : Atmospherics.CellVolume;
                     var targetMoles = cabin.TargetPressure * cabinVolume / (Atmospherics.R * cabin.Air.Temperature);
@@ -228,8 +241,8 @@ public sealed class MechAtmosphereSystem : EntitySystem
         if (args.Air != null)
             return;
 
-        // only airtight mechs get internal air
-        if (!component.Airtight)
+        // only OPEN (non-airtight) cabins mix with external atmosphere
+        if (component.Airtight)
             return;
 
         if (TryComp(uid, out MechCabinPressureComponent? cabin))

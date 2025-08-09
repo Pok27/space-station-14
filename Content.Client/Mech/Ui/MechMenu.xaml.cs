@@ -34,6 +34,7 @@ public sealed partial class MechMenu : FancyWindow
     public event Action? OnCardLockRegister;
     public event Action? OnCardLockToggle;
     public event Action? OnCardLockReset;
+    public event Action? OnCabinPurge;
 
     public MechMenu()
     {
@@ -41,6 +42,7 @@ public sealed partial class MechMenu : FancyWindow
         IoCManager.InjectDependencies(this);
 
         AirtightButton.OnToggled += args => OnAirtightChanged?.Invoke(args.Pressed);
+        CabinPurgeButton.OnPressed += _ => OnCabinPurge?.Invoke();
 
         DnaLockButton.OnPressed += args =>
         {
@@ -147,6 +149,9 @@ public sealed partial class MechMenu : FancyWindow
         FanStatusLabel.Visible = state.HasFanModule;
         FanMissingLabel.Visible = !state.HasFanModule;
         _hasAccess = state.HasAccess;
+
+        CabinPurgeButton.Disabled = !state.CabinPurgeAvailable;
+        CabinPurgeButton.Text = Loc.GetString("mech-cabin-purge");
 
         // Update airtight button state
         if (AirtightButton.Pressed != state.IsAirtight)
