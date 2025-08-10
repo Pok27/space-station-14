@@ -76,7 +76,7 @@ public sealed partial class MechSystem : SharedMechSystem
         // Only block movement if locks are active and pilot lacks access
         if (component.PilotSlot.ContainedEntity != null && TryComp<MechLockComponent>(uid, out var lockComp))
         {
-            if (lockComp.IsLocked && !_lockSystem.HasAccess(component.PilotSlot.ContainedEntity.Value, lockComp))
+            if (lockComp.IsLocked && !_lockSystem.CheckAccess(uid, component.PilotSlot.ContainedEntity.Value, lockComp))
                 args.Cancel();
         }
     }
@@ -191,7 +191,7 @@ public sealed partial class MechSystem : SharedMechSystem
             return;
 
         // Allow entry if locks are not active; block only if active and user lacks access
-        if (TryComp<MechLockComponent>(uid, out var lockComp) && lockComp.IsLocked && !_lockSystem.HasAccess(args.User, lockComp))
+        if (TryComp<MechLockComponent>(uid, out var lockComp) && lockComp.IsLocked && !_lockSystem.CheckAccess(uid, args.User, lockComp))
         {
             _lockSystem.CheckAccessWithFeedback(uid, args.User, lockComp);
             return;

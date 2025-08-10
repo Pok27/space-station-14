@@ -119,7 +119,6 @@
                                 Margin="0 0 0 5">
                     <BoxContainer Orientation="Vertical"
                                   HorizontalExpand="True"
-                                  VerticalExpand="False"
                                   Margin="8">
                         <RichTextLabel Text="{Loc 'mech-settings-no-access'}"
                                        HorizontalAlignment="Center"/>
@@ -175,7 +174,7 @@
 
             <!-- Bottom block -->
             <PanelContainer StyleClasses="Inset"
-                            Margin="0 0 0 5">
+                            VerticalExpand="True">
                 <GridContainer Columns="2">
                     <Label StyleClasses="StatusFieldTitle"
                            Text="{Loc 'mech-lock-dna-label'}"

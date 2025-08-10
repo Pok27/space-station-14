@@ -52,34 +52,29 @@ public abstract partial class SharedMechLockSystem : EntitySystem
     }
 
     /// <summary>
-    /// Checks if user has access without any feedback (for UI/verb visibility)
+    /// Checks if the user has access to the mech
     /// </summary>
-    /// <param name="uid">Mech entity</param>
-    /// <param name="user">User trying to access</param>
-    /// <param name="component">Lock component (optional)</param>
-    /// <returns>True if access granted, false if denied</returns>
     public bool CheckAccess(EntityUid uid, EntityUid user, MechLockComponent? component = null)
     {
-        if (!Resolve(uid, ref component, false))
-            return true; // No lock component = no restrictions
+        if (!Resolve(uid, ref component))
+            return true;
 
-        return HasAccess(user, component);
+        var hasAccess = HasAccess(user, component);
+        return hasAccess;
     }
 
     /// <summary>
-    /// Checks if user has access and plays deny sound if not
+    /// Checks if the user has access to the mech and provides feedback if denied
     /// </summary>
-    /// <param name="uid">Mech entity</param>
-    /// <param name="user">User trying to access</param>
-    /// <param name="component">Lock component (optional)</param>
-    /// <returns>True if access granted, false if denied</returns>
     public bool CheckAccessWithFeedback(EntityUid uid, EntityUid user, MechLockComponent? component = null)
     {
-        if (!Resolve(uid, ref component, false))
-            return true; // No lock component = no restrictions
+        if (!Resolve(uid, ref component))
+            return true;
 
         if (HasAccess(user, component))
+        {
             return true;
+        }
 
         // Access denied - show popup and play sound
         _popup.PopupEntity(Loc.GetString("mech-lock-access-denied-popup"), uid, user);
@@ -95,9 +90,16 @@ public abstract partial class SharedMechLockSystem : EntitySystem
         if (!Resolve(uid, ref component))
             return false;
 
-        // If any lock is already registered, only an existing owner may register additional locks
-        var anyRegistered = component.DnaLockRegistered || component.CardLockRegistered;
-        if (anyRegistered && !IsAnyOwner(user, component))
+        // Check if the specific lock type is already registered
+        var isAlreadyRegistered = lockType switch
+        {
+            MechLockType.Dna => component.DnaLockRegistered,
+            MechLockType.Card => component.CardLockRegistered,
+            _ => false
+        };
+
+        // If this specific lock type is already registered, only its owner may modify it
+        if (isAlreadyRegistered && !IsOwnerOfLock(user, lockType, component))
         {
             DenyWithFeedback(uid, user);
             return false;
@@ -122,9 +124,14 @@ public abstract partial class SharedMechLockSystem : EntitySystem
                     _popup.PopupEntity(Loc.GetString("mech-lock-no-card-popup"), uid, user);
                     return false;
                 }
+                if (idCard.Owner == EntityUid.Invalid)
+                {
+                    _popup.PopupEntity(Loc.GetString("mech-lock-no-card-popup"), uid, user);
+                    return false;
+                }
                 component.CardLockRegistered = true;
                 component.OwnerJobTitle = idCard.Comp.LocalizedJobTitle;
-                if (TryComp<AccessComponent>(idCard.Owner, out var access))
+                if (TryComp<AccessComponent>(idCard.Owner, out var access) && access != null && access.Tags != null)
                 {
                     component.CardAccessTags = new HashSet<ProtoId<AccessLevelPrototype>>(access.Tags);
                 }
@@ -226,46 +233,62 @@ public abstract partial class SharedMechLockSystem : EntitySystem
     /// <summary>
     /// Checks if a user has access to a locked mech and can manage locks
     /// </summary>
-    public bool HasAccess(EntityUid user, MechLockComponent component)
+    private bool HasAccess(EntityUid user, MechLockComponent component)
     {
-        // If mech is not locked, UI settings are available to anyone
-        if (!component.IsLocked)
-            return true;
-
-        // If locked, only owners of ACTIVE locks grant access
-        foreach (MechLockType lockType in Enum.GetValues<MechLockType>())
+        // If no locks are registered, access is granted
+        if (!component.DnaLockRegistered && !component.CardLockRegistered)
         {
-            var (isRegistered, isActive, ownerId) = GetLockState(lockType, component);
-            if (!isRegistered || !isActive || ownerId == null)
-                continue;
+            return true;
+        }
 
-            switch (lockType)
+        // If any locks are registered, user must be registered for at least one type
+        var isRegisteredForAny = IsAnyOwner(user, component);
+        if (!isRegisteredForAny)
+        {
+            return false;
+        }
+
+        // If no locks are active, access is granted (but only for registered users)
+        if (!component.DnaLockActive && !component.CardLockActive)
+        {
+            return true;
+        }
+
+        var hasAccess = false;
+
+        // Check DNA lock - if active, user must have matching DNA
+        if (component.DnaLockActive && component.DnaLockRegistered)
+        {
+            if (TryComp<DnaComponent>(user, out var dnaComp) && dnaComp.DNA == component.OwnerDna)
             {
-                case MechLockType.Dna:
-                    if (TryComp<DnaComponent>(user, out var dnaComp) && dnaComp.DNA == ownerId)
-                        return true;
-                    break;
-
-                case MechLockType.Card:
-                    // Compare access tags with those captured during registration
-                    if (component.CardAccessTags != null && component.CardAccessTags.Count > 0 && TryFindIdCard(user, out var idCard))
-                    {
-                        if (TryComp<AccessComponent>(idCard.Owner, out var access))
-                        {
-                            // Ensure the user's card has at least the registered tags
-                            if (component.CardAccessTags.All(tag => access.Tags.Contains(tag)))
-                                return true;
-                        }
-                    }
-                    break;
+                hasAccess = true;
             }
         }
 
-        // If no locks are registered or active, anyone can access
-        if (!component.DnaLockRegistered && !component.CardLockRegistered)
-            return true;
+        // Check card lock - if active, user must have matching access tags
+        if (component.CardLockActive && component.CardLockRegistered)
+        {
+            if (TryFindIdCard(user, out var idCard) && idCard.Owner != EntityUid.Invalid)
+            {
+                if (TryComp<AccessComponent>(idCard.Owner, out var access) && access != null && access.Tags != null)
+                {
+                    // Store tags in local variable to avoid null reference issues
+                    var tags = access.Tags;
+                    // Check if the user's access tags match any of the required tags
+                    foreach (var tag in tags)
+                    {
+                        if (component.CardAccessTags!.Contains(tag))
+                        {
+                            hasAccess = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
 
-        return false;
+        // User has access if they can access at least one active lock type
+        return hasAccess;
     }
 
     /// <summary>
@@ -306,11 +329,13 @@ public abstract partial class SharedMechLockSystem : EntitySystem
             case MechLockType.Card:
                 if (component.CardAccessTags == null || component.CardAccessTags.Count == 0)
                     return false;
-                if (!TryFindIdCard(user, out var idCard))
+                if (!TryFindIdCard(user, out var idCard) || idCard.Owner == EntityUid.Invalid)
                     return false;
-                if (!TryComp<AccessComponent>(idCard.Owner, out var access))
+                if (!TryComp<AccessComponent>(idCard.Owner, out var access) || access == null || access.Tags == null)
                     return false;
-                return component.CardAccessTags.All(tag => access.Tags.Contains(tag));
+                // Store tags in local variable to avoid null reference issues
+                var tags = access.Tags;
+                return component.CardAccessTags.All(tag => tags.Contains(tag));
         }
         return false;
     }

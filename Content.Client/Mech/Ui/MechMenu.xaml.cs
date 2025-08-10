@@ -86,13 +86,14 @@ public sealed partial class MechMenu : FancyWindow
 
     private void ExecuteWithAccessCheck(Action action)
     {
-        if (!CheckAccess())
+        if (CheckAccess())
+        {
+            action();
+        }
+        else
         {
             OnAccessDeniedPing();
-            return;
         }
-
-        action.Invoke();
     }
 
     private void OnAccessDeniedPing()
@@ -104,7 +105,18 @@ public sealed partial class MechMenu : FancyWindow
     {
         // Check if mech is locked and user has access
         var isLocked = _lastState?.IsLocked ?? false;
-        return !isLocked || _hasAccess;
+        var hasAccess = _hasAccess;
+
+        // If no UI state available, assume access is granted
+        if (_lastState == null)
+            return true;
+
+        // If mech is not locked, access is granted
+        if (!isLocked)
+            return true;
+
+        // If mech is locked, check if user has access
+        return hasAccess;
     }
 
     public void UpdateMechStats()
@@ -210,7 +222,6 @@ public sealed partial class MechMenu : FancyWindow
 
             if (FilterEnabledCheck.Pressed != state.FilterEnabled)
                 FilterEnabledCheck.Pressed = state.FilterEnabled;
-
         }
 
         // Update cabin gas level (always show)
@@ -222,9 +233,33 @@ public sealed partial class MechMenu : FancyWindow
         else
             TankPressureLabel.Text = _loc.GetString("mech-tank-pressure-level", ("state", "na"));
 
+        // Update fan status display
         UpdateFanStatusDisplay(state.FanState);
+
+        // Update lock information and buttons
         UpdateLockInfoLabels(state);
         UpdateLockButtons(state);
+
+        // Update equipment and module views
+        UpdateEquipmentView(state.Equipment);
+        UpdateModuleView(state.Modules);
+
+        // Ensure access state is properly applied
+        var isLocked = state.IsLocked;
+        var noAccessActive = isLocked && !state.HasAccess;
+        SettingsGrid.Visible = !noAccessActive;
+        SettingsNoAccessPanel.Visible = noAccessActive;
+
+        // Update remove buttons state for equipment and modules
+        var disableRemove = _pilotPresent || (isLocked && !state.HasAccess);
+        foreach (var control in EquipmentControlContainer.Children.OfType<MechEquipmentControl>())
+        {
+            control.SetRemoveDisabled(disableRemove);
+        }
+        foreach (var control in ModuleControlContainer.Children.OfType<MechEquipmentControl>())
+        {
+            control.SetRemoveDisabled(disableRemove);
+        }
     }
 
     private void UpdateFanStatusDisplay(MechFanState fanState)

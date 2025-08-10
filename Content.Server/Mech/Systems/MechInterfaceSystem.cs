@@ -29,10 +29,11 @@ public sealed class MechInterfaceSystem : EntitySystem
 {
     [Dependency] private readonly UserInterfaceSystem _uiSystem = null!;
     [Dependency] private readonly MechSystem _mechSystem = null!;
+    [Dependency] private readonly MechLockSystem _mechLockSystem = null!;
     [Dependency] private readonly ContainerSystem _container = null!;
     [Dependency] private readonly IGameTiming _gameTiming = null!;
 
-    private static readonly TimeSpan VisualsChangeDelay = TimeSpan.FromSeconds(0.5f);
+    private static readonly TimeSpan VisualsChangeDelay = TimeSpan.FromSeconds(0.1f);
 
     public override void Initialize()
     {
@@ -335,18 +336,21 @@ public sealed class MechInterfaceSystem : EntitySystem
             if (actors.Count > 0)
             {
                 var user = actors[0];
-                // Check access using the lock system's logic
-                state.HasAccess = !lockComp.IsLocked || lockComp.DnaLockActive && lockComp.OwnerDna != null || lockComp.CardLockActive && lockComp.OwnerJobTitle != null;
+                // Use the proper access check from MechLockSystem
+                var hasAccess = _mechLockSystem.CheckAccess(uid, user, lockComp);
+                state.HasAccess = hasAccess;
+
                 // Also send per-actor sync for all open actors, to ensure their clients see correct access
                 foreach (var actor in actors)
                 {
-                    var perActorHasAccess = !lockComp.IsLocked || lockComp.DnaLockActive && lockComp.OwnerDna != null || lockComp.CardLockActive && lockComp.OwnerJobTitle != null;
+                    var perActorHasAccess = _mechLockSystem.CheckAccess(uid, actor, lockComp);
                     _uiSystem.ServerSendUiMessage(uid, MechUiKey.Key, new MechAccessSyncMessage(perActorHasAccess), actor);
                 }
             }
             else
             {
-                state.HasAccess = false;
+                // If no UI session, assume no access for locked mechs
+                state.HasAccess = !lockComp.IsLocked;
             }
         }
         else

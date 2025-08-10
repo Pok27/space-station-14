@@ -247,13 +247,23 @@ public sealed class MechAtmosphereSystem : EntitySystem
 
     private GasMixture GetAirForPilot(EntityUid mech, MechComponent mechComp, bool excite = false)
     {
-        // Always try to get air from gas module first (balloon air)
+        // If mech is airtight, prioritize cabin air over gas module air
+        if (mechComp.Airtight && TryComp(mech, out MechCabinPressureComponent? cabin))
+        {
+            return cabin.Air;
+        }
+
+        // Try to get air from gas module (balloon air) as secondary source
         if (_mech.TryGetGasModuleAir(mech, out var tankAir) && tankAir != null)
+        {
             return tankAir;
+        }
 
         // If no gas module or no air in tank, use cabin air if airtight
-        if (mechComp.Airtight && TryComp(mech, out MechCabinPressureComponent? cabin))
-            return cabin.Air;
+        if (mechComp.Airtight && TryComp(mech, out MechCabinPressureComponent? cabinFallback))
+        {
+            return cabinFallback.Air;
+        }
 
         // Fallback to external atmosphere
         var external = _atmosphere.GetContainingMixture(mech, excite: excite);
