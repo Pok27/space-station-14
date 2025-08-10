@@ -88,12 +88,12 @@ public sealed partial class MechMenu : FancyWindow
         // DNA lock controls
         DnaLockRegisterButton.OnPressed += _ => ExecuteLockAction(MechLockType.Dna, false, OnDnaLockRegister);
         DnaLockBlockButton.OnPressed += _ => ExecuteLockAction(MechLockType.Dna, true, OnDnaLockToggle);
-        DnaLockResetButton.OnPressed += _ => ExecuteWithAccessCheck(() => OnDnaLockReset?.Invoke());
+        DnaLockResetButton.OnPressed += _ => ExecuteLockAction(MechLockType.Dna, true, OnDnaLockReset);
 
         // Card lock controls
         CardLockRegisterButton.OnPressed += _ => ExecuteLockAction(MechLockType.Card, false, OnCardLockRegister);
         CardLockBlockButton.OnPressed += _ => ExecuteLockAction(MechLockType.Card, true, OnCardLockToggle);
-        CardLockResetButton.OnPressed += _ => ExecuteWithAccessCheck(() => OnCardLockReset?.Invoke());
+        CardLockResetButton.OnPressed += _ => ExecuteLockAction(MechLockType.Card, true, OnCardLockReset);
     }
 
     private void ExecuteWithAccessCheck(Action action)
@@ -110,8 +110,13 @@ public sealed partial class MechMenu : FancyWindow
     private void ExecuteLockAction(MechLockType lockType, bool requiresRegistered, Action? action)
     {
         var (isRegistered, _, _) = GetCurrentLockState(lockType);
-        if (requiresRegistered && !isRegistered || !requiresRegistered && isRegistered)
-            return;
+
+        // For registration buttons (requiresRegistered = false): only allow if not already registered
+        // For toggle buttons (requiresRegistered = true): only allow if already registered
+        if (requiresRegistered && !isRegistered)
+            return; // Toggle button but not registered
+        if (!requiresRegistered && isRegistered)
+            return; // Register button but already registered
 
         ExecuteWithAccessCheck(() => action?.Invoke());
     }
@@ -123,45 +128,96 @@ public sealed partial class MechMenu : FancyWindow
 
     private bool CheckAccess()
     {
-        return _hasAccess;
+        // Check if mech is locked and user has access
+        var isLocked = _lastState?.IsLocked ?? false;
+        return !isLocked || _hasAccess;
     }
 
     public void UpdateMechStats()
     {
-        if (!_entityManager.TryGetComponent<MechComponent>(_mech, out var mechComp))
-            return;
-
-        var integrityPercent = mechComp.Integrity / mechComp.MaxIntegrity;
-        IntegrityDisplayBar.Value = integrityPercent.Float();
-        IntegrityDisplay.Text = _loc.GetString("mech-integrity-display", ("amount", (integrityPercent * 100).Int()));
-
-        if (mechComp.MaxEnergy != 0f)
+        // Use data from UI state if available, otherwise fall back to component data
+        if (_lastState != null)
         {
-            var energyPercent = mechComp.Energy / mechComp.MaxEnergy;
-            EnergyDisplayBar.Value = energyPercent.Float();
-            EnergyDisplay.Text = _loc.GetString("mech-energy-display", ("amount", (energyPercent * 100).Int()));
+            // Update integrity display
+            if (_lastState.MaxIntegrity > 0f)
+            {
+                var integrityPercent = _lastState.Integrity / _lastState.MaxIntegrity;
+                IntegrityDisplayBar.Value = integrityPercent;
+                IntegrityDisplay.Text = _loc.GetString("mech-integrity-display", ("amount", (int)(integrityPercent * 100)));
+            }
+            else
+            {
+                IntegrityDisplayBar.Value = 0f;
+                IntegrityDisplay.Text = _loc.GetString("mech-integrity-display", ("amount", 0));
+            }
+
+            // Update energy display
+            if (_lastState.MaxEnergy > 0f)
+            {
+                var energyPercent = _lastState.Energy / _lastState.MaxEnergy;
+                EnergyDisplayBar.Value = energyPercent;
+                EnergyDisplay.Text = _loc.GetString("mech-energy-display", ("amount", (int)(energyPercent * 100)));
+            }
+            else
+            {
+                EnergyDisplayBar.Value = 0f;
+                EnergyDisplay.Text = _loc.GetString("mech-energy-missing");
+            }
+
+            // Update equipment slot display
+            SlotDisplay.Text = _loc.GetString("mech-equipment-slot-display",
+                ("used", _lastState.EquipmentUsed), ("max", _lastState.MaxEquipmentAmount));
+
+            // Update module capacity display
+            ModuleSlotDisplay.Text = _loc.GetString("mech-module-slot-display",
+                ("used", _lastState.ModuleSpaceUsed), ("max", _lastState.ModuleSpaceMax));
         }
         else
         {
-            EnergyDisplayBar.Value = 0f;
-            EnergyDisplay.Text = _loc.GetString("mech-energy-missing");
+            // Fallback to component data if no UI state available
+            if (!_entityManager.TryGetComponent<MechComponent>(_mech, out var mechComp))
+                return;
+
+            var integrityPercent = mechComp.Integrity / mechComp.MaxIntegrity;
+            IntegrityDisplayBar.Value = integrityPercent.Float();
+            IntegrityDisplay.Text = _loc.GetString("mech-integrity-display", ("amount", (int)(integrityPercent * 100)));
+
+            if (mechComp.MaxEnergy != 0f)
+            {
+                var energyPercent = mechComp.Energy / mechComp.MaxEnergy;
+                EnergyDisplayBar.Value = energyPercent.Float();
+                EnergyDisplay.Text = _loc.GetString("mech-energy-display", ("amount", (int)(energyPercent * 100)));
+            }
+            else
+            {
+                EnergyDisplayBar.Value = 0f;
+                EnergyDisplay.Text = _loc.GetString("mech-energy-missing");
+            }
+
+            var equipUsed = mechComp.EquipmentContainer.ContainedEntities.Count;
+            SlotDisplay.Text = _loc.GetString("mech-equipment-slot-display",
+                ("used", equipUsed), ("max", mechComp.MaxEquipmentAmount));
+
+            // Module capacity label uses consumed space out of total
+            var usedSpace = 0;
+            foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
+                usedSpace += _entityManager.GetComponentOrNull<MechModuleComponent>(ent)?.Size ?? 1;
+            ModuleSlotDisplay.Text = _loc.GetString("mech-module-slot-display",
+                ("used", usedSpace), ("max", mechComp.MaxModuleSpace));
         }
-
-        var equipUsed = mechComp.EquipmentContainer.ContainedEntities.Count;
-        SlotDisplay.Text = _loc.GetString("mech-equipment-slot-display",
-            ("used", equipUsed), ("max", mechComp.MaxEquipmentAmount));
-
-        // Module capacity label uses consumed space out of total
-        var usedSpace = 0;
-        foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
-            usedSpace += _entityManager.GetComponentOrNull<MechModuleComponent>(ent)?.Size ?? 1;
-        ModuleSlotDisplay.Text = _loc.GetString("mech-module-slot-display",
-            ("used", usedSpace), ("max", mechComp.MaxModuleSpace));
     }
 
     public void UpdateMechState(MechBoundUiState state)
     {
         _lastState = state;
+        _pilotPresent = state.PilotPresent;
+
+        // Update access state immediately to prevent UI flickering
+        _hasAccess = state.HasAccess;
+        var isLocked = state.IsLocked;
+        var noAccessActive = isLocked && !_hasAccess;
+        SettingsGrid.Visible = !noAccessActive;
+        SettingsNoAccessPanel.Visible = noAccessActive;
 
         // Toggle fan controls visibility based on module presence
         FanToggle.Visible = state.HasFanModule;
@@ -197,9 +253,7 @@ public sealed partial class MechMenu : FancyWindow
         else
             TankPressureLabel.Text = _loc.GetString("mech-tank-pressure-level", ("state", "na"));
 
-        // Update module capacity label from state too (kept in sync even if local calc misses)
-        ModuleSlotDisplay.Text = _loc.GetString("mech-module-slot-display",
-            ("used", state.ModuleSpaceUsed), ("max", state.ModuleSpaceMax));
+        // Module capacity label is updated in UpdateMechStats when using state data
 
         UpdateLockButtons(state);
         UpdateLockInfoLabels(state);
@@ -269,11 +323,16 @@ public sealed partial class MechMenu : FancyWindow
 
     public void OverrideAccessAndRefresh(bool hasAccess)
     {
+        // This method is now mainly used for immediate access updates from server messages
+        // The main access state update is now handled in UpdateMechState
         _hasAccess = hasAccess;
-        var isLocked = _lastState?.IsLocked ?? true;
-        var noAccessActive = isLocked && !_hasAccess;
-        SettingsGrid.Visible = !noAccessActive;
-        SettingsNoAccessPanel.Visible = noAccessActive;
+        if (_lastState != null)
+        {
+            var isLocked = _lastState.IsLocked;
+            var noAccessActive = isLocked && !_hasAccess;
+            SettingsGrid.Visible = !noAccessActive;
+            SettingsNoAccessPanel.Visible = noAccessActive;
+        }
     }
 
     private (bool IsRegistered, bool IsActive, string? OwnerId) GetLockState(MechBoundUiState state, MechLockType lockType)
@@ -324,7 +383,8 @@ public sealed partial class MechMenu : FancyWindow
             var entityToRemove = ent;
             control.OnRemoveButtonPressed += () => onRemove(entityToRemove);
             // Disable removal if a pilot is inside or if user lacks access when locked
-            var disableRemove = _pilotPresent || !_hasAccess;
+            var isLocked = _lastState?.IsLocked ?? false;
+            var disableRemove = _pilotPresent || (isLocked && !_hasAccess);
             control.SetRemoveDisabled(disableRemove);
             container.AddChild(control);
         }
@@ -363,5 +423,11 @@ public sealed partial class MechMenu : FancyWindow
         UpdateMechStats();
         UpdateEquipmentView(state.Equipment);
         UpdateModuleView(state.Modules);
+
+        // Ensure access state is properly applied after all updates
+        var isLocked = state.IsLocked;
+        var noAccessActive = isLocked && !state.HasAccess;
+        SettingsGrid.Visible = !noAccessActive;
+        SettingsNoAccessPanel.Visible = noAccessActive;
     }
 }

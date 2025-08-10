@@ -228,6 +228,14 @@ public sealed class MechBoundUiState : BoundUserInterfaceState
 
     // Whether a pilot is currently seated in the mech
     public bool PilotPresent;
+
+    // Mech stats for UI synchronization
+    public float Integrity;
+    public float MaxIntegrity;
+    public float Energy;
+    public float MaxEnergy;
+    public int EquipmentUsed;
+    public int MaxEquipmentAmount;
 }
 
 [Serializable, NetSerializable]

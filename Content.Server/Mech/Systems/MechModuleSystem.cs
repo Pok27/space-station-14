@@ -1,8 +1,10 @@
+using Content.Server.Mech.Systems;
 using Content.Server.Popups;
 using Content.Shared.DoAfter;
 using Content.Shared.Interaction;
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.Equipment.Components;
+using Content.Shared.Mech.EntitySystems;
 using Content.Shared.Whitelist;
 using Robust.Server.Containers;
 
@@ -117,7 +119,7 @@ public sealed class MechModuleSystem : EntitySystem
         _container.Insert(uid, mechComp.ModuleContainer);
 
         _popup.PopupEntity(Loc.GetString("mech-equipment-finish-install-popup", ("item", uid)), mech);
-        _mech.UpdateUserInterface(mech, mechComp);
+        RaiseLocalEvent(mech, new UpdateMechUiEvent());
 
         args.Handled = true;
     }

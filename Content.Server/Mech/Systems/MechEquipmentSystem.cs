@@ -1,8 +1,10 @@
+using Content.Server.Mech.Systems;
 using Content.Server.Popups;
 using Content.Shared.DoAfter;
 using Content.Shared.Interaction;
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.Equipment.Components;
+using Content.Shared.Mech.EntitySystems;
 using Content.Shared.Whitelist;
 using Robust.Shared.GameObjects;
 
@@ -89,6 +91,7 @@ public sealed class MechEquipmentSystem : EntitySystem
 
         _popup.PopupEntity(Loc.GetString("mech-equipment-finish-install-popup", ("item", uid)), args.Args.Target.Value);
         _mech.InsertEquipment(args.Args.Target.Value, uid);
+        RaiseLocalEvent(args.Args.Target.Value, new UpdateMechUiEvent());
 
         args.Handled = true;
     }

@@ -1,12 +1,14 @@
 using Content.Server.Atmos.EntitySystems;
 using Content.Server.Body.Systems;
 using Content.Server.Mech.Components;
+using Content.Server.Mech.Systems;
 using Content.Server.Power.EntitySystems;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Atmos;
 using Content.Shared.FixedPoint;
 using Content.Shared.Mech;
 using Content.Shared.Mech.Components;
+using Content.Shared.Mech.EntitySystems;
 
 namespace Content.Server.Mech.Systems;
 
@@ -163,7 +165,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
             }
 
             if (uiDirty)
-                _mech.UpdateUserInterface(uid, mechComp);
+                RaiseLocalEvent(uid, new UpdateMechUiEvent());
         }
     }
 
@@ -171,7 +173,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
     {
         component.Airtight = args.IsAirtight;
         Dirty(uid, component);
-        _mech.UpdateUserInterface(uid, component);
+        RaiseLocalEvent(uid, new UpdateMechUiEvent());
     }
 
     private void OnFanToggleMessage(EntityUid uid, MechComponent component, MechFanToggleMessage args)
@@ -182,7 +184,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
 
         fanModule.IsActive = args.IsActive;
         Dirty(fanModule.Owner, fanModule);
-        _mech.UpdateUserInterface(uid, component);
+        RaiseLocalEvent(uid, new UpdateMechUiEvent());
     }
 
     private void OnFilterToggleMessage(EntityUid uid, MechComponent component, MechFilterToggleMessage args)
@@ -193,7 +195,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
 
         fanModule.FilterEnabled = args.Enabled;
         Dirty(fanModule.Owner, fanModule);
-        _mech.UpdateUserInterface(uid, component);
+        RaiseLocalEvent(uid, new UpdateMechUiEvent());
     }
 
     private void OnInhale(EntityUid uid, MechPilotComponent component, InhaleLocationEvent args)
@@ -208,7 +210,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
             return;
 
         args.Gas = cabin.Air;
-        _mech.UpdateUserInterface(component.Mech, mech);
+        RaiseLocalEvent(component.Mech, new UpdateMechUiEvent());
     }
 
     private void OnExhale(EntityUid uid, MechPilotComponent component, ExhaleLocationEvent args)
@@ -223,7 +225,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
             return;
 
         args.Gas = cabin.Air;
-        _mech.UpdateUserInterface(component.Mech, mech);
+        RaiseLocalEvent(component.Mech, new UpdateMechUiEvent());
     }
 
     private void OnExpose(EntityUid uid, MechPilotComponent component, ref AtmosExposedGetAirEvent args)
@@ -244,7 +246,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
         args.Gas = _atmosphere.GetContainingMixture(component.Mech, excite: args.Excite);
         args.Handled = true;
 
-        _mech.UpdateUserInterface(component.Mech, mech);
+        RaiseLocalEvent(component.Mech, new UpdateMechUiEvent());
     }
 
     private void OnGetFilterAir(EntityUid uid, MechComponent component, ref GetFilterAirEvent args)

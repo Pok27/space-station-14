@@ -210,7 +210,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         _container.Insert(toInsert, component.EquipmentContainer);
         var ev = new MechEquipmentInsertedEvent(uid);
         RaiseLocalEvent(toInsert, ref ev);
-        UpdateUserInterface(uid, component);
+        RaiseLocalEvent(uid, new UpdateMechUiEvent());
     }
 
     /// <summary>
@@ -246,7 +246,7 @@ public abstract partial class SharedMechSystem : EntitySystem
 
         equipmentComponent.EquipmentOwner = null;
         _container.Remove(toRemove, component.EquipmentContainer);
-        UpdateUserInterface(uid, component);
+        RaiseLocalEvent(uid, new UpdateMechUiEvent());
     }
 
     /// <summary>
@@ -266,7 +266,7 @@ public abstract partial class SharedMechSystem : EntitySystem
 
         component.Energy = FixedPoint2.Clamp(component.Energy + delta, 0, component.MaxEnergy);
         Dirty(uid, component);
-        UpdateUserInterface(uid, component);
+        RaiseLocalEvent(uid, new UpdateMechUiEvent());
         return true;
     }
 
@@ -294,7 +294,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         }
 
         Dirty(uid, component);
-        UpdateUserInterface(uid, component);
+        RaiseLocalEvent(uid, new UpdateMechUiEvent());
     }
 
     /// <summary>
@@ -476,6 +476,14 @@ public abstract partial class SharedMechSystem : EntitySystem
         component.EquipmentWhitelist = null;
         Dirty(uid, component);
     }
+}
+
+/// <summary>
+/// Event to request mech UI update (shared between client and server)
+/// </summary>
+[Serializable, NetSerializable]
+public sealed class UpdateMechUiEvent : EntityEventArgs
+{
 }
 
 [Serializable, NetSerializable]

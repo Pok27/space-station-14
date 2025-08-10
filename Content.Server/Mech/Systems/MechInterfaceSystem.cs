@@ -1,0 +1,318 @@
+using Content.Server.Mech.Systems;
+using Content.Server.Mech.Components;
+using Content.Shared.Mech;
+using Content.Shared.Mech.Components;
+using Content.Shared.Mech.EntitySystems;
+using Robust.Server.GameObjects;
+using Robust.Server.Containers;
+using Content.Server.Atmos.EntitySystems;
+using Content.Shared.Atmos;
+using Content.Shared.Atmos.Components;
+using Content.Shared.FixedPoint;
+using Content.Server.Atmos;
+using System.Linq;
+
+namespace Content.Server.Mech.Systems;
+
+/// <summary>
+/// Handles logic for the mech interface.
+/// </summary>
+/// <remarks>
+/// <para>
+/// This system is responsible for updating the mech UI state and handling UI interactions.
+/// It is not responsible for any mech logic on its own, it merely provides UI functionality.
+/// </para>
+/// </remarks>
+public sealed class MechInterfaceSystem : EntitySystem
+{
+    [Dependency] private readonly UserInterfaceSystem _uiSystem = null!;
+    [Dependency] private readonly MechSystem _mechSystem = null!;
+    [Dependency] private readonly ContainerSystem _container = null!;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<MechComponent, UpdateMechUiEvent>(OnUpdateMechUi);
+
+        Subs.BuiEvents<MechComponent>(
+            MechUiKey.Key,
+            subs =>
+            {
+                subs.Event<MechEquipmentRemoveMessage>(HandleEquipmentRemove);
+                subs.Event<MechModuleRemoveMessage>(HandleModuleRemove);
+                subs.Event<MechCabinPurgeMessage>(HandleCabinPurge);
+                subs.Event<MechDnaLockRegisterMessage>(HandleDnaLockRegister);
+                subs.Event<MechDnaLockToggleMessage>(HandleDnaLockToggle);
+                subs.Event<MechDnaLockResetMessage>(HandleDnaLockReset);
+                subs.Event<MechCardLockRegisterMessage>(HandleCardLockRegister);
+                subs.Event<MechCardLockToggleMessage>(HandleCardLockToggle);
+                subs.Event<MechCardLockResetMessage>(HandleCardLockReset);
+                subs.Event<MechEquipmentSelectMessage>(HandleEquipmentSelect);
+            });
+    }
+
+    private void HandleEquipmentRemove(Entity<MechComponent> ent, ref MechEquipmentRemoveMessage args)
+    {
+        var equipment = GetEntity(args.Equipment);
+        _mechSystem.RemoveEquipment(ent, equipment, ent.Comp);
+        Dirty(ent, ent.Comp);
+    }
+
+    private void HandleModuleRemove(Entity<MechComponent> ent, ref MechModuleRemoveMessage args)
+    {
+        var module = GetEntity(args.Module);
+        if (module == EntityUid.Invalid)
+            return;
+
+        // Check if the module is actually in the mech's module container
+        if (!ent.Comp.ModuleContainer.ContainedEntities.Contains(module))
+            return;
+
+        // Remove the module from the container
+        _container.Remove(module, ent.Comp.ModuleContainer);
+
+        // Update UI
+        RaiseLocalEvent(ent, new UpdateMechUiEvent());
+    }
+
+    private void HandleCabinPurge(Entity<MechComponent> ent, ref MechCabinPurgeMessage args)
+    {
+        if (!TryComp<MechCabinPressureComponent>(ent, out var cabin))
+            return;
+
+        var atmos = EntityManager.System<AtmosphereSystem>();
+        var environment = atmos.GetContainingMixture(ent.Owner, false, true);
+        if (environment != null)
+        {
+            var removed = cabin.Air.RemoveRatio(1f);
+            atmos.Merge(environment, removed);
+        }
+        else
+        {
+            cabin.Air.Clear();
+        }
+
+        EnsureComp<MechCabinPurgeComponent>(ent).CooldownRemaining = 3f;
+    }
+
+    private void HandleDnaLockRegister(Entity<MechComponent> ent, ref MechDnaLockRegisterMessage args)
+    {
+        if (!TryComp<MechLockComponent>(ent, out var lockComp))
+            return;
+
+        var ev = new MechDnaLockRegisterEvent { User = GetNetEntity(ent.Owner) };
+        RaiseLocalEvent(ent, ev);
+    }
+
+    private void HandleDnaLockToggle(Entity<MechComponent> ent, ref MechDnaLockToggleMessage args)
+    {
+        if (!TryComp<MechLockComponent>(ent, out var lockComp))
+            return;
+
+        var ev = new MechDnaLockToggleEvent { User = GetNetEntity(ent.Owner) };
+        RaiseLocalEvent(ent, ev);
+    }
+
+    private void HandleDnaLockReset(Entity<MechComponent> ent, ref MechDnaLockResetMessage args)
+    {
+        if (!TryComp<MechLockComponent>(ent, out var lockComp))
+            return;
+
+        var ev = new MechDnaLockResetEvent { User = GetNetEntity(ent.Owner) };
+        RaiseLocalEvent(ent, ev);
+    }
+
+    private void HandleCardLockRegister(Entity<MechComponent> ent, ref MechCardLockRegisterMessage args)
+    {
+        if (!TryComp<MechLockComponent>(ent, out var lockComp))
+            return;
+
+        var ev = new MechCardLockRegisterEvent { User = GetNetEntity(ent.Owner) };
+        RaiseLocalEvent(ent, ev);
+    }
+
+    private void HandleCardLockToggle(Entity<MechComponent> ent, ref MechCardLockToggleMessage args)
+    {
+        if (!TryComp<MechLockComponent>(ent, out var lockComp))
+            return;
+
+        var ev = new MechCardLockToggleEvent { User = GetNetEntity(ent.Owner) };
+        RaiseLocalEvent(ent, ev);
+    }
+
+    private void HandleCardLockReset(Entity<MechComponent> ent, ref MechCardLockResetMessage args)
+    {
+        if (!TryComp<MechLockComponent>(ent, out var lockComp))
+            return;
+
+        var ev = new MechCardLockResetEvent { User = GetNetEntity(ent.Owner) };
+        RaiseLocalEvent(ent, ev);
+    }
+
+    private void HandleEquipmentSelect(Entity<MechComponent> ent, ref MechEquipmentSelectMessage args)
+    {
+        if (args.Equipment.HasValue)
+        {
+            var equipment = GetEntity(args.Equipment.Value);
+            ent.Comp.CurrentSelectedEquipment = equipment;
+        }
+        else
+        {
+            ent.Comp.CurrentSelectedEquipment = null;
+        }
+    }
+
+    private void OnUpdateMechUi(EntityUid uid, MechComponent component, UpdateMechUiEvent args)
+    {
+        UpdateUI(uid, component);
+    }
+
+    public override void Update(float frameTime)
+    {
+        var query = EntityQueryEnumerator<MechComponent>();
+
+        while (query.MoveNext(out var uid, out var mechComp))
+        {
+            UpdateUI(uid, mechComp);
+        }
+    }
+
+    private void UpdateUI(
+        EntityUid uid,
+        MechComponent mechComp)
+    {
+        if (!_uiSystem.IsUiOpen(uid, MechUiKey.Key))
+            return;
+
+        var equipment = new List<NetEntity>();
+        foreach (var ent in mechComp.EquipmentContainer.ContainedEntities)
+        {
+            equipment.Add(GetNetEntity(ent));
+        }
+
+        var modules = new List<NetEntity>();
+        foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
+        {
+            modules.Add(GetNetEntity(ent));
+        }
+
+        MechFanModuleComponent? fanModule = null;
+        foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
+        {
+            if (TryComp<MechFanModuleComponent>(ent, out var fan))
+            {
+                fanModule = fan;
+                break;
+            }
+        }
+        var fanActive = fanModule?.IsActive ?? false;
+        var fanState = fanModule?.State ?? MechFanState.Off;
+        var filterEnabled = fanModule?.FilterEnabled ?? false;
+
+        var hasFanModule = false;
+        var hasGasModule = false;
+        var moduleUsed = 0;
+        foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
+        {
+            if (HasComp<MechFanModuleComponent>(ent))
+                hasFanModule = true;
+            if (HasComp<MechGasCylinderModuleComponent>(ent))
+                hasGasModule = true;
+            if (TryComp<MechModuleComponent>(ent, out var m))
+                moduleUsed += m.Size;
+        }
+
+        var cabinPressure = 0f;
+        var gasAmountLiters = 0f;
+        var tankPressure = 0f;
+        if (TryComp<MechCabinPressureComponent>(uid, out var cabin))
+        {
+            cabinPressure = cabin.Air.Pressure;
+        }
+        GasMixture? tankAir = null;
+        foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
+        {
+            if (TryComp<MechGasCylinderModuleComponent>(ent, out _))
+            {
+                if (TryComp<GasTankComponent>(ent, out var tank))
+                {
+                    tankAir = tank.Air;
+                    break;
+                }
+            }
+        }
+        if (tankAir != null)
+        {
+            // Pressure straight from tank and amount in liters
+            tankPressure = tankAir.Pressure;
+            var pressure = MathF.Max(tankAir.Pressure, 0f);
+            if (pressure > 0)
+                gasAmountLiters = tankAir.TotalMoles * Atmospherics.R * tankAir.Temperature / pressure;
+            else
+                gasAmountLiters = 0f;
+        }
+
+        var state = new MechBoundUiState
+        {
+            Equipment = equipment,
+            Modules = modules,
+            IsAirtight = mechComp.Airtight,
+            FanActive = fanActive,
+            FanState = fanState,
+            FilterEnabled = filterEnabled,
+            CabinGasLevel = cabinPressure,
+            GasAmountLiters = gasAmountLiters,
+            TankPressure = tankPressure,
+            HasFanModule = hasFanModule,
+            HasGasModule = hasGasModule,
+            ModuleSpaceMax = mechComp.MaxModuleSpace,
+            ModuleSpaceUsed = moduleUsed,
+            PilotPresent = mechComp.PilotSlot.ContainedEntity != null,
+            Integrity = mechComp.Integrity.Float(),
+            MaxIntegrity = mechComp.MaxIntegrity.Float(),
+            Energy = mechComp.Energy.Float(),
+            MaxEnergy = mechComp.MaxEnergy.Float(),
+            EquipmentUsed = mechComp.EquipmentContainer.ContainedEntities.Count,
+            MaxEquipmentAmount = mechComp.MaxEquipmentAmount
+        };
+
+        // Cabin purge availability
+        state.CabinPurgeAvailable = !TryComp<MechCabinPurgeComponent>(uid, out var purgeComp) || purgeComp.CooldownRemaining <= 0;
+
+        if (TryComp<MechLockComponent>(uid, out var lockComp))
+        {
+            state.DnaLockRegistered = lockComp.DnaLockRegistered;
+            state.DnaLockActive = lockComp.DnaLockActive;
+            state.CardLockRegistered = lockComp.CardLockRegistered;
+            state.CardLockActive = lockComp.CardLockActive;
+            state.OwnerDna = lockComp.OwnerDna;
+            state.OwnerJobTitle = lockComp.OwnerJobTitle;
+            state.IsLocked = lockComp.IsLocked;
+
+            var actors = _uiSystem.GetActors(uid, MechUiKey.Key).ToList();
+            if (actors.Count > 0)
+            {
+                var user = actors[0];
+                // Check access using the lock system's logic
+                state.HasAccess = !lockComp.IsLocked || lockComp.DnaLockActive && lockComp.OwnerDna != null || lockComp.CardLockActive && lockComp.OwnerJobTitle != null;
+                // Also send per-actor sync for all open actors, to ensure their clients see correct access
+                foreach (var actor in actors)
+                {
+                    var perActorHasAccess = !lockComp.IsLocked || lockComp.DnaLockActive && lockComp.OwnerDna != null || lockComp.CardLockActive && lockComp.OwnerJobTitle != null;
+                    _uiSystem.ServerSendUiMessage(uid, MechUiKey.Key, new MechAccessSyncMessage(perActorHasAccess), actor);
+                }
+            }
+            else
+            {
+                state.HasAccess = false;
+            }
+        }
+        else
+        {
+            state.HasAccess = true;
+        }
+
+        _uiSystem.SetUiState(uid, MechUiKey.Key, state);
+    }
+}

@@ -6,12 +6,7 @@ using Content.Shared.Popups;
 
 namespace Content.Server.Mech.Systems;
 
-/// <summary>
-/// Event to request mech UI update (server-side only)
-/// </summary>
-public sealed class UpdateMechUiEvent : EntityEventArgs
-{
-}
+
 
 /// <summary>
 /// Server-side system for mech lock functionality
@@ -34,10 +29,15 @@ public sealed class MechLockSystem : SharedMechLockSystem
 
     private void OnDnaLockRegister(EntityUid uid, MechLockComponent component, MechDnaLockRegisterEvent args)
     {
+        Logger.Info($"Received MechDnaLockRegisterEvent for mech {uid}");
         var user = GetEntity(args.User);
         if (user == EntityUid.Invalid)
+        {
+            Logger.Warning($"Invalid user entity in MechDnaLockRegisterEvent for mech {uid}");
             return;
+        }
 
+        Logger.Info($"Registering DNA lock for mech {uid} with user {user}");
         TryRegisterLock(uid, user, MechLockType.Dna, component);
     }
 

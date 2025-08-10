@@ -32,6 +32,7 @@ using Content.Shared.UserInterface;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Atmos;
 using Content.Server.Atmos.EntitySystems;
+using Robust.Server.GameObjects;
 
 namespace Content.Server.Mech.Systems;
 
@@ -46,7 +47,7 @@ public sealed partial class MechSystem : SharedMechSystem
     [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
     [Dependency] private readonly SharedToolSystem _toolSystem = default!;
     [Dependency] private readonly MechLockSystem _lockSystem = default!;
-    [Dependency] private readonly SharedUserInterfaceSystem _ui = default!;
+
 
     private static readonly ProtoId<ToolQualityPrototype> PryingQuality = "Prying";
 
@@ -61,26 +62,12 @@ public sealed partial class MechSystem : SharedMechSystem
         SubscribeLocalEvent<MechComponent, MechEntryEvent>(OnMechEntry);
         SubscribeLocalEvent<MechComponent, MechExitEvent>(OnMechExit);
         SubscribeLocalEvent<MechComponent, DamageChangedEvent>(OnDamageChanged);
-        SubscribeLocalEvent<MechComponent, UpdateMechUiEvent>(OnUpdateMechUi);
+
         SubscribeLocalEvent<MechComponent, MapInitEvent>(OnMapInit);
         SubscribeLocalEvent<MechPilotComponent, ToolUserAttemptUseEvent>(OnToolUseAttempt);
         SubscribeLocalEvent<MechComponent, GetVerbsEvent<AlternativeVerb>>(OnAlternativeVerb);
-        SubscribeLocalEvent<MechComponent, MechEquipmentSelectMessage>(OnEquipmentSelectMessage);
         SubscribeAllEvent<RequestMechEquipmentSelectEvent>(OnEquipmentSelectRequest);
         SubscribeLocalEvent<MechComponent, MechOpenUiEvent>(OnOpenUi);
-        SubscribeLocalEvent<MechComponent, MechEquipmentRemoveMessage>(OnRemoveEquipmentMessage);
-        SubscribeLocalEvent<MechComponent, MechModuleRemoveMessage>(OnRemoveModuleMessage);
-
-        // Handle mech lock BUI messages
-        SubscribeLocalEvent<MechComponent, MechDnaLockRegisterMessage>(OnDnaLockRegisterMessage);
-        SubscribeLocalEvent<MechComponent, MechDnaLockToggleMessage>(OnDnaLockToggleMessage);
-        SubscribeLocalEvent<MechComponent, MechDnaLockResetMessage>(OnDnaLockResetMessage);
-        SubscribeLocalEvent<MechComponent, MechCardLockRegisterMessage>(OnCardLockRegisterMessage);
-        SubscribeLocalEvent<MechComponent, MechCardLockToggleMessage>(OnCardLockToggleMessage);
-        SubscribeLocalEvent<MechComponent, MechCardLockResetMessage>(OnCardLockResetMessage);
-
-        // Cabin purge BUI message
-        SubscribeLocalEvent<MechComponent, MechCabinPurgeMessage>(OnCabinPurgeMessage);
 
         // Access denied ping removed
     }
@@ -194,44 +181,7 @@ public sealed partial class MechSystem : SharedMechSystem
         Dirty(uid, component);
     }
 
-    private void OnRemoveEquipmentMessage(EntityUid uid, MechComponent component, MechEquipmentRemoveMessage args)
-    {
-        // Block removal if a pilot is present
-        if (component.PilotSlot.ContainedEntity != null)
-        {
-            _popup.PopupEntity(Loc.GetString("mech-remove-blocked-pilot-popup"), uid);
-            return;
-        }
-        var equip = GetEntity(args.Equipment);
 
-        if (!Exists(equip) || Deleted(equip))
-            return;
-
-        if (!component.EquipmentContainer.ContainedEntities.Contains(equip))
-            return;
-
-        RemoveEquipment(uid, equip, component);
-    }
-
-    private void OnRemoveModuleMessage(EntityUid uid, MechComponent component, MechModuleRemoveMessage args)
-    {
-        // Block removal if a pilot is present
-        if (component.PilotSlot.ContainedEntity != null)
-        {
-            _popup.PopupEntity(Loc.GetString("mech-remove-blocked-pilot-popup"), uid);
-            return;
-        }
-        var mod = GetEntity(args.Module);
-        if (!Exists(mod) || Deleted(mod))
-            return;
-
-        if (!component.ModuleContainer.ContainedEntities.Contains(mod))
-            return;
-
-        _container.Remove(mod, component.ModuleContainer);
-
-        UpdateUserInterface(uid, component);
-    }
 
     private void OnOpenUi(EntityUid uid, MechComponent component, MechOpenUiEvent args)
     {
@@ -243,25 +193,7 @@ public sealed partial class MechSystem : SharedMechSystem
         ToggleMechUi(uid, component, user);
     }
 
-    private void OnEquipmentSelectMessage(EntityUid uid, MechComponent component, MechEquipmentSelectMessage args)
-    {
-        if (args.Equipment == null)
-        {
-            component.CurrentSelectedEquipment = null;
-            _popup.PopupEntity(Loc.GetString("mech-equipment-select-none-popup"), uid);
-        }
-        else
-        {
-            var equipment = GetEntity(args.Equipment);
-            if (Exists(equipment) && component.EquipmentContainer.ContainedEntities.Any(e => e == equipment))
-            {
-                component.CurrentSelectedEquipment = equipment;
-                _popup.PopupEntity(Loc.GetString("mech-equipment-select-popup", ("item", equipment)), uid);
-            }
-        }
 
-        Dirty(uid, component);
-    }
 
     private void OnEquipmentSelectRequest(RequestMechEquipmentSelectEvent args, EntitySessionEventArgs session)
     {
@@ -414,8 +346,9 @@ public sealed partial class MechSystem : SharedMechSystem
         if (!TryComp<ActorComponent>(user, out var actor))
             return;
 
-        _ui.TryToggleUi(uid, MechUiKey.Key, actor.PlayerSession);
-        UpdateUserInterface(uid, component);
+        // Open UI using UserInterfaceSystem
+        var ui = EntityManager.System<UserInterfaceSystem>();
+        ui.TryToggleUi(uid, MechUiKey.Key, actor.PlayerSession);
     }
 
     private void ReceiveEquipmentUiMesssages<T>(EntityUid uid, MechComponent component, T args) where T : MechEquipmentUiMessage
@@ -431,78 +364,9 @@ public sealed partial class MechSystem : SharedMechSystem
         }
     }
 
-    private void OnDnaLockRegisterMessage(EntityUid uid, MechComponent component, MechDnaLockRegisterMessage args)
-    {
-        if (!HasComp<MechLockComponent>(uid))
-            return;
-        var ev = new MechDnaLockRegisterEvent { User = GetNetEntity(args.Actor) };
-        RaiseLocalEvent(uid, ev);
-    }
 
-    private void OnDnaLockToggleMessage(EntityUid uid, MechComponent component, MechDnaLockToggleMessage args)
-    {
-        if (!HasComp<MechLockComponent>(uid))
-            return;
-        var ev = new MechDnaLockToggleEvent { User = GetNetEntity(args.Actor) };
-        RaiseLocalEvent(uid, ev);
-    }
 
-    private void OnDnaLockResetMessage(EntityUid uid, MechComponent component, MechDnaLockResetMessage args)
-    {
-        if (!HasComp<MechLockComponent>(uid))
-            return;
-        var ev = new MechDnaLockResetEvent { User = GetNetEntity(args.Actor) };
-        RaiseLocalEvent(uid, ev);
-    }
 
-    private void OnCardLockRegisterMessage(EntityUid uid, MechComponent component, MechCardLockRegisterMessage args)
-    {
-        if (!HasComp<MechLockComponent>(uid))
-            return;
-        var ev = new MechCardLockRegisterEvent { User = GetNetEntity(args.Actor) };
-        RaiseLocalEvent(uid, ev);
-    }
-
-    private void OnCardLockToggleMessage(EntityUid uid, MechComponent component, MechCardLockToggleMessage args)
-    {
-        if (!HasComp<MechLockComponent>(uid))
-            return;
-        var ev = new MechCardLockToggleEvent { User = GetNetEntity(args.Actor) };
-        RaiseLocalEvent(uid, ev);
-    }
-
-    private void OnCardLockResetMessage(EntityUid uid, MechComponent component, MechCardLockResetMessage args)
-    {
-        if (!HasComp<MechLockComponent>(uid))
-            return;
-        var ev = new MechCardLockResetEvent { User = GetNetEntity(args.Actor) };
-        RaiseLocalEvent(uid, ev);
-    }
-
-    private void OnCabinPurgeMessage(EntityUid uid, MechComponent component, MechCabinPurgeMessage args)
-    {
-        if (!TryComp<MechCabinPressureComponent>(uid, out var cabin))
-            return;
-        var atmos = EntityManager.System<AtmosphereSystem>();
-        var environment = atmos.GetContainingMixture(uid, false, true);
-        if (environment != null)
-        {
-            var removed = cabin.Air.RemoveRatio(1f);
-            atmos.Merge(environment, removed);
-        }
-        else
-        {
-            cabin.Air.Clear();
-        }
-
-        EnsureComp<MechCabinPurgeComponent>(uid).CooldownRemaining = 3f;
-        UpdateUserInterface(uid, component);
-    }
-
-    private void OnUpdateMechUi(EntityUid uid, MechComponent component, UpdateMechUiEvent args)
-    {
-        UpdateUserInterface(uid, component);
-    }
 
     public bool TryGetGasModuleAir(EntityUid mechUid, out GasMixture? air)
     {
@@ -526,120 +390,13 @@ public sealed partial class MechSystem : SharedMechSystem
         return false;
     }
 
-    public override void UpdateUserInterface(EntityUid uid, MechComponent? component = null)
-    {
-        if (!Resolve(uid, ref component))
-            return;
-
-        var equipment = new List<NetEntity>();
-        foreach (var ent in component.EquipmentContainer.ContainedEntities)
-        {
-            equipment.Add(GetNetEntity(ent));
-        }
-
-        var Modules = new List<NetEntity>();
-        foreach (var ent in component.ModuleContainer.ContainedEntities)
-        {
-            Modules.Add(GetNetEntity(ent));
-        }
-
-        var fanModule = GetFanModule(uid, component);
-        var fanActive = fanModule?.IsActive ?? false;
-        var fanState = fanModule?.State ?? MechFanState.Off;
-        var filterEnabled = fanModule?.FilterEnabled ?? false;
-
-        var hasFanModule = false;
-        var hasGasModule = false;
-        var moduleUsed = 0;
-        foreach (var ent in component.ModuleContainer.ContainedEntities)
-        {
-            if (HasComp<MechFanModuleComponent>(ent))
-                hasFanModule = true;
-            if (HasComp<MechGasCylinderModuleComponent>(ent))
-                hasGasModule = true;
-            if (TryComp<MechModuleComponent>(ent, out var m))
-                moduleUsed += m.Size;
-        }
-
-        var cabinPressure = 0f;
-        var gasAmountLiters = 0f;
-        var tankPressure = 0f;
-        if (TryComp<MechCabinPressureComponent>(uid, out var cabin))
-        {
-            cabinPressure = cabin.Air.Pressure;
-        }
-        if (TryGetGasModuleAir(uid, out var tankAir) && tankAir != null)
-        {
-            // Pressure straight from tank and amount in liters
-            tankPressure = tankAir.Pressure;
-            var pressure = MathF.Max(tankAir.Pressure, 0f);
-            if (pressure > 0)
-                gasAmountLiters = tankAir.TotalMoles * Atmospherics.R * tankAir.Temperature / pressure;
-            else
-                gasAmountLiters = 0f;
-        }
-
-        var state = new MechBoundUiState
-        {
-            Equipment = equipment,
-            Modules = Modules,
-            IsAirtight = component.Airtight,
-            FanActive = fanActive,
-            FanState = fanState,
-            FilterEnabled = filterEnabled,
-            CabinGasLevel = cabinPressure,
-            GasAmountLiters = gasAmountLiters,
-            TankPressure = tankPressure,
-            HasFanModule = hasFanModule,
-            HasGasModule = hasGasModule,
-            ModuleSpaceMax = component.MaxModuleSpace,
-            ModuleSpaceUsed = moduleUsed,
-            PilotPresent = component.PilotSlot.ContainedEntity != null
-        };
-
-        // Cabin purge availability
-        state.CabinPurgeAvailable = !TryComp<MechCabinPurgeComponent>(uid, out var purgeComp) || purgeComp.CooldownRemaining <= 0;
-
-        if (TryComp<MechLockComponent>(uid, out var lockComp))
-        {
-            state.DnaLockRegistered = lockComp.DnaLockRegistered;
-            state.DnaLockActive = lockComp.DnaLockActive;
-            state.CardLockRegistered = lockComp.CardLockRegistered;
-            state.CardLockActive = lockComp.CardLockActive;
-            state.OwnerDna = lockComp.OwnerDna;
-            state.OwnerJobTitle = lockComp.OwnerJobTitle;
-            state.IsLocked = lockComp.IsLocked;
-
-            var actors = _ui.GetActors(uid, MechUiKey.Key);
-            if (actors.Any())
-            {
-                var user = actors.First();
-                state.HasAccess = _lockSystem.HasAccess(user, lockComp);
-                // Also send per-actor sync for all open actors, to ensure their clients see correct access
-                foreach (var actor in actors)
-                {
-                    var perActorHasAccess = _lockSystem.HasAccess(actor, lockComp);
-                    _ui.ServerSendUiMessage(uid, MechUiKey.Key, new MechAccessSyncMessage(perActorHasAccess), actor);
-                }
-            }
-            else
-            {
-                state.HasAccess = false;
-            }
-        }
-        else
-        {
-            state.HasAccess = true;
-        }
-
-        _ui.SetUiState(uid, MechUiKey.Key, state);
-    }
+    // UI updates are now handled by MechInterfaceSystem
 
     public override void BreakMech(EntityUid uid, MechComponent? component = null)
     {
         base.BreakMech(uid, component);
 
-        _ui.CloseUi(uid, MechUiKey.Key);
+        // UI is now handled by MechInterfaceSystem
         _actionBlocker.UpdateCanMove(uid);
     }
 
@@ -654,7 +411,8 @@ public sealed partial class MechSystem : SharedMechSystem
 
         component.Energy = newEnergy;
         Dirty(uid, component);
-        UpdateUserInterface(uid, component);
+        var ev = new UpdateMechUiEvent();
+        RaiseLocalEvent(uid, ev);
         return true;
     }
 
@@ -673,7 +431,8 @@ public sealed partial class MechSystem : SharedMechSystem
         _actionBlocker.UpdateCanMove(uid);
 
         Dirty(uid, component);
-        UpdateUserInterface(uid, component);
+        var ev = new UpdateMechUiEvent();
+        RaiseLocalEvent(uid, ev);
     }
 
     public void RemoveBattery(EntityUid uid, MechComponent? component = null)
@@ -688,7 +447,8 @@ public sealed partial class MechSystem : SharedMechSystem
         _actionBlocker.UpdateCanMove(uid);
 
         Dirty(uid, component);
-        UpdateUserInterface(uid, component);
+        var ev = new UpdateMechUiEvent();
+        RaiseLocalEvent(uid, ev);
     }
 
     public override bool CanInsert(EntityUid uid, EntityUid toInsert, MechComponent? component = null)

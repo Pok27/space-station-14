@@ -106,6 +106,8 @@ public sealed class MechBoundUserInterface : BoundUserInterface, IBuiPreTickUpda
             }
         }
 
+        // Immediately update access state to prevent UI flickering
+        _menu?.OverrideAccessAndRefresh(mechState.HasAccess);
         _menu?.UpdateState(mechState);
     }
 
