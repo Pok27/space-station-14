@@ -6,8 +6,6 @@ using Content.Shared.Popups;
 
 namespace Content.Server.Mech.Systems;
 
-
-
 /// <summary>
 /// Server-side system for mech lock functionality
 /// </summary>
@@ -27,6 +25,9 @@ public sealed class MechLockSystem : SharedMechLockSystem
         SubscribeLocalEvent<MechLockComponent, MechCardLockResetEvent>(OnCardLockReset);
     }
 
+    /// <summary>
+    /// Handles DNA lock registration
+    /// </summary>
     private void OnDnaLockRegister(EntityUid uid, MechLockComponent component, MechDnaLockRegisterEvent args)
     {
         var user = GetEntity(args.User);
@@ -40,6 +41,9 @@ public sealed class MechLockSystem : SharedMechLockSystem
         }
     }
 
+    /// <summary>
+    /// Handles DNA lock toggle
+    /// </summary>
     private void OnDnaLockToggle(EntityUid uid, MechLockComponent component, MechDnaLockToggleEvent args)
     {
         var user = GetEntity(args.User);
@@ -53,6 +57,9 @@ public sealed class MechLockSystem : SharedMechLockSystem
         }
     }
 
+    /// <summary>
+    /// Handles DNA lock reset
+    /// </summary>
     private void OnDnaLockReset(EntityUid uid, MechLockComponent component, MechDnaLockResetEvent args)
     {
         var user = GetEntity(args.User);
@@ -62,6 +69,9 @@ public sealed class MechLockSystem : SharedMechLockSystem
         TryResetLock(uid, user, MechLockType.Dna, component);
     }
 
+    /// <summary>
+    /// Handles card lock registration
+    /// </summary>
     private void OnCardLockRegister(EntityUid uid, MechLockComponent component, MechCardLockRegisterEvent args)
     {
         var user = GetEntity(args.User);
@@ -71,6 +81,9 @@ public sealed class MechLockSystem : SharedMechLockSystem
         TryRegisterLock(uid, user, MechLockType.Card, component);
     }
 
+    /// <summary>
+    /// Handles card lock toggle
+    /// </summary>
     private void OnCardLockToggle(EntityUid uid, MechLockComponent component, MechCardLockToggleEvent args)
     {
         var user = GetEntity(args.User);
@@ -84,6 +97,9 @@ public sealed class MechLockSystem : SharedMechLockSystem
         }
     }
 
+    /// <summary>
+    /// Handles card lock reset
+    /// </summary>
     private void OnCardLockReset(EntityUid uid, MechLockComponent component, MechCardLockResetEvent args)
     {
         var user = GetEntity(args.User);
@@ -95,7 +111,6 @@ public sealed class MechLockSystem : SharedMechLockSystem
 
     protected override void UpdateMechUI(EntityUid uid)
     {
-        // Forward to MechSystem for UI update
         var ev = new UpdateMechUiEvent();
         RaiseLocalEvent(uid, ev);
     }

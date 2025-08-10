@@ -109,17 +109,24 @@ public sealed class MechInterfaceSystem : EntitySystem
         EnsureComp<MechCabinPurgeComponent>(ent).CooldownRemaining = 3f;
     }
 
+    /// <summary>
+    /// Gets the first user from the UI session
+    /// </summary>
+    private EntityUid GetFirstUiActor(EntityUid uid)
+    {
+        var actors = _uiSystem.GetActors(uid, MechUiKey.Key).ToList();
+        return actors.Count > 0 ? actors[0] : EntityUid.Invalid;
+    }
+
     private void HandleDnaLockRegister(Entity<MechComponent> ent, ref MechDnaLockRegisterMessage args)
     {
         if (!TryComp<MechLockComponent>(ent, out var lockComp))
             return;
 
-        // Get the user from the UI session
-        var actors = _uiSystem.GetActors(ent.Owner, MechUiKey.Key).ToList();
-        if (actors.Count == 0)
+        var user = GetFirstUiActor(ent.Owner);
+        if (user == EntityUid.Invalid)
             return;
 
-        var user = actors[0];
         var ev = new MechDnaLockRegisterEvent { User = GetNetEntity(user) };
         RaiseLocalEvent(ent, ev);
     }
@@ -129,12 +136,10 @@ public sealed class MechInterfaceSystem : EntitySystem
         if (!TryComp<MechLockComponent>(ent, out var lockComp))
             return;
 
-        // Get the user from the UI session
-        var actors = _uiSystem.GetActors(ent.Owner, MechUiKey.Key).ToList();
-        if (actors.Count == 0)
+        var user = GetFirstUiActor(ent.Owner);
+        if (user == EntityUid.Invalid)
             return;
 
-        var user = actors[0];
         var ev = new MechDnaLockToggleEvent { User = GetNetEntity(user) };
         RaiseLocalEvent(ent, ev);
     }
@@ -144,12 +149,10 @@ public sealed class MechInterfaceSystem : EntitySystem
         if (!TryComp<MechLockComponent>(ent, out var lockComp))
             return;
 
-        // Get the user from the UI session
-        var actors = _uiSystem.GetActors(ent.Owner, MechUiKey.Key).ToList();
-        if (actors.Count == 0)
+        var user = GetFirstUiActor(ent.Owner);
+        if (user == EntityUid.Invalid)
             return;
 
-        var user = actors[0];
         var ev = new MechDnaLockResetEvent { User = GetNetEntity(user) };
         RaiseLocalEvent(ent, ev);
     }
@@ -159,12 +162,10 @@ public sealed class MechInterfaceSystem : EntitySystem
         if (!TryComp<MechLockComponent>(ent, out var lockComp))
             return;
 
-        // Get the user from the UI session
-        var actors = _uiSystem.GetActors(ent.Owner, MechUiKey.Key).ToList();
-        if (actors.Count == 0)
+        var user = GetFirstUiActor(ent.Owner);
+        if (user == EntityUid.Invalid)
             return;
 
-        var user = actors[0];
         var ev = new MechCardLockRegisterEvent { User = GetNetEntity(user) };
         RaiseLocalEvent(ent, ev);
     }
@@ -174,12 +175,10 @@ public sealed class MechInterfaceSystem : EntitySystem
         if (!TryComp<MechLockComponent>(ent, out var lockComp))
             return;
 
-        // Get the user from the UI session
-        var actors = _uiSystem.GetActors(ent.Owner, MechUiKey.Key).ToList();
-        if (actors.Count == 0)
+        var user = GetFirstUiActor(ent.Owner);
+        if (user == EntityUid.Invalid)
             return;
 
-        var user = actors[0];
         var ev = new MechCardLockToggleEvent { User = GetNetEntity(user) };
         RaiseLocalEvent(ent, ev);
     }
@@ -189,12 +188,10 @@ public sealed class MechInterfaceSystem : EntitySystem
         if (!TryComp<MechLockComponent>(ent, out var lockComp))
             return;
 
-        // Get the user from the UI session
-        var actors = _uiSystem.GetActors(ent.Owner, MechUiKey.Key).ToList();
-        if (actors.Count == 0)
+        var user = GetFirstUiActor(ent.Owner);
+        if (user == EntityUid.Invalid)
             return;
 
-        var user = actors[0];
         var ev = new MechCardLockResetEvent { User = GetNetEntity(user) };
         RaiseLocalEvent(ent, ev);
     }
@@ -332,25 +329,16 @@ public sealed class MechInterfaceSystem : EntitySystem
             state.OwnerJobTitle = lockComp.OwnerJobTitle;
             state.IsLocked = lockComp.IsLocked;
 
+            state.HasAccess = !lockComp.IsLocked;
+
             var actors = _uiSystem.GetActors(uid, MechUiKey.Key).ToList();
             if (actors.Count > 0)
             {
-                var user = actors[0];
-                // Use the proper access check from MechLockSystem
-                var hasAccess = _mechLockSystem.CheckAccess(uid, user, lockComp);
-                state.HasAccess = hasAccess;
-
-                // Also send per-actor sync for all open actors, to ensure their clients see correct access
                 foreach (var actor in actors)
                 {
                     var perActorHasAccess = _mechLockSystem.CheckAccess(uid, actor, lockComp);
                     _uiSystem.ServerSendUiMessage(uid, MechUiKey.Key, new MechAccessSyncMessage(perActorHasAccess), actor);
                 }
-            }
-            else
-            {
-                // If no UI session, assume no access for locked mechs
-                state.HasAccess = !lockComp.IsLocked;
             }
         }
         else
