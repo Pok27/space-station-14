@@ -15,6 +15,7 @@ public sealed partial class MechEquipmentControl : Control
     [Dependency] private readonly ILocalizationManager _loc = default!;
 
     public event Action? OnRemoveButtonPressed;
+    public EntityUid Entity { get; private set; }
 
     public MechEquipmentControl(EntityUid entity, string itemName, Control? fragment, int size)
     {
@@ -32,25 +33,39 @@ public sealed partial class MechEquipmentControl : Control
             : null;
     }
 
+    public void UpdateControl(string itemName, Control? fragment, int size)
+    {
+        SetContent(itemName, fragment, size);
+    }
+
     private void InitializeControl(EntityUid entity, string itemName, Control? fragment, int size)
     {
+        Entity = entity;
+
         // Set equipment information
-        EquipmentName.SetMessage(itemName);
-        EquipmentSize.Text = $"[{size}]";
+        SetContent(itemName, fragment, size);
         EquipmentView.SetEntity(entity);
 
         // Configure remove button
         RemoveButton.TexturePath = "/Textures/Interface/Nano/cross.svg.png";
         SetRemoveDisabled(true); // Default to disabled until access is verified
 
-        // Add fragment if provided
+        // Wire up events
+        RemoveButton.OnPressed += _ => OnRemoveButtonPressed?.Invoke();
+    }
+
+    private void SetContent(string itemName, Control? fragment, int size)
+    {
+        // Set equipment information
+        EquipmentName.SetMessage(itemName);
+        EquipmentSize.Text = $"[{size}]";
+
+        // Update fragment if provided
+        CustomControlContainer.Children.Clear();
         if (fragment != null)
         {
             Separator.Visible = true;
             CustomControlContainer.AddChild(fragment);
         }
-
-        // Wire up events
-        RemoveButton.OnPressed += _ => OnRemoveButtonPressed?.Invoke();
     }
 }

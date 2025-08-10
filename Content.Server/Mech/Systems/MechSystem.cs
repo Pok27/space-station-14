@@ -1,4 +1,3 @@
-using System.Linq;
 using Content.Server.Mech.Components;
 using Content.Server.Power.Components;
 using Content.Server.Power.EntitySystems;
@@ -7,11 +6,12 @@ using Content.Shared.Damage;
 using Content.Shared.DoAfter;
 using Content.Shared.FixedPoint;
 using Content.Shared.Interaction;
-using Content.Shared.Mech;
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.EntitySystems;
-using Content.Shared.Movement.Events;
+using Content.Shared.Mech;
 using Content.Shared.Popups;
+using System.Linq;
+using Content.Shared.Movement.Events;
 using Content.Shared.Tools;
 using Content.Shared.Tools.Components;
 using Content.Shared.Tools.Systems;
@@ -48,7 +48,6 @@ public sealed partial class MechSystem : SharedMechSystem
     [Dependency] private readonly SharedToolSystem _toolSystem = default!;
     [Dependency] private readonly MechLockSystem _lockSystem = default!;
 
-
     private static readonly ProtoId<ToolQualityPrototype> PryingQuality = "Prying";
 
     /// <inheritdoc/>
@@ -62,14 +61,11 @@ public sealed partial class MechSystem : SharedMechSystem
         SubscribeLocalEvent<MechComponent, MechEntryEvent>(OnMechEntry);
         SubscribeLocalEvent<MechComponent, MechExitEvent>(OnMechExit);
         SubscribeLocalEvent<MechComponent, DamageChangedEvent>(OnDamageChanged);
-
         SubscribeLocalEvent<MechComponent, MapInitEvent>(OnMapInit);
         SubscribeLocalEvent<MechPilotComponent, ToolUserAttemptUseEvent>(OnToolUseAttempt);
         SubscribeLocalEvent<MechComponent, GetVerbsEvent<AlternativeVerb>>(OnAlternativeVerb);
         SubscribeAllEvent<RequestMechEquipmentSelectEvent>(OnEquipmentSelectRequest);
         SubscribeLocalEvent<MechComponent, MechOpenUiEvent>(OnOpenUi);
-
-        // Access denied ping removed
     }
 
     private void OnMechCanMoveEvent(EntityUid uid, MechComponent component, UpdateCanMoveEvent args)
@@ -133,8 +129,6 @@ public sealed partial class MechSystem : SharedMechSystem
         args.Handled = true;
     }
 
-    // Passive modules removal handled via MechModuleRemoveMessage
-
     private void OnMapInit(EntityUid uid, MechComponent component, MapInitEvent args)
     {
         var xform = Transform(uid);
@@ -181,8 +175,6 @@ public sealed partial class MechSystem : SharedMechSystem
         Dirty(uid, component);
     }
 
-
-
     private void OnOpenUi(EntityUid uid, MechComponent component, MechOpenUiEvent args)
     {
         // For InstantActionEvent, we need to get the user from the event context
@@ -193,35 +185,52 @@ public sealed partial class MechSystem : SharedMechSystem
         ToggleMechUi(uid, component, user);
     }
 
-
-
-    private void OnEquipmentSelectRequest(RequestMechEquipmentSelectEvent args, EntitySessionEventArgs session)
+    private void OnMechEntry(EntityUid uid, MechComponent component, MechEntryEvent args)
     {
-        var user = session.SenderSession.AttachedEntity;
-        if (user == null)
-            return;
-        if (!TryComp<MechPilotComponent>(user.Value, out var pilot))
-            return;
-        var mech = pilot.Mech;
-        if (!TryComp<MechComponent>(mech, out var mechComp))
+        if (args.Cancelled || args.Handled)
             return;
 
-        if (args.Equipment == null)
+        // Allow entry if locks are not active; block only if active and user lacks access
+        if (TryComp<MechLockComponent>(uid, out var lockComp) && lockComp.IsLocked && !_lockSystem.HasAccess(args.User, lockComp))
         {
-            mechComp.CurrentSelectedEquipment = null;
-            _popup.PopupEntity(Loc.GetString("mech-equipment-select-none-popup"), mech);
-        }
-        else
-        {
-            var equipment = GetEntity(args.Equipment);
-            if (Exists(equipment) && mechComp.EquipmentContainer.ContainedEntities.Any(e => e == equipment))
-            {
-                mechComp.CurrentSelectedEquipment = equipment;
-                _popup.PopupEntity(Loc.GetString("mech-equipment-select-popup", ("item", equipment)), mech);
-            }
+            _lockSystem.CheckAccessWithFeedback(uid, args.User, lockComp);
+            return;
         }
 
-        Dirty(mech, mechComp);
+        if (_whitelistSystem.IsWhitelistFail(component.PilotWhitelist, args.User))
+        {
+            _popup.PopupEntity(Loc.GetString("mech-no-enter-popup", ("item", uid)), args.User);
+            return;
+        }
+
+        TryInsert(uid, args.Args.User, component);
+        _actionBlocker.UpdateCanMove(uid);
+
+        args.Handled = true;
+    }
+
+    private void OnMechExit(EntityUid uid, MechComponent component, MechExitEvent args)
+    {
+        if (args.Cancelled || args.Handled)
+            return;
+
+        TryEject(uid, component);
+
+        args.Handled = true;
+    }
+
+    private void OnDamageChanged(EntityUid uid, MechComponent component, DamageChangedEvent args)
+    {
+        var integrity = component.MaxIntegrity - args.Damageable.TotalDamage;
+        SetIntegrity(uid, integrity, component);
+
+        if (args.DamageIncreased &&
+            args.DamageDelta != null &&
+            component.PilotSlot.ContainedEntity != null)
+        {
+            var damage = args.DamageDelta * component.MechToPilotDamageMultiplier;
+            _damageable.TryChangeDamage(component.PilotSlot.ContainedEntity, damage);
+        }
     }
 
     private void OnToolUseAttempt(EntityUid uid, MechPilotComponent component, ref ToolUserAttemptUseEvent args)
@@ -287,54 +296,6 @@ public sealed partial class MechSystem : SharedMechSystem
         }
     }
 
-    private void OnMechEntry(EntityUid uid, MechComponent component, MechEntryEvent args)
-    {
-        if (args.Cancelled || args.Handled)
-            return;
-
-        // Allow entry if locks are not active; block only if active and user lacks access
-        if (TryComp<MechLockComponent>(uid, out var lockComp) && lockComp.IsLocked && !_lockSystem.HasAccess(args.User, lockComp))
-        {
-            _lockSystem.CheckAccessWithFeedback(uid, args.User, lockComp);
-            return;
-        }
-
-        if (_whitelistSystem.IsWhitelistFail(component.PilotWhitelist, args.User))
-        {
-            _popup.PopupEntity(Loc.GetString("mech-no-enter-popup", ("item", uid)), args.User);
-            return;
-        }
-
-        TryInsert(uid, args.Args.User, component);
-        _actionBlocker.UpdateCanMove(uid);
-
-        args.Handled = true;
-    }
-
-    private void OnMechExit(EntityUid uid, MechComponent component, MechExitEvent args)
-    {
-        if (args.Cancelled || args.Handled)
-            return;
-
-        TryEject(uid, component);
-
-        args.Handled = true;
-    }
-
-    private void OnDamageChanged(EntityUid uid, MechComponent component, DamageChangedEvent args)
-    {
-        var integrity = component.MaxIntegrity - args.Damageable.TotalDamage;
-        SetIntegrity(uid, integrity, component);
-
-        if (args.DamageIncreased &&
-            args.DamageDelta != null &&
-            component.PilotSlot.ContainedEntity != null)
-        {
-            var damage = args.DamageDelta * component.MechToPilotDamageMultiplier;
-            _damageable.TryChangeDamage(component.PilotSlot.ContainedEntity, damage);
-        }
-    }
-
     private void ToggleMechUi(EntityUid uid, MechComponent? component = null, EntityUid? user = null)
     {
         if (!Resolve(uid, ref component))
@@ -350,23 +311,6 @@ public sealed partial class MechSystem : SharedMechSystem
         var ui = EntityManager.System<UserInterfaceSystem>();
         ui.TryToggleUi(uid, MechUiKey.Key, actor.PlayerSession);
     }
-
-    private void ReceiveEquipmentUiMesssages<T>(EntityUid uid, MechComponent component, T args) where T : MechEquipmentUiMessage
-    {
-        var ev = new MechEquipmentUiMessageRelayEvent(args);
-        var allEquipment = new List<EntityUid>(component.EquipmentContainer.ContainedEntities);
-        var argEquip = GetEntity(args.Equipment);
-
-        foreach (var equipment in allEquipment)
-        {
-            if (argEquip == equipment)
-                RaiseLocalEvent(equipment, ev);
-        }
-    }
-
-
-
-
 
     public bool TryGetGasModuleAir(EntityUid mechUid, out GasMixture? air)
     {
@@ -389,8 +333,6 @@ public sealed partial class MechSystem : SharedMechSystem
 
         return false;
     }
-
-    // UI updates are now handled by MechInterfaceSystem
 
     public override void BreakMech(EntityUid uid, MechComponent? component = null)
     {
@@ -456,13 +398,32 @@ public sealed partial class MechSystem : SharedMechSystem
         return base.CanInsert(uid, toInsert, component) && _actionBlocker.CanMove(toInsert);
     }
 
-    private MechFanModuleComponent? GetFanModule(EntityUid mech, MechComponent mechComp)
+    private void OnEquipmentSelectRequest(RequestMechEquipmentSelectEvent args, EntitySessionEventArgs session)
     {
-        foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
+        var user = session.SenderSession.AttachedEntity;
+        if (user == null)
+            return;
+        if (!TryComp<MechPilotComponent>(user.Value, out var pilot))
+            return;
+        var mech = pilot.Mech;
+        if (!TryComp<MechComponent>(mech, out var mechComp))
+            return;
+
+        if (args.Equipment == null)
         {
-            if (TryComp<MechFanModuleComponent>(ent, out var fanModule))
-                return fanModule;
+            mechComp.CurrentSelectedEquipment = null;
+            _popup.PopupEntity(Loc.GetString("mech-equipment-select-none-popup"), mech);
         }
-        return null;
+        else
+        {
+            var equipment = GetEntity(args.Equipment);
+            if (Exists(equipment) && mechComp.EquipmentContainer.ContainedEntities.Any(e => e == equipment))
+            {
+                mechComp.CurrentSelectedEquipment = equipment;
+                _popup.PopupEntity(Loc.GetString("mech-equipment-select-popup", ("item", equipment)), mech);
+            }
+        }
+
+        Dirty(mech, mechComp);
     }
 }

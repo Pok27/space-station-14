@@ -195,4 +195,10 @@ public sealed partial class MechComponent : Component
     [DataField] public EntityUid? MechCycleActionEntity;
     [DataField] public EntityUid? MechUiActionEntity;
     [DataField] public EntityUid? MechEjectActionEntity;
+
+    /// <summary>
+    /// Time the UI was last updated automatically.
+    /// Used to prevent spam updates of energy/pressure values.
+    /// </summary>
+    public TimeSpan LastUiUpdate;
 }

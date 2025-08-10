@@ -68,32 +68,20 @@ public sealed partial class MechMenu : FancyWindow
         AirtightButton.OnToggled += args => ExecuteWithAccessCheck(() => OnAirtightChanged?.Invoke(args.Pressed));
         CabinPurgeButton.OnPressed += _ => ExecuteWithAccessCheck(() => OnCabinPurge?.Invoke());
 
-        // Fan controls - replace custom toggle logic with cleaner implementation
-        InitializeFanControls();
+        // Fan controls
+        FanToggle.StateChanged += isOn => ExecuteWithAccessCheck(() => OnFanToggle?.Invoke(isOn));
 
-        // Lock system controls
-        InitializeLockControls();
+        // Lock controls
+        DnaLockRegisterButton.OnPressed += _ => ExecuteWithAccessCheck(() => OnDnaLockRegister?.Invoke());
+        DnaLockBlockButton.OnPressed += _ => ExecuteWithAccessCheck(() => OnDnaLockToggle?.Invoke());
+        DnaLockResetButton.OnPressed += _ => ExecuteWithAccessCheck(() => OnDnaLockReset?.Invoke());
+
+        CardLockRegisterButton.OnPressed += _ => ExecuteWithAccessCheck(() => OnCardLockRegister?.Invoke());
+        CardLockBlockButton.OnPressed += _ => ExecuteWithAccessCheck(() => OnCardLockToggle?.Invoke());
+        CardLockResetButton.OnPressed += _ => ExecuteWithAccessCheck(() => OnCardLockReset?.Invoke());
 
         // Filter control
         FilterEnabledCheck.OnToggled += args => ExecuteWithAccessCheck(() => OnFilterToggle?.Invoke(args.Pressed));
-    }
-
-    private void InitializeFanControls()
-    {
-        FanToggle.StateChanged += isOn => ExecuteWithAccessCheck(() => OnFanToggle?.Invoke(isOn));
-    }
-
-    private void InitializeLockControls()
-    {
-        // DNA lock controls
-        DnaLockRegisterButton.OnPressed += _ => ExecuteLockAction(MechLockType.Dna, false, OnDnaLockRegister);
-        DnaLockBlockButton.OnPressed += _ => ExecuteLockAction(MechLockType.Dna, true, OnDnaLockToggle);
-        DnaLockResetButton.OnPressed += _ => ExecuteLockAction(MechLockType.Dna, true, OnDnaLockReset);
-
-        // Card lock controls
-        CardLockRegisterButton.OnPressed += _ => ExecuteLockAction(MechLockType.Card, false, OnCardLockRegister);
-        CardLockBlockButton.OnPressed += _ => ExecuteLockAction(MechLockType.Card, true, OnCardLockToggle);
-        CardLockResetButton.OnPressed += _ => ExecuteLockAction(MechLockType.Card, true, OnCardLockReset);
     }
 
     private void ExecuteWithAccessCheck(Action action)
@@ -105,20 +93,6 @@ public sealed partial class MechMenu : FancyWindow
         }
 
         action.Invoke();
-    }
-
-    private void ExecuteLockAction(MechLockType lockType, bool requiresRegistered, Action? action)
-    {
-        var (isRegistered, _, _) = GetCurrentLockState(lockType);
-
-        // For registration buttons (requiresRegistered = false): only allow if not already registered
-        // For toggle buttons (requiresRegistered = true): only allow if already registered
-        if (requiresRegistered && !isRegistered)
-            return; // Toggle button but not registered
-        if (!requiresRegistered && isRegistered)
-            return; // Register button but already registered
-
-        ExecuteWithAccessCheck(() => action?.Invoke());
     }
 
     private void OnAccessDeniedPing()
@@ -214,10 +188,6 @@ public sealed partial class MechMenu : FancyWindow
 
         // Update access state immediately to prevent UI flickering
         _hasAccess = state.HasAccess;
-        var isLocked = state.IsLocked;
-        var noAccessActive = isLocked && !_hasAccess;
-        SettingsGrid.Visible = !noAccessActive;
-        SettingsNoAccessPanel.Visible = noAccessActive;
 
         // Toggle fan controls visibility based on module presence
         FanToggle.Visible = state.HasFanModule;
@@ -226,6 +196,7 @@ public sealed partial class MechMenu : FancyWindow
         FanMissingLabel.Visible = !state.HasFanModule;
 
         CabinPurgeButton.Text = _loc.GetString("mech-cabin-purge");
+        CabinPurgeButton.Disabled = !state.CabinPurgeAvailable;
 
         // Update airtight button state
         if (AirtightButton.Pressed != state.IsAirtight)
@@ -240,8 +211,6 @@ public sealed partial class MechMenu : FancyWindow
             if (FilterEnabledCheck.Pressed != state.FilterEnabled)
                 FilterEnabledCheck.Pressed = state.FilterEnabled;
 
-            // Update fan status display
-            UpdateFanStatusDisplay(state.FanState);
         }
 
         // Update cabin gas level (always show)
@@ -253,10 +222,9 @@ public sealed partial class MechMenu : FancyWindow
         else
             TankPressureLabel.Text = _loc.GetString("mech-tank-pressure-level", ("state", "na"));
 
-        // Module capacity label is updated in UpdateMechStats when using state data
-
-        UpdateLockButtons(state);
+        UpdateFanStatusDisplay(state.FanState);
         UpdateLockInfoLabels(state);
+        UpdateLockButtons(state);
     }
 
     private void UpdateFanStatusDisplay(MechFanState fanState)
@@ -273,6 +241,7 @@ public sealed partial class MechMenu : FancyWindow
             MechFanState.On => Color.Green,
             MechFanState.Idle => Color.Yellow
         };
+
         FanStatusLabel.Text = _loc.GetString("mech-fan-status", ("state", stateKey));
         FanStatusLabel.FontColorOverride = stateColorKey;
     }
@@ -302,16 +271,17 @@ public sealed partial class MechMenu : FancyWindow
 
     private void UpdateLockButtons(MechBoundUiState state)
     {
-        // DNA
         var (dnaRegistered, dnaActive, _) = GetLockState(state, MechLockType.Dna);
+        var (cardRegistered, cardActive, _) = GetLockState(state, MechLockType.Card);
+
+        // DNA Lock Buttons
         DnaLockRegisterButton.Visible = !dnaRegistered;
         DnaLockBlockButton.Visible = dnaRegistered;
         DnaLockResetButton.Visible = dnaRegistered;
         DnaLockBlockButton.Text = _loc.GetString(dnaActive ? "mech-lock-deactivate" : "mech-lock-activate");
         DnaLockBlockButton.Pressed = dnaActive;
 
-        // Card
-        var (cardRegistered, cardActive, _) = GetLockState(state, MechLockType.Card);
+        // Card Lock Buttons
         CardLockRegisterButton.Visible = !cardRegistered;
         CardLockBlockButton.Visible = cardRegistered;
         CardLockResetButton.Visible = cardRegistered;
@@ -323,8 +293,6 @@ public sealed partial class MechMenu : FancyWindow
 
     public void OverrideAccessAndRefresh(bool hasAccess)
     {
-        // This method is now mainly used for immediate access updates from server messages
-        // The main access state update is now handled in UpdateMechState
         _hasAccess = hasAccess;
         if (_lastState != null)
         {
@@ -353,6 +321,30 @@ public sealed partial class MechMenu : FancyWindow
         return GetLockState(_lastState, lockType);
     }
 
+    public void UpdateEquipmentView(List<NetEntity>? equipment = null)
+    {
+        UpdateEntityListView<MechEquipmentComponent>(
+            equipment,
+            EquipmentControlContainer,
+            mech => mech.EquipmentContainer.ContainedEntities,
+            ent => _entityManager.GetComponentOrNull<MechEquipmentComponent>(ent)?.Size ?? 1,
+            ent => OnRemoveButtonPressed?.Invoke(ent),
+            null
+        );
+    }
+
+    public void UpdateModuleView(List<NetEntity>? modules = null)
+    {
+        UpdateEntityListView<MechModuleComponent>(
+            modules,
+            ModuleControlContainer,
+            mech => mech.ModuleContainer.ContainedEntities,
+            ent => _entityManager.GetComponentOrNull<MechModuleComponent>(ent)?.Size ?? 1,
+            ent => OnRemoveModuleButtonPressed?.Invoke(ent),
+            null
+        );
+    }
+
     private void UpdateEntityListView<TComponent>(
         List<NetEntity>? entities,
         BoxContainer container,
@@ -371,47 +363,61 @@ public sealed partial class MechMenu : FancyWindow
                 entities.Add(_entityManager.GetNetEntity(ent));
         }
 
-        container.Children.Clear();
+        // Update existing controls instead of recreating them
+        var existingControls = container.Children.OfType<MechEquipmentControl>().ToList();
+        var entityToControl = new Dictionary<EntityUid, MechEquipmentControl>();
+
+        foreach (var control in existingControls)
+        {
+            if (control.Entity != EntityUid.Invalid)
+                entityToControl[control.Entity] = control;
+        }
+
+        // Remove controls for entities that no longer exist
+        var currentEntities = entities.Select(e => _entityManager.GetEntity(e)).ToHashSet();
+        foreach (var control in existingControls)
+        {
+            if (!currentEntities.Contains(control.Entity))
+            {
+                container.Children.Remove(control);
+            }
+        }
+
+        // Update or create controls for current entities
         foreach (var netEnt in entities)
         {
             var ent = _entityManager.GetEntity(netEnt);
             if (!_entityManager.TryGetComponent<MetaDataComponent>(ent, out var metaData))
                 continue;
-            var size = getSize(ent);
-            var fragment = getFragment?.Invoke(ent);
-            var control = new MechEquipmentControl(ent, metaData.EntityName, fragment, size);
-            var entityToRemove = ent;
-            control.OnRemoveButtonPressed += () => onRemove(entityToRemove);
-            // Disable removal if a pilot is inside or if user lacks access when locked
-            var isLocked = _lastState?.IsLocked ?? false;
-            var disableRemove = _pilotPresent || (isLocked && !_hasAccess);
-            control.SetRemoveDisabled(disableRemove);
-            container.AddChild(control);
+
+            if (entityToControl.TryGetValue(ent, out var existingControl))
+            {
+                // Update existing control
+                var size = getSize(ent);
+                var fragment = getFragment?.Invoke(ent);
+                existingControl.UpdateControl(metaData.EntityName, fragment, size);
+            }
+            else
+            {
+                // Create new control
+                var size = getSize(ent);
+                var fragment = getFragment?.Invoke(ent);
+                var control = new MechEquipmentControl(ent, metaData.EntityName, fragment, size);
+                var entityToRemove = ent;
+                control.OnRemoveButtonPressed += () => onRemove(entityToRemove);
+                container.AddChild(control);
+            }
         }
-    }
 
-    public void UpdateEquipmentView(List<NetEntity>? equipment = null)
-    {
-        UpdateEntityListView<MechEquipmentComponent>(
-            equipment,
-            EquipmentControlContainer,
-            mech => mech.EquipmentContainer.ContainedEntities,
-            ent => _entityManager.GetComponentOrNull<MechEquipmentComponent>(ent)?.Size ?? 1,
-            ent => OnRemoveButtonPressed?.Invoke(ent),
-            ent => _entityManager.GetComponentOrNull<UIFragmentComponent>(ent)?.Ui?.GetUIFragmentRoot()
-        );
-    }
+        // Update disabled state for all controls
+        var isLocked = _lastState?.IsLocked ?? false;
+        var hasAccess = _lastState?.HasAccess ?? true;
+        var disableRemove = _pilotPresent || (isLocked && !hasAccess);
 
-    public void UpdateModuleView(List<NetEntity>? modules = null)
-    {
-        UpdateEntityListView<MechModuleComponent>(
-            modules,
-            ModuleControlContainer,
-            mech => mech.ModuleContainer.ContainedEntities,
-            ent => _entityManager.GetComponentOrNull<MechModuleComponent>(ent)?.Size ?? 1,
-            ent => OnRemoveModuleButtonPressed?.Invoke(ent),
-            null
-        );
+        foreach (var control in container.Children.OfType<MechEquipmentControl>())
+        {
+            control.SetRemoveDisabled(disableRemove);
+        }
     }
 
     /// <summary>

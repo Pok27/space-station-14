@@ -88,8 +88,8 @@ mech-lock-activated-popup = Lock activated!
 mech-lock-deactivated-popup = Lock deactivated!
 mech-lock-reset-success-popup = Lock reset!
 
-mech-lock-dna-info = DNA: {$dna}
-mech-lock-card-info = ID: {$name}
+mech-lock-dna-info = [{$dna}]
+mech-lock-card-info = [{$name}]
 mech-lock-not-set = Not set
 
 # Settings access banner

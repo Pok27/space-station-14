@@ -5,12 +5,14 @@ using Content.Shared.Mech.Components;
 using Content.Shared.Mech.EntitySystems;
 using Robust.Server.GameObjects;
 using Robust.Server.Containers;
+using Robust.Shared.Containers;
 using Content.Server.Atmos.EntitySystems;
 using Content.Shared.Atmos;
 using Content.Shared.Atmos.Components;
 using Content.Shared.FixedPoint;
 using Content.Server.Atmos;
 using System.Linq;
+using Robust.Shared.Timing;
 
 namespace Content.Server.Mech.Systems;
 
@@ -28,12 +30,16 @@ public sealed class MechInterfaceSystem : EntitySystem
     [Dependency] private readonly UserInterfaceSystem _uiSystem = null!;
     [Dependency] private readonly MechSystem _mechSystem = null!;
     [Dependency] private readonly ContainerSystem _container = null!;
+    [Dependency] private readonly IGameTiming _gameTiming = null!;
+
+    private static readonly TimeSpan VisualsChangeDelay = TimeSpan.FromSeconds(0.5f);
 
     public override void Initialize()
     {
         base.Initialize();
 
         SubscribeLocalEvent<MechComponent, UpdateMechUiEvent>(OnUpdateMechUi);
+        SubscribeLocalEvent<MechComponent, BoundUIOpenedEvent>(OnBoundUiOpen);
 
         Subs.BuiEvents<MechComponent>(
             MechUiKey.Key,
@@ -48,32 +54,38 @@ public sealed class MechInterfaceSystem : EntitySystem
                 subs.Event<MechCardLockRegisterMessage>(HandleCardLockRegister);
                 subs.Event<MechCardLockToggleMessage>(HandleCardLockToggle);
                 subs.Event<MechCardLockResetMessage>(HandleCardLockReset);
-                subs.Event<MechEquipmentSelectMessage>(HandleEquipmentSelect);
             });
     }
 
     private void HandleEquipmentRemove(Entity<MechComponent> ent, ref MechEquipmentRemoveMessage args)
     {
         var equipment = GetEntity(args.Equipment);
+        if (!TryRemoveItem(ent, equipment, ent.Comp.EquipmentContainer))
+            return;
+
         _mechSystem.RemoveEquipment(ent, equipment, ent.Comp);
-        Dirty(ent, ent.Comp);
+        RaiseLocalEvent(ent, new UpdateMechUiEvent());
     }
 
     private void HandleModuleRemove(Entity<MechComponent> ent, ref MechModuleRemoveMessage args)
     {
         var module = GetEntity(args.Module);
-        if (module == EntityUid.Invalid)
+        if (!TryRemoveItem(ent, module, ent.Comp.ModuleContainer))
             return;
 
-        // Check if the module is actually in the mech's module container
-        if (!ent.Comp.ModuleContainer.ContainedEntities.Contains(module))
-            return;
-
-        // Remove the module from the container
         _container.Remove(module, ent.Comp.ModuleContainer);
-
-        // Update UI
         RaiseLocalEvent(ent, new UpdateMechUiEvent());
+    }
+
+    private bool TryRemoveItem(Entity<MechComponent> ent, EntityUid item, Container container)
+    {
+        if (item == EntityUid.Invalid)
+            return false;
+
+        if (!container.ContainedEntities.Contains(item))
+            return false;
+
+        return true;
     }
 
     private void HandleCabinPurge(Entity<MechComponent> ent, ref MechCabinPurgeMessage args)
@@ -101,7 +113,13 @@ public sealed class MechInterfaceSystem : EntitySystem
         if (!TryComp<MechLockComponent>(ent, out var lockComp))
             return;
 
-        var ev = new MechDnaLockRegisterEvent { User = GetNetEntity(ent.Owner) };
+        // Get the user from the UI session
+        var actors = _uiSystem.GetActors(ent.Owner, MechUiKey.Key).ToList();
+        if (actors.Count == 0)
+            return;
+
+        var user = actors[0];
+        var ev = new MechDnaLockRegisterEvent { User = GetNetEntity(user) };
         RaiseLocalEvent(ent, ev);
     }
 
@@ -110,7 +128,13 @@ public sealed class MechInterfaceSystem : EntitySystem
         if (!TryComp<MechLockComponent>(ent, out var lockComp))
             return;
 
-        var ev = new MechDnaLockToggleEvent { User = GetNetEntity(ent.Owner) };
+        // Get the user from the UI session
+        var actors = _uiSystem.GetActors(ent.Owner, MechUiKey.Key).ToList();
+        if (actors.Count == 0)
+            return;
+
+        var user = actors[0];
+        var ev = new MechDnaLockToggleEvent { User = GetNetEntity(user) };
         RaiseLocalEvent(ent, ev);
     }
 
@@ -119,7 +143,13 @@ public sealed class MechInterfaceSystem : EntitySystem
         if (!TryComp<MechLockComponent>(ent, out var lockComp))
             return;
 
-        var ev = new MechDnaLockResetEvent { User = GetNetEntity(ent.Owner) };
+        // Get the user from the UI session
+        var actors = _uiSystem.GetActors(ent.Owner, MechUiKey.Key).ToList();
+        if (actors.Count == 0)
+            return;
+
+        var user = actors[0];
+        var ev = new MechDnaLockResetEvent { User = GetNetEntity(user) };
         RaiseLocalEvent(ent, ev);
     }
 
@@ -128,7 +158,13 @@ public sealed class MechInterfaceSystem : EntitySystem
         if (!TryComp<MechLockComponent>(ent, out var lockComp))
             return;
 
-        var ev = new MechCardLockRegisterEvent { User = GetNetEntity(ent.Owner) };
+        // Get the user from the UI session
+        var actors = _uiSystem.GetActors(ent.Owner, MechUiKey.Key).ToList();
+        if (actors.Count == 0)
+            return;
+
+        var user = actors[0];
+        var ev = new MechCardLockRegisterEvent { User = GetNetEntity(user) };
         RaiseLocalEvent(ent, ev);
     }
 
@@ -137,7 +173,13 @@ public sealed class MechInterfaceSystem : EntitySystem
         if (!TryComp<MechLockComponent>(ent, out var lockComp))
             return;
 
-        var ev = new MechCardLockToggleEvent { User = GetNetEntity(ent.Owner) };
+        // Get the user from the UI session
+        var actors = _uiSystem.GetActors(ent.Owner, MechUiKey.Key).ToList();
+        if (actors.Count == 0)
+            return;
+
+        var user = actors[0];
+        var ev = new MechCardLockToggleEvent { User = GetNetEntity(user) };
         RaiseLocalEvent(ent, ev);
     }
 
@@ -146,44 +188,43 @@ public sealed class MechInterfaceSystem : EntitySystem
         if (!TryComp<MechLockComponent>(ent, out var lockComp))
             return;
 
-        var ev = new MechCardLockResetEvent { User = GetNetEntity(ent.Owner) };
+        // Get the user from the UI session
+        var actors = _uiSystem.GetActors(ent.Owner, MechUiKey.Key).ToList();
+        if (actors.Count == 0)
+            return;
+
+        var user = actors[0];
+        var ev = new MechCardLockResetEvent { User = GetNetEntity(user) };
         RaiseLocalEvent(ent, ev);
     }
 
-    private void HandleEquipmentSelect(Entity<MechComponent> ent, ref MechEquipmentSelectMessage args)
-    {
-        if (args.Equipment.HasValue)
-        {
-            var equipment = GetEntity(args.Equipment.Value);
-            ent.Comp.CurrentSelectedEquipment = equipment;
-        }
-        else
-        {
-            ent.Comp.CurrentSelectedEquipment = null;
-        }
-    }
+
 
     private void OnUpdateMechUi(EntityUid uid, MechComponent component, UpdateMechUiEvent args)
     {
-        UpdateUI(uid, component);
+        // Force immediate update for UI events
+        UpdateUI(uid, component, forceUpdate: true);
     }
 
-    public override void Update(float frameTime)
+    private void OnBoundUiOpen(EntityUid uid, MechComponent component, BoundUIOpenedEvent args)
     {
-        var query = EntityQueryEnumerator<MechComponent>();
-
-        while (query.MoveNext(out var uid, out var mechComp))
-        {
-            UpdateUI(uid, mechComp);
-        }
+        // Force immediate update when UI is opened
+        UpdateUI(uid, component, forceUpdate: true);
     }
 
     private void UpdateUI(
         EntityUid uid,
-        MechComponent mechComp)
+        MechComponent mechComp,
+        bool forceUpdate = false)
     {
         if (!_uiSystem.IsUiOpen(uid, MechUiKey.Key))
             return;
+
+        // Check if we need to update based on delay (unless forced)
+        if (!forceUpdate && mechComp.LastUiUpdate + VisualsChangeDelay > _gameTiming.CurTime)
+            return;
+
+        mechComp.LastUiUpdate = _gameTiming.CurTime;
 
         var equipment = new List<NetEntity>();
         foreach (var ent in mechComp.EquipmentContainer.ContainedEntities)

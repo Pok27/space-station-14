@@ -9,6 +9,8 @@ using Content.Shared.FixedPoint;
 using Content.Shared.Mech;
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.EntitySystems;
+using Robust.Server.GameObjects;
+using Robust.Shared.Serialization;
 
 namespace Content.Server.Mech.Systems;
 
@@ -40,133 +42,147 @@ public sealed class MechAtmosphereSystem : EntitySystem
     {
         base.Update(frameTime);
 
-        // Update fan energy consumption and gas processing
         var query = EntityQueryEnumerator<MechComponent>();
         while (query.MoveNext(out var uid, out var mechComp))
         {
             var uiDirty = false;
 
-            // Tick purge cooldown
-            if (TryComp<MechCabinPurgeComponent>(uid, out var purge))
-            {
-                if (purge.CooldownRemaining > 0)
-                {
-                    purge.CooldownRemaining -= frameTime;
-                    if (purge.CooldownRemaining <= 0)
-                        RemCompDeferred<MechCabinPurgeComponent>(uid);
-                }
-            }
+            uiDirty |= UpdatePurgeCooldown(uid, frameTime);
+            uiDirty |= UpdateFanModule(uid, mechComp, frameTime);
+            uiDirty |= UpdateCabinPressure(uid, mechComp);
 
-            var fanModule = GetFanModule(uid, mechComp);
-            if (fanModule != null)
-            {
-                if (!fanModule.IsActive)
-                {
-                    fanModule.State = MechFanState.Off;
-                    Dirty(fanModule.Owner, fanModule);
-                }
-                else
-                {
-                    // Fans operate independently of airtight setting; they fill the cylinder from the environment as a pump up to tank's max output pressure.
-                    GasTankComponent? tankComp = null;
-                    GasMixture? internalAir = null;
-                    foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
-                    {
-                        if (TryComp<MechGasCylinderModuleComponent>(ent, out _))
-                        {
-                            if (TryComp<GasTankComponent>(ent, out var t))
-                            {
-                                tankComp = t;
-                                internalAir = t.Air;
-                            }
-                            break;
-                        }
-                    }
-
-                    if (internalAir == null || tankComp == null)
-                    {
-                        fanModule.State = MechFanState.Off;
-                        Dirty(fanModule.Owner, fanModule);
-                    }
-                    else
-                    {
-                        // Determine if external atmosphere is available
-                        var external = _atmosphere.GetContainingMixture(uid);
-                        var externalOk = external != null && external.Pressure > 0.05f; // allow small pressures too; we pump
-
-                        // Target tank pressure ceiling: use tank's MaxOutputPressure as a safe cap
-                        var targetTankPressure = tankComp.MaxOutputPressure;
-                        var tankPressure = internalAir.Pressure;
-
-                        // If already at/above target, idle
-                        if (tankPressure >= targetTankPressure - 0.1f || !externalOk)
-                        {
-                            fanModule.State = MechFanState.Idle;
-                            Dirty(fanModule.Owner, fanModule);
-                        }
-                        else
-                        {
-                            var energyConsumption = fanModule.EnergyConsumption * frameTime;
-                            if (_mech.TryChangeEnergy(uid, -energyConsumption, mechComp))
-                            {
-                                fanModule.State = MechFanState.On;
-
-                                if (external != null)
-                                {
-                                    // Compute moles needed to reach target pressure (limited by processing rate below)
-                                    var desiredDeltaP = MathF.Max(0f, targetTankPressure - tankPressure);
-                                    if (desiredDeltaP > 0)
-                                    {
-                                        var neededMoles = desiredDeltaP * internalAir.Volume / (internalAir.Temperature * Atmospherics.R);
-                                        // Convert needed moles to volume from external based on its conditions
-                                        var externalPressure = MathF.Max(external.Pressure, 0.01f);
-                                        var extMolesPerLiter = externalPressure / (Atmospherics.R * external.Temperature);
-                                        var intakeVolume = MathF.Min(fanModule.GasProcessingRate * frameTime, external.Volume);
-                                        // Limit by external availability and our rate
-                                        var molesAvailableAtRate = extMolesPerLiter * intakeVolume;
-                                        var takeMoles = MathF.Min(neededMoles, molesAvailableAtRate);
-                                        if (takeMoles > 0)
-                                        {
-                                            var removed = external.Remove(takeMoles);
-                                            _atmosphere.Merge(internalAir, removed);
-                                            uiDirty = true;
-                                        }
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                fanModule.IsActive = false;
-                                fanModule.State = MechFanState.Off;
-                            }
-
-                            Dirty(fanModule.Owner, fanModule);
-                        }
-                    }
-                }
-            }
-
-            // Maintain cabin pressure from the cylinder when airtight
-            if (mechComp.Airtight && TryComp<MechCabinPressureComponent>(uid, out var cabin))
-            {
-                var purgingActive = TryComp<MechCabinPurgeComponent>(uid, out var purgeComp) && purgeComp.CooldownRemaining > 0;
-                if (!purgingActive && _mech.TryGetGasModuleAir(uid, out var tankAir) && tankAir != null)
-                {
-                    var cabinVolume = cabin.Air.Volume > 0 ? cabin.Air.Volume : Atmospherics.CellVolume;
-                    var targetMoles = cabin.TargetPressure * cabinVolume / (Atmospherics.R * cabin.Air.Temperature);
-                    var deficit = targetMoles - cabin.Air.TotalMoles;
-                    if (deficit > 0f)
-                    {
-                        var removed = tankAir.Remove(deficit);
-                        _atmosphere.Merge(cabin.Air, removed);
-                        uiDirty = true;
-                    }
-                }
-            }
-
-            if (uiDirty)
+            if (uiDirty && EntityManager.System<UserInterfaceSystem>().IsUiOpen(uid, MechUiKey.Key))
                 RaiseLocalEvent(uid, new UpdateMechUiEvent());
         }
+    }
+
+    private bool UpdatePurgeCooldown(EntityUid uid, float frameTime)
+    {
+        if (!TryComp<MechCabinPurgeComponent>(uid, out var purge))
+            return false;
+
+        if (purge.CooldownRemaining <= 0)
+            return false;
+
+        purge.CooldownRemaining -= frameTime;
+        if (purge.CooldownRemaining <= 0)
+        {
+            RemCompDeferred<MechCabinPurgeComponent>(uid);
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool UpdateFanModule(EntityUid uid, MechComponent mechComp, float frameTime)
+    {
+        var fanModule = GetFanModule(uid, mechComp);
+        if (fanModule == null || !fanModule.IsActive)
+        {
+            if (fanModule != null && fanModule.State != MechFanState.Off)
+            {
+                fanModule.State = MechFanState.Off;
+                Dirty(fanModule.Owner, fanModule);
+            }
+            return false;
+        }
+
+        var (tankComp, internalAir) = GetGasTank(mechComp);
+        if (internalAir == null || tankComp == null)
+        {
+            fanModule.State = MechFanState.Off;
+            Dirty(fanModule.Owner, fanModule);
+            return false;
+        }
+
+        return ProcessFanOperation(uid, fanModule, tankComp, internalAir, mechComp, frameTime);
+    }
+
+    private (GasTankComponent? tank, GasMixture? air) GetGasTank(MechComponent mechComp)
+    {
+        foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
+        {
+            if (TryComp<MechGasCylinderModuleComponent>(ent, out _) && TryComp<GasTankComponent>(ent, out var tank))
+                return (tank, tank.Air);
+        }
+        return (null, null);
+    }
+
+    private bool ProcessFanOperation(EntityUid uid, MechFanModuleComponent fanModule, GasTankComponent tankComp, GasMixture internalAir, MechComponent mechComp, float frameTime)
+    {
+        var external = _atmosphere.GetContainingMixture(uid);
+        var externalOk = external != null && external.Pressure > 0.05f;
+        var targetTankPressure = tankComp.MaxOutputPressure;
+        var tankPressure = internalAir.Pressure;
+
+        // If already at target or no external air, idle
+        if (tankPressure >= targetTankPressure - 0.1f || !externalOk)
+        {
+            if (fanModule.State != MechFanState.Idle)
+            {
+                fanModule.State = MechFanState.Idle;
+                Dirty(fanModule.Owner, fanModule);
+            }
+            return false;
+        }
+
+        var energyConsumption = fanModule.EnergyConsumption * frameTime;
+        if (!_mech.TryChangeEnergy(uid, -energyConsumption, mechComp))
+        {
+            fanModule.State = MechFanState.Off;
+            Dirty(fanModule.Owner, fanModule);
+            return false;
+        }
+
+        fanModule.State = MechFanState.On;
+        Dirty(fanModule.Owner, fanModule);
+
+        if (external == null)
+            return false;
+
+        // Pump air from external to internal tank
+        var desiredDeltaP = MathF.Max(0f, targetTankPressure - tankPressure);
+        if (desiredDeltaP <= 0)
+            return false;
+
+        var neededMoles = desiredDeltaP * internalAir.Volume / (internalAir.Temperature * Atmospherics.R);
+        var externalPressure = MathF.Max(external.Pressure, 0.01f);
+        var extMolesPerLiter = externalPressure / (Atmospherics.R * external.Temperature);
+        var intakeVolume = MathF.Min(fanModule.GasProcessingRate * frameTime, external.Volume);
+        var molesAvailableAtRate = extMolesPerLiter * intakeVolume;
+        var takeMoles = MathF.Min(neededMoles, molesAvailableAtRate);
+
+        if (takeMoles > 0)
+        {
+            var removed = external.Remove(takeMoles);
+            _atmosphere.Merge(internalAir, removed);
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool UpdateCabinPressure(EntityUid uid, MechComponent mechComp)
+    {
+        if (!TryComp(uid, out MechCabinPressureComponent? cabin))
+            return false;
+
+        var purgingActive = TryComp<MechCabinPurgeComponent>(uid, out var purgeComp) && purgeComp.CooldownRemaining > 0;
+        if (purgingActive || !_mech.TryGetGasModuleAir(uid, out var tankAir) || tankAir == null)
+            return false;
+
+        var cabinVolume = cabin.Air.Volume > 0 ? cabin.Air.Volume : Atmospherics.CellVolume;
+        var targetMoles = cabin.TargetPressure * cabinVolume / (Atmospherics.R * cabin.Air.Temperature);
+        var deficit = targetMoles - cabin.Air.TotalMoles;
+
+        if (deficit > 0f)
+        {
+            var removed = tankAir.Remove(deficit);
+            _atmosphere.Merge(cabin.Air, removed);
+            return true;
+        }
+
+        return false;
     }
 
     private void OnAirtightMessage(EntityUid uid, MechComponent component, MechAirtightMessage args)
@@ -203,13 +219,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
         if (!TryComp<MechComponent>(component.Mech, out var mech))
             return;
 
-        if (!mech.Airtight)
-            return;
-
-        if (!TryComp(component.Mech, out MechCabinPressureComponent? cabin))
-            return;
-
-        args.Gas = cabin.Air;
+        args.Gas = GetAirForPilot(component.Mech, mech);
         RaiseLocalEvent(component.Mech, new UpdateMechUiEvent());
     }
 
@@ -218,13 +228,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
         if (!TryComp<MechComponent>(component.Mech, out var mech))
             return;
 
-        if (!mech.Airtight)
-            return;
-
-        if (!TryComp(component.Mech, out MechCabinPressureComponent? cabin))
-            return;
-
-        args.Gas = cabin.Air;
+        args.Gas = GetAirForPilot(component.Mech, mech);
         RaiseLocalEvent(component.Mech, new UpdateMechUiEvent());
     }
 
@@ -236,17 +240,24 @@ public sealed class MechAtmosphereSystem : EntitySystem
         if (!TryComp(component.Mech, out MechComponent? mech))
             return;
 
-        if (mech.Airtight && TryComp(component.Mech, out MechCabinPressureComponent? cabin))
-        {
-            args.Handled = true;
-            args.Gas = cabin.Air;
-            return;
-        }
-
-        args.Gas = _atmosphere.GetContainingMixture(component.Mech, excite: args.Excite);
+        args.Gas = GetAirForPilot(component.Mech, mech, excite: args.Excite);
         args.Handled = true;
-
         RaiseLocalEvent(component.Mech, new UpdateMechUiEvent());
+    }
+
+    private GasMixture GetAirForPilot(EntityUid mech, MechComponent mechComp, bool excite = false)
+    {
+        // Always try to get air from gas module first (balloon air)
+        if (_mech.TryGetGasModuleAir(mech, out var tankAir) && tankAir != null)
+            return tankAir;
+
+        // If no gas module or no air in tank, use cabin air if airtight
+        if (mechComp.Airtight && TryComp(mech, out MechCabinPressureComponent? cabin))
+            return cabin.Air;
+
+        // Fallback to external atmosphere
+        var external = _atmosphere.GetContainingMixture(mech, excite: excite);
+        return external ?? new GasMixture();
     }
 
     private void OnGetFilterAir(EntityUid uid, MechComponent component, ref GetFilterAirEvent args)
@@ -255,7 +266,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
             return;
 
         var fan = GetFanModule(uid, component);
-        if (fan == null || !fan.FilterEnabled)
+        if (fan == null || !fan.FilterEnabled || fan.State != MechFanState.On)
             return;
 
         // Source for filter is the gas cylinder module's tank air
