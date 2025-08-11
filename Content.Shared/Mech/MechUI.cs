@@ -18,7 +18,8 @@ public enum MechFanState : byte
 {
     Off,
     On,
-    Idle  // Fan is on but not consuming energy due to unsuitable atmosphere
+    Idle,
+    Na
 }
 
 /// <summary>

@@ -142,27 +142,7 @@ public sealed partial class MechSystem : SharedMechSystem
         foreach (var module in component.StartingModules)
         {
             var ent = Spawn(module, xform.Coordinates);
-            if (TryComp<MechModuleComponent>(ent, out var modComp))
-            {
-                var used = 0;
-                foreach (var e in component.ModuleContainer.ContainedEntities)
-                {
-                    if (TryComp<MechModuleComponent>(e, out var m))
-                        used += m.Size;
-                }
-                if (used + modComp.Size <= component.MaxModuleSpace)
-                {
-                    _container.Insert(ent, component.ModuleContainer);
-                }
-                else
-                {
-                    Del(ent);
-                }
-            }
-            else
-            {
-                Del(ent);
-            }
+            InsertEquipment(uid, ent, component);
         }
 
         // Ensure cabin pressure component is present for airtight operation

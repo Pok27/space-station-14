@@ -185,32 +185,57 @@ public abstract partial class SharedMechSystem : EntitySystem
     }
 
     /// <summary>
-    /// Inserts an equipment item into the mech.
+    /// Removes an equipment item from a mech.
     /// </summary>
     /// <param name="uid"></param>
-    /// <param name="toInsert"></param>
+    /// <param name="toRemove"></param>
     /// <param name="component"></param>
     /// <param name="equipmentComponent"></param>
+    /// <param name="forced">Whether or not the removal can be cancelled</param>
     public void InsertEquipment(EntityUid uid, EntityUid toInsert, MechComponent? component = null,
-        MechEquipmentComponent? equipmentComponent = null)
+        MechEquipmentComponent? equipmentComponent = null, MechModuleComponent? moduleComponent = null)
     {
         if (!Resolve(uid, ref component))
             return;
 
-        if (!Resolve(toInsert, ref equipmentComponent))
-            return;
+        // Equipment
+        if (Resolve(toInsert, ref equipmentComponent, false))
+        {
+            if (component.EquipmentContainer.ContainedEntities.Count >= component.MaxEquipmentAmount)
+                return;
 
-        if (component.EquipmentContainer.ContainedEntities.Count >= component.MaxEquipmentAmount)
-            return;
+            if (_whitelistSystem.IsWhitelistFail(component.EquipmentWhitelist, toInsert))
+                return;
 
-        if (_whitelistSystem.IsWhitelistFail(component.EquipmentWhitelist, toInsert))
+            equipmentComponent.EquipmentOwner = uid;
+            _container.Insert(toInsert, component.EquipmentContainer);
+            var ev = new MechEquipmentInsertedEvent(uid);
+            RaiseLocalEvent(toInsert, ref ev);
+            RaiseLocalEvent(uid, new UpdateMechUiEvent());
             return;
+        }
 
-        equipmentComponent.EquipmentOwner = uid;
-        _container.Insert(toInsert, component.EquipmentContainer);
-        var ev = new MechEquipmentInsertedEvent(uid);
-        RaiseLocalEvent(toInsert, ref ev);
-        RaiseLocalEvent(uid, new UpdateMechUiEvent());
+        // Module
+        if (Resolve(toInsert, ref moduleComponent, false))
+        {
+            var used = 0;
+            foreach (var ent in component.ModuleContainer.ContainedEntities)
+            {
+                if (TryComp<MechModuleComponent>(ent, out var m))
+                    used += m.Size;
+            }
+            if (used + moduleComponent.Size > component.MaxModuleAmount)
+                return;
+
+            if (_whitelistSystem.IsWhitelistFail(component.ModuleWhitelist, toInsert))
+                return;
+
+            _container.Insert(toInsert, component.ModuleContainer);
+            var modEv = new MechModuleInsertedEvent(uid);
+            RaiseLocalEvent(toInsert, ref modEv);
+            RaiseLocalEvent(uid, new UpdateMechUiEvent());
+            return;
+        }
     }
 
     /// <summary>

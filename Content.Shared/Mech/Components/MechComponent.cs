@@ -121,7 +121,7 @@ public sealed partial class MechComponent : Component
     /// Max passive module capacity in space units.
     /// </summary>
     [DataField, ViewVariables(VVAccess.ReadWrite)]
-    public int MaxModuleSpace = 4;
+    public int MaxModuleAmount = 4;
 
     /// <summary>
     /// How long it takes to remove a passive module with a prying tool

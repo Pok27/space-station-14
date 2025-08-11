@@ -268,7 +268,7 @@ public sealed class MechInterfaceSystem : EntitySystem
             }
         }
         var fanActive = fanModule?.IsActive ?? false;
-        var fanState = fanModule?.State ?? MechFanState.Off;
+        var fanState = fanModule?.State ?? MechFanState.Na;
         var filterEnabled = fanModule?.FilterEnabled ?? false;
 
         var hasFanModule = false;
@@ -327,7 +327,7 @@ public sealed class MechInterfaceSystem : EntitySystem
             TankPressure = tankPressure,
             HasFanModule = hasFanModule,
             HasGasModule = hasGasModule,
-            ModuleSpaceMax = mechComp.MaxModuleSpace,
+            ModuleSpaceMax = mechComp.MaxModuleAmount,
             ModuleSpaceUsed = moduleUsed,
             PilotPresent = mechComp.PilotSlot.ContainedEntity != null,
             Integrity = mechComp.Integrity.Float(),

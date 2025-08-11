@@ -23,7 +23,7 @@ public enum MechVisualLayers : byte
 }
 
 /// <summary>
-/// Event raised on equipment when it is inserted into a mech
+/// Raised on equipment when it is inserted into a mech
 /// </summary>
 [ByRefEvent]
 public readonly record struct MechEquipmentInsertedEvent(EntityUid Mech)
@@ -32,7 +32,7 @@ public readonly record struct MechEquipmentInsertedEvent(EntityUid Mech)
 }
 
 /// <summary>
-/// Event raised on equipment when it is removed from a mech
+/// Raised on equipment when it is removed from a mech
 /// </summary>
 [ByRefEvent]
 public readonly record struct MechEquipmentRemovedEvent(EntityUid Mech)
@@ -47,6 +47,15 @@ public readonly record struct MechEquipmentRemovedEvent(EntityUid Mech)
 public record struct AttemptRemoveMechEquipmentEvent()
 {
     public bool Cancelled = false;
+}
+
+/// <summary>
+/// Raised on module when it is inserted into a mech
+/// </summary>
+[ByRefEvent]
+public readonly record struct MechModuleInsertedEvent(EntityUid Mech)
+{
+    public readonly EntityUid Mech = Mech;
 }
 
 public sealed partial class MechToggleEquipmentEvent : InstantActionEvent

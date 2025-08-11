@@ -1,4 +1,3 @@
-using Content.Server.Mech.Systems;
 using Content.Server.Popups;
 using Content.Shared.DoAfter;
 using Content.Shared.Interaction;
@@ -6,7 +5,7 @@ using Content.Shared.Mech.Components;
 using Content.Shared.Mech.Equipment.Components;
 using Content.Shared.Mech.EntitySystems;
 using Content.Shared.Whitelist;
-using Robust.Shared.GameObjects;
+using Robust.Server.Containers;
 
 namespace Content.Server.Mech.Systems;
 
@@ -15,12 +14,11 @@ namespace Content.Server.Mech.Systems;
 /// </summary>
 public sealed class MechEquipmentSystem : EntitySystem
 {
-    [Dependency] private readonly MechSystem _mech = default!;
+    [Dependency] private readonly ContainerSystem _container = default!;
     [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
     [Dependency] private readonly PopupSystem _popup = default!;
     [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
 
-    /// <inheritdoc/>
     public override void Initialize()
     {
         SubscribeLocalEvent<MechEquipmentComponent, AfterInteractEvent>(OnUsed);
@@ -44,14 +42,6 @@ public sealed class MechEquipmentSystem : EntitySystem
         {
             _popup.PopupEntity(Loc.GetString("mech-install-blocked-pilot-popup", ("item", uid)), args.User);
             return;
-        }
-
-        // Block install if mech is locked and user lacks access
-        if (TryComp<MechLockComponent>(mech, out var lockComp) && lockComp.IsLocked)
-        {
-            var lockSys = EntityManager.System<MechLockSystem>();
-            if (!lockSys.CheckAccessWithFeedback(mech, args.User, lockComp))
-                return;
         }
 
         if (args.User == mechComp.PilotSlot.ContainedEntity)
@@ -97,6 +87,7 @@ public sealed class MechEquipmentSystem : EntitySystem
         if (args.Handled || args.Cancelled || args.Args.Target == null)
             return;
 
+        // Access check
         var mech = args.Args.Target.Value;
         if (TryComp<MechLockComponent>(mech, out var lockComp) && lockComp.IsLocked)
         {
@@ -105,8 +96,11 @@ public sealed class MechEquipmentSystem : EntitySystem
                 return;
         }
 
+        if (!TryComp<MechComponent>(mech, out var mechComp))
+            return;
+
         _popup.PopupEntity(Loc.GetString("mech-equipment-finish-install-popup", ("item", uid)), mech);
-        _mech.InsertEquipment(mech, uid);
+        _container.Insert(uid, mechComp.EquipmentContainer);
         RaiseLocalEvent(mech, new UpdateMechUiEvent());
 
         args.Handled = true;

@@ -187,7 +187,7 @@ public sealed partial class MechMenu : FancyWindow
             foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
                 usedSpace += _entityManager.GetComponentOrNull<MechModuleComponent>(ent)?.Size ?? 1;
             ModuleSlotDisplay.Text = _loc.GetString("mech-module-slot-display",
-                ("used", usedSpace), ("max", mechComp.MaxModuleSpace));
+                ("used", usedSpace), ("max", mechComp.MaxModuleAmount));
         }
     }
 
@@ -203,7 +203,6 @@ public sealed partial class MechMenu : FancyWindow
 
         // Toggle fan controls visibility based on module presence
         FanToggle.Visible = state.HasFanModule;
-        FanStatusLabel.Visible = state.HasFanModule;
         FilterEnabledCheck.Visible = state.HasFanModule;
         FanMissingLabel.Visible = !state.HasFanModule;
 
@@ -224,14 +223,20 @@ public sealed partial class MechMenu : FancyWindow
                 FilterEnabledCheck.Pressed = state.FilterEnabled;
         }
 
-        // Update cabin gas level (always show)
+        // Update cabin gas level
         CabinGasLabel.Text = _loc.GetString("mech-cabin-pressure-level", ("level", $"{state.CabinGasLevel:F1}"));
 
-        // Update tank pressure (or N/A if no cylinder)
+        // Update tank pressure
         if (state.HasGasModule)
+        {
             TankPressureLabel.Text = _loc.GetString("mech-tank-pressure-level", ("state", "ok"), ("pressure", state.TankPressure.ToString("0.##")));
+            TankPressureLabel.FontColorOverride = Color.White;
+        }
         else
+        {
             TankPressureLabel.Text = _loc.GetString("mech-tank-pressure-level", ("state", "na"));
+            TankPressureLabel.FontColorOverride = Color.Gray;
+        }
 
         // Update fan status display
         UpdateFanStatusDisplay(state.FanState);
@@ -268,13 +273,15 @@ public sealed partial class MechMenu : FancyWindow
         {
             MechFanState.Off => "off",
             MechFanState.On => "on",
-            MechFanState.Idle => "idle"
+            MechFanState.Idle => "idle",
+            _ => "na"
         };
         var stateColorKey = fanState switch
         {
             MechFanState.Off => Color.Red,
             MechFanState.On => Color.Green,
-            MechFanState.Idle => Color.Yellow
+            MechFanState.Idle => Color.Yellow,
+            _ => Color.Gray
         };
 
         FanStatusLabel.Text = _loc.GetString("mech-fan-status", ("state", stateKey));

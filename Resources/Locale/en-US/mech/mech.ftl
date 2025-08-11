@@ -48,9 +48,10 @@ mech-fan-off = Off
 mech-fan-toggle = Toggle Fan
 mech-fan-status-label = Fan Status:
 mech-fan-status = { $state ->
-    [idle] Idle
     [on] On
-    *[off] Off
+    [idle] Idle
+    [off] Off
+    *[na] N/A
 }
 mech-fan-missing = No fan module installed
 mech-filter-enabled = Filter
