@@ -98,13 +98,6 @@ public abstract partial class SharedMechLockSystem : EntitySystem
             _ => false
         };
 
-        // If this specific lock type is already registered, only its owner may modify it
-        if (isAlreadyRegistered && !IsOwnerOfLock(user, lockType, component))
-        {
-            DenyWithFeedback(uid, user);
-            return false;
-        }
-
         switch (lockType)
         {
             case MechLockType.Dna:
@@ -120,11 +113,6 @@ public abstract partial class SharedMechLockSystem : EntitySystem
 
             case MechLockType.Card:
                 if (!TryFindIdCard(user, out var idCard))
-                {
-                    _popup.PopupEntity(Loc.GetString("mech-lock-no-card-popup"), uid, user);
-                    return false;
-                }
-                if (idCard.Owner == EntityUid.Invalid)
                 {
                     _popup.PopupEntity(Loc.GetString("mech-lock-no-card-popup"), uid, user);
                     return false;
@@ -151,13 +139,6 @@ public abstract partial class SharedMechLockSystem : EntitySystem
     {
         if (!Resolve(uid, ref component))
             return false;
-
-        // Only the owner of the specific lock type may toggle it
-        if (!IsOwnerOfLock(user, lockType, component))
-        {
-            DenyWithFeedback(uid, user);
-            return false;
-        }
 
         switch (lockType)
         {
@@ -186,13 +167,6 @@ public abstract partial class SharedMechLockSystem : EntitySystem
     {
         if (!Resolve(uid, ref component))
             return false;
-
-        // Only the owner of the specific lock type may reset it
-        if (!IsOwnerOfLock(user, lockType, component))
-        {
-            DenyWithFeedback(uid, user);
-            return false;
-        }
 
         switch (lockType)
         {
@@ -268,7 +242,7 @@ public abstract partial class SharedMechLockSystem : EntitySystem
         // Check card lock - if active, user must have matching access tags
         if (component.CardLockActive && component.CardLockRegistered)
         {
-            if (TryFindIdCard(user, out var idCard) && idCard.Owner != EntityUid.Invalid)
+            if (TryFindIdCard(user, out var idCard))
             {
                 if (TryComp<AccessComponent>(idCard.Owner, out var access) && access != null && access.Tags != null)
                 {
@@ -329,13 +303,14 @@ public abstract partial class SharedMechLockSystem : EntitySystem
             case MechLockType.Card:
                 if (component.CardAccessTags == null || component.CardAccessTags.Count == 0)
                     return false;
-                if (!TryFindIdCard(user, out var idCard) || idCard.Owner == EntityUid.Invalid)
+                if (!TryFindIdCard(user, out var idCard))
                     return false;
                 if (!TryComp<AccessComponent>(idCard.Owner, out var access) || access == null || access.Tags == null)
                     return false;
                 // Store tags in local variable to avoid null reference issues
                 var tags = access.Tags;
-                return component.CardAccessTags.All(tag => tags.Contains(tag));
+                // User needs to have any of the required access tags (not all)
+                return component.CardAccessTags.Any(tag => tags.Contains(tag));
         }
         return false;
     }
@@ -343,12 +318,6 @@ public abstract partial class SharedMechLockSystem : EntitySystem
     private bool IsAnyOwner(EntityUid user, MechLockComponent component)
     {
         return IsOwnerOfLock(user, MechLockType.Dna, component) || IsOwnerOfLock(user, MechLockType.Card, component);
-    }
-
-    private void DenyWithFeedback(EntityUid uid, EntityUid user)
-    {
-        _popup.PopupEntity(Loc.GetString("mech-lock-access-denied-popup"), uid, user);
-        _audio.PlayPvs(new SoundPathSpecifier("/Audio/Machines/airlock_deny.ogg"), uid, AudioParams.Default.WithVolume(-5f));
     }
 }
 

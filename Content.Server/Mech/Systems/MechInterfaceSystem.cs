@@ -127,6 +127,10 @@ public sealed class MechInterfaceSystem : EntitySystem
         if (user == EntityUid.Invalid)
             return;
 
+        // Check if user has basic access to interact with mech locks
+        if (!_mechLockSystem.CheckAccessWithFeedback(ent.Owner, user, lockComp))
+            return;
+
         var ev = new MechDnaLockRegisterEvent { User = GetNetEntity(user) };
         RaiseLocalEvent(ent, ev);
     }
@@ -138,6 +142,10 @@ public sealed class MechInterfaceSystem : EntitySystem
 
         var user = GetFirstUiActor(ent.Owner);
         if (user == EntityUid.Invalid)
+            return;
+
+        // Check if user has basic access to interact with mech locks
+        if (!_mechLockSystem.CheckAccessWithFeedback(ent.Owner, user, lockComp))
             return;
 
         var ev = new MechDnaLockToggleEvent { User = GetNetEntity(user) };
@@ -153,6 +161,10 @@ public sealed class MechInterfaceSystem : EntitySystem
         if (user == EntityUid.Invalid)
             return;
 
+        // Check if user has basic access to interact with mech locks
+        if (!_mechLockSystem.CheckAccessWithFeedback(ent.Owner, user, lockComp))
+            return;
+
         var ev = new MechDnaLockResetEvent { User = GetNetEntity(user) };
         RaiseLocalEvent(ent, ev);
     }
@@ -164,6 +176,10 @@ public sealed class MechInterfaceSystem : EntitySystem
 
         var user = GetFirstUiActor(ent.Owner);
         if (user == EntityUid.Invalid)
+            return;
+
+        // Check if user has basic access to interact with mech locks
+        if (!_mechLockSystem.CheckAccessWithFeedback(ent.Owner, user, lockComp))
             return;
 
         var ev = new MechCardLockRegisterEvent { User = GetNetEntity(user) };
@@ -179,6 +195,10 @@ public sealed class MechInterfaceSystem : EntitySystem
         if (user == EntityUid.Invalid)
             return;
 
+        // Check if user has basic access to interact with mech locks
+        if (!_mechLockSystem.CheckAccessWithFeedback(ent.Owner, user, lockComp))
+            return;
+
         var ev = new MechCardLockToggleEvent { User = GetNetEntity(user) };
         RaiseLocalEvent(ent, ev);
     }
@@ -192,11 +212,13 @@ public sealed class MechInterfaceSystem : EntitySystem
         if (user == EntityUid.Invalid)
             return;
 
+        // Check if user has basic access to interact with mech locks
+        if (!_mechLockSystem.CheckAccessWithFeedback(ent.Owner, user, lockComp))
+            return;
+
         var ev = new MechCardLockResetEvent { User = GetNetEntity(user) };
         RaiseLocalEvent(ent, ev);
     }
-
-
 
     private void OnUpdateMechUi(EntityUid uid, MechComponent component, UpdateMechUiEvent args)
     {

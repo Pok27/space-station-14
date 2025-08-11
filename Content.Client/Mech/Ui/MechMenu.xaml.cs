@@ -26,13 +26,12 @@ public sealed partial class MechMenu : FancyWindow
 
     // State
     private EntityUid _mech;
-    private bool _hasAccess = true;
+    private bool _hasAccess = false;
     private bool _pilotPresent = false;
 
     // Events for the BUI to subscribe to
     public event Action<EntityUid>? OnRemoveButtonPressed;
     public event Action<EntityUid>? OnRemoveModuleButtonPressed;
-    public event Action? OnAccessDeniedAttempt;
 
     public event Action<bool>? OnAirtightChanged;
     public event Action<bool>? OnFanToggle;
@@ -72,13 +71,13 @@ public sealed partial class MechMenu : FancyWindow
         FanToggle.StateChanged += isOn => ExecuteWithAccessCheck(() => OnFanToggle?.Invoke(isOn));
 
         // Lock controls
-        DnaLockRegisterButton.OnPressed += _ => ExecuteWithAccessCheck(() => OnDnaLockRegister?.Invoke());
-        DnaLockBlockButton.OnPressed += _ => ExecuteWithAccessCheck(() => OnDnaLockToggle?.Invoke());
-        DnaLockResetButton.OnPressed += _ => ExecuteWithAccessCheck(() => OnDnaLockReset?.Invoke());
+        DnaLockRegisterButton.OnPressed += _ => OnDnaLockRegister?.Invoke();
+        DnaLockBlockButton.OnPressed += _ => OnDnaLockToggle?.Invoke();
+        DnaLockResetButton.OnPressed += _ => OnDnaLockReset?.Invoke();
 
-        CardLockRegisterButton.OnPressed += _ => ExecuteWithAccessCheck(() => OnCardLockRegister?.Invoke());
-        CardLockBlockButton.OnPressed += _ => ExecuteWithAccessCheck(() => OnCardLockToggle?.Invoke());
-        CardLockResetButton.OnPressed += _ => ExecuteWithAccessCheck(() => OnCardLockReset?.Invoke());
+        CardLockRegisterButton.OnPressed += _ => OnCardLockRegister?.Invoke();
+        CardLockBlockButton.OnPressed += _ => OnCardLockToggle?.Invoke();
+        CardLockResetButton.OnPressed += _ => OnCardLockReset?.Invoke();
 
         // Filter control
         FilterEnabledCheck.OnToggled += args => ExecuteWithAccessCheck(() => OnFilterToggle?.Invoke(args.Pressed));
@@ -92,13 +91,8 @@ public sealed partial class MechMenu : FancyWindow
         }
         else
         {
-            OnAccessDeniedPing();
+            return;
         }
-    }
-
-    private void OnAccessDeniedPing()
-    {
-        OnAccessDeniedAttempt?.Invoke();
     }
 
     private bool CheckAccess()
@@ -111,11 +105,15 @@ public sealed partial class MechMenu : FancyWindow
         if (_lastState == null)
             return true;
 
-        // If mech is not locked, access is granted
-        if (!isLocked)
+        // Check if any locks are registered
+        var anyLockRegistered = (_lastState.DnaLockRegistered || _lastState.CardLockRegistered);
+
+        // If no locks are registered, access is granted to everyone
+        if (!anyLockRegistered)
             return true;
 
-        // If mech is locked, check if user has access
+        // If any locks are registered, access is controlled by server-side logic
+        // The server sends individual MechAccessSyncMessage to each user
         return hasAccess;
     }
 

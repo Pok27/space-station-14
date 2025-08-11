@@ -64,9 +64,6 @@ public sealed class MechBoundUserInterface : BoundUserInterface, IBuiPreTickUpda
         _menu.OnCardLockRegister += () => _pred!.SendMessage(new MechCardLockRegisterMessage());
         _menu.OnCardLockToggle += () => _pred!.SendMessage(new MechCardLockToggleMessage());
         _menu.OnCardLockReset += () => _pred!.SendMessage(new MechCardLockResetMessage());
-
-        // Access denied handler
-        _menu.OnAccessDeniedAttempt += () => _pred!.SendMessage(new MechAccessSyncMessage(false));
     }
 
     void IBuiPreTickUpdate.PreTickUpdate()
@@ -106,8 +103,6 @@ public sealed class MechBoundUserInterface : BoundUserInterface, IBuiPreTickUpda
             }
         }
 
-        // Immediately update access state to prevent UI flickering
-        _menu?.OverrideAccessAndRefresh(mechState.HasAccess);
         _menu?.UpdateState(mechState);
     }
 
