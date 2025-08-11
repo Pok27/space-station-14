@@ -38,7 +38,7 @@ public sealed class MechBoundUserInterface : BoundUserInterface, IBuiPreTickUpda
         _menu.SetEntity(Owner);
         _menu.OverrideAccessAndRefresh(true);
 
-        // Equipment and module removal events
+        // Equipment and module removal
         _menu.OnRemoveButtonPressed += uid =>
         {
             _pred!.SendMessage(new MechEquipmentRemoveMessage(EntMan.GetNetEntity(uid)));
@@ -48,20 +48,20 @@ public sealed class MechBoundUserInterface : BoundUserInterface, IBuiPreTickUpda
             _pred!.SendMessage(new MechModuleRemoveMessage(EntMan.GetNetEntity(uid)));
         };
 
-        // Cabin control events - use coalescers for performance
+        // Cabin control
         _menu.OnAirtightChanged += isAirtight => _airtightCoalescer.Set(isAirtight);
         _menu.OnFanToggle += isActive => _fanCoalescer.Set(isActive);
         _menu.OnFilterToggle += enabled => _filterCoalescer.Set(enabled);
 
-        // Direct action events (no coalescing needed)
+        // Direct action
         _menu.OnCabinPurge += () => _pred!.SendMessage(new MechCabinPurgeMessage());
 
-        // DNA lock events
+        // DNA lock
         _menu.OnDnaLockRegister += () => _pred!.SendMessage(new MechDnaLockRegisterMessage());
         _menu.OnDnaLockToggle += () => _pred!.SendMessage(new MechDnaLockToggleMessage());
         _menu.OnDnaLockReset += () => _pred!.SendMessage(new MechDnaLockResetMessage());
 
-        // Card lock events
+        // Card lock
         _menu.OnCardLockRegister += () => _pred!.SendMessage(new MechCardLockRegisterMessage());
         _menu.OnCardLockToggle += () => _pred!.SendMessage(new MechCardLockToggleMessage());
         _menu.OnCardLockReset += () => _pred!.SendMessage(new MechCardLockResetMessage());

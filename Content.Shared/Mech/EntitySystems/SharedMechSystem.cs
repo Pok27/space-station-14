@@ -26,7 +26,6 @@ using Robust.Shared.Network;
 using Robust.Shared.Serialization;
 using Robust.Shared.Timing;
 
-
 namespace Content.Shared.Mech.EntitySystems;
 
 /// <summary>
@@ -78,7 +77,6 @@ public abstract partial class SharedMechSystem : EntitySystem
 
         if (_net.IsServer)
         {
-            // Сервер не циклично переключает при нажатии; клиент откроет радиалку предиктивно
             args.Handled = true;
         }
         else
@@ -469,7 +467,7 @@ public abstract partial class SharedMechSystem : EntitySystem
     {
         if (!ent.Comp.BlockUseOutsideMech)
             return;
-        // If not currently installed in a mech, block shooting
+
         if (!ent.Comp.EquipmentOwner.HasValue)
             args.Cancel();
     }
@@ -478,6 +476,7 @@ public abstract partial class SharedMechSystem : EntitySystem
     {
         if (!ent.Comp.BlockUseOutsideMech)
             return;
+
         if (!ent.Comp.EquipmentOwner.HasValue)
         {
             args.Cancelled = true;

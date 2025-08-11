@@ -4,7 +4,7 @@ using Robust.Shared.GameStates;
 namespace Content.Server.Mech.Components;
 
 [RegisterComponent]
-public sealed partial class MechCabinPressureComponent : Component
+public sealed partial class MechCabinAirComponent : Component
 {
     /// <summary>
     /// Target pressure for the mech cabin (kPa).

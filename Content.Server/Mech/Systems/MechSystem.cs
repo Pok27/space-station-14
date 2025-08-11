@@ -145,7 +145,7 @@ public sealed partial class MechSystem : SharedMechSystem
         }
 
         // Ensure cabin pressure component is present for airtight operation
-        EnsureComp<MechCabinPressureComponent>(uid);
+        EnsureComp<MechCabinAirComponent>(uid);
 
         component.Integrity = component.MaxIntegrity;
         component.Energy = component.MaxEnergy;

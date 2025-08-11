@@ -91,7 +91,7 @@ public sealed class MechInterfaceSystem : EntitySystem
 
     private void HandleCabinPurge(Entity<MechComponent> ent, ref MechCabinPurgeMessage args)
     {
-        if (!TryComp<MechCabinPressureComponent>(ent, out var cabin))
+        if (!TryComp<MechCabinAirComponent>(ent, out var cabin))
             return;
 
         var atmos = EntityManager.System<AtmosphereSystem>();
@@ -127,7 +127,7 @@ public sealed class MechInterfaceSystem : EntitySystem
             return;
         var user = actor;
 
-        // Check if user has basic access to interact with mech locks
+       // Access check
         if (!_mechLockSystem.CheckAccessWithFeedback(ent.Owner, user, lockComp))
             return;
 
@@ -144,7 +144,7 @@ public sealed class MechInterfaceSystem : EntitySystem
             return;
         var user = actor;
 
-        // Check if user has basic access to interact with mech locks
+       // Access check
         if (!_mechLockSystem.CheckAccessWithFeedback(ent.Owner, user, lockComp))
             return;
 
@@ -161,7 +161,7 @@ public sealed class MechInterfaceSystem : EntitySystem
             return;
         var user = actor;
 
-        // Check if user has basic access to interact with mech locks
+       // Access check
         if (!_mechLockSystem.CheckAccessWithFeedback(ent.Owner, user, lockComp))
             return;
 
@@ -178,7 +178,7 @@ public sealed class MechInterfaceSystem : EntitySystem
             return;
         var user = actor;
 
-        // Check if user has basic access to interact with mech locks
+       // Access check
         if (!_mechLockSystem.CheckAccessWithFeedback(ent.Owner, user, lockComp))
             return;
 
@@ -195,7 +195,7 @@ public sealed class MechInterfaceSystem : EntitySystem
             return;
         var user = actor;
 
-        // Check if user has basic access to interact with mech locks
+       // Access check
         if (!_mechLockSystem.CheckAccessWithFeedback(ent.Owner, user, lockComp))
             return;
 
@@ -212,7 +212,7 @@ public sealed class MechInterfaceSystem : EntitySystem
             return;
         var user = actor;
 
-        // Check if user has basic access to interact with mech locks
+       // Access check
         if (!_mechLockSystem.CheckAccessWithFeedback(ent.Owner, user, lockComp))
             return;
 
@@ -273,7 +273,7 @@ public sealed class MechInterfaceSystem : EntitySystem
         var cabinPressure = 0f;
         var gasAmountLiters = 0f;
         var tankPressure = 0f;
-        if (TryComp<MechCabinPressureComponent>(uid, out var cabin))
+        if (TryComp<MechCabinAirComponent>(uid, out var cabin))
         {
             cabinPressure = cabin.Air.Pressure;
         }
@@ -321,11 +321,9 @@ public sealed class MechInterfaceSystem : EntitySystem
             Energy = mechComp.Energy.Float(),
             MaxEnergy = mechComp.MaxEnergy.Float(),
             EquipmentUsed = mechComp.EquipmentContainer.ContainedEntities.Count,
-            MaxEquipmentAmount = mechComp.MaxEquipmentAmount
+            MaxEquipmentAmount = mechComp.MaxEquipmentAmount,
+            CabinPurgeAvailable = !TryComp<MechCabinPurgeComponent>(uid, out var purgeComp) || purgeComp.CooldownRemaining <= 0
         };
-
-        // Cabin purge availability
-        state.CabinPurgeAvailable = !TryComp<MechCabinPurgeComponent>(uid, out var purgeComp) || purgeComp.CooldownRemaining <= 0;
 
         if (TryComp<MechLockComponent>(uid, out var lockComp))
         {

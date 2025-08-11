@@ -55,7 +55,7 @@ public sealed class AirFilterSystem : EntitySystem
 
     private void OnFilterUpdate(EntityUid uid, AirFilterComponent filter, ref AtmosDeviceUpdateEvent args)
     {
-        // If this filter is mounted inside a mech (e.g. on a module), only run when its fan module filter is enabled
+        // if this filter is mounted inside a mech, only run when its fan module filter is enabled
         if (TryGetContainingMech(uid, out _, out var mech))
         {
             var fan = GetFanModule(mech);
@@ -111,8 +111,6 @@ public sealed class AirFilterSystem : EntitySystem
         RaiseLocalEvent(uid, ref ev);
         air = ev.Air;
 
-        // If this is a module inside a mech and no specific volume was provided by events,
-        // then default to the mech's gas cylinder module's tank air.
         if (air == null && TryGetContainingMech(uid, out _, out var mech))
         {
             if (TryGetGasModuleAir(mech, out var tankAir))
@@ -128,7 +126,7 @@ public sealed class AirFilterSystem : EntitySystem
         mech = default!;
 
         var current = uid;
-        for (var i = 0; i < 5; i++) // reasonable guard
+        for (var i = 0; i < 5; i++)
         {
             if (_containers.TryGetContainingContainer(current, out var container))
             {

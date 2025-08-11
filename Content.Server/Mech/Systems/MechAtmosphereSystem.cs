@@ -32,7 +32,6 @@ public sealed class MechAtmosphereSystem : EntitySystem
         SubscribeLocalEvent<MechPilotComponent, ExhaleLocationEvent>(OnExhale);
         SubscribeLocalEvent<MechPilotComponent, AtmosExposedGetAirEvent>(OnExpose);
 
-        // Route filter air requests to mech's installed gas module holder
         SubscribeLocalEvent<MechComponent, GetFilterAirEvent>(OnGetFilterAir);
     }
 
@@ -162,7 +161,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
 
     private bool UpdateCabinPressure(EntityUid uid, MechComponent mechComp)
     {
-        if (!TryComp(uid, out MechCabinPressureComponent? cabin))
+        if (!TryComp(uid, out MechCabinAirComponent? cabin))
             return false;
 
         var purgingActive = TryComp<MechCabinPurgeComponent>(uid, out var purgeComp) && purgeComp.CooldownRemaining > 0;
@@ -249,7 +248,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
     private GasMixture? GetInhaleMixture(EntityUid mechUid, MechComponent mechComp, float breathVolume)
     {
         // Closed cabin: construct a breath-volume mixture from cabin air proportionally by pressure
-        if (mechComp.Airtight && TryComp<MechCabinPressureComponent>(mechUid, out var cabin))
+        if (mechComp.Airtight && TryComp<MechCabinAirComponent>(mechUid, out var cabin))
         {
             var vol = breathVolume > 0f ? breathVolume : Atmospherics.BreathVolume;
             var air = cabin.Air;
@@ -259,14 +258,14 @@ public sealed class MechAtmosphereSystem : EntitySystem
             return removed;
         }
 
-        // Open cabin: use external atmosphere (RespiratorSystem will remove breath volume)
+        // Open cabin: use external atmosphere
         return _atmosphere.GetContainingMixture(mechUid, excite: true);
     }
 
     private GasMixture? GetExhaleMixture(EntityUid mechUid, MechComponent mechComp)
     {
         // Exhale to cabin when airtight, otherwise to external
-        if (mechComp.Airtight && TryComp<MechCabinPressureComponent>(mechUid, out var cabin))
+        if (mechComp.Airtight && TryComp<MechCabinAirComponent>(mechUid, out var cabin))
             return cabin.Air;
 
         return _atmosphere.GetContainingMixture(mechUid, excite: true);
@@ -274,7 +273,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
 
     private GasMixture? GetExposureMixture(EntityUid mechUid, MechComponent mechComp, bool excite)
     {
-        if (mechComp.Airtight && TryComp<MechCabinPressureComponent>(mechUid, out var cabin))
+        if (mechComp.Airtight && TryComp<MechCabinAirComponent>(mechUid, out var cabin))
             return cabin.Air;
 
         return _atmosphere.GetContainingMixture(mechUid, excite: excite);

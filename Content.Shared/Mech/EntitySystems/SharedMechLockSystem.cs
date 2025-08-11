@@ -246,9 +246,7 @@ public abstract partial class SharedMechLockSystem : EntitySystem
             {
                 if (TryComp<AccessComponent>(idCard.Owner, out var access) && access != null && access.Tags != null)
                 {
-                    // Store tags in local variable to avoid null reference issues
                     var tags = access.Tags;
-                    // Check if the user's access tags match any of the required tags
                     foreach (var tag in tags)
                     {
                         if (component.CardAccessTags!.Contains(tag))
@@ -307,9 +305,9 @@ public abstract partial class SharedMechLockSystem : EntitySystem
                     return false;
                 if (!TryComp<AccessComponent>(idCard.Owner, out var access) || access == null || access.Tags == null)
                     return false;
-                // Store tags in local variable to avoid null reference issues
+
                 var tags = access.Tags;
-                // User needs to have any of the required access tags (not all)
+
                 return component.CardAccessTags.Any(tag => tags.Contains(tag));
         }
         return false;
