@@ -115,6 +115,13 @@ public sealed class MechModuleSystem : EntitySystem
         if (!TryComp<MechComponent>(mech, out var mechComp))
             return;
 
+        if (TryComp<MechLockComponent>(mech, out var lockComp) && lockComp.IsLocked)
+        {
+            var lockSys = EntityManager.System<MechLockSystem>();
+            if (!lockSys.CheckAccessWithFeedback(mech, args.Args.User, lockComp))
+                return;
+        }
+
         // Insert into module container
         _container.Insert(uid, mechComp.ModuleContainer);
 

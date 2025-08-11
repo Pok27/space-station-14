@@ -123,9 +123,9 @@ public sealed class MechInterfaceSystem : EntitySystem
         if (!TryComp<MechLockComponent>(ent, out var lockComp))
             return;
 
-        var user = GetFirstUiActor(ent.Owner);
-        if (user == EntityUid.Invalid)
+        if (args.Actor is not { Valid: true } actor)
             return;
+        var user = actor;
 
         // Check if user has basic access to interact with mech locks
         if (!_mechLockSystem.CheckAccessWithFeedback(ent.Owner, user, lockComp))
@@ -140,9 +140,9 @@ public sealed class MechInterfaceSystem : EntitySystem
         if (!TryComp<MechLockComponent>(ent, out var lockComp))
             return;
 
-        var user = GetFirstUiActor(ent.Owner);
-        if (user == EntityUid.Invalid)
+        if (args.Actor is not { Valid: true } actor)
             return;
+        var user = actor;
 
         // Check if user has basic access to interact with mech locks
         if (!_mechLockSystem.CheckAccessWithFeedback(ent.Owner, user, lockComp))
@@ -157,9 +157,9 @@ public sealed class MechInterfaceSystem : EntitySystem
         if (!TryComp<MechLockComponent>(ent, out var lockComp))
             return;
 
-        var user = GetFirstUiActor(ent.Owner);
-        if (user == EntityUid.Invalid)
+        if (args.Actor is not { Valid: true } actor)
             return;
+        var user = actor;
 
         // Check if user has basic access to interact with mech locks
         if (!_mechLockSystem.CheckAccessWithFeedback(ent.Owner, user, lockComp))
@@ -174,9 +174,9 @@ public sealed class MechInterfaceSystem : EntitySystem
         if (!TryComp<MechLockComponent>(ent, out var lockComp))
             return;
 
-        var user = GetFirstUiActor(ent.Owner);
-        if (user == EntityUid.Invalid)
+        if (args.Actor is not { Valid: true } actor)
             return;
+        var user = actor;
 
         // Check if user has basic access to interact with mech locks
         if (!_mechLockSystem.CheckAccessWithFeedback(ent.Owner, user, lockComp))
@@ -191,9 +191,9 @@ public sealed class MechInterfaceSystem : EntitySystem
         if (!TryComp<MechLockComponent>(ent, out var lockComp))
             return;
 
-        var user = GetFirstUiActor(ent.Owner);
-        if (user == EntityUid.Invalid)
+        if (args.Actor is not { Valid: true } actor)
             return;
+        var user = actor;
 
         // Check if user has basic access to interact with mech locks
         if (!_mechLockSystem.CheckAccessWithFeedback(ent.Owner, user, lockComp))
@@ -208,9 +208,9 @@ public sealed class MechInterfaceSystem : EntitySystem
         if (!TryComp<MechLockComponent>(ent, out var lockComp))
             return;
 
-        var user = GetFirstUiActor(ent.Owner);
-        if (user == EntityUid.Invalid)
+        if (args.Actor is not { Valid: true } actor)
             return;
+        var user = actor;
 
         // Check if user has basic access to interact with mech locks
         if (!_mechLockSystem.CheckAccessWithFeedback(ent.Owner, user, lockComp))
@@ -350,8 +350,7 @@ public sealed class MechInterfaceSystem : EntitySystem
             state.OwnerDna = lockComp.OwnerDna;
             state.OwnerJobTitle = lockComp.OwnerJobTitle;
             state.IsLocked = lockComp.IsLocked;
-
-            state.HasAccess = !lockComp.IsLocked;
+            state.HasAccess = true;
 
             var actors = _uiSystem.GetActors(uid, MechUiKey.Key).ToList();
             if (actors.Count > 0)

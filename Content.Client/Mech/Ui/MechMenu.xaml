@@ -3,8 +3,8 @@
                       xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
                       xmlns:customControls="clr-namespace:Content.Client.Administration.UI.CustomControls"
                       Title="{Loc 'mech-menu-title'}"
-                      MinSize="600 515"
-                      SetSize="700 515">
+                      MinSize="600 500"
+                      SetSize="700 500">
     <BoxContainer Orientation="Horizontal"
                   HorizontalExpand="True"
                   VerticalExpand="True"
@@ -117,15 +117,14 @@
                                 Visible="False"
                                 StyleClasses="Inset"
                                 Margin="0 0 0 5">
-                    <BoxContainer Orientation="Vertical"
-                                  HorizontalExpand="True"
+                    <BoxContainer HorizontalExpand="True"
                                   Margin="8">
                         <RichTextLabel Text="{Loc 'mech-settings-no-access'}"
                                        HorizontalAlignment="Center"/>
                     </BoxContainer>
                 </PanelContainer>
-                <GridContainer Columns="2"
-                               Name="SettingsGrid">
+                <GridContainer Name="SettingsGrid"
+                               Columns="2">
                     <PanelContainer StyleClasses="Inset"
                                     Margin="0 0 0 5"
                                     HorizontalExpand="True">
@@ -207,7 +206,7 @@
                         </BoxContainer>
                         <BoxContainer>
                             <Label StyleClasses="WindowFooterText"
-                                    Name="DnaLockInfoLabel"/>
+                                   Name="DnaLockInfoLabel"/>
                         </BoxContainer>
                     </BoxContainer>
 
@@ -242,7 +241,7 @@
                         </BoxContainer>
                         <BoxContainer>
                             <Label StyleClasses="WindowFooterText"
-                                    Name="CardLockInfoLabel"/>
+                                   Name="CardLockInfoLabel"/>
                         </BoxContainer>
                     </BoxContainer>
                 </GridContainer>

@@ -64,11 +64,11 @@ public sealed partial class MechMenu : FancyWindow
     private void InitializeEventHandlers()
     {
         // Cabin controls with access checks
-        AirtightButton.OnToggled += args => ExecuteWithAccessCheck(() => OnAirtightChanged?.Invoke(args.Pressed));
-        CabinPurgeButton.OnPressed += _ => ExecuteWithAccessCheck(() => OnCabinPurge?.Invoke());
+        AirtightButton.OnToggled += args => OnAirtightChanged?.Invoke(args.Pressed);
+        CabinPurgeButton.OnPressed += _ => OnCabinPurge?.Invoke();
 
         // Fan controls
-        FanToggle.StateChanged += isOn => ExecuteWithAccessCheck(() => OnFanToggle?.Invoke(isOn));
+        FanToggle.StateChanged += isOn => OnFanToggle?.Invoke(isOn);
 
         // Lock controls
         DnaLockRegisterButton.OnPressed += _ => OnDnaLockRegister?.Invoke();
@@ -80,7 +80,7 @@ public sealed partial class MechMenu : FancyWindow
         CardLockResetButton.OnPressed += _ => OnCardLockReset?.Invoke();
 
         // Filter control
-        FilterEnabledCheck.OnToggled += args => ExecuteWithAccessCheck(() => OnFilterToggle?.Invoke(args.Pressed));
+        FilterEnabledCheck.OnToggled += args => OnFilterToggle?.Invoke(args.Pressed);
     }
 
     private void ExecuteWithAccessCheck(Action action)
@@ -196,8 +196,10 @@ public sealed partial class MechMenu : FancyWindow
         _lastState = state;
         _pilotPresent = state.PilotPresent;
 
-        // Update access state immediately to prevent UI flickering
-        _hasAccess = state.HasAccess;
+        // Update access state: for registered locks keep per-actor override; otherwise allow
+        var anyLockRegistered = state.DnaLockRegistered || state.CardLockRegistered;
+        if (!anyLockRegistered)
+            _hasAccess = true;
 
         // Toggle fan controls visibility based on module presence
         FanToggle.Visible = state.HasFanModule;
@@ -244,12 +246,12 @@ public sealed partial class MechMenu : FancyWindow
 
         // Ensure access state is properly applied
         var isLocked = state.IsLocked;
-        var noAccessActive = isLocked && !state.HasAccess;
+        var noAccessActive = isLocked && !_hasAccess;
         SettingsGrid.Visible = !noAccessActive;
         SettingsNoAccessPanel.Visible = noAccessActive;
 
         // Update remove buttons state for equipment and modules
-        var disableRemove = _pilotPresent || (isLocked && !state.HasAccess);
+        var disableRemove = _pilotPresent || (state.IsLocked && !_hasAccess);
         foreach (var control in EquipmentControlContainer.Children.OfType<MechEquipmentControl>())
         {
             control.SetRemoveDisabled(disableRemove);
@@ -444,8 +446,7 @@ public sealed partial class MechMenu : FancyWindow
 
         // Update disabled state for all controls
         var isLocked = _lastState?.IsLocked ?? false;
-        var hasAccess = _lastState?.HasAccess ?? true;
-        var disableRemove = _pilotPresent || (isLocked && !hasAccess);
+        var disableRemove = _pilotPresent || (isLocked && !_hasAccess);
 
         foreach (var control in container.Children.OfType<MechEquipmentControl>())
         {
@@ -465,7 +466,7 @@ public sealed partial class MechMenu : FancyWindow
 
         // Ensure access state is properly applied after all updates
         var isLocked = state.IsLocked;
-        var noAccessActive = isLocked && !state.HasAccess;
+        var noAccessActive = isLocked && !_hasAccess;
         SettingsGrid.Visible = !noAccessActive;
         SettingsNoAccessPanel.Visible = noAccessActive;
     }

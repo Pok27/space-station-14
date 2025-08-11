@@ -36,6 +36,7 @@ public sealed class MechBoundUserInterface : BoundUserInterface, IBuiPreTickUpda
 
         _menu = this.CreateWindowCenteredLeft<MechMenu>();
         _menu.SetEntity(Owner);
+        _menu.OverrideAccessAndRefresh(true);
 
         // Equipment and module removal events
         _menu.OnRemoveButtonPressed += uid =>

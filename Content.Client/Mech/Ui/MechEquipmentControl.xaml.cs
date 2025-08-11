@@ -31,6 +31,10 @@ public sealed partial class MechEquipmentControl : Control
         RemoveButton.ToolTip = disabled
             ? _loc.GetString("mech-remove-disabled-tooltip")
             : null;
+
+        RemoveButton.Modulate = disabled
+            ? new Color(0.5f, 0.5f, 0.5f, 1f)
+            : Color.White;
     }
 
     public void UpdateControl(string itemName, Control? fragment, int size)

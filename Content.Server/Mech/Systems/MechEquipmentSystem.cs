@@ -46,6 +46,14 @@ public sealed class MechEquipmentSystem : EntitySystem
             return;
         }
 
+        // Block install if mech is locked and user lacks access
+        if (TryComp<MechLockComponent>(mech, out var lockComp) && lockComp.IsLocked)
+        {
+            var lockSys = EntityManager.System<MechLockSystem>();
+            if (!lockSys.CheckAccessWithFeedback(mech, args.User, lockComp))
+                return;
+        }
+
         if (args.User == mechComp.PilotSlot.ContainedEntity)
             return;
 
@@ -89,9 +97,17 @@ public sealed class MechEquipmentSystem : EntitySystem
         if (args.Handled || args.Cancelled || args.Args.Target == null)
             return;
 
-        _popup.PopupEntity(Loc.GetString("mech-equipment-finish-install-popup", ("item", uid)), args.Args.Target.Value);
-        _mech.InsertEquipment(args.Args.Target.Value, uid);
-        RaiseLocalEvent(args.Args.Target.Value, new UpdateMechUiEvent());
+        var mech = args.Args.Target.Value;
+        if (TryComp<MechLockComponent>(mech, out var lockComp) && lockComp.IsLocked)
+        {
+            var lockSys = EntityManager.System<MechLockSystem>();
+            if (!lockSys.CheckAccessWithFeedback(mech, args.Args.User, lockComp))
+                return;
+        }
+
+        _popup.PopupEntity(Loc.GetString("mech-equipment-finish-install-popup", ("item", uid)), mech);
+        _mech.InsertEquipment(mech, uid);
+        RaiseLocalEvent(mech, new UpdateMechUiEvent());
 
         args.Handled = true;
     }
