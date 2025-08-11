@@ -55,7 +55,14 @@ public sealed class MechInterfaceSystem : EntitySystem
                 subs.Event<MechCardLockRegisterMessage>(HandleCardLockRegister);
                 subs.Event<MechCardLockToggleMessage>(HandleCardLockToggle);
                 subs.Event<MechCardLockResetMessage>(HandleCardLockReset);
+                subs.Event<MechEquipmentUiMessage>(HandleEquipmentUiMessageRelay);
             });
+    }
+
+    private void HandleEquipmentUiMessageRelay(Entity<MechComponent> ent, ref MechEquipmentUiMessage args)
+    {
+        var equipment = GetEntity(args.Equipment);
+        RaiseLocalEvent(equipment, new MechEquipmentUiMessageRelayEvent(args));
     }
 
     private void HandleEquipmentRemove(Entity<MechComponent> ent, ref MechEquipmentRemoveMessage args)
@@ -351,7 +358,11 @@ public sealed class MechInterfaceSystem : EntitySystem
             state.HasAccess = true;
         }
 
-        var eqStatesEvent = RaiseLocalEvent(uid, new MechEquipmentUiStateReadyEvent());
+        var eqStatesEvent = new MechEquipmentUiStateReadyEvent();
+        foreach (var equipmentEnt in mechComp.EquipmentContainer.ContainedEntities)
+        {
+            RaiseLocalEvent(equipmentEnt, eqStatesEvent);
+        }
         if (eqStatesEvent.States.Count > 0)
             state.EquipmentUiStates = eqStatesEvent.States;
 

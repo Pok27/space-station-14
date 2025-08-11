@@ -30,6 +30,9 @@ public sealed partial class MechMenu : FancyWindow
     private bool _hasAccess = false;
     private bool _pilotPresent = false;
 
+    // Cache of equipment entity to its fragment
+    private readonly Dictionary<EntityUid, Control> _equipmentFragmentCache = new();
+
     // Events for the BUI to subscribe to
     public event Action<EntityUid>? OnRemoveButtonPressed;
     public event Action<EntityUid>? OnRemoveModuleButtonPressed;
@@ -334,6 +337,7 @@ public sealed partial class MechMenu : FancyWindow
             if (!currentEntities.Contains(control.Entity))
             {
                 container.Children.Remove(control);
+                _equipmentFragmentCache.Remove(control.Entity);
             }
         }
 
@@ -371,20 +375,33 @@ public sealed partial class MechMenu : FancyWindow
 
     private Control? GetEquipmentFragment(EntityUid equipment)
     {
-        if (_entityManager.TryGetComponent<UIFragmentComponent>(equipment, out var fragComp) && fragComp.Ui != null)
+        if (!_entityManager.TryGetComponent<UIFragmentComponent>(equipment, out var fragComp) || fragComp.Ui == null)
+            return null;
+
+        if (_equipmentFragmentCache.TryGetValue(equipment, out var cached) && cached is { Disposed: false })
+            return cached;
+        var dummy = new DummyBoundUserInterface();
+        fragComp.Ui.Setup(dummy, equipment);
+
+        if (_lastState != null)
         {
-            var dummy = new DummyBoundUserInterface();
-            fragComp.Ui.Setup(dummy, equipment);
-            return fragComp.Ui.GetUIFragmentRoot();
+            var netEnt = _entityManager.GetNetEntity(equipment);
+            if (_lastState.EquipmentUiStates.TryGetValue(netEnt, out var eqState))
+            {
+                fragComp.Ui.UpdateState(eqState);
+            }
         }
-        return null;
+
+        var control = fragComp.Ui.GetUIFragmentRoot();
+        _equipmentFragmentCache[equipment] = control;
+        return control;
     }
 
     private sealed class DummyBoundUserInterface : BoundUserInterface
     {
-        public DummyBoundUserInterface() : base(EntityUid.Invalid, MechUiKey.Equipment) {}
-        protected override void Open() {}
-        protected override void UpdateState(BoundUserInterfaceState state) {}
+        public DummyBoundUserInterface() : base(EntityUid.Invalid, MechUiKey.Equipment) { }
+        protected override void Open() { }
+        protected override void UpdateState(BoundUserInterfaceState state) { }
     }
 
     /// <summary>

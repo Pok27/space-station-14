@@ -12,13 +12,12 @@
             <BoxContainer HorizontalExpand="True"
                           VerticalExpand="True"
                           Orientation="Horizontal">
-                <SpriteView
-                    Name="EquipmentView"
-                    OverrideDirection="South"
-                    MinSize="32 32"
-                    SetSize="32 32"
-                    Scale="1 1"
-                    RectClipContent="True"/>
+                <SpriteView Name="EquipmentView"
+                            OverrideDirection="South"
+                            MinSize="32 32"
+                            SetSize="32 32"
+                            Scale="1 1"
+                            RectClipContent="True"/>
                 <RichTextLabel Name="EquipmentName"
                                VerticalAlignment="Center"/>
                 <BoxContainer Orientation="Vertical"

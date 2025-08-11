@@ -17,7 +17,8 @@ public sealed partial class MechGrabberUi : UIFragment
 
     public override Control GetUIFragmentRoot()
     {
-        _fragment ??= new MechGrabberUiFragment();
+        if (_fragment == null || _fragment.Disposed)
+            _fragment = new MechGrabberUiFragment();
         return _fragment;
     }
 
@@ -28,7 +29,8 @@ public sealed partial class MechGrabberUi : UIFragment
 
         IoCManager.InjectDependencies(this);
 
-        _fragment ??= new MechGrabberUiFragment();
+        if (_fragment == null || _fragment.Disposed)
+            _fragment = new MechGrabberUiFragment();
 
         _fragment.OnEjectAction += entityUid =>
         {
