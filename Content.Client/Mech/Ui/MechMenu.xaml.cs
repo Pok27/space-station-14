@@ -11,6 +11,7 @@ using System.Linq;
 using Robust.Client.UserInterface;
 using Content.Shared.Mech.EntitySystems;
 using Content.Client.Mech.Ui.Equipment;
+using Robust.Shared.IoC;
 
 namespace Content.Client.Mech.Ui;
 
@@ -29,6 +30,7 @@ public sealed partial class MechMenu : FancyWindow
     private EntityUid _mech;
     private bool _hasAccess = false;
     private bool _pilotPresent = false;
+    private BoundUserInterface? _parentBui;
 
     // Cache of equipment entity to its fragment
     private readonly Dictionary<EntityUid, Control> _equipmentFragmentCache = new();
@@ -63,6 +65,11 @@ public sealed partial class MechMenu : FancyWindow
         this.SetInfoFromEntity(_entityManager, _mech);
 
         MechView.SetEntity(entity);
+    }
+
+    public void SetParentBui(BoundUserInterface parentBui)
+    {
+        _parentBui = parentBui;
     }
 
     private void InitializeEventHandlers()
@@ -288,7 +295,7 @@ public sealed partial class MechMenu : FancyWindow
             mech => mech.EquipmentContainer.ContainedEntities,
             ent => _entityManager.GetComponentOrNull<MechEquipmentComponent>(ent)?.Size ?? 1,
             ent => OnRemoveButtonPressed?.Invoke(ent),
-            GetEquipmentFragment
+            GetEquipmentFragmentWithBui
         );
     }
 
@@ -373,14 +380,19 @@ public sealed partial class MechMenu : FancyWindow
         }
     }
 
-    private Control? GetEquipmentFragment(EntityUid equipment)
+    private Control? GetEquipmentFragmentWithBui(EntityUid equipment)
+    {
+        return GetEquipmentFragment(equipment, _parentBui);
+    }
+
+    private Control? GetEquipmentFragment(EntityUid equipment, BoundUserInterface? parentBui = null)
     {
         if (!_entityManager.TryGetComponent<UIFragmentComponent>(equipment, out var fragComp) || fragComp.Ui == null)
             return null;
 
         if (_equipmentFragmentCache.TryGetValue(equipment, out var cached) && cached is { Disposed: false })
             return cached;
-        var dummy = new DummyBoundUserInterface();
+        var dummy = new DummyBoundUserInterface(parentBui);
         fragComp.Ui.Setup(dummy, equipment);
 
         if (_lastState != null)
@@ -399,9 +411,24 @@ public sealed partial class MechMenu : FancyWindow
 
     private sealed class DummyBoundUserInterface : BoundUserInterface
     {
-        public DummyBoundUserInterface() : base(EntityUid.Invalid, MechUiKey.Equipment) { }
+        private readonly BoundUserInterface? _parentBui;
+
+        public DummyBoundUserInterface(BoundUserInterface? parentBui = null) : base(EntityUid.Invalid, MechUiKey.Equipment)
+        {
+            _parentBui = parentBui;
+        }
+
         protected override void Open() { }
         protected override void UpdateState(BoundUserInterfaceState state) { }
+
+        public new void SendMessage(BoundUserInterfaceMessage message)
+        {
+            // Relay equipment messages to the parent BUI if available
+            if (_parentBui != null && message is MechEquipmentUiMessage)
+            {
+                _parentBui.SendMessage(message);
+            }
+        }
     }
 
     /// <summary>
