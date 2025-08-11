@@ -15,6 +15,7 @@ using Content.Shared.Mech.Components;
 using Content.Shared.Mech.Equipment.Components;
 using Content.Shared.Movement.Components;
 using Content.Shared.Movement.Systems;
+using Content.Shared.Weapons.Melee.Events;
 using Content.Shared.Popups;
 using Content.Shared.UserInterface;
 using Content.Shared.Weapons.Melee;
@@ -63,6 +64,9 @@ public abstract partial class SharedMechSystem : EntitySystem
         SubscribeLocalEvent<MechPilotComponent, GetProjectileShooterEvent>(OnGetProjectileShooter);
         SubscribeLocalEvent<MechPilotComponent, CanAttackFromContainerEvent>(OnCanAttackFromContainer);
         SubscribeLocalEvent<MechPilotComponent, AttackAttemptEvent>(OnAttackAttempt);
+
+        SubscribeLocalEvent<MechEquipmentComponent, ShotAttemptedEvent>(OnMechEquipmentShotAttempt);
+        SubscribeLocalEvent<MechEquipmentComponent, AttemptMeleeEvent>(OnMechEquipmentMeleeAttempt);
 
         InitializeRelay();
     }
@@ -459,6 +463,25 @@ public abstract partial class SharedMechSystem : EntitySystem
     {
         if (args.Target == component.Mech)
             args.Cancel();
+    }
+
+    private void OnMechEquipmentShotAttempt(Entity<MechEquipmentComponent> ent, ref ShotAttemptedEvent args)
+    {
+        if (!ent.Comp.BlockUseOutsideMech)
+            return;
+        // If not currently installed in a mech, block shooting
+        if (!ent.Comp.EquipmentOwner.HasValue)
+            args.Cancel();
+    }
+
+    private void OnMechEquipmentMeleeAttempt(Entity<MechEquipmentComponent> ent, ref AttemptMeleeEvent args)
+    {
+        if (!ent.Comp.BlockUseOutsideMech)
+            return;
+        if (!ent.Comp.EquipmentOwner.HasValue)
+        {
+            args.Cancelled = true;
+        }
     }
 
     private void UpdateAppearance(EntityUid uid, MechComponent? component = null,

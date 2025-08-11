@@ -24,6 +24,12 @@ public sealed partial class MechEquipmentComponent : Component
     /// The mech that the equipment is inside of.
     /// </summary>
     [ViewVariables] public EntityUid? EquipmentOwner;
+
+    /// <summary>
+    /// If true, this equipment cannot be used outside of a mech.
+    /// </summary>
+    [DataField]
+    public bool BlockUseOutsideMech = true;
 }
 
 /// <summary>
@@ -55,4 +61,3 @@ public sealed partial class GrabberDoAfterEvent : SimpleDoAfterEvent
 public sealed partial class InsertEquipmentEvent : SimpleDoAfterEvent
 {
 }
-

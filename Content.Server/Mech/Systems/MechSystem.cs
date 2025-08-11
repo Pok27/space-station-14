@@ -32,7 +32,6 @@ using Content.Shared.UserInterface;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Atmos;
 using Content.Server.Atmos.EntitySystems;
-using Robust.Server.GameObjects;
 
 namespace Content.Server.Mech.Systems;
 

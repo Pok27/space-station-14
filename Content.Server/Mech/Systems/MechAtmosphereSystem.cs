@@ -2,15 +2,13 @@ using Content.Server.Atmos.EntitySystems;
 using Content.Server.Body.Systems;
 using Content.Server.Mech.Components;
 using Content.Server.Mech.Systems;
-using Content.Server.Power.EntitySystems;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Atmos;
-using Content.Shared.FixedPoint;
 using Content.Shared.Mech;
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.EntitySystems;
 using Robust.Server.GameObjects;
-using Robust.Shared.Serialization;
+using Content.Shared.Atmos;
 
 namespace Content.Server.Mech.Systems;
 
@@ -219,7 +217,8 @@ public sealed class MechAtmosphereSystem : EntitySystem
         if (!TryComp<MechComponent>(component.Mech, out var mech))
             return;
 
-        args.Gas = GetAirForPilot(component.Mech, mech);
+        args.Gas = GetInhaleMixture(component.Mech, mech, args.Respirator?.BreathVolume ?? 0f);
+
         RaiseLocalEvent(component.Mech, new UpdateMechUiEvent());
     }
 
@@ -228,7 +227,8 @@ public sealed class MechAtmosphereSystem : EntitySystem
         if (!TryComp<MechComponent>(component.Mech, out var mech))
             return;
 
-        args.Gas = GetAirForPilot(component.Mech, mech);
+        args.Gas = GetExhaleMixture(component.Mech, mech);
+
         RaiseLocalEvent(component.Mech, new UpdateMechUiEvent());
     }
 
@@ -240,34 +240,44 @@ public sealed class MechAtmosphereSystem : EntitySystem
         if (!TryComp(component.Mech, out MechComponent? mech))
             return;
 
-        args.Gas = GetAirForPilot(component.Mech, mech, excite: args.Excite);
+        args.Gas = GetExposureMixture(component.Mech, mech, args.Excite);
+
         args.Handled = true;
         RaiseLocalEvent(component.Mech, new UpdateMechUiEvent());
     }
 
-    private GasMixture GetAirForPilot(EntityUid mech, MechComponent mechComp, bool excite = false)
+    private GasMixture? GetInhaleMixture(EntityUid mechUid, MechComponent mechComp, float breathVolume)
     {
-        // If mech is airtight, prioritize cabin air over gas module air
-        if (mechComp.Airtight && TryComp(mech, out MechCabinPressureComponent? cabin))
+        // Closed cabin: construct a breath-volume mixture from cabin air proportionally by pressure
+        if (mechComp.Airtight && TryComp<MechCabinPressureComponent>(mechUid, out var cabin))
         {
+            var vol = breathVolume > 0f ? breathVolume : Atmospherics.BreathVolume;
+            var air = cabin.Air;
+            var molesNeeded = air.Volume > 0f ? air.TotalMoles * (vol / air.Volume) : 0f;
+            var removed = molesNeeded > 0f ? air.Remove(molesNeeded) : new GasMixture(vol) { Temperature = air.Temperature };
+            removed.Volume = vol;
+            return removed;
+        }
+
+        // Open cabin: use external atmosphere (RespiratorSystem will remove breath volume)
+        return _atmosphere.GetContainingMixture(mechUid, excite: true);
+    }
+
+    private GasMixture? GetExhaleMixture(EntityUid mechUid, MechComponent mechComp)
+    {
+        // Exhale to cabin when airtight, otherwise to external
+        if (mechComp.Airtight && TryComp<MechCabinPressureComponent>(mechUid, out var cabin))
             return cabin.Air;
-        }
 
-        // Try to get air from gas module (balloon air) as secondary source
-        if (_mech.TryGetGasModuleAir(mech, out var tankAir) && tankAir != null)
-        {
-            return tankAir;
-        }
+        return _atmosphere.GetContainingMixture(mechUid, excite: true);
+    }
 
-        // If no gas module or no air in tank, use cabin air if airtight
-        if (mechComp.Airtight && TryComp(mech, out MechCabinPressureComponent? cabinFallback))
-        {
-            return cabinFallback.Air;
-        }
+    private GasMixture? GetExposureMixture(EntityUid mechUid, MechComponent mechComp, bool excite)
+    {
+        if (mechComp.Airtight && TryComp<MechCabinPressureComponent>(mechUid, out var cabin))
+            return cabin.Air;
 
-        // Fallback to external atmosphere
-        var external = _atmosphere.GetContainingMixture(mech, excite: excite);
-        return external ?? new GasMixture();
+        return _atmosphere.GetContainingMixture(mechUid, excite: excite);
     }
 
     private void OnGetFilterAir(EntityUid uid, MechComponent component, ref GetFilterAirEvent args)

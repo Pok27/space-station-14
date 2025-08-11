@@ -122,7 +122,8 @@ public sealed class MechBoundUserInterface : BoundUserInterface, IBuiPreTickUpda
         base.Dispose(disposing);
         if (disposing)
         {
-            _menu?.Dispose();
+            _menu?.Orphan();
+            _menu = null;
         }
     }
 }

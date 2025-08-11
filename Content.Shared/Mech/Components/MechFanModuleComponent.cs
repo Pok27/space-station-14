@@ -22,7 +22,7 @@ public sealed partial class MechFanModuleComponent : Component
     /// How much energy the fan consumes per second when active
     /// </summary>
     [DataField, ViewVariables(VVAccess.ReadWrite)]
-    public FixedPoint2 EnergyConsumption = 5.0f;
+    public FixedPoint2 EnergyConsumption = 1.0f;
 
     /// <summary>
     /// How much gas the fan can process per second when active

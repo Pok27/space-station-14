@@ -33,14 +33,14 @@ public sealed class MechInterfaceSystem : EntitySystem
     [Dependency] private readonly ContainerSystem _container = null!;
     [Dependency] private readonly IGameTiming _gameTiming = null!;
 
-    private static readonly TimeSpan VisualsChangeDelay = TimeSpan.FromSeconds(0.1f);
+    // TODO: make it work to delay value updates
+    private static readonly TimeSpan VisualsChangeDelay = TimeSpan.FromSeconds(0.5f);
 
     public override void Initialize()
     {
         base.Initialize();
 
         SubscribeLocalEvent<MechComponent, UpdateMechUiEvent>(OnUpdateMechUi);
-        SubscribeLocalEvent<MechComponent, BoundUIOpenedEvent>(OnBoundUiOpen);
 
         Subs.BuiEvents<MechComponent>(
             MechUiKey.Key,
@@ -222,26 +222,12 @@ public sealed class MechInterfaceSystem : EntitySystem
 
     private void OnUpdateMechUi(EntityUid uid, MechComponent component, UpdateMechUiEvent args)
     {
-        // Force immediate update for UI events
-        UpdateUI(uid, component, forceUpdate: true);
+        UpdateUI(uid, component);
     }
 
-    private void OnBoundUiOpen(EntityUid uid, MechComponent component, BoundUIOpenedEvent args)
-    {
-        // Force immediate update when UI is opened
-        UpdateUI(uid, component, forceUpdate: true);
-    }
-
-    private void UpdateUI(
-        EntityUid uid,
-        MechComponent mechComp,
-        bool forceUpdate = false)
+    private void UpdateUI(EntityUid uid, MechComponent mechComp)
     {
         if (!_uiSystem.IsUiOpen(uid, MechUiKey.Key))
-            return;
-
-        // Check if we need to update based on delay (unless forced)
-        if (!forceUpdate && mechComp.LastUiUpdate + VisualsChangeDelay > _gameTiming.CurTime)
             return;
 
         mechComp.LastUiUpdate = _gameTiming.CurTime;
