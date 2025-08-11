@@ -237,6 +237,7 @@ public sealed class MechBoundUiState : BoundUserInterfaceState
     public float MaxEnergy;
     public int EquipmentUsed;
     public int MaxEquipmentAmount;
+    public Dictionary<NetEntity, BoundUserInterfaceState> EquipmentUiStates = new();
 }
 
 [Serializable, NetSerializable]

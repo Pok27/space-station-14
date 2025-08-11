@@ -10,6 +10,7 @@ using Robust.Client.UserInterface.Controls;
 using System.Linq;
 using Robust.Client.UserInterface;
 using Content.Shared.Mech.EntitySystems;
+using Content.Client.Mech.Ui.Equipment;
 
 namespace Content.Client.Mech.Ui;
 
@@ -284,7 +285,7 @@ public sealed partial class MechMenu : FancyWindow
             mech => mech.EquipmentContainer.ContainedEntities,
             ent => _entityManager.GetComponentOrNull<MechEquipmentComponent>(ent)?.Size ?? 1,
             ent => OnRemoveButtonPressed?.Invoke(ent),
-            null
+            GetEquipmentFragment
         );
     }
 
@@ -368,6 +369,24 @@ public sealed partial class MechMenu : FancyWindow
         }
     }
 
+    private Control? GetEquipmentFragment(EntityUid equipment)
+    {
+        if (_entityManager.TryGetComponent<UIFragmentComponent>(equipment, out var fragComp) && fragComp.Ui != null)
+        {
+            var dummy = new DummyBoundUserInterface();
+            fragComp.Ui.Setup(dummy, equipment);
+            return fragComp.Ui.GetUIFragmentRoot();
+        }
+        return null;
+    }
+
+    private sealed class DummyBoundUserInterface : BoundUserInterface
+    {
+        public DummyBoundUserInterface() : base(EntityUid.Invalid, MechUiKey.Equipment) {}
+        protected override void Open() {}
+        protected override void UpdateState(BoundUserInterfaceState state) {}
+    }
+
     /// <summary>
     /// Updates the UI state and refreshes all displays.
     /// </summary>
@@ -377,10 +396,5 @@ public sealed partial class MechMenu : FancyWindow
         UpdateMechStats();
         UpdateEquipmentView(state.Equipment);
         UpdateModuleView(state.Modules);
-
-        var isLocked = state.IsLocked;
-        var noAccessActive = isLocked && !_hasAccess;
-        SettingsGrid.Visible = !noAccessActive;
-        SettingsNoAccessPanel.Visible = noAccessActive;
     }
 }

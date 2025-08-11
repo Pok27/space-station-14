@@ -7,6 +7,7 @@ using Content.Shared.Interaction;
 using Content.Shared.Mech;
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.Equipment.Components;
+using Content.Shared.Mech.EntitySystems;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Wall;
 using Robust.Server.GameObjects;
@@ -86,7 +87,7 @@ public sealed class MechGrabberSystem : EntitySystem
 
         var offset = mechPos + mechRot.RotateVec(component.DepositOffset);
         _transform.SetWorldPositionRotation(toRemove, offset, Angle.Zero);
-        _mech.UpdateUserInterface(mech);
+        RaiseLocalEvent(mech, new UpdateMechUiEvent());
     }
 
     private void OnEquipmentRemoved(EntityUid uid, MechGrabberComponent component, ref MechEquipmentRemovedEvent args)
@@ -183,7 +184,7 @@ public sealed class MechGrabberSystem : EntitySystem
             return;
 
         _container.Insert(args.Args.Target.Value, component.ItemContainer);
-        _mech.UpdateUserInterface(equipmentComponent.EquipmentOwner.Value);
+        RaiseLocalEvent(equipmentComponent.EquipmentOwner.Value, new UpdateMechUiEvent());
 
         args.Handled = true;
     }

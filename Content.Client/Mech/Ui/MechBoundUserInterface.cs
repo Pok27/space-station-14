@@ -119,11 +119,15 @@ public sealed class MechBoundUserInterface : BoundUserInterface, IBuiPreTickUpda
 
     protected override void Dispose(bool disposing)
     {
-        base.Dispose(disposing);
         if (disposing)
         {
-            _menu?.Orphan();
-            _menu = null;
+            if (_menu != null)
+            {
+                if (!_menu.Disposed)
+                    _menu.Orphan();
+                _menu = null;
+            }
         }
+        base.Dispose(disposing);
     }
 }

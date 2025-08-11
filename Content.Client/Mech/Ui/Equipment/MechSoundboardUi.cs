@@ -17,7 +17,8 @@ public sealed partial class MechSoundboardUi : UIFragment
 
     public override Control GetUIFragmentRoot()
     {
-        return _fragment!;
+        _fragment ??= new MechSoundboardUiFragment();
+        return _fragment;
     }
 
     public override void Setup(BoundUserInterface userInterface, EntityUid? fragmentOwner)
@@ -27,7 +28,7 @@ public sealed partial class MechSoundboardUi : UIFragment
 
         IoCManager.InjectDependencies(this);
 
-        _fragment = new MechSoundboardUiFragment();
+        _fragment ??= new MechSoundboardUiFragment();
         _fragment.OnPlayAction += soundIndex =>
         {
             var equipmentNetEntity = _entityManager.GetNetEntity(fragmentOwner.Value);

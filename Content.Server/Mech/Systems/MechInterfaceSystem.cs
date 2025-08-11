@@ -127,7 +127,7 @@ public sealed class MechInterfaceSystem : EntitySystem
             return;
         var user = actor;
 
-       // Access check
+        // Access check
         if (!_mechLockSystem.CheckAccessWithFeedback(ent.Owner, user, lockComp))
             return;
 
@@ -144,7 +144,7 @@ public sealed class MechInterfaceSystem : EntitySystem
             return;
         var user = actor;
 
-       // Access check
+        // Access check
         if (!_mechLockSystem.CheckAccessWithFeedback(ent.Owner, user, lockComp))
             return;
 
@@ -161,7 +161,7 @@ public sealed class MechInterfaceSystem : EntitySystem
             return;
         var user = actor;
 
-       // Access check
+        // Access check
         if (!_mechLockSystem.CheckAccessWithFeedback(ent.Owner, user, lockComp))
             return;
 
@@ -178,7 +178,7 @@ public sealed class MechInterfaceSystem : EntitySystem
             return;
         var user = actor;
 
-       // Access check
+        // Access check
         if (!_mechLockSystem.CheckAccessWithFeedback(ent.Owner, user, lockComp))
             return;
 
@@ -195,7 +195,7 @@ public sealed class MechInterfaceSystem : EntitySystem
             return;
         var user = actor;
 
-       // Access check
+        // Access check
         if (!_mechLockSystem.CheckAccessWithFeedback(ent.Owner, user, lockComp))
             return;
 
@@ -212,7 +212,7 @@ public sealed class MechInterfaceSystem : EntitySystem
             return;
         var user = actor;
 
-       // Access check
+        // Access check
         if (!_mechLockSystem.CheckAccessWithFeedback(ent.Owner, user, lockComp))
             return;
 
@@ -350,6 +350,10 @@ public sealed class MechInterfaceSystem : EntitySystem
         {
             state.HasAccess = true;
         }
+
+        var eqStatesEvent = RaiseLocalEvent(uid, new MechEquipmentUiStateReadyEvent());
+        if (eqStatesEvent.States.Count > 0)
+            state.EquipmentUiStates = eqStatesEvent.States;
 
         _uiSystem.SetUiState(uid, MechUiKey.Key, state);
     }
