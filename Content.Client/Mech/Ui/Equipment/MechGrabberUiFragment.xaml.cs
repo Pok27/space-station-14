@@ -24,23 +24,18 @@ public sealed partial class MechGrabberUiFragment : BoxContainer
 
     public void UpdateContents(MechGrabberUiState state)
     {
-        // Clear existing items
-        ItemList.Clear();
-
-        // Update capacity display
         SpaceLabel.Text = _loc.GetString("mech-grabber-capacity",
             ("current", state.Contents.Count), ("max", state.MaxContents));
 
-        // Add items to list
-        foreach (var netEntity in state.Contents)
+        for (var i = 0; i < state.Contents.Count; i++)
         {
-            var entity = _entityManager.GetEntity(netEntity);
+            var ent = _entityManager.GetEntity(state.Contents[i]);
 
-            if (!_entityManager.TryGetComponent<MetaDataComponent>(entity, out var meta))
+            if (!_entityManager.TryGetComponent<MetaDataComponent>(ent, out var meta))
                 continue;
 
-            var item = ItemList.AddItem(meta.EntityName);
-            item.OnSelected += _ => OnEjectAction?.Invoke(entity);
+            ItemList.AddItem(meta.EntityName);
+            ItemList[i].OnSelected += _ => OnEjectAction?.Invoke(ent);
         }
     }
 }

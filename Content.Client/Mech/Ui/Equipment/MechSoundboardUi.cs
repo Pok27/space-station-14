@@ -11,15 +11,11 @@ namespace Content.Client.Mech.Ui.Equipment;
 /// <seealso cref="MechSoundboardUiFragment"/>
 public sealed partial class MechSoundboardUi : UIFragment
 {
-    [Dependency] private readonly IEntityManager _entityManager = default!;
-
     private MechSoundboardUiFragment? _fragment;
 
     public override Control GetUIFragmentRoot()
     {
-        if (_fragment == null || _fragment.Disposed)
-            _fragment = new MechSoundboardUiFragment();
-        return _fragment;
+        return _fragment!;
     }
 
     public override void Setup(BoundUserInterface userInterface, EntityUid? fragmentOwner)
@@ -27,14 +23,10 @@ public sealed partial class MechSoundboardUi : UIFragment
         if (fragmentOwner == null)
             return;
 
-        IoCManager.InjectDependencies(this);
-
-        if (_fragment == null || _fragment.Disposed)
-            _fragment = new MechSoundboardUiFragment();
-        _fragment.OnPlayAction += soundIndex =>
+        _fragment = new MechSoundboardUiFragment();
+        _fragment.OnPlayAction += sound =>
         {
-            var equipmentNetEntity = _entityManager.GetNetEntity(fragmentOwner.Value);
-            userInterface.SendMessage(new MechSoundboardPlayMessage(equipmentNetEntity, soundIndex));
+            userInterface.SendMessage(new MechSoundboardPlayMessage(IoCManager.Resolve<IEntityManager>().GetNetEntity(fragmentOwner.Value), sound));
         };
     }
 

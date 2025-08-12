@@ -5,21 +5,13 @@ using Robust.Client.UserInterface;
 
 namespace Content.Client.Mech.Ui.Equipment;
 
-/// <summary>
-/// UI fragment for mech grabber equipment.
-/// </summary>
-/// <seealso cref="MechGrabberUiFragment"/>
 public sealed partial class MechGrabberUi : UIFragment
 {
-    [Dependency] private readonly IEntityManager _entityManager = default!;
-
     private MechGrabberUiFragment? _fragment;
 
     public override Control GetUIFragmentRoot()
     {
-        if (_fragment == null || _fragment.Disposed)
-            _fragment = new MechGrabberUiFragment();
-        return _fragment;
+        return _fragment!;
     }
 
     public override void Setup(BoundUserInterface userInterface, EntityUid? fragmentOwner)
@@ -27,16 +19,12 @@ public sealed partial class MechGrabberUi : UIFragment
         if (fragmentOwner == null)
             return;
 
-        IoCManager.InjectDependencies(this);
+        _fragment = new MechGrabberUiFragment();
 
-        if (_fragment == null || _fragment.Disposed)
-            _fragment = new MechGrabberUiFragment();
-
-        _fragment.OnEjectAction += entityUid =>
+        _fragment.OnEjectAction += e =>
         {
-            var equipmentNetEntity = _entityManager.GetNetEntity(fragmentOwner.Value);
-            var itemNetEntity = _entityManager.GetNetEntity(entityUid);
-            userInterface.SendMessage(new MechGrabberEjectMessage(equipmentNetEntity, itemNetEntity));
+            var entManager = IoCManager.Resolve<IEntityManager>();
+            userInterface.SendMessage(new MechGrabberEjectMessage(entManager.GetNetEntity(fragmentOwner.Value), entManager.GetNetEntity(e)));
         };
     }
 

@@ -32,9 +32,6 @@ public sealed partial class MechMenu : FancyWindow
     private bool _pilotPresent = false;
     private BoundUserInterface? _parentBui;
 
-    // Cache of equipment entity to its fragment
-    private readonly Dictionary<EntityUid, Control> _equipmentFragmentCache = new();
-
     // Events for the BUI to subscribe to
     public event Action<EntityUid>? OnRemoveButtonPressed;
     public event Action<EntityUid>? OnRemoveModuleButtonPressed;
@@ -289,124 +286,74 @@ public sealed partial class MechMenu : FancyWindow
 
     public void UpdateEquipmentView(List<NetEntity>? equipment = null)
     {
-        UpdateEntityListView<MechEquipmentComponent>(
-            equipment,
-            EquipmentControlContainer,
-            mech => mech.EquipmentContainer.ContainedEntities,
-            ent => _entityManager.GetComponentOrNull<MechEquipmentComponent>(ent)?.Size ?? 1,
-            ent => OnRemoveButtonPressed?.Invoke(ent),
-            GetEquipmentFragmentWithBui
-        );
-    }
-
-    public void UpdateModuleView(List<NetEntity>? modules = null)
-    {
-        UpdateEntityListView<MechModuleComponent>(
-            modules,
-            ModuleControlContainer,
-            mech => mech.ModuleContainer.ContainedEntities,
-            ent => _entityManager.GetComponentOrNull<MechModuleComponent>(ent)?.Size ?? 1,
-            ent => OnRemoveModuleButtonPressed?.Invoke(ent),
-            null
-        );
-    }
-
-    private void UpdateEntityListView<TComponent>(
-        List<NetEntity>? entities,
-        BoxContainer container,
-        Func<MechComponent, IEnumerable<EntityUid>> getEntities,
-        Func<EntityUid, int> getSize,
-        Action<EntityUid> onRemove,
-        Func<EntityUid, Control?>? getFragment = null)
-        where TComponent : class
-    {
-        if (entities == null)
+        if (equipment == null)
         {
             if (!_entityManager.TryGetComponent<MechComponent>(_mech, out var mechComp))
                 return;
-            entities = new List<NetEntity>();
-            foreach (var ent in getEntities(mechComp))
-                entities.Add(_entityManager.GetNetEntity(ent));
+            equipment = new List<NetEntity>();
+            foreach (var ent in mechComp.EquipmentContainer.ContainedEntities)
+                equipment.Add(_entityManager.GetNetEntity(ent));
         }
 
-        var existingControls = container.Children.OfType<MechEquipmentControl>().ToList();
-        var entityToControl = new Dictionary<EntityUid, MechEquipmentControl>();
-
-        foreach (var control in existingControls)
-        {
-            if (control.Entity != EntityUid.Invalid)
-                entityToControl[control.Entity] = control;
-        }
-
-        var currentEntities = entities.Select(e => _entityManager.GetEntity(e)).ToHashSet();
-        foreach (var control in existingControls)
-        {
-            if (!currentEntities.Contains(control.Entity))
-            {
-                container.Children.Remove(control);
-                _equipmentFragmentCache.Remove(control.Entity);
-            }
-        }
-
-        foreach (var netEnt in entities)
+        EquipmentControlContainer.Children.Clear();
+        foreach (var netEnt in equipment)
         {
             var ent = _entityManager.GetEntity(netEnt);
             if (!_entityManager.TryGetComponent<MetaDataComponent>(ent, out var metaData))
                 continue;
 
-            if (entityToControl.TryGetValue(ent, out var existingControl))
-            {
-                var size = getSize(ent);
-                var fragment = getFragment?.Invoke(ent);
-                existingControl.UpdateControl(metaData.EntityName, fragment, size);
-            }
-            else
-            {
-                var size = getSize(ent);
-                var fragment = getFragment?.Invoke(ent);
-                var control = new MechEquipmentControl(ent, metaData.EntityName, fragment, size);
-                var entityToRemove = ent;
-                control.OnRemoveButtonPressed += () => onRemove(entityToRemove);
-                container.AddChild(control);
-            }
-        }
+            var uicomp = _entityManager.GetComponentOrNull<UIFragmentComponent>(ent);
+            Control? ui = null;
 
-        var isLocked = _lastState?.IsLocked ?? false;
-        var disableRemove = _pilotPresent || (isLocked && !_hasAccess);
+            if (uicomp?.Ui != null)
+            {
+                // Setup the UI fragment
+                var dummy = new DummyBoundUserInterface(_parentBui);
+                uicomp.Ui.Setup(dummy, ent);
 
-        foreach (var control in container.Children.OfType<MechEquipmentControl>())
-        {
-            control.SetRemoveDisabled(disableRemove);
+                // Update with current state if available
+                if (_lastState?.EquipmentUiStates.TryGetValue(netEnt, out var eqState) == true)
+                {
+                    uicomp.Ui.UpdateState(eqState);
+                }
+
+                ui = uicomp.Ui.GetUIFragmentRoot();
+            }
+
+            // Get equipment size
+            var size = _entityManager.GetComponentOrNull<MechEquipmentComponent>(ent)?.Size ?? 1;
+
+            var control = new MechEquipmentControl(ent, metaData.EntityName, ui, size);
+            control.OnRemoveButtonPressed += () => OnRemoveButtonPressed?.Invoke(ent);
+            EquipmentControlContainer.AddChild(control);
         }
     }
 
-    private Control? GetEquipmentFragmentWithBui(EntityUid equipment)
+    public void UpdateModuleView(List<NetEntity>? modules = null)
     {
-        return GetEquipmentFragment(equipment, _parentBui);
-    }
-
-    private Control? GetEquipmentFragment(EntityUid equipment, BoundUserInterface? parentBui = null)
-    {
-        if (!_entityManager.TryGetComponent<UIFragmentComponent>(equipment, out var fragComp) || fragComp.Ui == null)
-            return null;
-
-        if (_equipmentFragmentCache.TryGetValue(equipment, out var cached) && cached is { Disposed: false })
-            return cached;
-        var dummy = new DummyBoundUserInterface(parentBui);
-        fragComp.Ui.Setup(dummy, equipment);
-
-        if (_lastState != null)
+        if (modules == null)
         {
-            var netEnt = _entityManager.GetNetEntity(equipment);
-            if (_lastState.EquipmentUiStates.TryGetValue(netEnt, out var eqState))
-            {
-                fragComp.Ui.UpdateState(eqState);
-            }
+            if (!_entityManager.TryGetComponent<MechComponent>(_mech, out var mechComp))
+                return;
+            modules = new List<NetEntity>();
+            foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
+                modules.Add(_entityManager.GetNetEntity(ent));
         }
 
-        var control = fragComp.Ui.GetUIFragmentRoot();
-        _equipmentFragmentCache[equipment] = control;
-        return control;
+        ModuleControlContainer.Children.Clear();
+        foreach (var netEnt in modules)
+        {
+            var ent = _entityManager.GetEntity(netEnt);
+            if (!_entityManager.TryGetComponent<MetaDataComponent>(ent, out var metaData))
+                continue;
+
+            // Get module size
+            var size = _entityManager.GetComponentOrNull<MechModuleComponent>(ent)?.Size ?? 1;
+
+            var control = new MechEquipmentControl(ent, metaData.EntityName, null, size);
+            control.OnRemoveButtonPressed += () => OnRemoveModuleButtonPressed?.Invoke(ent);
+            ModuleControlContainer.AddChild(control);
+        }
     }
 
     private sealed class DummyBoundUserInterface : BoundUserInterface
@@ -436,6 +383,7 @@ public sealed partial class MechMenu : FancyWindow
     /// </summary>
     public void UpdateState(MechBoundUiState state)
     {
+        _lastState = state;
         UpdateMechState(state);
         UpdateMechStats();
         UpdateEquipmentView(state.Equipment);
