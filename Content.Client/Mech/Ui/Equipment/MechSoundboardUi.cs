@@ -5,10 +5,6 @@ using Robust.Client.UserInterface;
 
 namespace Content.Client.Mech.Ui.Equipment;
 
-/// <summary>
-/// UI fragment for mech soundboard equipment.
-/// </summary>
-/// <seealso cref="MechSoundboardUiFragment"/>
 public sealed partial class MechSoundboardUi : UIFragment
 {
     private MechSoundboardUiFragment? _fragment;
@@ -26,6 +22,7 @@ public sealed partial class MechSoundboardUi : UIFragment
         _fragment = new MechSoundboardUiFragment();
         _fragment.OnPlayAction += sound =>
         {
+            // TODO: IDK dog
             userInterface.SendMessage(new MechSoundboardPlayMessage(IoCManager.Resolve<IEntityManager>().GetNetEntity(fragmentOwner.Value), sound));
         };
     }

@@ -128,10 +128,42 @@ public sealed class MechGrabberSystem : EntitySystem
     {
         if (args.Handled)
             return;
+
         var target = args.Target;
 
-        if (args.Target == args.User || component.DoAfter != null)
+        // Stop if target is same as grabber or already doing after
+        if (args.Target == uid || component.DoAfter != null)
             return;
+
+        // Get the mech from the equipment component
+        if (!TryComp<MechEquipmentComponent>(uid, out var equipmentComponent))
+            return;
+
+        if (equipmentComponent.EquipmentOwner == null)
+        {
+            // Try to find mech by looking at container
+            if (_container.TryGetContainingContainer(uid, out var container))
+            {
+                if (TryComp<MechComponent>(container.Owner, out var mechComp))
+                {
+                    // Fix the EquipmentOwner if we found the mech
+                    if (container.ID == "mech-equipment-container")
+                    {
+                        equipmentComponent.EquipmentOwner = container.Owner;
+                    }
+                }
+            }
+            else
+            {
+                return;
+            }
+
+            // Re-check if we fixed the issue
+            if (equipmentComponent.EquipmentOwner == null)
+            {
+                return;
+            }
+        }
 
         if (TryComp<PhysicsComponent>(target, out var physics) && physics.BodyType == BodyType.Static ||
             HasComp<WallMountComponent>(target) ||
@@ -184,7 +216,7 @@ public sealed class MechGrabberSystem : EntitySystem
             return;
 
         _container.Insert(args.Args.Target.Value, component.ItemContainer);
-        RaiseLocalEvent(equipmentComponent.EquipmentOwner.Value, new UpdateMechUiEvent());
+        _mech.UpdateUserInterface(equipmentComponent.EquipmentOwner.Value);
 
         args.Handled = true;
     }
