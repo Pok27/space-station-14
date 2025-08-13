@@ -18,6 +18,7 @@ public sealed class MechEquipmentSystem : EntitySystem
     [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
     [Dependency] private readonly PopupSystem _popup = default!;
     [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
+    [Dependency] private readonly SharedMechSystem _mechSystem = default!;
 
     public override void Initialize()
     {
@@ -100,8 +101,7 @@ public sealed class MechEquipmentSystem : EntitySystem
             return;
 
         _popup.PopupEntity(Loc.GetString("mech-equipment-finish-install-popup", ("item", uid)), mech);
-        _container.Insert(uid, mechComp.EquipmentContainer);
-        RaiseLocalEvent(mech, new UpdateMechUiEvent());
+        _mechSystem.InsertEquipment(mech, uid, mechComp, component);
 
         args.Handled = true;
     }

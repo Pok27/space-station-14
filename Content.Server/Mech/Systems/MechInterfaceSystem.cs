@@ -41,6 +41,10 @@ public sealed class MechInterfaceSystem : EntitySystem
         base.Initialize();
 
         SubscribeLocalEvent<MechComponent, UpdateMechUiEvent>(OnUpdateMechUi);
+        Subs.BuiEvents<MechComponent>(MechUiKey.Key, subs =>
+        {
+            subs.Event<BoundUIOpenedEvent>(OnMechUiOpened);
+        });
 
         Subs.BuiEvents<MechComponent>(
             MechUiKey.Key,
@@ -49,20 +53,44 @@ public sealed class MechInterfaceSystem : EntitySystem
                 subs.Event<MechEquipmentRemoveMessage>(HandleEquipmentRemove);
                 subs.Event<MechModuleRemoveMessage>(HandleModuleRemove);
                 subs.Event<MechCabinPurgeMessage>(HandleCabinPurge);
+
                 subs.Event<MechDnaLockRegisterMessage>(HandleDnaLockRegister);
                 subs.Event<MechDnaLockToggleMessage>(HandleDnaLockToggle);
                 subs.Event<MechDnaLockResetMessage>(HandleDnaLockReset);
                 subs.Event<MechCardLockRegisterMessage>(HandleCardLockRegister);
                 subs.Event<MechCardLockToggleMessage>(HandleCardLockToggle);
                 subs.Event<MechCardLockResetMessage>(HandleCardLockReset);
+
                 subs.Event<MechEquipmentUiMessage>(HandleEquipmentUiMessageRelay);
+                subs.Event<MechGrabberEjectMessage>(HandleEquipmentUiMessageRelay);
+                subs.Event<MechSoundboardPlayMessage>(HandleEquipmentUiMessageRelay);
             });
+    }
+
+    private void OnMechUiOpened(Entity<MechComponent> ent, ref BoundUIOpenedEvent args)
+    {
+        UpdateUI(ent.Owner, ent.Comp);
+    }
+
+    private void RelayEquipmentUiMessage(Entity<MechComponent> ent, MechEquipmentUiMessage msg)
+    {
+        var equipment = GetEntity(msg.Equipment);
+        RaiseLocalEvent(equipment, new MechEquipmentUiMessageRelayEvent(msg));
     }
 
     private void HandleEquipmentUiMessageRelay(Entity<MechComponent> ent, ref MechEquipmentUiMessage args)
     {
-        var equipment = GetEntity(args.Equipment);
-        RaiseLocalEvent(equipment, new MechEquipmentUiMessageRelayEvent(args));
+        RelayEquipmentUiMessage(ent, args);
+    }
+
+    private void HandleEquipmentUiMessageRelay(Entity<MechComponent> ent, ref MechGrabberEjectMessage args)
+    {
+        RelayEquipmentUiMessage(ent, args);
+    }
+
+    private void HandleEquipmentUiMessageRelay(Entity<MechComponent> ent, ref MechSoundboardPlayMessage args)
+    {
+        RelayEquipmentUiMessage(ent, args);
     }
 
     private void HandleEquipmentRemove(Entity<MechComponent> ent, ref MechEquipmentRemoveMessage args)
@@ -358,13 +386,18 @@ public sealed class MechInterfaceSystem : EntitySystem
             state.HasAccess = true;
         }
 
-        var eqStatesEvent = new MechEquipmentUiStateReadyEvent();
-        foreach (var equipmentEnt in mechComp.EquipmentContainer.ContainedEntities)
+        // Collect equipment UI states only if there is equipment installed
+        var equipmentList = mechComp.EquipmentContainer.ContainedEntities;
+        if (equipmentList.Count > 0)
         {
-            RaiseLocalEvent(equipmentEnt, eqStatesEvent);
+            var eqStatesEvent = new MechEquipmentUiStateReadyEvent();
+            foreach (var equipmentEnt in equipmentList)
+            {
+                RaiseLocalEvent(equipmentEnt, eqStatesEvent);
+            }
+            if (eqStatesEvent.States.Count > 0)
+                state.EquipmentUiStates = eqStatesEvent.States;
         }
-        if (eqStatesEvent.States.Count > 0)
-            state.EquipmentUiStates = eqStatesEvent.States;
 
         _uiSystem.SetUiState(uid, MechUiKey.Key, state);
     }

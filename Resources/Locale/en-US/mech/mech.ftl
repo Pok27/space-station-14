@@ -24,7 +24,7 @@ mech-integrity-display-label = Integrity
 mech-integrity-display = {$amount} %
 mech-energy-display-label = Energy
 mech-energy-display = {$amount} %
-mech-energy-missing = Energy: MISSING
+mech-energy-missing = MISSING
 mech-equipment-slot-display = Equipment: {$used}/{$max} used
 mech-module-slot-display = Modules: {$used}/{$max} used
 mech-grabber-capacity = {$current}/{$max}
@@ -53,7 +53,7 @@ mech-fan-status = { $state ->
     [off] Off
     *[na] N/A
 }
-mech-fan-missing = No fan module installed
+mech-fan-missing = No fan module
 mech-filter-enabled = Filter
 
 # Access restriction

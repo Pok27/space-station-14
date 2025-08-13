@@ -58,10 +58,10 @@ public sealed partial class MechMenu : FancyWindow
     public void SetEntity(EntityUid entity)
     {
         _mech = entity;
-
         this.SetInfoFromEntity(_entityManager, _mech);
-
         MechView.SetEntity(entity);
+
+        NameLabel.Text = _ent.GetComponent<MetaDataComponent>(_mech).EntityName;
     }
 
     public void SetParentBui(BoundUserInterface parentBui)
@@ -308,8 +308,7 @@ public sealed partial class MechMenu : FancyWindow
             if (uicomp?.Ui != null)
             {
                 // Setup the UI fragment
-                var dummy = new DummyBoundUserInterface(_parentBui);
-                uicomp.Ui.Setup(dummy, ent);
+                uicomp.Ui.Setup(_parentBui!, ent);
 
                 // Update with current state if available
                 if (_lastState?.EquipmentUiStates.TryGetValue(netEnt, out var eqState) == true)
@@ -353,28 +352,6 @@ public sealed partial class MechMenu : FancyWindow
             var control = new MechEquipmentControl(ent, metaData.EntityName, null, size);
             control.OnRemoveButtonPressed += () => OnRemoveModuleButtonPressed?.Invoke(ent);
             ModuleControlContainer.AddChild(control);
-        }
-    }
-
-    private sealed class DummyBoundUserInterface : BoundUserInterface
-    {
-        private readonly BoundUserInterface? _parentBui;
-
-        public DummyBoundUserInterface(BoundUserInterface? parentBui = null) : base(EntityUid.Invalid, MechUiKey.Equipment)
-        {
-            _parentBui = parentBui;
-        }
-
-        protected override void Open() { }
-        protected override void UpdateState(BoundUserInterfaceState state) { }
-
-        public new void SendMessage(BoundUserInterfaceMessage message)
-        {
-            // Relay equipment messages to the parent BUI if available
-            if (_parentBui != null && message is MechEquipmentUiMessage)
-            {
-                _parentBui.SendMessage(message);
-            }
         }
     }
 
