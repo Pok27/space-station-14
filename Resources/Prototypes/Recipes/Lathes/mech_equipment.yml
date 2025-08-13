@@ -29,8 +29,8 @@
 
 - type: latheRecipe
   parent: BaseMechEquipmentRecipe
-  id: MechEquipmentHorn
-  result: MechEquipmentHorn
+  id: MechModuleHorn
+  result: MechModuleHorn
   materials:
     Steel: 500
     Bananium: 200

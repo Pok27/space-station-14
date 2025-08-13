@@ -481,8 +481,24 @@ public abstract partial class SharedMechSystem : EntitySystem
         if (!ent.Comp.BlockUseOutsideMech)
             return;
 
-        if (!ent.Comp.EquipmentOwner.HasValue)
-            args.Cancelled = true;
+        var owner = ent.Comp.EquipmentOwner;
+        if (owner.HasValue)
+            return;
+
+        if (TryComp(ent.Owner, out TransformComponent? xform))
+        {
+            var current = xform.ParentUid;
+            while (current.IsValid())
+            {
+                if (HasComp<MechComponent>(current))
+                    return;
+                if (!TryComp(current, out TransformComponent? parentXform))
+                    break;
+                current = parentXform.ParentUid;
+            }
+        }
+
+        args.Cancelled = true;
     }
 
     private void UpdateAppearance(EntityUid uid, MechComponent? component = null,

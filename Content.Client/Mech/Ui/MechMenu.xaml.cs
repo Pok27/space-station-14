@@ -321,10 +321,7 @@ public sealed partial class MechMenu : FancyWindow
 
             if (uicomp?.Ui != null)
             {
-                // Setup the UI fragment
                 uicomp.Ui.Setup(_parentBui!, ent);
-
-                // Update with current state if available
                 if (_lastState?.EquipmentUiStates.TryGetValue(netEnt, out var eqState) == true)
                 {
                     uicomp.Ui.UpdateState(eqState);
@@ -360,10 +357,22 @@ public sealed partial class MechMenu : FancyWindow
             if (!_entityManager.TryGetComponent<MetaDataComponent>(ent, out var metaData))
                 continue;
 
+            Control? ui = null;
+            var uicomp = _entityManager.GetComponentOrNull<UIFragmentComponent>(ent);
+            if (uicomp?.Ui != null)
+            {
+                uicomp.Ui.Setup(_parentBui!, ent);
+                if (_lastState?.EquipmentUiStates.TryGetValue(netEnt, out var modState) == true)
+                {
+                    uicomp.Ui.UpdateState(modState);
+                }
+                ui = uicomp.Ui.GetUIFragmentRoot();
+            }
+
             // Get module size
             var size = _entityManager.GetComponentOrNull<MechModuleComponent>(ent)?.Size ?? 1;
 
-            var control = new MechEquipmentControl(ent, metaData.EntityName, null, size);
+            var control = new MechEquipmentControl(ent, metaData.EntityName, ui, size);
             control.OnRemoveButtonPressed += () => OnRemoveModuleButtonPressed?.Invoke(ent);
             ModuleControlContainer.AddChild(control);
         }

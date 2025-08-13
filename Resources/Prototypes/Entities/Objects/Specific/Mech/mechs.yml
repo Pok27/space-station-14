@@ -20,6 +20,9 @@
     equipmentWhitelist:
       tags:
       - IndustrialMech
+    moduleWhitelist:
+      tags:
+      - MechModule
 
 - type: entity
   id: SpecialMech
@@ -30,6 +33,9 @@
     equipmentWhitelist:
       tags:
       - SpecialMech
+    moduleWhitelist:
+      tags:
+      - MechModule
 
 - type: entity
   id: SmallMech
@@ -40,6 +46,9 @@
     equipmentWhitelist:
       tags:
       - SmallMech
+    moduleWhitelist:
+      tags:
+      - MechModule
 
 - type: entity
   id: BaseMech
@@ -321,10 +330,10 @@
     startingEquipment:
       - WeaponMechSpecialBananaMortar
       - WeaponMechSpecialMousetrapMortar
-      - MechEquipmentHorn
     startingModules:
       - MechModuleFan
       - MechModuleGasCylinder
+      - MechModuleHorn
 
 # HAMTR
 - type: entity

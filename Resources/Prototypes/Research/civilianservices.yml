@@ -161,7 +161,7 @@
   - HonkerCentralElectronics
   - HonkerPeripheralsElectronics
   - HonkerTargetingElectronics
-  - MechEquipmentHorn
+  - MechModuleHorn
 
 - type: technology
   id: HONKWeapons

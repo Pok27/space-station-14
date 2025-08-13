@@ -142,6 +142,7 @@ public sealed class MechInterfaceSystem : EntitySystem
         }
 
         EnsureComp<MechCabinPurgeComponent>(ent).CooldownRemaining = 3f;
+        RaiseLocalEvent(ent, new UpdateMechUiEvent());
     }
 
     /// <summary>
@@ -386,7 +387,7 @@ public sealed class MechInterfaceSystem : EntitySystem
             state.HasAccess = true;
         }
 
-        // Collect equipment UI states only if there is equipment installed
+        // Collect equipment UI states as well
         var equipmentList = mechComp.EquipmentContainer.ContainedEntities;
         if (equipmentList.Count > 0)
         {
@@ -397,6 +398,19 @@ public sealed class MechInterfaceSystem : EntitySystem
             }
             if (eqStatesEvent.States.Count > 0)
                 state.EquipmentUiStates = eqStatesEvent.States;
+        }
+
+        // Collect module UI states as well
+        var moduleList = mechComp.ModuleContainer.ContainedEntities;
+        if (moduleList.Count > 0)
+        {
+            var modStatesEvent = new MechEquipmentUiStateReadyEvent();
+            foreach (var moduleEnt in moduleList)
+            {
+                RaiseLocalEvent(moduleEnt, modStatesEvent);
+            }
+            if (modStatesEvent.States.Count > 0)
+                state.EquipmentUiStates = modStatesEvent.States;
         }
 
         _uiSystem.SetUiState(uid, MechUiKey.Key, state);

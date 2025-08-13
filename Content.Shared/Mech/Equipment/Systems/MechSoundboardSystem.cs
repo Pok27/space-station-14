@@ -37,10 +37,6 @@ public sealed class MechSoundboardSystem : EntitySystem
         if (args.Message is not MechSoundboardPlayMessage msg)
             return;
 
-        if (!TryComp<MechEquipmentComponent>(uid, out var equipment) ||
-            equipment.EquipmentOwner == null)
-            return;
-
         if (msg.Sound >= comp.Sounds.Count)
             return;
 

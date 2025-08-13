@@ -41,7 +41,7 @@
                                        StyleClasses="LowDivider"
                                        Visible="False"/>
             <BoxContainer Name="CustomControlContainer"
-                          Margin="0 2 0 0"
+                          Margin="0 0 0 2"
                           HorizontalExpand="True"
                           VerticalExpand="True"></BoxContainer>
         </BoxContainer>

@@ -82,7 +82,6 @@ public sealed partial class MechEquipmentControl : Control
         {
             showSeparator = true;
             CustomControlContainer.AddChild(control);
-                        CustomControlContainer.Margin = new Thickness(0, 0, 4, 0);
         }
 
         Separator.Visible = showSeparator;
