@@ -135,35 +135,11 @@ public sealed class MechGrabberSystem : EntitySystem
         if (args.Target == uid || component.DoAfter != null)
             return;
 
-        // Get the mech from the equipment component
-        if (!TryComp<MechEquipmentComponent>(uid, out var equipmentComponent))
+        if (!TryComp<MechEquipmentComponent>(uid, out var equipmentComponent) ||
+            equipmentComponent.EquipmentOwner == null)
             return;
 
-        if (equipmentComponent.EquipmentOwner == null)
-        {
-            // Try to find mech by looking at container
-            if (_container.TryGetContainingContainer(uid, out var container))
-            {
-                if (TryComp<MechComponent>(container.Owner, out var mechComp))
-                {
-                    // Fix the EquipmentOwner if we found the mech
-                    if (container.ID == "mech-equipment-container")
-                    {
-                        equipmentComponent.EquipmentOwner = container.Owner;
-                    }
-                }
-            }
-            else
-            {
-                return;
-            }
-
-            // Re-check if we fixed the issue
-            if (equipmentComponent.EquipmentOwner == null)
-            {
-                return;
-            }
-        }
+        var mech = equipmentComponent.EquipmentOwner.Value;
 
         if (TryComp<PhysicsComponent>(target, out var physics) && physics.BodyType == BodyType.Static ||
             HasComp<WallMountComponent>(target) ||
@@ -178,10 +154,10 @@ public sealed class MechGrabberSystem : EntitySystem
         if (component.ItemContainer.ContainedEntities.Count >= component.MaxContents)
             return;
 
-        if (!TryComp<MechComponent>(args.User, out var mech) || mech.PilotSlot.ContainedEntity == target)
+        if (!TryComp<MechComponent>(args.User, out var mechComp) || mechComp.PilotSlot.ContainedEntity == target)
             return;
 
-        if (mech.Energy + component.GrabEnergyDelta < 0)
+        if (mechComp.Energy + component.GrabEnergyDelta < 0)
             return;
 
         if (!_interaction.InRangeUnobstructed(args.User, target))
