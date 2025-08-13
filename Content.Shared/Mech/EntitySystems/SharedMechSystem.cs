@@ -180,6 +180,12 @@ public abstract partial class SharedMechSystem : EntitySystem
             RemoveEquipment(uid, ent, component, forced: true);
         }
 
+        var modules = new List<EntityUid>(component.ModuleContainer.ContainedEntities);
+        foreach (var ent in modules)
+        {
+            _container.Remove(ent, component.ModuleContainer);
+        }
+
         component.Broken = true;
         UpdateAppearance(uid, component);
     }

@@ -128,6 +128,9 @@
         node: start
       - !type:DoActsBehavior
         acts: ["Destruction"]
+  - type: Charger
+    slotId: mech-equipment-container
+    chargeRate: 25
 
 # Ripley MK-I
 - type: entity
