@@ -37,7 +37,12 @@ public sealed class MechBoundUserInterface : BoundUserInterface, IBuiPreTickUpda
         _menu = this.CreateWindowCenteredLeft<MechMenu>();
         _menu.SetEntity(Owner);
         _menu.SetParentBui(this);
-        _menu.OverrideAccessAndRefresh(true);
+
+        // Predict access banner based on lock component if available
+        var predictedHasAccess = true;
+        if (IoCManager.Resolve<IEntityManager>().TryGetComponent<MechLockComponent>(Owner, out var lockComp) && lockComp.IsLocked)
+            predictedHasAccess = false;
+        _menu.OverrideAccessAndRefresh(predictedHasAccess);
 
         // Equipment and module removal
         _menu.OnRemoveButtonPressed += uid =>
@@ -70,6 +75,9 @@ public sealed class MechBoundUserInterface : BoundUserInterface, IBuiPreTickUpda
 
     void IBuiPreTickUpdate.PreTickUpdate()
     {
+        if (_pred == null || _menu == null)
+            return;
+
         // Send coalesced input events
         if (_airtightCoalescer.CheckIsModified(out var airtightValue))
             _pred!.SendMessage(new MechAirtightMessage(airtightValue));
@@ -125,6 +133,7 @@ public sealed class MechBoundUserInterface : BoundUserInterface, IBuiPreTickUpda
             if (_menu != null && !_menu.Disposed)
                 _menu.Orphan();
             _menu = null;
+            _pred = null;
         }
         base.Dispose(disposing);
     }
