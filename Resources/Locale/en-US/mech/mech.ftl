@@ -95,4 +95,4 @@ mech-lock-not-set = Not set
 
 # Settings access banner
 mech-settings-no-access = Access denied. You do not have permission to change settings.
-mech-remove-disabled-tooltip = Cannot remove while pilot is inside or access is denied.
+mech-remove-disabled-tooltip = Cannot remove while a pilot is inside.

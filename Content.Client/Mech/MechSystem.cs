@@ -6,6 +6,8 @@ using Robust.Client.UserInterface;
 using Content.Client.UserInterface.Controls;
 using System.Numerics;
 using DrawDepth = Content.Shared.DrawDepth.DrawDepth;
+using Content.Client.Mech.Ui;
+using Content.Shared.Weapons.Melee.Events;
 
 namespace Content.Client.Mech;
 
@@ -21,6 +23,8 @@ public sealed class MechSystem : SharedMechSystem
         base.Initialize();
 
         SubscribeLocalEvent<MechComponent, AppearanceChangeEvent>(OnAppearanceChanged);
+        SubscribeLocalEvent<MechPilotComponent, PrepareMeleeLungeEvent>(OnPrepareMeleeLunge);
+        SubscribeLocalEvent<MechComponent, PrepareMeleeLungeEvent>(OnPrepareMeleeLunge);
     }
 
     private void OnAppearanceChanged(EntityUid uid, MechComponent component, ref AppearanceChangeEvent args)
@@ -46,5 +50,23 @@ public sealed class MechSystem : SharedMechSystem
 
         _sprite.LayerSetRsiState((uid, args.Sprite), MechVisualLayers.Base, state);
         _sprite.SetDrawDepth((uid, args.Sprite), (int)drawDepth);
+    }
+
+    private void OnPrepareMeleeLunge(EntityUid uid, MechPilotComponent comp, ref PrepareMeleeLungeEvent args)
+    {
+        if (args.Weapon == comp.Mech)
+        {
+            args.SpawnAtMap = true;
+            args.DisableTracking = true;
+        }
+    }
+
+    private void OnPrepareMeleeLunge(EntityUid uid, MechComponent comp, ref PrepareMeleeLungeEvent args)
+    {
+        if (args.Weapon == uid)
+        {
+            args.SpawnAtMap = true;
+            args.DisableTracking = true;
+        }
     }
 }

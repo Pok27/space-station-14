@@ -61,7 +61,7 @@ public sealed partial class MechMenu : FancyWindow
         this.SetInfoFromEntity(_entityManager, _mech);
         MechView.SetEntity(entity);
 
-        NameLabel.Text = _ent.GetComponent<MetaDataComponent>(_mech).EntityName;
+        NameLabel.Text = _entityManager.GetComponent<MetaDataComponent>(_mech).EntityName;
     }
 
     public void SetParentBui(BoundUserInterface parentBui)
@@ -171,15 +171,23 @@ public sealed partial class MechMenu : FancyWindow
         UpdateFanStatusDisplay(state.FanState);
         UpdateLockInfoLabels(state);
         UpdateLockButtons(state);
-        UpdateEquipmentView(state.Equipment);
-        UpdateModuleView(state.Modules);
 
-        var isLocked = state.IsLocked;
-        var noAccessActive = isLocked && !_hasAccess;
-        SettingsGrid.Visible = !noAccessActive;
-        SettingsNoAccessPanel.Visible = noAccessActive;
+        // Compare UI children vs new state to decide whether to rebuild
+        var currentEquip = EquipmentControlContainer.Children.OfType<MechEquipmentControl>()
+            .Select(c => _entityManager.GetNetEntity(c.Entity));
+        if (!currentEquip.SequenceEqual(state.Equipment))
+            UpdateEquipmentView(state.Equipment);
 
-        var disableRemove = _pilotPresent || (state.IsLocked && !_hasAccess);
+        var currentMods = ModuleControlContainer.Children.OfType<MechEquipmentControl>()
+            .Select(c => _entityManager.GetNetEntity(c.Entity));
+        if (!currentMods.SequenceEqual(state.Modules))
+            UpdateModuleView(state.Modules);
+
+        // Apply access visibility
+        SetAccessVisibility(state.IsLocked);
+
+        // Disable removing only if pilot is present
+        var disableRemove = _pilotPresent;
         foreach (var control in EquipmentControlContainer.Children.OfType<MechEquipmentControl>())
         {
             control.SetRemoveDisabled(disableRemove);
@@ -259,10 +267,7 @@ public sealed partial class MechMenu : FancyWindow
         _hasAccess = hasAccess;
         if (_lastState != null)
         {
-            var isLocked = _lastState.IsLocked;
-            var noAccessActive = isLocked && !_hasAccess;
-            SettingsGrid.Visible = !noAccessActive;
-            SettingsNoAccessPanel.Visible = noAccessActive;
+            SetAccessVisibility(_lastState.IsLocked);
         }
     }
 
@@ -282,6 +287,15 @@ public sealed partial class MechMenu : FancyWindow
             return (false, false, null);
 
         return GetLockState(_lastState, lockType);
+    }
+
+    private void SetAccessVisibility(bool isLocked)
+    {
+        var noAccessActive = isLocked && !_hasAccess;
+        HaveAccessEquipment.Visible = !noAccessActive;
+        HaveAccessSettings.Visible = !noAccessActive;
+        NoAccessSettings.Visible = noAccessActive;
+        NoAccessEquipment.Visible = noAccessActive;
     }
 
     public void UpdateEquipmentView(List<NetEntity>? equipment = null)
@@ -363,7 +377,5 @@ public sealed partial class MechMenu : FancyWindow
         _lastState = state;
         UpdateMechState(state);
         UpdateMechStats();
-        UpdateEquipmentView(state.Equipment);
-        UpdateModuleView(state.Modules);
     }
 }

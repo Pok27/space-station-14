@@ -4,7 +4,7 @@
                       xmlns:customControls="clr-namespace:Content.Client.Administration.UI.CustomControls"
                       Title="{Loc 'mech-menu-title'}"
                       MinSize="600 500"
-                      SetSize="700 500">
+                      SetSize="700 520">
     <BoxContainer Orientation="Horizontal"
                   HorizontalExpand="True"
                   VerticalExpand="True"
@@ -111,19 +111,20 @@
 
             <!-- Settings -->
             <!-- Top block -->
-            <BoxContainer Orientation="Vertical"
-                          Name="SettingsAccessWrapper">
-                <PanelContainer Name="SettingsNoAccessPanel"
+            <BoxContainer Orientation="Vertical">
+                <!-- No access overlay -->
+                <PanelContainer Name="NoAccessSettings"
                                 Visible="False"
                                 StyleClasses="Inset"
                                 Margin="0 0 0 5">
                     <BoxContainer HorizontalExpand="True"
+                                  VerticalExpand="True"
                                   Margin="8">
                         <RichTextLabel Text="{Loc 'mech-settings-no-access'}"
                                        HorizontalAlignment="Center"/>
                     </BoxContainer>
                 </PanelContainer>
-                <GridContainer Name="SettingsGrid"
+                <GridContainer Name="HaveAccessSettings"
                                Columns="2">
                     <PanelContainer StyleClasses="Inset"
                                     Margin="0 0 0 5"
@@ -259,49 +260,68 @@
                     <gfx:StyleBoxFlat BackgroundColor="#1B1B1E"/>
                 </PanelContainer.PanelOverride>
 
-                <BoxContainer Orientation="Vertical"
-                              Margin="5">
-                    <Label StyleClasses="StatusFieldTitle"
-                           Text="{Loc 'mech-equipment-label'}"
-                           Margin="4 4 4 2"/>
-                    <ScrollContainer HScrollEnabled="False"
-                                     HorizontalExpand="True"
-                                     VerticalExpand="True">
-                        <BoxContainer Orientation="Vertical"
-                                      HorizontalExpand="True"
+                <BoxContainer>
+                    <!-- No access overlay -->
+                    <PanelContainer Name="NoAccessEquipment"
+                                    Visible="False"
+                                    Margin="0 0 0 5"
+                                    HorizontalExpand="True"
+                                    VerticalExpand="True">
+                        <BoxContainer HorizontalExpand="True"
                                       VerticalExpand="True"
-                                      Name="EquipmentControlContainer"
-                                      RectClipContent="True"
-                                      Margin="2"/>
-                    </ScrollContainer>
+                                      HorizontalAlignment="Center"
+                                      Margin="8">
+                            <RichTextLabel Text="{Loc 'mech-settings-no-access'}"
+                                           HorizontalAlignment="Center"/>
+                        </BoxContainer>
+                    </PanelContainer>
 
-                    <Label Name="SlotDisplay"
-                           HorizontalAlignment="Right"
-                           VerticalAlignment="Bottom"
-                           StyleClasses="WindowFooterText"
-                           Margin="5"/>
+                    <BoxContainer Name="HaveAccessEquipment"
+                                  Orientation="Vertical"
+                                  HorizontalExpand="True"
+                                  Margin="5">
+                        <Label StyleClasses="StatusFieldTitle"
+                               Text="{Loc 'mech-equipment-label'}"
+                               Margin="4 4 4 2"/>
+                        <ScrollContainer HScrollEnabled="False"
+                                         HorizontalExpand="True"
+                                         VerticalExpand="True">
+                            <BoxContainer Orientation="Vertical"
+                                          HorizontalExpand="True"
+                                          VerticalExpand="True"
+                                          Name="EquipmentControlContainer"
+                                          RectClipContent="True"
+                                          Margin="2"/>
+                        </ScrollContainer>
 
-                    <customControls:HSeparator Margin="0 8 0 8"/>
+                        <Label Name="SlotDisplay"
+                               HorizontalAlignment="Right"
+                               VerticalAlignment="Bottom"
+                               StyleClasses="WindowFooterText"
+                               Margin="5"/>
 
-                    <Label StyleClasses="StatusFieldTitle"
-                           Text="{Loc 'mech-modules-label'}"
-                           Margin="4 4 4 2"/>
-                    <ScrollContainer HScrollEnabled="False"
-                                     HorizontalExpand="True"
-                                     VerticalExpand="True">
-                        <BoxContainer Orientation="Vertical"
-                                      HorizontalExpand="True"
-                                      VerticalExpand="True"
-                                      Name="ModuleControlContainer"
-                                      RectClipContent="True"
-                                      Margin="2"/>
-                    </ScrollContainer>
+                        <customControls:HSeparator Margin="0 8 0 8"/>
 
-                    <Label Name="ModuleSlotDisplay"
-                           HorizontalAlignment="Right"
-                           VerticalAlignment="Bottom"
-                           StyleClasses="WindowFooterText"
-                           Margin="5"/>
+                        <Label StyleClasses="StatusFieldTitle"
+                               Text="{Loc 'mech-modules-label'}"
+                               Margin="4 4 4 2"/>
+                        <ScrollContainer HScrollEnabled="False"
+                                         HorizontalExpand="True"
+                                         VerticalExpand="True">
+                            <BoxContainer Orientation="Vertical"
+                                          HorizontalExpand="True"
+                                          VerticalExpand="True"
+                                          Name="ModuleControlContainer"
+                                          RectClipContent="True"
+                                          Margin="2"/>
+                        </ScrollContainer>
+
+                        <Label Name="ModuleSlotDisplay"
+                               HorizontalAlignment="Right"
+                               VerticalAlignment="Bottom"
+                               StyleClasses="WindowFooterText"
+                               Margin="5"/>
+                    </BoxContainer>
                 </BoxContainer>
             </PanelContainer>
         </BoxContainer>
