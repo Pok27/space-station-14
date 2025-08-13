@@ -79,7 +79,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
             if (fanModule != null && fanModule.State != MechFanState.Off)
             {
                 fanModule.State = MechFanState.Off;
-                Dirty(fanModule.Owner, fanModule);
+                Dirty(uid, mechComp);
             }
             return false;
         }
@@ -88,7 +88,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
         if (internalAir == null || tankComp == null)
         {
             fanModule.State = MechFanState.Off;
-            Dirty(fanModule.Owner, fanModule);
+            Dirty(uid, mechComp);
             return false;
         }
 
@@ -118,7 +118,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
             if (fanModule.State != MechFanState.Idle)
             {
                 fanModule.State = MechFanState.Idle;
-                Dirty(fanModule.Owner, fanModule);
+                Dirty(uid, mechComp);
             }
             return false;
         }
@@ -127,12 +127,12 @@ public sealed class MechAtmosphereSystem : EntitySystem
         if (!_mech.TryChangeEnergy(uid, -energyConsumption, mechComp))
         {
             fanModule.State = MechFanState.Off;
-            Dirty(fanModule.Owner, fanModule);
+            Dirty(uid, mechComp);
             return false;
         }
 
         fanModule.State = MechFanState.On;
-        Dirty(fanModule.Owner, fanModule);
+        Dirty(uid, mechComp);
 
         if (external == null)
             return false;
@@ -196,7 +196,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
             return;
 
         fanModule.IsActive = args.IsActive;
-        Dirty(fanModule.Owner, fanModule);
+        Dirty(uid, component);
         RaiseLocalEvent(uid, new UpdateMechUiEvent());
     }
 
@@ -207,7 +207,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
             return;
 
         fanModule.FilterEnabled = args.Enabled;
-        Dirty(fanModule.Owner, fanModule);
+        Dirty(uid, component);
         RaiseLocalEvent(uid, new UpdateMechUiEvent());
     }
 

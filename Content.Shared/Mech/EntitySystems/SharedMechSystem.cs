@@ -16,7 +16,6 @@ using Content.Shared.Mech.Equipment.Components;
 using Content.Shared.Movement.Components;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Weapons.Melee.Events;
-using Content.Shared.Popups;
 using Content.Shared.UserInterface;
 using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Ranged.Events;
@@ -40,7 +39,6 @@ public abstract partial class SharedMechSystem : EntitySystem
     [Dependency] private readonly SharedContainerSystem _container = default!;
     [Dependency] private readonly SharedInteractionSystem _interaction = default!;
     [Dependency] private readonly SharedMoverController _mover = default!;
-    [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
     [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
 
@@ -478,9 +476,7 @@ public abstract partial class SharedMechSystem : EntitySystem
             return;
 
         if (!ent.Comp.EquipmentOwner.HasValue)
-        {
             args.Cancelled = true;
-        }
     }
 
     private void UpdateAppearance(EntityUid uid, MechComponent? component = null,

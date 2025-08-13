@@ -54,19 +54,13 @@ public sealed class MechSystem : SharedMechSystem
 
     private void OnPrepareMeleeLunge(EntityUid uid, MechPilotComponent comp, ref PrepareMeleeLungeEvent args)
     {
-        if (args.Weapon == comp.Mech)
-        {
-            args.SpawnAtMap = true;
-            args.DisableTracking = true;
-        }
+        args.SpawnAtMap = true;
+        args.DisableTracking = true;
     }
 
     private void OnPrepareMeleeLunge(EntityUid uid, MechComponent comp, ref PrepareMeleeLungeEvent args)
     {
-        if (args.Weapon == uid)
-        {
-            args.SpawnAtMap = true;
-            args.DisableTracking = true;
-        }
+        args.SpawnAtMap = true;
+        args.DisableTracking = true;
     }
 }
