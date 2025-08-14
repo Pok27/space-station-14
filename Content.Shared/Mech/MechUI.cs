@@ -84,7 +84,7 @@ public abstract class MechEquipmentUiMessage : BoundUserInterfaceMessage
 /// Purge cabin air message
 /// </summary>
 [Serializable, NetSerializable]
-public sealed class MechCabinPurgeMessage : BoundUserInterfaceMessage
+public sealed class MechCabinAirMessage : BoundUserInterfaceMessage
 {
 }
 

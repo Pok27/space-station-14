@@ -10,6 +10,7 @@
   - type: MeleeWeapon
     autoAttack: true
     angle: 0
+    wideAnimation: WeaponArcSlash
     wideAnimationRotation: -90
     soundHit:
       path: "/Audio/Weapons/chainsaw.ogg"

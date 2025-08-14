@@ -60,7 +60,7 @@ public sealed class MechBoundUserInterface : BoundUserInterface, IBuiPreTickUpda
         _menu.OnFilterToggle += enabled => _filterCoalescer.Set(enabled);
 
         // Direct action
-        _menu.OnCabinPurge += () => _pred!.SendMessage(new MechCabinPurgeMessage());
+        _menu.OnCabinPurge += () => _pred!.SendMessage(new MechCabinAirMessage());
 
         // DNA lock
         _menu.OnDnaLockRegister += () => _pred!.SendMessage(new MechDnaLockRegisterMessage());
@@ -75,9 +75,6 @@ public sealed class MechBoundUserInterface : BoundUserInterface, IBuiPreTickUpda
 
     void IBuiPreTickUpdate.PreTickUpdate()
     {
-        if (_pred == null || _menu == null)
-            return;
-
         // Send coalesced input events
         if (_airtightCoalescer.CheckIsModified(out var airtightValue))
             _pred!.SendMessage(new MechAirtightMessage(airtightValue));
@@ -128,13 +125,10 @@ public sealed class MechBoundUserInterface : BoundUserInterface, IBuiPreTickUpda
 
     protected override void Dispose(bool disposing)
     {
-        if (disposing)
-        {
-            if (_menu != null && !_menu.Disposed)
-                _menu.Orphan();
-            _menu = null;
-            _pred = null;
-        }
         base.Dispose(disposing);
+        if (!disposing)
+            return;
+
+        _menu?.Dispose();
     }
 }

@@ -52,7 +52,7 @@ public sealed class MechInterfaceSystem : EntitySystem
             {
                 subs.Event<MechEquipmentRemoveMessage>(HandleEquipmentRemove);
                 subs.Event<MechModuleRemoveMessage>(HandleModuleRemove);
-                subs.Event<MechCabinPurgeMessage>(HandleCabinPurge);
+                subs.Event<MechCabinAirMessage>(HandleCabinPurge);
 
                 subs.Event<MechDnaLockRegisterMessage>(HandleDnaLockRegister);
                 subs.Event<MechDnaLockToggleMessage>(HandleDnaLockToggle);
@@ -124,7 +124,7 @@ public sealed class MechInterfaceSystem : EntitySystem
         return true;
     }
 
-    private void HandleCabinPurge(Entity<MechComponent> ent, ref MechCabinPurgeMessage args)
+    private void HandleCabinPurge(Entity<MechComponent> ent, ref MechCabinAirMessage args)
     {
         if (!TryComp<MechCabinAirComponent>(ent, out var cabin))
             return;
@@ -141,7 +141,8 @@ public sealed class MechInterfaceSystem : EntitySystem
             cabin.Air.Clear();
         }
 
-        EnsureComp<MechCabinPurgeComponent>(ent).CooldownRemaining = 3f;
+        var purgeComp = EnsureComp<MechCabinPurgeComponent>(ent);
+        purgeComp.CooldownRemaining = purgeComp.CooldownDuration;
         RaiseLocalEvent(ent, new UpdateMechUiEvent());
     }
 

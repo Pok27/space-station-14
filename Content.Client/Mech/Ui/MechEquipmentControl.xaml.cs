@@ -60,6 +60,12 @@ public sealed partial class MechEquipmentControl : Control
         RemoveButton.OnPressed += _ => OnRemoveButtonPressed?.Invoke();
     }
 
+    private void AddChildWithMargins(Control child)
+    {
+        child.Margin = new Thickness(0, 0, 0, 2);
+        CustomControlContainer.AddChild(child);
+    }
+
     private void SetContent(string itemName, Control? fragment, int size)
     {
         // Set equipment information
@@ -72,7 +78,7 @@ public sealed partial class MechEquipmentControl : Control
         if (fragment != null)
         {
             showSeparator = true;
-            CustomControlContainer.AddChild(fragment);
+            AddChildWithMargins(fragment);
         }
 
         // Try to collect item status controls for this equipment
@@ -81,7 +87,7 @@ public sealed partial class MechEquipmentControl : Control
         foreach (var control in status.Controls)
         {
             showSeparator = true;
-            CustomControlContainer.AddChild(control);
+            AddChildWithMargins(control);
         }
 
         Separator.Visible = showSeparator;

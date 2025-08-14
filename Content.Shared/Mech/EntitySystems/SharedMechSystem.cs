@@ -485,18 +485,8 @@ public abstract partial class SharedMechSystem : EntitySystem
         if (owner.HasValue)
             return;
 
-        if (TryComp(ent.Owner, out TransformComponent? xform))
-        {
-            var current = xform.ParentUid;
-            while (current.IsValid())
-            {
-                if (HasComp<MechComponent>(current))
-                    return;
-                if (!TryComp(current, out TransformComponent? parentXform))
-                    break;
-                current = parentXform.ParentUid;
-            }
-        }
+        if (_container.TryGetContainingContainer(ent.Owner, out var container) && HasComp<MechComponent>(container.Owner))
+            return;
 
         args.Cancelled = true;
     }

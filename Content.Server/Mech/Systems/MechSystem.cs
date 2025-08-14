@@ -149,6 +149,7 @@ public sealed partial class MechSystem : SharedMechSystem
 
         component.Integrity = component.MaxIntegrity;
         component.Energy = component.MaxEnergy;
+        component.Airtight = false;
 
         _actionBlocker.UpdateCanMove(uid);
         Dirty(uid, component);
