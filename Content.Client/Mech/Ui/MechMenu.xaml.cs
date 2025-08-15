@@ -157,10 +157,9 @@ public sealed partial class MechMenu : FancyWindow
 
         CabinGasLabel.Text = _loc.GetString("mech-cabin-pressure-level", ("level", $"{state.CabinGasLevel:F1}"));
 
-        // Display temperature in both Kelvin and Celsius
-        var tempK = state.CabinTemperature;
-        var tempC = Content.Shared.Temperature.TemperatureHelpers.KelvinToCelsius(tempK);
-        CabinTemperatureLabel.Text = _loc.GetString("mech-cabin-temperature-level", ("tempK", $"{tempK:F1}"), ("tempC", $"{tempC:F1}"));
+        // Display temperature in Celsius
+        var tempC = Content.Shared.Temperature.TemperatureHelpers.KelvinToCelsius(state.CabinTemperature);
+        CabinTemperatureLabel.Text = _loc.GetString("mech-cabin-temperature-level", ("tempC", $"{tempC:F1}"));
 
         if (state.HasGasModule)
         {
