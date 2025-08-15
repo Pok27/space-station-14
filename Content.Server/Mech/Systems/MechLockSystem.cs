@@ -3,6 +3,11 @@ using Content.Shared.Access.Components;
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.EntitySystems;
 using Content.Shared.Popups;
+using Content.Shared.Ninja.Components;
+using Content.Shared.Interaction;
+using Content.Shared.Tag;
+using Robust.Shared.Prototypes;
+using Robust.Shared.Containers;
 
 namespace Content.Server.Mech.Systems;
 
@@ -12,6 +17,7 @@ namespace Content.Server.Mech.Systems;
 public sealed class MechLockSystem : SharedMechLockSystem
 {
     [Dependency] private readonly IdCardSystem _idCard = default!;
+    [Dependency] private readonly TagSystem _tag = default!;
 
     public override void Initialize()
     {
@@ -23,6 +29,7 @@ public sealed class MechLockSystem : SharedMechLockSystem
         SubscribeLocalEvent<MechLockComponent, MechCardLockRegisterEvent>(OnCardLockRegister);
         SubscribeLocalEvent<MechLockComponent, MechCardLockToggleEvent>(OnCardLockToggle);
         SubscribeLocalEvent<MechLockComponent, MechCardLockResetEvent>(OnCardLockReset);
+        SubscribeLocalEvent<MechLockComponent, InteractUsingEvent>(OnInteractUsing);
     }
 
     /// <summary>
@@ -118,5 +125,42 @@ public sealed class MechLockSystem : SharedMechLockSystem
     protected override bool TryFindIdCard(EntityUid user, out Entity<IdCardComponent> idCard)
     {
         return _idCard.TryFindIdCard(user, out idCard);
+    }
+
+    /// <summary>
+    /// Handles AccessBreaker interaction with mech locks
+    /// </summary>
+    private void OnInteractUsing(EntityUid uid, MechLockComponent component, InteractUsingEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        // Check if the user has AccessBreaker
+        if (!HasComp<EmagProviderComponent>(args.Used))
+            return;
+
+        // Check if the mech is locked
+        if (!component.IsLocked)
+            return;
+
+        // Check if the mech is immune to AccessBreaker
+        if (HasComp<MechComponent>(uid) && _tag.HasTag(uid, "AccessBreakerImmune"))
+            return;
+
+        args.Handled = true;
+
+        // Break all locks
+        if (component.DnaLockActive)
+        {
+            component.DnaLockActive = false;
+        }
+
+        if (component.CardLockActive)
+        {
+            component.CardLockActive = false;
+        }
+
+        component.IsLocked = false;
+        Dirty(uid, component);
     }
 }

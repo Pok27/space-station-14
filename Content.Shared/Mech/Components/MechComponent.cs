@@ -1,5 +1,6 @@
 using Content.Shared.FixedPoint;
 using Content.Shared.Whitelist;
+using Robust.Shared.Audio;
 using Robust.Shared.Containers;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
@@ -47,6 +48,19 @@ public sealed partial class MechComponent : Component
     public FixedPoint2 MaxEnergy = 0;
 
     /// <summary>
+    /// The health threshold below which the mech enters critical state.
+    /// Critical state is between 0 HP and this value.
+    /// </summary>
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
+    public FixedPoint2 CriticalThreshold = 50;
+
+    /// <summary>
+    /// Sound played when entering critical state.
+    /// </summary>
+    [DataField]
+    public SoundSpecifier CriticalSound = new SoundPathSpecifier("/Audio/Effects/alert.ogg");
+
+    /// <summary>
     /// The slot the battery is stored in.
     /// </summary>
     [ViewVariables]
@@ -67,6 +81,12 @@ public sealed partial class MechComponent : Component
     /// </summary>
     [ViewVariables(VVAccess.ReadWrite), AutoNetworkedField]
     public bool Broken = false;
+
+    /// <summary>
+    /// Whether the mech is in a critical state.
+    /// </summary>
+    [ViewVariables(VVAccess.ReadWrite), AutoNetworkedField]
+    public bool Critical = false;
 
     /// <summary>
     /// The slot the pilot is stored in.

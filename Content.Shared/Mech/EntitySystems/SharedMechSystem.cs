@@ -4,6 +4,7 @@ using Content.Shared.ActionBlocker;
 using Content.Shared.Actions;
 using Content.Shared.Destructible;
 using Content.Shared.DoAfter;
+using Content.Shared.Body.Events;
 using Content.Shared.DragDrop;
 using Content.Shared.Emag.Components;
 using Content.Shared.Emag.Systems;
@@ -21,6 +22,7 @@ using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Whitelist;
 using Robust.Shared.Containers;
+using Robust.Shared.Audio;
 using Robust.Shared.Network;
 using Robust.Shared.Serialization;
 using Robust.Shared.Timing;
@@ -314,11 +316,31 @@ public abstract partial class SharedMechSystem : EntitySystem
 
         component.Integrity = FixedPoint2.Clamp(value, 0, component.MaxIntegrity);
 
+        // Handle critical state transitions based on integrity
         if (component.Integrity <= 0)
         {
-            BreakMech(uid, component);
+            // If already broken, go to critical state
+            if (component.Broken)
+            {
+                SetCriticalState(uid, component);
+            }
+            // If already in critical state, check if should be gibbed
+            else
+            {
+                if (component.Integrity < -component.CriticalThreshold)
+                {
+                    var gibEvent = new BeingGibbedEvent(new HashSet<EntityUid>());
+                    RaiseLocalEvent(uid, ref gibEvent);
+                    return;
+                }
+            }
         }
-        else if (component.Broken)
+        else if (component.Integrity > component.CriticalThreshold && component.Critical)
+        {
+            component.Critical = false;
+            UpdateAppearance(uid, component);
+        }
+        else if (component.Integrity > 0 && component.Broken)
         {
             component.Broken = false;
             UpdateAppearance(uid, component);
@@ -328,10 +350,73 @@ public abstract partial class SharedMechSystem : EntitySystem
         UpdateMechUi(uid);
     }
 
+    /// <summary>
+    /// Sets the mech to critical state (destroyed but can be repaired).
+    /// </summary>
+    /// <param name="uid">The mech itself</param>
+    /// <param name="component"></param>
+    public void SetCriticalState(EntityUid uid, MechComponent? component = null)
+    {
+        if (!Resolve(uid, ref component))
+            return;
+
+        var pilot = component.PilotSlot.ContainedEntity;
+
+        // In critical state, pilot stays but equipment, modules, and battery are ejected
+        var equipment = new List<EntityUid>(component.EquipmentContainer.ContainedEntities);
+        foreach (var ent in equipment)
+        {
+            RemoveEquipment(uid, ent, component, forced: true);
+        }
+
+        var modules = new List<EntityUid>(component.ModuleContainer.ContainedEntities);
+        foreach (var ent in modules)
+        {
+            _container.Remove(ent, component.ModuleContainer);
+        }
+
+        if (component.BatterySlot.ContainedEntity != null)
+        {
+            var battery = component.BatterySlot.ContainedEntity.Value;
+            _container.Remove(battery, component.BatterySlot);
+            component.Energy = 0;
+            component.MaxEnergy = 0;
+
+            var coords = Transform(uid).Coordinates;
+            var batteryTransform = Transform(battery);
+            batteryTransform.Coordinates = coords;
+        }
+
+        // Ensure pilot stays in the mech
+        if (pilot.HasValue && !component.PilotSlot.ContainedEntities.Any(e => e == pilot.Value))
+        {
+            _container.Insert(pilot.Value, component.PilotSlot);
+        }
+
+        component.Critical = true;
+        component.Broken = false;
+        UpdateAppearance(uid, component);
+        Dirty(uid, component);
+        UpdateMechUi(uid);
+
+        // Play critical sound
+        if (component.CriticalSound != null)
+        {
+            var ev = new MechCriticalSoundEvent(uid, component.CriticalSound);
+            RaiseLocalEvent(uid, ref ev);
+        }
+    }
+
     protected virtual void UpdateMechUi(EntityUid uid)
     {
         RaiseLocalEvent(uid, new UpdateMechUiEvent());
     }
+
+    /// <summary>
+    /// Raised when a mech enters critical state to play sound.
+    /// </summary>
+    [ByRefEvent]
+    public readonly record struct MechCriticalSoundEvent(EntityUid Mech, SoundSpecifier Sound);
 
     /// <summary>
     /// Checks if the pilot is present
@@ -534,6 +619,7 @@ public abstract partial class SharedMechSystem : EntitySystem
             return;
         args.Handled = true;
         component.EquipmentWhitelist = null;
+        component.ModuleWhitelist = null;
         Dirty(uid, component);
     }
 }

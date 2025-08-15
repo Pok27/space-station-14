@@ -97,9 +97,14 @@ public sealed partial class MechMenu : FancyWindow
         {
             if (_lastState.MaxIntegrity > 0f)
             {
-                var integrityPercent = _lastState.Integrity / _lastState.MaxIntegrity;
-                IntegrityDisplayBar.Value = integrityPercent;
-                IntegrityDisplay.Text = _loc.GetString("mech-integrity-display", ("amount", (int)(integrityPercent * 100)));
+                            var integrityPercent = _lastState.Integrity / _lastState.MaxIntegrity;
+            IntegrityDisplayBar.Value = integrityPercent;
+
+            var integrityText = _lastState.IsCritical
+                ? _loc.GetString("mech-integrity-display-critical", ("amount", (int)(integrityPercent * 100)))
+                : _loc.GetString("mech-integrity-display", ("amount", (int)(integrityPercent * 100)));
+
+            IntegrityDisplay.Text = integrityText;
             }
             else
             {

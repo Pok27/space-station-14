@@ -22,6 +22,7 @@ mech-radial-no-equipment = No Equipment
 # Status displays
 mech-integrity-display-label = Integrity
 mech-integrity-display = {$amount} %
+mech-integrity-display-critical = {$amount} % (CRITICAL)
 mech-energy-display-label = Energy
 mech-energy-display = {$amount} %
 mech-energy-missing = MISSING
@@ -98,3 +99,6 @@ mech-lock-not-set = Not set
 # Settings access banner
 mech-settings-no-access = Access denied. You do not have permission to change settings.
 mech-remove-disabled-tooltip = Cannot remove while a pilot is inside.
+
+# Critical state messages
+mech-cannot-insert-critical = You cannot insert anything while the mech is in critical state.

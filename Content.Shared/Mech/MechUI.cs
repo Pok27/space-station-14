@@ -238,6 +238,7 @@ public sealed class MechBoundUiState : BoundUserInterfaceState
     public float MaxEnergy;
     public int EquipmentUsed;
     public int MaxEquipmentAmount;
+    public bool IsCritical;
     public Dictionary<NetEntity, BoundUserInterfaceState> EquipmentUiStates = new();
 }
 

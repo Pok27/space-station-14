@@ -37,36 +37,41 @@ public sealed class MechGunSystem : EntitySystem
             if (!TryComp<ChargerComponent>(mechUid, out var charger))
                 continue;
 
-            var rate = charger.ChargeRate;
-            if (rate <= 0f)
+            var chargeRate = charger.ChargeRate;
+            if (chargeRate <= 0f)
                 continue;
 
-            if (!_containers.TryGetContainer(mechUid, charger.SlotId, out var container))
+            // Get the container to charge
+            var container = _containers.TryGetContainer(mechUid, charger.SlotId, out var cont)
+                ? cont
+                : mech.EquipmentContainer;
+
+            if (container == null)
+                continue;
+
+            // Charge all weapons in the container
+            foreach (var weapon in container.ContainedEntities)
             {
-                container = mech.EquipmentContainer;
-                if (container == null)
-                    continue;
-            }
-
-            foreach (var ent in container.ContainedEntities)
-            {
-                if (_whitelist.IsWhitelistFail(charger.Whitelist, ent))
+                if (_whitelist.IsWhitelistFail(charger.Whitelist, weapon))
                     continue;
 
-                if (!TryComp<BatteryComponent>(ent, out var bat))
-                    continue;
-                if (bat.CurrentCharge >= bat.MaxCharge)
+                if (!TryComp<BatteryComponent>(weapon, out var battery))
                     continue;
 
-                var toAdd = MathF.Min(rate * (float) frameTime, bat.MaxCharge - bat.CurrentCharge);
-                toAdd = MathF.Min(toAdd, mech.Energy.Float());
-                if (toAdd <= 0)
+                if (battery.CurrentCharge >= battery.MaxCharge)
                     continue;
 
-                if (!_mech.TryChangeEnergy(mechUid, -toAdd, mech))
+                var chargeNeeded = battery.MaxCharge - battery.CurrentCharge;
+                var chargeAvailable = mech.Energy.Float();
+                var chargeToAdd = MathF.Min(MathF.Min(chargeRate, chargeNeeded), chargeAvailable);
+
+                if (chargeToAdd <= 0)
                     continue;
 
-                _battery.SetCharge(ent, bat.CurrentCharge + toAdd, bat);
+                if (_mech.TryChangeEnergy(mechUid, -chargeToAdd, mech))
+                {
+                    _battery.SetCharge(weapon, battery.CurrentCharge + chargeToAdd, battery);
+                }
             }
         }
     }

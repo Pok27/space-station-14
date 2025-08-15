@@ -29,9 +29,12 @@ using Content.Shared.Forensics.Components;
 using Content.Shared.Access.Systems;
 using Content.Shared.Mech.Equipment.Components;
 using Content.Shared.UserInterface;
+using Robust.Shared.Audio.Systems;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Atmos;
 using Content.Server.Atmos.EntitySystems;
+using Content.Shared.Body.Events;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server.Mech.Systems;
 
@@ -46,6 +49,8 @@ public sealed partial class MechSystem : SharedMechSystem
     [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
     [Dependency] private readonly SharedToolSystem _toolSystem = default!;
     [Dependency] private readonly MechLockSystem _lockSystem = default!;
+    [Dependency] private readonly TransformSystem _transform = default!;
+    [Dependency] private readonly SharedAudioSystem _audio = default!;
 
     private static readonly ProtoId<ToolQualityPrototype> PryingQuality = "Prying";
 
@@ -61,15 +66,18 @@ public sealed partial class MechSystem : SharedMechSystem
         SubscribeLocalEvent<MechComponent, MechExitEvent>(OnMechExit);
         SubscribeLocalEvent<MechComponent, DamageChangedEvent>(OnDamageChanged);
         SubscribeLocalEvent<MechComponent, MapInitEvent>(OnMapInit);
+        SubscribeLocalEvent<MechComponent, BeingGibbedEvent>(OnBeingGibbed);
+
         SubscribeLocalEvent<MechPilotComponent, ToolUserAttemptUseEvent>(OnToolUseAttempt);
         SubscribeLocalEvent<MechComponent, GetVerbsEvent<AlternativeVerb>>(OnAlternativeVerb);
         SubscribeAllEvent<RequestMechEquipmentSelectEvent>(OnEquipmentSelectRequest);
         SubscribeLocalEvent<MechComponent, MechOpenUiEvent>(OnOpenUi);
+        SubscribeLocalEvent<MechComponent, MechCriticalSoundEvent>(OnMechCriticalSound);
     }
 
     private void OnMechCanMoveEvent(EntityUid uid, MechComponent component, UpdateCanMoveEvent args)
     {
-        if (component.Broken || component.Integrity <= 0 || component.Energy <= 0)
+        if (component.Broken || component.Integrity <= 0 || component.Energy <= 0 || component.Critical)
             args.Cancel();
 
         // Only block movement if locks are active and pilot lacks access
@@ -84,6 +92,8 @@ public sealed partial class MechSystem : SharedMechSystem
     {
         if (TryComp<WiresPanelComponent>(uid, out var panel) && !panel.Open)
             return;
+
+
 
         if (component.BatterySlot.ContainedEntity == null && TryComp<BatteryComponent>(args.Used, out var battery))
         {
@@ -280,6 +290,7 @@ public sealed partial class MechSystem : SharedMechSystem
     {
         if (!Resolve(uid, ref component))
             return;
+
         user ??= component.PilotSlot.ContainedEntity;
         if (user == null)
             return;
@@ -374,8 +385,19 @@ public sealed partial class MechSystem : SharedMechSystem
         RaiseLocalEvent(uid, ev);
     }
 
+    private void OnMechCriticalSound(EntityUid uid, MechComponent component, MechCriticalSoundEvent args)
+    {
+        _audio.PlayPvs(args.Sound, uid);
+    }
+
     public override bool CanInsert(EntityUid uid, EntityUid toInsert, MechComponent? component = null)
     {
+        if (!Resolve(uid, ref component))
+            return false;
+
+        if (component.Critical && !HasComp<MechPilotComponent>(toInsert))
+            return false;
+
         return base.CanInsert(uid, toInsert, component) && _actionBlocker.CanMove(toInsert);
     }
 
@@ -406,5 +428,20 @@ public sealed partial class MechSystem : SharedMechSystem
         }
 
         Dirty(mech, mechComp);
+    }
+
+    private void OnBeingGibbed(EntityUid uid, MechComponent component, ref BeingGibbedEvent args)
+    {
+        // Eject pilot if present
+        if (component.PilotSlot.ContainedEntity != null)
+        {
+            TryEject(uid, component);
+        }
+
+        if (component.PilotSlot.ContainedEntity != null)
+            args.GibbedParts.Add(component.PilotSlot.ContainedEntity.Value);
+
+        // TODO: Parts should fall out
+        QueueDel(uid);
     }
 }
