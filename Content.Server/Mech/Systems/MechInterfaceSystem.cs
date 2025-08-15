@@ -100,7 +100,7 @@ public sealed class MechInterfaceSystem : EntitySystem
             return;
 
         _mechSystem.RemoveEquipment(ent, equipment, ent.Comp);
-        RaiseLocalEvent(ent, new UpdateMechUiEvent());
+        UpdateMechUi(ent);
     }
 
     private void HandleModuleRemove(Entity<MechComponent> ent, ref MechModuleRemoveMessage args)
@@ -110,7 +110,7 @@ public sealed class MechInterfaceSystem : EntitySystem
             return;
 
         _container.Remove(module, ent.Comp.ModuleContainer);
-        RaiseLocalEvent(ent, new UpdateMechUiEvent());
+        UpdateMechUi(ent);
     }
 
     private bool TryRemoveItem(Entity<MechComponent> ent, EntityUid item, Container container)
@@ -143,7 +143,7 @@ public sealed class MechInterfaceSystem : EntitySystem
 
         var purgeComp = EnsureComp<MechCabinPurgeComponent>(ent);
         purgeComp.CooldownRemaining = purgeComp.CooldownDuration;
-        RaiseLocalEvent(ent, new UpdateMechUiEvent());
+        UpdateMechUi(ent);
     }
 
     /// <summary>
@@ -308,11 +308,13 @@ public sealed class MechInterfaceSystem : EntitySystem
         }
 
         var cabinPressure = 0f;
+        var cabinTemperature = 0f;
         var gasAmountLiters = 0f;
         var tankPressure = 0f;
         if (TryComp<MechCabinAirComponent>(uid, out var cabin))
         {
             cabinPressure = cabin.Air.Pressure;
+            cabinTemperature = cabin.Air.Temperature;
         }
         GasMixture? tankAir = null;
         foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
@@ -346,6 +348,7 @@ public sealed class MechInterfaceSystem : EntitySystem
             FanState = fanState,
             FilterEnabled = filterEnabled,
             CabinGasLevel = cabinPressure,
+            CabinTemperature = cabinTemperature,
             GasAmountLiters = gasAmountLiters,
             TankPressure = tankPressure,
             HasFanModule = hasFanModule,
@@ -388,32 +391,35 @@ public sealed class MechInterfaceSystem : EntitySystem
             state.HasAccess = true;
         }
 
-        // Collect equipment UI states as well
-        var equipmentList = mechComp.EquipmentContainer.ContainedEntities;
-        if (equipmentList.Count > 0)
-        {
-            var eqStatesEvent = new MechEquipmentUiStateReadyEvent();
-            foreach (var equipmentEnt in equipmentList)
-            {
-                RaiseLocalEvent(equipmentEnt, eqStatesEvent);
-            }
-            if (eqStatesEvent.States.Count > 0)
-                state.EquipmentUiStates = eqStatesEvent.States;
-        }
-
-        // Collect module UI states as well
-        var moduleList = mechComp.ModuleContainer.ContainedEntities;
-        if (moduleList.Count > 0)
-        {
-            var modStatesEvent = new MechEquipmentUiStateReadyEvent();
-            foreach (var moduleEnt in moduleList)
-            {
-                RaiseLocalEvent(moduleEnt, modStatesEvent);
-            }
-            if (modStatesEvent.States.Count > 0)
-                state.EquipmentUiStates = modStatesEvent.States;
-        }
+        // Collect equipment and module UI states
+        CollectEquipmentUiStates(mechComp.EquipmentContainer.ContainedEntities, state.EquipmentUiStates);
+        CollectEquipmentUiStates(mechComp.ModuleContainer.ContainedEntities, state.EquipmentUiStates);
 
         _uiSystem.SetUiState(uid, MechUiKey.Key, state);
+    }
+
+    private void UpdateMechUi(EntityUid uid)
+    {
+        RaiseLocalEvent(uid, new UpdateMechUiEvent());
+    }
+
+    private void CollectEquipmentUiStates(IEnumerable<EntityUid> entities, Dictionary<NetEntity, BoundUserInterfaceState> states)
+    {
+        if (!entities.Any())
+            return;
+
+        var statesEvent = new MechEquipmentUiStateReadyEvent();
+        foreach (var entity in entities)
+        {
+            RaiseLocalEvent(entity, statesEvent);
+        }
+
+        if (statesEvent.States.Count > 0)
+        {
+            foreach (var (netEntity, state) in statesEvent.States)
+            {
+                states[netEntity] = state;
+            }
+        }
     }
 }

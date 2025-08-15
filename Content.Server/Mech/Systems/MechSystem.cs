@@ -333,8 +333,7 @@ public sealed partial class MechSystem : SharedMechSystem
 
         component.Energy = newEnergy;
         Dirty(uid, component);
-        var ev = new UpdateMechUiEvent();
-        RaiseLocalEvent(uid, ev);
+        UpdateMechUi(uid);
         return true;
     }
 
@@ -351,10 +350,8 @@ public sealed partial class MechSystem : SharedMechSystem
         component.MaxEnergy = battery.MaxCharge;
 
         _actionBlocker.UpdateCanMove(uid);
-
         Dirty(uid, component);
-        var ev = new UpdateMechUiEvent();
-        RaiseLocalEvent(uid, ev);
+        UpdateMechUi(uid);
     }
 
     public void RemoveBattery(EntityUid uid, MechComponent? component = null)
@@ -367,8 +364,12 @@ public sealed partial class MechSystem : SharedMechSystem
         component.MaxEnergy = 0;
 
         _actionBlocker.UpdateCanMove(uid);
-
         Dirty(uid, component);
+        UpdateMechUi(uid);
+    }
+
+    private void UpdateMechUi(EntityUid uid)
+    {
         var ev = new UpdateMechUiEvent();
         RaiseLocalEvent(uid, ev);
     }

@@ -157,10 +157,15 @@ public sealed partial class MechMenu : FancyWindow
 
         CabinGasLabel.Text = _loc.GetString("mech-cabin-pressure-level", ("level", $"{state.CabinGasLevel:F1}"));
 
+        // Display temperature in both Kelvin and Celsius
+        var tempK = state.CabinTemperature;
+        var tempC = Content.Shared.Temperature.TemperatureHelpers.KelvinToCelsius(tempK);
+        CabinTemperatureLabel.Text = _loc.GetString("mech-cabin-temperature-level", ("tempK", $"{tempK:F1}"), ("tempC", $"{tempC:F1}"));
+
         if (state.HasGasModule)
         {
             TankPressureLabel.Text = _loc.GetString("mech-tank-pressure-level", ("state", "ok"), ("pressure", state.TankPressure.ToString("0.##")));
-            TankPressureLabel.FontColorOverride = Color.White;
+            TankPressureLabel.FontColorOverride = Color.LightSkyBlue;
         }
         else
         {
@@ -187,15 +192,8 @@ public sealed partial class MechMenu : FancyWindow
         SetAccessVisibility(state.IsLocked);
 
         // Disable removing only if pilot is present
-        var disableRemove = _pilotPresent;
-        foreach (var control in EquipmentControlContainer.Children.OfType<MechEquipmentControl>())
-        {
-            control.SetRemoveDisabled(disableRemove);
-        }
-        foreach (var control in ModuleControlContainer.Children.OfType<MechEquipmentControl>())
-        {
-            control.SetRemoveDisabled(disableRemove);
-        }
+        SetRemoveDisabledForContainer(EquipmentControlContainer, _pilotPresent);
+        SetRemoveDisabledForContainer(ModuleControlContainer, _pilotPresent);
     }
 
     private void UpdateFanStatusDisplay(MechFanState fanState)
@@ -245,19 +243,25 @@ public sealed partial class MechMenu : FancyWindow
         var (dnaRegistered, dnaActive, _) = GetLockState(state, MechLockType.Dna);
         var (cardRegistered, cardActive, _) = GetLockState(state, MechLockType.Card);
 
-        // DNA Lock Buttons
-        DnaLockRegisterButton.Visible = !dnaRegistered;
-        DnaLockBlockButton.Visible = dnaRegistered;
-        DnaLockResetButton.Visible = dnaRegistered;
-        DnaLockBlockButton.Text = _loc.GetString(dnaActive ? "mech-lock-deactivate" : "mech-lock-activate");
-        DnaLockBlockButton.Pressed = dnaActive;
+        UpdateLockButtonSet(DnaLockRegisterButton, DnaLockBlockButton, DnaLockResetButton, dnaRegistered, dnaActive);
+        UpdateLockButtonSet(CardLockRegisterButton, CardLockBlockButton, CardLockResetButton, cardRegistered, cardActive);
+    }
 
-        // Card Lock Buttons
-        CardLockRegisterButton.Visible = !cardRegistered;
-        CardLockBlockButton.Visible = cardRegistered;
-        CardLockResetButton.Visible = cardRegistered;
-        CardLockBlockButton.Text = _loc.GetString(cardActive ? "mech-lock-deactivate" : "mech-lock-activate");
-        CardLockBlockButton.Pressed = cardActive;
+    private void UpdateLockButtonSet(Button registerButton, Button blockButton, Button resetButton, bool isRegistered, bool isActive)
+    {
+        registerButton.Visible = !isRegistered;
+        blockButton.Visible = isRegistered;
+        resetButton.Visible = isRegistered;
+        blockButton.Text = _loc.GetString(isActive ? "mech-lock-deactivate" : "mech-lock-activate");
+        blockButton.Pressed = isActive;
+    }
+
+    private void SetRemoveDisabledForContainer(Control container, bool disabled)
+    {
+        foreach (var control in container.Children.OfType<MechEquipmentControl>())
+        {
+            control.SetRemoveDisabled(disabled);
+        }
     }
 
     private MechBoundUiState? _lastState;

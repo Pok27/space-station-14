@@ -217,7 +217,7 @@ public abstract partial class SharedMechSystem : EntitySystem
             _container.Insert(toInsert, component.EquipmentContainer);
             var ev = new MechEquipmentInsertedEvent(uid);
             RaiseLocalEvent(toInsert, ref ev);
-            RaiseLocalEvent(uid, new UpdateMechUiEvent());
+            UpdateMechUi(uid);
             return;
         }
 
@@ -239,7 +239,7 @@ public abstract partial class SharedMechSystem : EntitySystem
             _container.Insert(toInsert, component.ModuleContainer);
             var modEv = new MechModuleInsertedEvent(uid);
             RaiseLocalEvent(toInsert, ref modEv);
-            RaiseLocalEvent(uid, new UpdateMechUiEvent());
+            UpdateMechUi(uid);
             return;
         }
     }
@@ -277,7 +277,7 @@ public abstract partial class SharedMechSystem : EntitySystem
 
         equipmentComponent.EquipmentOwner = null;
         _container.Remove(toRemove, component.EquipmentContainer);
-        RaiseLocalEvent(uid, new UpdateMechUiEvent());
+        UpdateMechUi(uid);
     }
 
     /// <summary>
@@ -297,7 +297,7 @@ public abstract partial class SharedMechSystem : EntitySystem
 
         component.Energy = FixedPoint2.Clamp(component.Energy + delta, 0, component.MaxEnergy);
         Dirty(uid, component);
-        RaiseLocalEvent(uid, new UpdateMechUiEvent());
+        UpdateMechUi(uid);
         return true;
     }
 
@@ -325,6 +325,11 @@ public abstract partial class SharedMechSystem : EntitySystem
         }
 
         Dirty(uid, component);
+        UpdateMechUi(uid);
+    }
+
+    protected virtual void UpdateMechUi(EntityUid uid)
+    {
         RaiseLocalEvent(uid, new UpdateMechUiEvent());
     }
 

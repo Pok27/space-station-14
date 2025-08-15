@@ -87,7 +87,7 @@ public sealed class MechGrabberSystem : EntitySystem
 
         var offset = mechPos + mechRot.RotateVec(component.DepositOffset);
         _transform.SetWorldPositionRotation(toRemove, offset, Angle.Zero);
-        RaiseLocalEvent(mech, new UpdateMechUiEvent());
+        UpdateMechUi(mech);
     }
 
     private void OnEquipmentRemoved(EntityUid uid, MechGrabberComponent component, ref MechEquipmentRemovedEvent args)
@@ -195,5 +195,10 @@ public sealed class MechGrabberSystem : EntitySystem
         _mech.UpdateUserInterface(equipmentComponent.EquipmentOwner.Value);
 
         args.Handled = true;
+    }
+
+    private void UpdateMechUi(EntityUid uid)
+    {
+        RaiseLocalEvent(uid, new UpdateMechUiEvent());
     }
 }

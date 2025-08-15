@@ -19,23 +19,24 @@
                             Scale="1 1"
                             RectClipContent="True"/>
                 <RichTextLabel Name="EquipmentName"
-                               VerticalAlignment="Center"/>
-                <BoxContainer Orientation="Vertical"
-                              HorizontalExpand="True">
-                    <BoxContainer Orientation="Vertical"
-                                  HorizontalExpand="True"
-                                  HorizontalAlignment="Right"
-                                  VerticalAlignment="Center"
-                                  Margin="0 5">
+                               VerticalAlignment="Center"
+                               Margin="0 0 30 0"/>
+                <GridContainer Columns="2"
+                               HorizontalAlignment="Right"
+                               HorizontalExpand="True"
+                               Margin="0 5"
+                               MinSize="30 0">
+                    <BoxContainer VerticalAlignment="Center">
+                        <Label Name="EquipmentSize"
+                               MinSize="10 10"
+                               StyleClasses="WindowFooterText"/>
+                    </BoxContainer>
+                    <BoxContainer VerticalAlignment="Center">
                         <TextureButton Name="RemoveButton"
                                        MinSize="10 10"
                                        Scale="0.5 0.5"></TextureButton>
                     </BoxContainer>
-                    <Label Name="EquipmentSize"
-                           MinSize="10 10"
-                           HorizontalAlignment="Right"
-                           StyleClasses="WindowFooterText"/>
-                </BoxContainer>
+                </GridContainer>
             </BoxContainer>
             <customControls:HSeparator Name="Separator"
                                        StyleClasses="LowDivider"

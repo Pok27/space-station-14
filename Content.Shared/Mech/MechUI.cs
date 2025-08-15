@@ -205,6 +205,7 @@ public sealed class MechBoundUiState : BoundUserInterfaceState
     public MechFanState FanState = MechFanState.Off;
     public bool FilterEnabled;
     public float CabinGasLevel;
+    public float CabinTemperature;
     public float GasAmountLiters;
     public float TankPressure;
     public bool CabinPurgeAvailable;
