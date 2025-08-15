@@ -100,6 +100,13 @@ public sealed class MechEquipmentSystem : EntitySystem
         if (!TryComp<MechComponent>(mech, out var mechComp))
             return;
 
+        // Block install if mech is in critical state
+        if (mechComp.Critical)
+        {
+            _popup.PopupEntity(Loc.GetString("mech-cannot-insert-critical"), args.Args.User);
+            return;
+        }
+
         _popup.PopupEntity(Loc.GetString("mech-equipment-finish-install-popup", ("item", uid)), mech);
         _mechSystem.InsertEquipment(mech, uid, mechComp, component);
 

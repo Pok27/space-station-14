@@ -2,6 +2,8 @@ using System.Linq;
 using Content.Shared.Access.Components;
 using Content.Shared.ActionBlocker;
 using Content.Shared.Actions;
+using Content.Shared.Containers;
+using Content.Shared.Damage;
 using Content.Shared.Destructible;
 using Content.Shared.DoAfter;
 using Content.Shared.Body.Events;
@@ -15,17 +17,24 @@ using Content.Shared.Interaction.Events;
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.Equipment.Components;
 using Content.Shared.Movement.Components;
+using Content.Shared.Movement.Events;
 using Content.Shared.Movement.Systems;
-using Content.Shared.Weapons.Melee.Events;
+using Content.Shared.Popups;
 using Content.Shared.UserInterface;
 using Content.Shared.Weapons.Melee;
+using Content.Shared.Weapons.Melee.Events;
 using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Whitelist;
-using Robust.Shared.Containers;
 using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
+using Robust.Shared.Containers;
+using Robust.Shared.GameStates;
+using Robust.Shared.Map;
 using Robust.Shared.Network;
 using Robust.Shared.Serialization;
 using Robust.Shared.Timing;
+using Robust.Shared.Random;
+using System.Numerics;
 
 namespace Content.Shared.Mech.EntitySystems;
 
@@ -43,6 +52,7 @@ public abstract partial class SharedMechSystem : EntitySystem
     [Dependency] private readonly SharedMoverController _mover = default!;
     [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
     [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
+    [Dependency] private readonly IRobustRandom _random = default!;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -206,6 +216,10 @@ public abstract partial class SharedMechSystem : EntitySystem
         if (!Resolve(uid, ref component))
             return;
 
+        // Block insertion if mech is in critical state
+        if (component.Critical)
+            return;
+
         // Equipment
         if (Resolve(toInsert, ref equipmentComponent, false))
         {
@@ -325,7 +339,7 @@ public abstract partial class SharedMechSystem : EntitySystem
                 SetCriticalState(uid, component);
             }
             // If already in critical state, check if should be gibbed
-            else
+            else if (component.Critical)
             {
                 if (component.Integrity < -component.CriticalThreshold)
                 {
@@ -333,6 +347,10 @@ public abstract partial class SharedMechSystem : EntitySystem
                     RaiseLocalEvent(uid, ref gibEvent);
                     return;
                 }
+            }
+            else
+            {
+                SetCriticalState(uid, component);
             }
         }
         else if (component.Integrity > component.CriticalThreshold && component.Critical)
@@ -361,30 +379,66 @@ public abstract partial class SharedMechSystem : EntitySystem
             return;
 
         var pilot = component.PilotSlot.ContainedEntity;
+        var coords = EntityManager.GetComponent<TransformComponent>(uid).Coordinates;
 
         // In critical state, pilot stays but equipment, modules, and battery are ejected
         var equipment = new List<EntityUid>(component.EquipmentContainer.ContainedEntities);
         foreach (var ent in equipment)
         {
+            // Get current position before removing
+            var entTransform = EntityManager.GetComponent<TransformComponent>(ent);
+            var entCoords = entTransform.Coordinates;
+
+            // Remove from container
             RemoveEquipment(uid, ent, component, forced: true);
+
+            // Randomly scatter equipment in different directions from mech position
+            var randomOffset = new Vector2(
+                _random.NextFloat(-3f, 3f),
+                _random.NextFloat(-3f, 3f)
+            );
+            var scatterCoords = coords.Offset(randomOffset);
+            entTransform.Coordinates = scatterCoords;
         }
 
         var modules = new List<EntityUid>(component.ModuleContainer.ContainedEntities);
         foreach (var ent in modules)
         {
+            // Get current position before removing
+            var entTransform = EntityManager.GetComponent<TransformComponent>(ent);
+            var entCoords = entTransform.Coordinates;
+
+            // Remove from container
             _container.Remove(ent, component.ModuleContainer);
+
+            // Randomly scatter modules in different directions from mech position
+            var randomOffset = new Vector2(
+                _random.NextFloat(-3f, 3f),
+                _random.NextFloat(-3f, 3f)
+            );
+            var scatterCoords = coords.Offset(randomOffset);
+            entTransform.Coordinates = scatterCoords;
         }
 
         if (component.BatterySlot.ContainedEntity != null)
         {
             var battery = component.BatterySlot.ContainedEntity.Value;
+
+            // Get current position before removing
+            var batteryTransform = EntityManager.GetComponent<TransformComponent>(battery);
+
+            // Remove from container
             _container.Remove(battery, component.BatterySlot);
             component.Energy = 0;
             component.MaxEnergy = 0;
 
-            var coords = Transform(uid).Coordinates;
-            var batteryTransform = Transform(battery);
-            batteryTransform.Coordinates = coords;
+            // Randomly scatter battery in different direction from mech position
+            var randomOffset = new Vector2(
+                _random.NextFloat(-3f, 3f),
+                _random.NextFloat(-3f, 3f)
+            );
+            var scatterCoords = coords.Offset(randomOffset);
+            batteryTransform.Coordinates = scatterCoords;
         }
 
         // Ensure pilot stays in the mech

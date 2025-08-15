@@ -307,6 +307,7 @@
     brokenState: honker-broken
     mechToPilotDamageMultiplier: 0.5
     airtight: true # Space Honks is real.
+    criticalSound: /Audio/Effects/sadtrombone.ogg
     pilotWhitelist:
       components:
       - HumanoidAppearance

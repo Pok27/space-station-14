@@ -1,4 +1,5 @@
 using Content.Server.Mech.Components;
+using Content.Server.Mech.Equipment.Components;
 using Content.Server.Power.Components;
 using Content.Server.Power.EntitySystems;
 using Content.Shared.ActionBlocker;
@@ -77,7 +78,7 @@ public sealed partial class MechSystem : SharedMechSystem
 
     private void OnMechCanMoveEvent(EntityUid uid, MechComponent component, UpdateCanMoveEvent args)
     {
-        if (component.Broken || component.Integrity <= 0 || component.Energy <= 0 || component.Critical)
+        if (component.Broken || component.Integrity <= 0 || component.Energy <= 0)
             args.Cancel();
 
         // Only block movement if locks are active and pilot lacks access
@@ -93,10 +94,14 @@ public sealed partial class MechSystem : SharedMechSystem
         if (TryComp<WiresPanelComponent>(uid, out var panel) && !panel.Open)
             return;
 
-
-
         if (component.BatterySlot.ContainedEntity == null && TryComp<BatteryComponent>(args.Used, out var battery))
         {
+            if (component.Critical)
+            {
+                _popup.PopupEntity(Loc.GetString("mech-cannot-insert-critical"), uid, args.User);
+                return;
+            }
+
             InsertBattery(uid, args.Used, component, battery);
             _actionBlocker.UpdateCanMove(uid);
             return;
@@ -356,6 +361,12 @@ public sealed partial class MechSystem : SharedMechSystem
         if (!Resolve(toInsert, ref battery, false))
             return;
 
+        if (component.Critical)
+        {
+            _popup.PopupEntity(Loc.GetString("mech-cannot-insert-critical"), uid, toInsert);
+            return;
+        }
+
         _container.Insert(toInsert, component.BatterySlot);
         component.Energy = battery.CurrentCharge;
         component.MaxEnergy = battery.MaxCharge;
@@ -393,9 +404,6 @@ public sealed partial class MechSystem : SharedMechSystem
     public override bool CanInsert(EntityUid uid, EntityUid toInsert, MechComponent? component = null)
     {
         if (!Resolve(uid, ref component))
-            return false;
-
-        if (component.Critical && !HasComp<MechPilotComponent>(toInsert))
             return false;
 
         return base.CanInsert(uid, toInsert, component) && _actionBlocker.CanMove(toInsert);

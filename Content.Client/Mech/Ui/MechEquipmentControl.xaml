@@ -29,7 +29,8 @@
                     <BoxContainer VerticalAlignment="Center">
                         <Label Name="EquipmentSize"
                                MinSize="10 10"
-                               StyleClasses="WindowFooterText"/>
+                               StyleClasses="WindowFooterText"
+                               FontColorOverride="DarkGray"/>
                     </BoxContainer>
                     <BoxContainer VerticalAlignment="Center">
                         <TextureButton Name="RemoveButton"
