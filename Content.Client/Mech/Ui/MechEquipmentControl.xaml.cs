@@ -54,7 +54,7 @@ public sealed partial class MechEquipmentControl : Control
 
         // Configure remove button
         RemoveButton.TexturePath = "/Textures/Interface/Nano/cross.svg.png";
-        SetRemoveDisabled(true); // Default to disabled until access is verified
+        SetRemoveDisabled(true);
 
         // Wire up events
         RemoveButton.OnPressed += _ => OnRemoveButtonPressed?.Invoke();
@@ -62,7 +62,7 @@ public sealed partial class MechEquipmentControl : Control
 
     private void AddChildWithMargins(Control child)
     {
-        child.Margin = new Thickness(0, 0, 0, 2);
+        child.Margin = new Thickness(3);
         CustomControlContainer.AddChild(child);
     }
 
@@ -74,10 +74,10 @@ public sealed partial class MechEquipmentControl : Control
 
         // Update fragment if provided
         CustomControlContainer.Children.Clear();
-        var showSeparator = false;
+        var showContainer = false;
         if (fragment != null)
         {
-            showSeparator = true;
+            showContainer = true;
             AddChildWithMargins(fragment);
         }
 
@@ -86,10 +86,11 @@ public sealed partial class MechEquipmentControl : Control
         _entMan.EventBus.RaiseLocalEvent(Entity, status);
         foreach (var control in status.Controls)
         {
-            showSeparator = true;
+            showContainer = true;
             AddChildWithMargins(control);
         }
 
-        Separator.Visible = showSeparator;
+        CustomControlContainer.Visible = showContainer;
+        Separator.Visible = showContainer;
     }
 }

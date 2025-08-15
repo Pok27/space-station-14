@@ -9,6 +9,7 @@ using Robust.Shared.Prototypes;
 using Content.Shared.Access;
 using System.Linq;
 using System.Collections.Generic;
+using Content.Shared.Emag.Systems;
 
 namespace Content.Shared.Mech.EntitySystems;
 
@@ -19,17 +20,48 @@ public abstract partial class SharedMechLockSystem : EntitySystem
 {
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
+    [Dependency] private readonly EmagSystem _emag = default!;
 
     public override void Initialize()
     {
         base.Initialize();
 
         SubscribeLocalEvent<MechLockComponent, ComponentStartup>(OnLockStartup);
+        SubscribeLocalEvent<MechLockComponent, GotEmaggedEvent>(OnEmagged);
     }
 
     private void OnLockStartup(EntityUid uid, MechLockComponent component, ComponentStartup args)
     {
         UpdateLockState(uid, component);
+    }
+
+    /// <summary>
+    /// AccessBreaker support: clears mech locks on EmagType.Access, same as doors.
+    /// </summary>
+    private void OnEmagged(EntityUid uid, MechLockComponent component, ref GotEmaggedEvent args)
+    {
+        if (!_emag.CompareFlag(args.Type, EmagType.Access))
+            return;
+
+        var anyLockedOrRegistered = component.IsLocked || component.DnaLockRegistered || component.CardLockRegistered || component.DnaLockActive || component.CardLockActive;
+        if (!anyLockedOrRegistered)
+            return;
+
+        // Reset both lock types completely
+        component.DnaLockRegistered = false;
+        component.DnaLockActive = false;
+        component.OwnerDna = null;
+
+        component.CardLockRegistered = false;
+        component.CardLockActive = false;
+        component.OwnerJobTitle = null;
+        component.CardAccessTags = null;
+
+        UpdateLockState(uid, component);
+        UpdateMechUI(uid);
+
+        args.Handled = true;
+        args.Repeatable = true;
     }
 
     /// <summary>
@@ -78,7 +110,7 @@ public abstract partial class SharedMechLockSystem : EntitySystem
 
         // Access denied - show popup and play sound
         _popup.PopupEntity(Loc.GetString("mech-lock-access-denied-popup"), uid, user);
-        _audio.PlayPvs(new SoundPathSpecifier("/Audio/Machines/airlock_deny.ogg"), uid, AudioParams.Default.WithVolume(-5f));
+        _audio.PlayPvs(new SoundPathSpecifier("/Audio/Machines/custom_deny.ogg"), uid, AudioParams.Default.WithVolume(-5f));
         return false;
     }
 

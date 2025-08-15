@@ -35,6 +35,8 @@ using Robust.Shared.Serialization;
 using Robust.Shared.Timing;
 using Robust.Shared.Random;
 using System.Numerics;
+using Content.Shared.Throwing;
+using Robust.Shared.Maths;
 
 namespace Content.Shared.Mech.EntitySystems;
 
@@ -53,6 +55,7 @@ public abstract partial class SharedMechSystem : EntitySystem
     [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
     [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private readonly ThrowingSystem _throwing = default!;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -369,6 +372,16 @@ public abstract partial class SharedMechSystem : EntitySystem
     }
 
     /// <summary>
+    /// Throws an entity away from the mech in a random direction at a random speed.
+    /// </summary>
+    private void ScatterEntityFromMech(EntityUid mech, EntityUid ent, float minSpeed = 4f, float maxSpeed = 7f)
+    {
+        var direction = _random.NextAngle().ToWorldVec();
+        var speed = _random.NextFloat(minSpeed, maxSpeed);
+        _throwing.TryThrow(ent, direction, speed);
+    }
+
+    /// <summary>
     /// Sets the mech to critical state (destroyed but can be repaired).
     /// </summary>
     /// <param name="uid">The mech itself</param>
@@ -379,66 +392,33 @@ public abstract partial class SharedMechSystem : EntitySystem
             return;
 
         var pilot = component.PilotSlot.ContainedEntity;
-        var coords = EntityManager.GetComponent<TransformComponent>(uid).Coordinates;
 
         // In critical state, pilot stays but equipment, modules, and battery are ejected
         var equipment = new List<EntityUid>(component.EquipmentContainer.ContainedEntities);
         foreach (var ent in equipment)
         {
-            // Get current position before removing
-            var entTransform = EntityManager.GetComponent<TransformComponent>(ent);
-            var entCoords = entTransform.Coordinates;
-
-            // Remove from container
+            // Remove from container and throw from mech position
             RemoveEquipment(uid, ent, component, forced: true);
-
-            // Randomly scatter equipment in different directions from mech position
-            var randomOffset = new Vector2(
-                _random.NextFloat(-3f, 3f),
-                _random.NextFloat(-3f, 3f)
-            );
-            var scatterCoords = coords.Offset(randomOffset);
-            entTransform.Coordinates = scatterCoords;
+            ScatterEntityFromMech(uid, ent);
         }
 
         var modules = new List<EntityUid>(component.ModuleContainer.ContainedEntities);
         foreach (var ent in modules)
         {
-            // Get current position before removing
-            var entTransform = EntityManager.GetComponent<TransformComponent>(ent);
-            var entCoords = entTransform.Coordinates;
-
-            // Remove from container
+            // Remove from container and throw from mech position
             _container.Remove(ent, component.ModuleContainer);
-
-            // Randomly scatter modules in different directions from mech position
-            var randomOffset = new Vector2(
-                _random.NextFloat(-3f, 3f),
-                _random.NextFloat(-3f, 3f)
-            );
-            var scatterCoords = coords.Offset(randomOffset);
-            entTransform.Coordinates = scatterCoords;
+            ScatterEntityFromMech(uid, ent);
         }
 
         if (component.BatterySlot.ContainedEntity != null)
         {
             var battery = component.BatterySlot.ContainedEntity.Value;
 
-            // Get current position before removing
-            var batteryTransform = EntityManager.GetComponent<TransformComponent>(battery);
-
-            // Remove from container
+            // Remove from container and throw from mech position
             _container.Remove(battery, component.BatterySlot);
             component.Energy = 0;
             component.MaxEnergy = 0;
-
-            // Randomly scatter battery in different direction from mech position
-            var randomOffset = new Vector2(
-                _random.NextFloat(-3f, 3f),
-                _random.NextFloat(-3f, 3f)
-            );
-            var scatterCoords = coords.Offset(randomOffset);
-            batteryTransform.Coordinates = scatterCoords;
+            ScatterEntityFromMech(uid, battery);
         }
 
         // Ensure pilot stays in the mech

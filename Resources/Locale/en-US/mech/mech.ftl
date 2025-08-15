@@ -22,7 +22,7 @@ mech-radial-no-equipment = No Equipment
 # Status displays
 mech-integrity-display-label = Integrity
 mech-integrity-display = {$amount} %
-mech-integrity-display-critical = {$amount} % (CRITICAL)
+mech-integrity-display-critical = CRITICAL
 mech-energy-display-label = Energy
 mech-energy-display = {$amount} %
 mech-energy-missing = MISSING
