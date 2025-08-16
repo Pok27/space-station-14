@@ -2,13 +2,11 @@ using Content.Shared.Access.Components;
 using Content.Shared.Forensics.Components;
 using Content.Shared.Mech.Components;
 using Content.Shared.Popups;
-using Content.Shared.Audio;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Prototypes;
 using Content.Shared.Access;
 using System.Linq;
-using System.Collections.Generic;
 using Content.Shared.Emag.Systems;
 
 namespace Content.Shared.Mech.EntitySystems;
@@ -354,12 +352,7 @@ public abstract partial class SharedMechLockSystem : EntitySystem
 /// <summary>
 /// Event raised when the mech lock state changes
 /// </summary>
-public sealed class MechLockStateChangedEvent : EntityEventArgs
+public sealed class MechLockStateChangedEvent(bool isLocked) : EntityEventArgs
 {
-    public bool IsLocked { get; }
-
-    public MechLockStateChangedEvent(bool isLocked)
-    {
-        IsLocked = isLocked;
-    }
+    public bool IsLocked { get; } = isLocked;
 }
