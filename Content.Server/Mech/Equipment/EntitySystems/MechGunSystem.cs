@@ -3,11 +3,8 @@ using Content.Server.Power.Components;
 using Content.Server.Power.EntitySystems;
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.Equipment.Components;
-using Content.Shared.Throwing;
 using Content.Shared.Weapons.Ranged.Systems;
 using Robust.Shared.Containers;
-using Robust.Shared.Random;
-using Content.Server.Power.Components; // ChargerComponent
 using Content.Shared.Whitelist;
 
 namespace Content.Server.Mech.Equipment.EntitySystems;
@@ -45,9 +42,6 @@ public sealed class MechGunSystem : EntitySystem
             var container = _containers.TryGetContainer(mechUid, charger.SlotId, out var cont)
                 ? cont
                 : mech.EquipmentContainer;
-
-            if (container == null)
-                continue;
 
             // Charge all weapons in the container
             foreach (var weapon in container.ContainedEntities)

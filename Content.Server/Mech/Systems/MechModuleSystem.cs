@@ -120,14 +120,8 @@ public sealed class MechModuleSystem : EntitySystem
             return;
 
         _popup.PopupEntity(Loc.GetString("mech-equipment-finish-install-popup", ("item", uid)), mech);
-        _container.Insert(uid, mechComp.ModuleContainer);
-        UpdateMechUi(mech);
+        EntityManager.System<MechSystem>().InsertEquipment(mech, uid, mechComp);
 
         args.Handled = true;
-    }
-
-    private void UpdateMechUi(EntityUid uid)
-    {
-        RaiseLocalEvent(uid, new UpdateMechUiEvent());
     }
 }

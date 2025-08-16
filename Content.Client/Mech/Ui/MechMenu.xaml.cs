@@ -61,7 +61,7 @@ public sealed partial class MechMenu : FancyWindow
         this.SetInfoFromEntity(_entityManager, _mech);
         MechView.SetEntity(entity);
 
-        NameLabel.Text = _entityManager.GetComponent<MetaDataComponent>(_mech).EntityName;
+        MechName.Text = _entityManager.GetComponent<MetaDataComponent>(_mech).EntityName;
     }
 
     public void SetParentBui(BoundUserInterface parentBui)
@@ -169,7 +169,7 @@ public sealed partial class MechMenu : FancyWindow
         if (state.HasGasModule)
         {
             TankPressureLabel.Text = _loc.GetString("mech-tank-pressure-level", ("state", "ok"), ("pressure", state.TankPressure.ToString("0.##")));
-            TankPressureLabel.FontColorOverride = Color.White;
+            TankPressureLabel.FontColorOverride = Color.LightSkyBlue;
         }
         else
         {

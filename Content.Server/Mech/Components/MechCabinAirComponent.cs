@@ -1,5 +1,4 @@
 using Content.Shared.Atmos;
-using Robust.Shared.GameStates;
 
 namespace Content.Server.Mech.Components;
 

@@ -146,14 +146,6 @@ public sealed class MechInterfaceSystem : EntitySystem
         UpdateMechUi(ent);
     }
 
-    /// <summary>
-    /// Gets the first user from the UI session
-    /// </summary>
-    private EntityUid GetFirstUiActor(EntityUid uid)
-    {
-        var actors = _uiSystem.GetActors(uid, MechUiKey.Key).ToList();
-        return actors.Count > 0 ? actors[0] : EntityUid.Invalid;
-    }
 
     private void HandleDnaLockRegister(Entity<MechComponent> ent, ref MechDnaLockRegisterMessage args)
     {

@@ -192,7 +192,7 @@ public sealed class MechGrabberSystem : EntitySystem
             return;
 
         _container.Insert(args.Args.Target.Value, component.ItemContainer);
-        _mech.UpdateUserInterface(equipmentComponent.EquipmentOwner.Value);
+        UpdateMechUi(equipmentComponent.EquipmentOwner.Value);
 
         args.Handled = true;
     }

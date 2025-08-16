@@ -8,7 +8,6 @@ using Content.Shared.Mech;
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.EntitySystems;
 using Robust.Server.GameObjects;
-using Content.Shared.Atmos;
 
 namespace Content.Server.Mech.Systems;
 

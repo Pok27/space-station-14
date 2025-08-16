@@ -24,18 +24,10 @@ using Robust.Server.GameObjects;
 using Robust.Shared.Containers;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
-using Content.Server.Access.Systems;
-using Content.Server.Forensics;
-using Content.Shared.Forensics.Components;
-using Content.Shared.Access.Systems;
-using Content.Shared.Mech.Equipment.Components;
-using Content.Shared.UserInterface;
-using Robust.Shared.Audio.Systems;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Atmos;
-using Content.Server.Atmos.EntitySystems;
 using Content.Shared.Body.Events;
-using Robust.Shared.Prototypes;
+using Robust.Shared.Audio.Systems;
 
 namespace Content.Server.Mech.Systems;
 
@@ -50,7 +42,6 @@ public sealed partial class MechSystem : SharedMechSystem
     [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
     [Dependency] private readonly SharedToolSystem _toolSystem = default!;
     [Dependency] private readonly MechLockSystem _lockSystem = default!;
-    [Dependency] private readonly TransformSystem _transform = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
 
     private static readonly ProtoId<ToolQualityPrototype> PryingQuality = "Prying";

@@ -3,8 +3,8 @@
                       xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
                       xmlns:customControls="clr-namespace:Content.Client.Administration.UI.CustomControls"
                       Title="{Loc 'mech-menu-title'}"
-                      MinSize="600 540"
-                      SetSize="720 540">
+                      MinSize="600 500"
+                      SetSize="720 500">
     <BoxContainer Orientation="Horizontal"
                   HorizontalExpand="True"
                   VerticalExpand="True"
@@ -15,46 +15,37 @@
                       VerticalExpand="True"
                       HorizontalExpand="False"
                       Margin="0 0 4 0"
-                      SetWidth="380">
-            <BoxContainer Orientation="Horizontal"
-                          Margin="0 0 0 6">
-                <controls:StripeBack HorizontalExpand="True">
-                    <PanelContainer>
-                        <PanelContainer.PanelOverride>
-                            <gfx:StyleBoxFlat BackgroundColor="#101012"/>
-                        </PanelContainer.PanelOverride>
-                        <RichTextLabel Name="NameLabel"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       Margin="6 4 6 4"/>
-                    </PanelContainer>
-                </controls:StripeBack>
-            </BoxContainer>
+                      MinWidth="380">
 
             <!-- Mech sprite and statistics -->
-            <PanelContainer VerticalExpand="False"
-                            Margin="0 0 0 5">
+            <PanelContainer Margin="0 0 0 5">
                 <PanelContainer.PanelOverride>
                     <gfx:StyleBoxFlat BackgroundColor="#1B1B1E"/>
                 </PanelContainer.PanelOverride>
 
-                <BoxContainer Orientation="Horizontal"
-                              HorizontalExpand="True"
-                              VerticalAlignment="Center"
-                              Margin="8">
-                    <!-- Sprite -->
-                    <BoxContainer Orientation="Horizontal"
-                                  HorizontalExpand="False"
-                                  VerticalExpand="False">
-                        <SpriteView Name="MechView"
-                                    Scale="4 4"/>
+                <GridContainer Columns="2"
+                               Margin="8">
+                    <!-- Name and Sprite -->
+                    <BoxContainer Orientation="Vertical"
+                                  VerticalExpand="True">
+                        <BoxContainer HorizontalExpand="True"
+                                      HorizontalAlignment="Center">
+                            <Label Name="MechName"
+                                   StyleClasses="LabelHeading"/>
+                        </BoxContainer>
+                        <BoxContainer HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      VerticalExpand="True">
+                            <SpriteView Name="MechView"
+                                        Scale="4 4"/>
+                        </BoxContainer>
                     </BoxContainer>
 
                     <!-- Stats -->
                     <BoxContainer Orientation="Vertical"
                                   HorizontalExpand="True"
                                   VerticalExpand="True"
-                                  Margin="8 0 0 0">
+                                  Margin="10 0 0 0">
                         <!-- Integrity -->
                         <Label StyleClasses="StatusFieldTitle"
                                Text="{Loc 'mech-integrity-display-label'}"/>
@@ -97,12 +88,14 @@
                                     <Label Text="{Loc 'mech-cabin-pressure-label'}"
                                            StyleClasses="StatusFieldTitle"/>
                                     <Label Name="CabinGasLabel"
-                                           SetHeight="18"/>
+                                           SetHeight="18"
+                                           FontColorOverride="LightSkyBlue"/>
 
                                     <Label Text="{Loc 'mech-tank-pressure-label'}"
                                            StyleClasses="StatusFieldTitle"/>
                                     <Label Name="TankPressureLabel"
-                                           SetHeight="18"/>
+                                           SetHeight="18"
+                                           FontColorOverride="LightSkyBlue"/>
 
                                     <Label Text="{Loc 'mech-fan-status-label'}"
                                            StyleClasses="StatusFieldTitle"/>
@@ -112,7 +105,7 @@
                             </BoxContainer>
                         </PanelContainer>
                     </BoxContainer>
-                </BoxContainer>
+                </GridContainer>
             </PanelContainer>
 
             <!-- Settings -->

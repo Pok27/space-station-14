@@ -31,14 +31,14 @@ mech-module-slot-display = Modules: {$used}/{$max} used
 mech-grabber-capacity = {$current}/{$max}
 
 # Atmospheric system
-mech-cabin-pressure-label = Cabin Pressure:
+mech-cabin-pressure-label = Cabin Air:
 mech-cabin-pressure-level = {$level} kPa
 mech-cabin-temperature-label = Temperature:
 mech-cabin-temperature-level = {$tempC} °C
 mech-air-toggle = Toggle
 mech-cabin-purge = Purge
 
-mech-tank-pressure-label = Tank Pressure:
+mech-tank-pressure-label = Tank Air:
 mech-tank-pressure-level = { $state ->
     [ok] {$pressure} kPa
     *[na] N/A
