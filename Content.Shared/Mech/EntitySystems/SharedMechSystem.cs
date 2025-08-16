@@ -31,6 +31,7 @@ using Robust.Shared.Timing;
 using Robust.Shared.Random;
 using Content.Shared.Throwing;
 using Robust.Shared.Maths;
+using Content.Shared.Repairable.Events;
 
 namespace Content.Shared.Mech.EntitySystems;
 
@@ -68,8 +69,10 @@ public abstract partial class SharedMechSystem : EntitySystem
         SubscribeLocalEvent<MechPilotComponent, GetActiveWeaponEvent>(OnGetActiveWeapon);
         SubscribeLocalEvent<MechPilotComponent, GetShootingEntityEvent>(OnGetShootingEntity);
         SubscribeLocalEvent<MechPilotComponent, GetProjectileShooterEvent>(OnGetProjectileShooter);
+
         SubscribeLocalEvent<MechPilotComponent, CanAttackFromContainerEvent>(OnCanAttackFromContainer);
         SubscribeLocalEvent<MechPilotComponent, AttackAttemptEvent>(OnAttackAttempt);
+        SubscribeLocalEvent<MechComponent, RepairAttemptEvent>(OnRepairAttempt);
 
         SubscribeLocalEvent<MechEquipmentComponent, ShotAttemptedEvent>(OnMechEquipmentShotAttempt);
         SubscribeLocalEvent<MechEquipmentComponent, AttemptMeleeEvent>(OnMechEquipmentMeleeAttempt);
@@ -195,7 +198,6 @@ public abstract partial class SharedMechSystem : EntitySystem
             _container.Remove(ent, component.ModuleContainer);
         }
 
-        component.Broken = true;
         UpdateAppearance(uid, component);
     }
 
@@ -230,7 +232,7 @@ public abstract partial class SharedMechSystem : EntitySystem
             _container.Insert(toInsert, component.EquipmentContainer);
             var ev = new MechEquipmentInsertedEvent(uid);
             RaiseLocalEvent(toInsert, ref ev);
-            UpdateMechUi(uid);
+            UpdateUserInterface(uid);
             return;
         }
 
@@ -252,7 +254,7 @@ public abstract partial class SharedMechSystem : EntitySystem
             _container.Insert(toInsert, component.ModuleContainer);
             var modEv = new MechModuleInsertedEvent(uid);
             RaiseLocalEvent(toInsert, ref modEv);
-            UpdateMechUi(uid);
+            UpdateUserInterface(uid);
             return;
         }
     }
@@ -290,7 +292,7 @@ public abstract partial class SharedMechSystem : EntitySystem
 
         equipmentComponent.EquipmentOwner = null;
         _container.Remove(toRemove, component.EquipmentContainer);
-        UpdateMechUi(uid);
+        UpdateUserInterface(uid);
     }
 
     /// <summary>
@@ -310,7 +312,7 @@ public abstract partial class SharedMechSystem : EntitySystem
 
         component.Energy = FixedPoint2.Clamp(component.Energy + delta, 0, component.MaxEnergy);
         Dirty(uid, component);
-        UpdateMechUi(uid);
+        UpdateUserInterface(uid);
         return true;
     }
 
@@ -330,13 +332,8 @@ public abstract partial class SharedMechSystem : EntitySystem
         // Handle critical state transitions based on integrity
         if (component.Integrity <= 0)
         {
-            // If already broken, go to critical state
-            if (component.Broken)
-            {
-                SetCriticalState(uid, component);
-            }
             // If already in critical state, check if should be gibbed
-            else if (component.Critical)
+            if (component.Critical)
             {
                 if (component.Integrity < -component.CriticalThreshold)
                 {
@@ -353,16 +350,12 @@ public abstract partial class SharedMechSystem : EntitySystem
         else if (component.Integrity > component.CriticalThreshold && component.Critical)
         {
             component.Critical = false;
-            UpdateAppearance(uid, component);
-        }
-        else if (component.Integrity > 0 && component.Broken)
-        {
-            component.Broken = false;
+
             UpdateAppearance(uid, component);
         }
 
         Dirty(uid, component);
-        UpdateMechUi(uid);
+        UpdateUserInterface(uid);
     }
 
     /// <summary>
@@ -422,10 +415,9 @@ public abstract partial class SharedMechSystem : EntitySystem
         }
 
         component.Critical = true;
-        component.Broken = false;
         UpdateAppearance(uid, component);
         Dirty(uid, component);
-        UpdateMechUi(uid);
+        UpdateUserInterface(uid);
 
         // Play critical sound
         if (component.CriticalSound != null)
@@ -435,9 +427,30 @@ public abstract partial class SharedMechSystem : EntitySystem
         }
     }
 
-    protected virtual void UpdateMechUi(EntityUid uid)
+    /// <summary>
+    /// Repairs a mech that is in critical state, restoring it to normal operation.
+    /// </summary>
+    /// <param name="uid">The mech itself</param>
+    /// <param name="component"></param>
+    public void RepairMech(EntityUid uid, MechComponent? component = null)
     {
-        RaiseLocalEvent(uid, new UpdateMechUiEvent());
+        if (!Resolve(uid, ref component))
+            return;
+
+        if (!component.Critical)
+            return;
+
+        // Restore integrity to a safe level above critical threshold
+        var repairAmount = component.MaxIntegrity;
+        SetIntegrity(uid, repairAmount, component);
+
+        // Reset critical state
+        component.Critical = false;
+
+        // Update appearance and UI
+        UpdateAppearance(uid, component);
+        Dirty(uid, component);
+        UpdateUserInterface(uid);
     }
 
     /// <summary>
@@ -479,6 +492,7 @@ public abstract partial class SharedMechSystem : EntitySystem
     /// </remarks>
     public virtual void UpdateUserInterface(EntityUid uid, MechComponent? component = null)
     {
+        RaiseLocalEvent(uid, new UpdateMechUiEvent());
     }
 
     /// <summary>
@@ -585,6 +599,18 @@ public abstract partial class SharedMechSystem : EntitySystem
             args.Cancel();
     }
 
+    private void OnRepairAttempt(EntityUid uid, MechComponent component, ref RepairAttemptEvent args)
+    {
+        if (args.Cancelled)
+            return;
+
+        if (component.Critical)
+        {
+            args.Cancelled = true;
+            return;
+        }
+    }
+
     private void OnMechEquipmentShotAttempt(Entity<MechEquipmentComponent> ent, ref ShotAttemptedEvent args)
     {
         if (!ent.Comp.BlockUseOutsideMech)
@@ -616,7 +642,7 @@ public abstract partial class SharedMechSystem : EntitySystem
             return;
 
         _appearance.SetData(uid, MechVisuals.Open, IsEmpty(component), appearance);
-        _appearance.SetData(uid, MechVisuals.Broken, component.Broken, appearance);
+        _appearance.SetData(uid, MechVisuals.Critical, component.Critical, appearance);
     }
 
     private void OnDragDrop(EntityUid uid, MechComponent component, ref DragDropTargetEvent args)
@@ -638,7 +664,7 @@ public abstract partial class SharedMechSystem : EntitySystem
     {
         args.Handled = true;
 
-        args.CanDrop |= !component.Broken && CanInsert(uid, args.Dragged, component);
+        args.CanDrop |= CanInsert(uid, args.Dragged, component);
     }
 
     private void OnEmagged(EntityUid uid, MechComponent component, ref GotEmaggedEvent args)

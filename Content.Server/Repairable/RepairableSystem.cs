@@ -4,6 +4,7 @@ using Content.Shared.Database;
 using Content.Shared.Interaction;
 using Content.Shared.Popups;
 using Content.Shared.Repairable;
+using Content.Shared.Repairable.Events;
 using SharedToolSystem = Content.Shared.Tools.Systems.SharedToolSystem;
 
 namespace Content.Server.Repairable
@@ -54,6 +55,12 @@ namespace Content.Server.Repairable
         public async void Repair(EntityUid uid, RepairableComponent component, InteractUsingEvent args)
         {
             if (args.Handled)
+                return;
+
+            // Raise repair attempt event
+            var ev = new RepairAttemptEvent(args.User);
+            RaiseLocalEvent(uid, ref ev);
+            if (ev.Cancelled)
                 return;
 
             // Only try repair the target if it is damaged

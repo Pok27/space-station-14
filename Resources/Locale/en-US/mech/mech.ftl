@@ -100,5 +100,5 @@ mech-lock-not-set = Not set
 mech-settings-no-access = Access denied. You do not have permission to change settings.
 mech-remove-disabled-tooltip = Cannot remove while a pilot is inside.
 
-# Critical state messages
+# Critical state
 mech-cannot-insert-critical = You cannot insert anything while the mech is in critical state.

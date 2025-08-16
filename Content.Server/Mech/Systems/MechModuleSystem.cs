@@ -33,9 +33,6 @@ public sealed class MechModuleSystem : EntitySystem
         if (!TryComp<MechComponent>(mech, out var mechComp))
             return;
 
-        if (mechComp.Broken)
-            return;
-
         // Block install if mech is in critical state
         if (mechComp.Critical)
         {

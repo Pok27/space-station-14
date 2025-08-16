@@ -52,7 +52,7 @@ public sealed partial class MechComponent : Component
     /// Critical state is between 0 HP and this value.
     /// </summary>
     [DataField, ViewVariables(VVAccess.ReadWrite)]
-    public FixedPoint2 CriticalThreshold = 50;
+    public FixedPoint2 CriticalThreshold = 25;
 
     /// <summary>
     /// Sound played when entering critical state.
@@ -75,12 +75,6 @@ public sealed partial class MechComponent : Component
     /// </summary>
     [DataField, ViewVariables(VVAccess.ReadWrite)]
     public float MechToPilotDamageMultiplier;
-
-    /// <summary>
-    /// Whether the mech has been destroyed and is no longer pilotable.
-    /// </summary>
-    [ViewVariables(VVAccess.ReadWrite), AutoNetworkedField]
-    public bool Broken = false;
 
     /// <summary>
     /// Whether the mech is in a critical state.

@@ -69,7 +69,7 @@ public sealed partial class MechSystem : SharedMechSystem
 
     private void OnMechCanMoveEvent(EntityUid uid, MechComponent component, UpdateCanMoveEvent args)
     {
-        if (component.Broken || component.Integrity <= 0 || component.Energy <= 0)
+        if (component.Integrity <= 0 || component.Energy <= 0)
             args.Cancel();
     }
 
@@ -214,7 +214,7 @@ public sealed partial class MechSystem : SharedMechSystem
 
     private void OnAlternativeVerb(EntityUid uid, MechComponent component, GetVerbsEvent<AlternativeVerb> args)
     {
-        if (!args.CanAccess || !args.CanInteract || component.Broken)
+        if (!args.CanAccess || !args.CanInteract)
             return;
 
         // Always add UI open verb
@@ -384,6 +384,14 @@ public sealed partial class MechSystem : SharedMechSystem
             return false;
 
         return base.CanInsert(uid, toInsert, component) && _actionBlocker.CanMove(toInsert);
+    }
+
+    /// <summary>
+    /// Repairs a mech that is in critical state, restoring it to normal operation.
+    /// </summary>
+    public void RepairMech(EntityUid uid, MechComponent? component = null)
+    {
+        base.RepairMech(uid, component);
     }
 
     private void OnEquipmentSelectRequest(RequestMechEquipmentSelectEvent args, EntitySessionEventArgs session)

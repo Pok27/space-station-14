@@ -87,15 +87,15 @@
 
                                     <Label Text="{Loc 'mech-cabin-pressure-label'}"
                                            StyleClasses="StatusFieldTitle"/>
-                                    <Label Name="CabinGasLabel"
+                                    <Label Name="CabinPressureLabel"
                                            SetHeight="18"
-                                           FontColorOverride="LightSkyBlue"/>
+                                           FontColorOverride="LightGray"/>
 
                                     <Label Text="{Loc 'mech-tank-pressure-label'}"
                                            StyleClasses="StatusFieldTitle"/>
                                     <Label Name="TankPressureLabel"
                                            SetHeight="18"
-                                           FontColorOverride="LightSkyBlue"/>
+                                           FontColorOverride="LightGray"/>
 
                                     <Label Text="{Loc 'mech-fan-status-label'}"
                                            StyleClasses="StatusFieldTitle"/>

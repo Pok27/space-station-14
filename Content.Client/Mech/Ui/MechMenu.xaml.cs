@@ -160,7 +160,7 @@ public sealed partial class MechMenu : FancyWindow
                 FilterEnabledCheck.Pressed = state.FilterEnabled;
         }
 
-        CabinGasLabel.Text = _loc.GetString("mech-cabin-pressure-level", ("level", $"{state.CabinGasLevel:F1}"));
+        CabinPressureLabel.Text = _loc.GetString("mech-cabin-pressure-level", ("level", $"{state.CabinPressureLevel:F1}"));
 
         // Display temperature in Celsius
         var tempC = Content.Shared.Temperature.TemperatureHelpers.KelvinToCelsius(state.CabinTemperature);
@@ -168,8 +168,8 @@ public sealed partial class MechMenu : FancyWindow
 
         if (state.HasGasModule)
         {
-            TankPressureLabel.Text = _loc.GetString("mech-tank-pressure-level", ("state", "ok"), ("pressure", state.TankPressure.ToString("0.##")));
-            TankPressureLabel.FontColorOverride = Color.LightSkyBlue;
+            TankPressureLabel.Text = _loc.GetString("mech-tank-pressure-level", ("state", "ok"), ("pressure", $"{state.TankPressure:F1}"));
+            TankPressureLabel.FontColorOverride = Color.LightGray;
         }
         else
         {

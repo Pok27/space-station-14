@@ -339,7 +339,7 @@ public sealed class MechInterfaceSystem : EntitySystem
             FanActive = fanActive,
             FanState = fanState,
             FilterEnabled = filterEnabled,
-            CabinGasLevel = cabinPressure,
+            CabinPressureLevel = cabinPressure,
             CabinTemperature = cabinTemperature,
             GasAmountLiters = gasAmountLiters,
             TankPressure = tankPressure,
