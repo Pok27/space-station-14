@@ -80,13 +80,6 @@ public sealed partial class MechSystem : SharedMechSystem
     {
         if (component.Broken || component.Integrity <= 0 || component.Energy <= 0)
             args.Cancel();
-
-        // Only block movement if locks are active and pilot lacks access
-        if (component.PilotSlot.ContainedEntity != null && TryComp<MechLockComponent>(uid, out var lockComp))
-        {
-            if (lockComp.IsLocked && !_lockSystem.CheckAccess(uid, component.PilotSlot.ContainedEntity.Value, lockComp))
-                args.Cancel();
-        }
     }
 
     private void OnInteractUsing(EntityUid uid, MechComponent component, InteractUsingEvent args)
@@ -96,12 +89,6 @@ public sealed partial class MechSystem : SharedMechSystem
 
         if (component.BatterySlot.ContainedEntity == null && TryComp<BatteryComponent>(args.Used, out var battery))
         {
-            if (component.Critical)
-            {
-                _popup.PopupEntity(Loc.GetString("mech-cannot-insert-critical"), uid, args.User);
-                return;
-            }
-
             InsertBattery(uid, args.Used, component, battery);
             _actionBlocker.UpdateCanMove(uid);
             return;
@@ -334,7 +321,6 @@ public sealed partial class MechSystem : SharedMechSystem
     {
         base.BreakMech(uid, component);
 
-        // UI is now handled by MechInterfaceSystem
         _actionBlocker.UpdateCanMove(uid);
     }
 
