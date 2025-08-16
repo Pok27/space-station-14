@@ -210,11 +210,6 @@ public sealed class MechAtmosphereSystem : EntitySystem
         UpdateMechUi(uid);
     }
 
-    private void UpdateMechUi(EntityUid uid)
-    {
-        RaiseLocalEvent(uid, new UpdateMechUiEvent());
-    }
-
     private void OnInhale(EntityUid uid, MechPilotComponent component, InhaleLocationEvent args)
     {
         if (!TryComp<MechComponent>(component.Mech, out var mech))
@@ -305,5 +300,10 @@ public sealed class MechAtmosphereSystem : EntitySystem
                 return fanModule;
         }
         return null;
+    }
+
+    private void UpdateMechUi(EntityUid uid)
+    {
+        RaiseLocalEvent(uid, new UpdateMechUiEvent());
     }
 }
