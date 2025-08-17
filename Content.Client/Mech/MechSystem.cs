@@ -23,9 +23,21 @@ public sealed class MechSystem : SharedMechSystem
         base.Initialize();
 
         SubscribeLocalEvent<MechComponent, AppearanceChangeEvent>(OnAppearanceChanged);
+        SubscribeLocalEvent<MechComponent, ComponentHandleState>(OnComponentHandleState);
         SubscribeLocalEvent<MechPilotComponent, PrepareMeleeLungeEvent>(OnPrepareMeleeLunge);
         SubscribeLocalEvent<MechComponent, PrepareMeleeLungeEvent>(OnPrepareMeleeLunge);
         SubscribeLocalEvent<MechPilotComponent, GetMeleeAttackerEntityEvent>(OnGetMeleeAttacker);
+    }
+
+    private void OnComponentHandleState(EntityUid uid, MechComponent component, ref ComponentHandleState args)
+    {
+        if (args.Current is not MechComponentState state)
+            return;
+
+        if (TryComp<SpriteComponent>(uid, out var sprite))
+        {
+            UpdateMechSprite(uid, component, sprite);
+        }
     }
 
     private void OnAppearanceChanged(EntityUid uid, MechComponent component, ref AppearanceChangeEvent args)
@@ -33,26 +45,31 @@ public sealed class MechSystem : SharedMechSystem
         if (args.Sprite == null)
             return;
 
-        if (!_sprite.LayerExists((uid, args.Sprite), MechVisualLayers.Base))
+        UpdateMechSprite(uid, component, args.Sprite);
+    }
+
+    private void UpdateMechSprite(EntityUid uid, MechComponent component, SpriteComponent sprite)
+    {
+        if (!_sprite.LayerExists((uid, sprite), MechVisualLayers.Base))
             return;
 
         var state = component.BaseState;
         var drawDepth = DrawDepth.Mobs;
 
         // Priority: Critical > Open > Base
-        if (component.BrokenState != null && _appearance.TryGetData<bool>(uid, MechVisuals.Critical, out var critical, args.Component) && critical)
+        if (component.BrokenState != null && _appearance.TryGetData<bool>(uid, MechVisuals.Critical, out var critical) && critical)
         {
             state = component.BrokenState;
             drawDepth = DrawDepth.SmallMobs;
         }
-        else if (component.OpenState != null && _appearance.TryGetData<bool>(uid, MechVisuals.Open, out var open, args.Component) && open)
+        else if (component.OpenState != null && _appearance.TryGetData<bool>(uid, MechVisuals.Open, out var open) && open)
         {
             state = component.OpenState;
             drawDepth = DrawDepth.SmallMobs;
         }
 
-        _sprite.LayerSetRsiState((uid, args.Sprite), MechVisualLayers.Base, state);
-        _sprite.SetDrawDepth((uid, args.Sprite), (int)drawDepth);
+        _sprite.LayerSetRsiState((uid, sprite), MechVisualLayers.Base, state);
+        _sprite.SetDrawDepth((uid, sprite), (int)drawDepth);
     }
 
     private void OnPrepareMeleeLunge(EntityUid uid, MechPilotComponent comp, ref PrepareMeleeLungeEvent args)

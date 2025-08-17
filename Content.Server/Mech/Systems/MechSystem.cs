@@ -56,6 +56,7 @@ public sealed partial class MechSystem : SharedMechSystem
         SubscribeLocalEvent<MechComponent, DamageChangedEvent>(OnDamageChanged);
         SubscribeLocalEvent<MechComponent, MapInitEvent>(OnMapInit);
         SubscribeLocalEvent<MechComponent, BeingGibbedEvent>(OnBeingGibbed);
+        SubscribeLocalEvent<MechComponent, UpdateCanMoveEvent>(OnMechCanMoveEvent);
 
         SubscribeLocalEvent<MechPilotComponent, ToolUserAttemptUseEvent>(OnToolUseAttempt);
         SubscribeLocalEvent<MechComponent, GetVerbsEvent<AlternativeVerb>>(OnAlternativeVerb);
@@ -66,8 +67,23 @@ public sealed partial class MechSystem : SharedMechSystem
 
     private void OnMechCanMoveEvent(EntityUid uid, MechComponent component, UpdateCanMoveEvent args)
     {
-        if (component.Integrity <= 0 || component.Energy <= 0)
+        // Block movement if mech is in critical state or has no energy/integrity
+        if (component.Critical || component.Integrity <= 0 || component.Energy <= 0)
+        {
             args.Cancel();
+            return;
+        }
+
+        // Block movement if mech is locked and pilot lacks access
+        if (TryComp<MechLockComponent>(uid, out var lockComp) && lockComp.IsLocked)
+        {
+            var pilot = Vehicle.GetOperatorOrNull(uid);
+            if (pilot.HasValue && !_lockSystem.CheckAccess(uid, pilot.Value, lockComp))
+            {
+                args.Cancel();
+                return;
+            }
+        }
     }
 
     private void OnInteractUsing(EntityUid uid, MechComponent component, InteractUsingEvent args)
@@ -262,6 +278,8 @@ public sealed partial class MechSystem : SharedMechSystem
             var damage = args.DamageDelta * component.MechToPilotDamageMultiplier;
             _damageable.TryChangeDamage(component.PilotSlot.ContainedEntity, damage);
         }
+
+        UpdateAppearance(uid, component);
     }
 
     private void ToggleMechUi(EntityUid uid, MechComponent? component = null, EntityUid? user = null)
@@ -307,6 +325,8 @@ public sealed partial class MechSystem : SharedMechSystem
         base.BreakMech(uid, component);
 
         _actionBlocker.UpdateCanMove(uid);
+
+        UpdateAppearance(uid, component);
     }
 
     public override bool TryChangeEnergy(EntityUid uid, FixedPoint2 delta, MechComponent? component = null)
@@ -386,6 +406,8 @@ public sealed partial class MechSystem : SharedMechSystem
     public void RepairMech(EntityUid uid, MechComponent? component = null)
     {
         base.RepairMech(uid, component);
+
+        UpdateAppearance(uid, component);
     }
 
     private void OnEquipmentSelectRequest(RequestMechEquipmentSelectEvent args, EntitySessionEventArgs session)
