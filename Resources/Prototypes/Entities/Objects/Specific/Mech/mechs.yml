@@ -337,7 +337,7 @@
     openState: honker-open
     brokenState: honker-broken
     airtight: true # Space Honks is real.
-    criticalSound: /Audio/Effects/sadtrombone.ogg
+    brokenSound: /Audio/Effects/sadtrombone.ogg
   - type: Vehicle
     transferDamageModifier:
       coefficients:

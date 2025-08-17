@@ -354,7 +354,7 @@ public sealed class MechInterfaceSystem : EntitySystem
             MaxEnergy = mechComp.MaxEnergy.Float(),
             EquipmentUsed = mechComp.EquipmentContainer.ContainedEntities.Count,
             MaxEquipmentAmount = mechComp.MaxEquipmentAmount,
-            IsCritical = mechComp.Critical,
+            IsBroken = mechComp.Broken,
             CabinPurgeAvailable = !TryComp<MechCabinPurgeComponent>(uid, out var purgeComp) || purgeComp.CooldownRemaining <= 0
         };
 

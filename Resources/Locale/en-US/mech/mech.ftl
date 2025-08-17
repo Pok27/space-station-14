@@ -22,7 +22,7 @@ mech-radial-no-equipment = No Equipment
 # Status displays
 mech-integrity-display-label = Integrity
 mech-integrity-display = {$amount} %
-mech-integrity-display-critical = CRITICAL
+mech-integrity-display-broken = BROKEN
 mech-energy-display-label = Energy
 mech-energy-display = {$amount} %
 mech-energy-missing = MISSING
@@ -66,8 +66,7 @@ mech-no-enter-popup = You cannot pilot this.
 mech-eject-pilot-alert-popup = {$user} is pulling the pilot out of the {$item}!
 
 # Installation constraint
-mech-install-blocked-pilot-popup = Cannot install while a pilot is inside!
-mech-remove-blocked-pilot-popup = Cannot remove while a pilot is inside!
+mech-cannot-modify-closed = You cannot modify while the cabin is closed!
 mech-capacity-equipment-full-popup = No free equipment slots.
 mech-capacity-modules-full-popup = No free module capacity.
 mech-duplicate-equipment-popup = Identical equipment already installed.
@@ -100,5 +99,5 @@ mech-lock-not-set = Not set
 mech-settings-no-access = Access denied. You do not have permission.
 mech-remove-disabled-tooltip = Cannot remove while a pilot is inside.
 
-# Critical state
-mech-cannot-insert-critical = You cannot insert anything while the mech is in critical state.
+# Broken state
+mech-cannot-insert-broken = You cannot insert anything while the mech is in broken state.

@@ -40,8 +40,8 @@ public sealed class MechSystem : SharedMechSystem
         var state = component.BaseState;
         var drawDepth = DrawDepth.Mobs;
 
-        // Priority: Critical > Open > Base
-        if (component.BrokenState != null && _appearance.TryGetData<bool>(uid, MechVisuals.Critical, out var critical, args.Component) && critical)
+        // Priority: Broken > Open > Base
+        if (component.BrokenState != null && _appearance.TryGetData<bool>(uid, MechVisuals.Broken, out var isBroken, args.Component) && isBroken)
         {
             state = component.BrokenState;
             drawDepth = DrawDepth.SmallMobs;

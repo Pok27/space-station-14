@@ -205,8 +205,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         if (!Resolve(uid, ref component))
             return;
 
-        // Block insertion if mech is in critical state
-        if (component.Critical)
+        if (component.Broken)
             return;
 
         // Equipment
@@ -319,13 +318,13 @@ public abstract partial class SharedMechSystem : EntitySystem
 
         component.Integrity = FixedPoint2.Clamp(value, 0, component.MaxIntegrity);
 
-        // Handle critical state transitions based on integrity
+        // Handle broken state transitions based on integrity
         if (component.Integrity <= 0)
         {
-            // If already in critical state, check if should be gibbed
-            if (component.Critical)
+            // If already in broken state, check if should be gibbed
+            if (component.Broken)
             {
-                if (component.Integrity < -component.CriticalThreshold)
+                if (component.Integrity < -component.BrokenThreshold)
                 {
                     var gibEvent = new BeingGibbedEvent(new HashSet<EntityUid>());
                     RaiseLocalEvent(uid, ref gibEvent);
@@ -334,12 +333,12 @@ public abstract partial class SharedMechSystem : EntitySystem
             }
             else
             {
-                SetCriticalState(uid, component);
+                SetBrokenState(uid, component);
             }
         }
-        else if (component.Integrity > component.CriticalThreshold && component.Critical)
+        else if (component.Integrity > component.BrokenThreshold && component.Broken)
         {
-            component.Critical = false;
+            component.Broken = false;
             UpdateAppearance(uid, component);
         }
 
@@ -358,11 +357,11 @@ public abstract partial class SharedMechSystem : EntitySystem
     }
 
     /// <summary>
-    /// Sets the mech to critical state (destroyed but can be repaired).
+    /// Sets the mech to broken state (destroyed but can be repaired).
     /// </summary>
     /// <param name="uid">The mech itself</param>
     /// <param name="component"></param>
-    public void SetCriticalState(EntityUid uid, MechComponent? component = null)
+    public void SetBrokenState(EntityUid uid, MechComponent? component = null)
     {
         if (!Resolve(uid, ref component))
             return;
@@ -403,21 +402,21 @@ public abstract partial class SharedMechSystem : EntitySystem
             _container.Insert(pilot.Value, component.PilotSlot);
         }
 
-        component.Critical = true;
+        component.Broken = true;
         UpdateAppearance(uid, component);
         Dirty(uid, component);
         UpdateUserInterface(uid);
 
-        // Play critical sound
-        if (component.CriticalSound != null)
+        // Play broken sound
+        if (component.BrokenSound != null)
         {
-            var ev = new MechCriticalSoundEvent(uid, component.CriticalSound);
+            var ev = new MechBrokenSoundEvent(uid, component.BrokenSound);
             RaiseLocalEvent(uid, ref ev);
         }
     }
 
     /// <summary>
-    /// Repairs a mech that is in critical state, restoring it to normal operation.
+    /// Repairs a mech that is in broken state, restoring it to normal operation.
     /// </summary>
     /// <param name="uid">The mech itself</param>
     /// <param name="component"></param>
@@ -426,27 +425,26 @@ public abstract partial class SharedMechSystem : EntitySystem
         if (!Resolve(uid, ref component))
             return;
 
-        if (!component.Critical)
+        if (!component.Broken)
             return;
 
-        // Restore integrity to a safe level above critical threshold
+        // Restore integrity to a safe level above broken threshold
         var repairAmount = component.MaxIntegrity;
         SetIntegrity(uid, repairAmount, component);
 
-        // Reset critical state
-        component.Critical = false;
+        // Reset broken state
+        component.Broken = false;
 
-        // Update appearance and UI
         UpdateAppearance(uid, component);
         Dirty(uid, component);
         UpdateUserInterface(uid);
     }
 
     /// <summary>
-    /// Raised when a mech enters critical state to play sound.
+    /// Raised when a mech enters broken state to play sound.
     /// </summary>
     [ByRefEvent]
-    public readonly record struct MechCriticalSoundEvent(EntityUid Mech, SoundSpecifier Sound);
+    public readonly record struct MechBrokenSoundEvent(EntityUid Mech, SoundSpecifier Sound);
 
     /// <summary>
     /// Checks if the pilot is present
@@ -593,7 +591,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         if (args.Cancelled)
             return;
 
-        if (component.Critical)
+        if (component.Broken)
         {
             args.Cancelled = true;
             return;
@@ -631,7 +629,7 @@ public abstract partial class SharedMechSystem : EntitySystem
             return;
 
         _appearance.SetData(uid, MechVisuals.Open, !Vehicle.HasOperator(uid), appearance);
-        _appearance.SetData(uid, MechVisuals.Critical, component.Critical, appearance);
+        _appearance.SetData(uid, MechVisuals.Broken, component.Broken, appearance);
     }
 
     private void OnDragDrop(EntityUid uid, MechComponent component, ref DragDropTargetEvent args)

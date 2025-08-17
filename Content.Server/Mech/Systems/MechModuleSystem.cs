@@ -5,6 +5,7 @@ using Content.Shared.Mech.Components;
 using Content.Shared.Mech.EntitySystems;
 using Content.Shared.Whitelist;
 using Robust.Server.Containers;
+using Content.Shared.Vehicle;
 
 namespace Content.Server.Mech.Systems;
 
@@ -17,6 +18,7 @@ public sealed class MechModuleSystem : EntitySystem
     [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
     [Dependency] private readonly PopupSystem _popup = default!;
     [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
+    [Dependency] private readonly VehicleSystem _vehicle = default!;
 
     public override void Initialize()
     {
@@ -33,17 +35,17 @@ public sealed class MechModuleSystem : EntitySystem
         if (!TryComp<MechComponent>(mech, out var mechComp))
             return;
 
-        // Block install if mech is in critical state
-        if (mechComp.Critical)
+        // Block install if mech is in broken state
+        if (mechComp.Broken && !_vehicle.HasOperator(mech))
         {
-            _popup.PopupEntity(Loc.GetString("mech-cannot-insert-critical"), args.User);
+            _popup.PopupEntity(Loc.GetString("mech-cannot-insert-broken"), args.User);
             return;
         }
 
-        // Block install if pilot inside
-        if (mechComp.PilotSlot.ContainedEntity != null)
+        // Block install if cabin is closed
+        if (_vehicle.HasOperator(mech))
         {
-            _popup.PopupEntity(Loc.GetString("mech-install-blocked-pilot-popup", ("item", uid)), args.User);
+            _popup.PopupEntity(Loc.GetString("mech-cannot-modify-closed"), args.User);
             return;
         }
 

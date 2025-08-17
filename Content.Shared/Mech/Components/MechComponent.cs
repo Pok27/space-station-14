@@ -48,17 +48,17 @@ public sealed partial class MechComponent : Component
     public FixedPoint2 MaxEnergy = 0;
 
     /// <summary>
-    /// The health threshold below which the mech enters critical state.
-    /// Critical state is between 0 HP and this value.
+    /// The health threshold below which the mech enters broken state.
+    /// Broken state is between 0 HP and this value.
     /// </summary>
     [DataField, ViewVariables(VVAccess.ReadWrite)]
-    public FixedPoint2 CriticalThreshold = 25;
+    public FixedPoint2 BrokenThreshold = 25;
 
     /// <summary>
-    /// Sound played when entering critical state.
+    /// Sound played when entering broken state.
     /// </summary>
     [DataField]
-    public SoundSpecifier CriticalSound = new SoundPathSpecifier("/Audio/Effects/alert.ogg");
+    public SoundSpecifier BrokenSound = new SoundPathSpecifier("/Audio/Effects/alert.ogg");
 
     /// <summary>
     /// The slot the battery is stored in.
@@ -70,10 +70,10 @@ public sealed partial class MechComponent : Component
     public readonly string BatterySlotId = "mech-battery-slot";
 
     /// <summary>
-    /// Whether the mech is in a critical state.
+    /// Whether the mech is in a broken state.
     /// </summary>
     [ViewVariables(VVAccess.ReadWrite), AutoNetworkedField]
-    public bool Critical = false;
+    public bool Broken = false;
 
     /// <summary>
     /// The slot the pilot is stored in.

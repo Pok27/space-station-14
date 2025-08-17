@@ -37,17 +37,17 @@ public sealed class MechEquipmentSystem : EntitySystem
         if (!TryComp<MechComponent>(mech, out var mechComp))
             return;
 
-        // Block install if mech is in critical state
-        if (mechComp.Critical)
+        // Block install if mech is in broken state
+        if (mechComp.Broken && !_vehicle.HasOperator(mech))
         {
-            _popup.PopupEntity(Loc.GetString("mech-cannot-insert-critical"), args.User);
+            _popup.PopupEntity(Loc.GetString("mech-cannot-insert-broken"), args.User);
             return;
         }
 
-        // Block install if pilot inside
-        if (mechComp.PilotSlot.ContainedEntity != null)
+        // Block install if cabin is closed
+        if (_vehicle.HasOperator(mech))
         {
-            _popup.PopupEntity(Loc.GetString("mech-install-blocked-pilot-popup", ("item", uid)), args.User);
+            _popup.PopupEntity(Loc.GetString("mech-cannot-modify-closed"), args.User);
             return;
         }
 

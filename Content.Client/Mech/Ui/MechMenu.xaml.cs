@@ -100,8 +100,8 @@ public sealed partial class MechMenu : FancyWindow
                             var integrityPercent = _lastState.Integrity / _lastState.MaxIntegrity;
             IntegrityDisplayBar.Value = integrityPercent;
 
-            var integrityText = _lastState.IsCritical
-                ? _loc.GetString("mech-integrity-display-critical", ("amount", (int)(integrityPercent * 100)))
+            var integrityText = _lastState.IsBroken
+                ? _loc.GetString("mech-integrity-display-broken", ("amount", (int)(integrityPercent * 100)))
                 : _loc.GetString("mech-integrity-display", ("amount", (int)(integrityPercent * 100)));
 
             IntegrityDisplay.Text = integrityText;

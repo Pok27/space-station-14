@@ -62,13 +62,13 @@ public sealed partial class MechSystem : SharedMechSystem
         SubscribeLocalEvent<MechComponent, GetVerbsEvent<AlternativeVerb>>(OnAlternativeVerb);
         SubscribeAllEvent<RequestMechEquipmentSelectEvent>(OnEquipmentSelectRequest);
         SubscribeLocalEvent<MechComponent, MechOpenUiEvent>(OnOpenUi);
-        SubscribeLocalEvent<MechComponent, MechCriticalSoundEvent>(OnMechCriticalSound);
+        SubscribeLocalEvent<MechComponent, MechBrokenSoundEvent>(OnMechBrokenSound);
     }
 
     private void OnMechCanMoveEvent(EntityUid uid, MechComponent component, UpdateCanMoveEvent args)
     {
-        // Block movement if mech is in critical state or has no energy/integrity
-        if (component.Critical || component.Integrity <= 0 || component.Energy <= 0)
+        // Block movement if mech is in broken state or has no energy/integrity
+        if (component.Broken || component.Integrity <= 0 || component.Energy <= 0)
         {
             args.Cancel();
             return;
@@ -93,6 +93,12 @@ public sealed partial class MechSystem : SharedMechSystem
 
         if (component.BatterySlot.ContainedEntity == null && TryComp<BatteryComponent>(args.Used, out var battery))
         {
+            if (Vehicle.HasOperator(uid))
+            {
+                _popup.PopupEntity(Loc.GetString("mech-cannot-modify-closed"), args.User);
+                return;
+            }
+
             InsertBattery(uid, args.Used, component, battery);
             _actionBlocker.UpdateCanMove(uid);
             return;
@@ -100,6 +106,12 @@ public sealed partial class MechSystem : SharedMechSystem
 
         if (_toolSystem.HasQuality(args.Used, PryingQuality) && component.BatterySlot.ContainedEntity != null)
         {
+            if (Vehicle.HasOperator(uid))
+            {
+                _popup.PopupEntity(Loc.GetString("mech-cannot-modify-closed"), args.User);
+                return;
+            }
+
             var doAfterEventArgs = new DoAfterArgs(EntityManager, args.User, component.BatteryRemovalDelay,
                 new RemoveBatteryEvent(), uid, target: uid, used: args.Target)
             {
@@ -340,9 +352,9 @@ public sealed partial class MechSystem : SharedMechSystem
         if (!Resolve(toInsert, ref battery, false))
             return;
 
-        if (component.Critical)
+        if (component.Broken)
         {
-            _popup.PopupEntity(Loc.GetString("mech-cannot-insert-critical"), uid, toInsert);
+            _popup.PopupEntity(Loc.GetString("mech-cannot-insert-broken"), uid, toInsert);
             return;
         }
 
@@ -375,7 +387,7 @@ public sealed partial class MechSystem : SharedMechSystem
         RaiseLocalEvent(uid, ev);
     }
 
-    private void OnMechCriticalSound(EntityUid uid, MechComponent component, MechCriticalSoundEvent args)
+    private void OnMechBrokenSound(EntityUid uid, MechComponent component, MechBrokenSoundEvent args)
     {
         _audio.PlayPvs(args.Sound, uid);
     }
@@ -389,7 +401,7 @@ public sealed partial class MechSystem : SharedMechSystem
     }
 
     /// <summary>
-    /// Repairs a mech that is in critical state, restoring it to normal operation.
+    /// Repairs a mech that is in broken state, restoring it to normal operation.
     /// </summary>
     public void RepairMech(EntityUid uid, MechComponent? component = null)
     {

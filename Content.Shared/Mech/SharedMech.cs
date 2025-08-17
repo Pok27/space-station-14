@@ -7,7 +7,7 @@ namespace Content.Shared.Mech;
 public enum MechVisuals : byte
 {
     Open, //whether or not it's open and has a rider
-    Critical //if it's in critical state
+    Broken //if it's in broken state
 }
 
 [Serializable, NetSerializable]
