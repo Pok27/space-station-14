@@ -34,24 +34,31 @@ public sealed class MechSystem : SharedMechSystem
         if (args.Sprite == null)
             return;
 
-        if (!_sprite.LayerExists((uid, args.Sprite), MechVisualLayers.Base))
-            return;
-
         var state = component.BaseState;
         var drawDepth = DrawDepth.Mobs;
 
+        var isBroken = false;
+        var isOpen = false;
+
+        if (args.AppearanceData.TryGetValue(MechVisuals.Broken, out var brokenObj) && brokenObj is bool brokenFlag)
+            isBroken = brokenFlag;
+        if (args.AppearanceData.TryGetValue(MechVisuals.Open, out var openObj) && openObj is bool openFlag)
+            isOpen = openFlag;
+
         // Priority: Broken > Open > Base
-        if (component.BrokenState != null && _appearance.TryGetData<bool>(uid, MechVisuals.Broken, out var isBroken, args.Component) && isBroken)
+        if (component.BrokenState != null && isBroken)
         {
             state = component.BrokenState;
             drawDepth = DrawDepth.SmallMobs;
         }
-        else if (component.OpenState != null && _appearance.TryGetData<bool>(uid, MechVisuals.Open, out var open, args.Component) && open)
+        else if (component.OpenState != null && isOpen)
         {
             state = component.OpenState;
             drawDepth = DrawDepth.SmallMobs;
         }
 
+        _sprite.LayerSetVisible((uid, args.Sprite), MechVisualLayers.Base, true);
+        _sprite.LayerSetAutoAnimated((uid, args.Sprite), MechVisualLayers.Base, true);
         _sprite.LayerSetRsiState((uid, args.Sprite), MechVisualLayers.Base, state);
         _sprite.SetDrawDepth((uid, args.Sprite), (int)drawDepth);
     }

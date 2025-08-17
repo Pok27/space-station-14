@@ -169,8 +169,8 @@ public sealed partial class MechSystem : SharedMechSystem
         component.Energy = component.MaxEnergy;
         component.Airtight = false;
 
+        SetIntegrity(uid, component.MaxIntegrity, component);
         _actionBlocker.UpdateCanMove(uid);
-        Dirty(uid, component);
     }
 
     private void OnOpenUi(EntityUid uid, MechComponent component, MechOpenUiEvent args)
@@ -325,7 +325,6 @@ public sealed partial class MechSystem : SharedMechSystem
     public override void BreakMech(EntityUid uid, MechComponent? component = null)
     {
         base.BreakMech(uid, component);
-
         _actionBlocker.UpdateCanMove(uid);
     }
 
@@ -351,12 +350,6 @@ public sealed partial class MechSystem : SharedMechSystem
 
         if (!Resolve(toInsert, ref battery, false))
             return;
-
-        if (component.Broken)
-        {
-            _popup.PopupEntity(Loc.GetString("mech-cannot-insert-broken"), uid, toInsert);
-            return;
-        }
 
         _container.Insert(toInsert, component.BatterySlot);
         component.Energy = battery.CurrentCharge;
@@ -398,14 +391,6 @@ public sealed partial class MechSystem : SharedMechSystem
             return false;
 
         return base.CanInsert(uid, toInsert, component) && _actionBlocker.CanMove(toInsert);
-    }
-
-    /// <summary>
-    /// Repairs a mech that is in broken state, restoring it to normal operation.
-    /// </summary>
-    public void RepairMech(EntityUid uid, MechComponent? component = null)
-    {
-        base.RepairMech(uid, component);
     }
 
     private void OnEquipmentSelectRequest(RequestMechEquipmentSelectEvent args, EntitySessionEventArgs session)

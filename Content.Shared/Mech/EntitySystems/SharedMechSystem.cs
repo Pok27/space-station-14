@@ -126,7 +126,6 @@ public abstract partial class SharedMechSystem : EntitySystem
         component.EquipmentContainer = _container.EnsureContainer<Container>(uid, component.EquipmentContainerId);
         component.BatterySlot = _container.EnsureContainer<ContainerSlot>(uid, component.BatterySlotId);
         component.ModuleContainer = _container.EnsureContainer<Container>(uid, component.ModuleContainerId);
-        UpdateAppearance(uid, component);
     }
 
     private void OnDestruction(EntityUid uid, MechComponent component, DestructionEventArgs args)
@@ -339,11 +338,11 @@ public abstract partial class SharedMechSystem : EntitySystem
         else if (component.Integrity > component.BrokenThreshold && component.Broken)
         {
             component.Broken = false;
-            UpdateAppearance(uid, component);
         }
 
         Dirty(uid, component);
         UpdateUserInterface(uid);
+        UpdateAppearance(uid, component);
     }
 
     /// <summary>
@@ -445,16 +444,6 @@ public abstract partial class SharedMechSystem : EntitySystem
     /// </summary>
     [ByRefEvent]
     public readonly record struct MechBrokenSoundEvent(EntityUid Mech, SoundSpecifier Sound);
-
-    /// <summary>
-    /// Checks if the pilot is present
-    /// </summary>
-    /// <param name="component"></param>
-    /// <returns>Whether or not the pilot is present</returns>
-    public bool IsEmpty(MechComponent component)
-    {
-        return component.PilotSlot.ContainedEntity == null;
-    }
 
     /// <summary>
     /// Checks if an entity can be inserted into the mech.
@@ -628,8 +617,12 @@ public abstract partial class SharedMechSystem : EntitySystem
         if (!Resolve(uid, ref component, ref appearance, false))
             return;
 
-        _appearance.SetData(uid, MechVisuals.Open, !Vehicle.HasOperator(uid), appearance);
-        _appearance.SetData(uid, MechVisuals.Broken, component.Broken, appearance);
+        var isOpen = !Vehicle.HasOperator(uid);
+        var hasIntegrity = component.Integrity > 0;
+        var isCrit = hasIntegrity && component.Integrity <= component.BrokenThreshold;
+
+        _appearance.SetData(uid, MechVisuals.Open, isOpen, appearance);
+        _appearance.SetData(uid, MechVisuals.Broken, component.Broken || isCrit, appearance);
     }
 
     private void OnDragDrop(EntityUid uid, MechComponent component, ref DragDropTargetEvent args)
