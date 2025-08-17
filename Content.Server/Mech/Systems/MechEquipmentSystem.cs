@@ -3,7 +3,10 @@ using Content.Shared.DoAfter;
 using Content.Shared.Interaction;
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.Equipment.Components;
+using Content.Shared.Mech.EntitySystems;
+using Content.Shared.Vehicle;
 using Content.Shared.Whitelist;
+using Robust.Server.Containers;
 
 namespace Content.Server.Mech.Systems;
 
@@ -12,12 +15,13 @@ namespace Content.Server.Mech.Systems;
 /// </summary>
 public sealed class MechEquipmentSystem : EntitySystem
 {
-    [Dependency] private readonly MechSystem _mech = default!;
+    [Dependency] private readonly ContainerSystem _container = default!;
     [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
     [Dependency] private readonly PopupSystem _popup = default!;
     [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
+    [Dependency] private readonly VehicleSystem _vehicle = default!;
+    [Dependency] private readonly SharedMechSystem _mechSystem = default!;
 
-    /// <inheritdoc/>
     public override void Initialize()
     {
         SubscribeLocalEvent<MechEquipmentComponent, AfterInteractEvent>(OnUsed);
@@ -33,19 +37,49 @@ public sealed class MechEquipmentSystem : EntitySystem
         if (!TryComp<MechComponent>(mech, out var mechComp))
             return;
 
-        if (mechComp.Broken)
+        // Block install if mech is in critical state
+        if (mechComp.Critical)
+        {
+            _popup.PopupEntity(Loc.GetString("mech-cannot-insert-critical"), args.User);
+            return;
+        }
+
+        // Block install if pilot inside
+        if (mechComp.PilotSlot.ContainedEntity != null)
+        {
+            _popup.PopupEntity(Loc.GetString("mech-install-blocked-pilot-popup", ("item", uid)), args.User);
+            return;
+        }
+
+        if (args.User == _vehicle.GetOperatorOrNull(mech))
             return;
 
-        if (args.User == mechComp.PilotSlot.ContainedEntity)
-            return;
+        // Duplicate by prototype id
+        var md = EntityManager.GetComponentOrNull<MetaDataComponent>(uid);
+        if (md != null && md.EntityPrototype != null)
+        {
+            var id = md.EntityPrototype.ID;
+            foreach (var ent in mechComp.EquipmentContainer.ContainedEntities)
+            {
+                var md2 = EntityManager.GetComponentOrNull<MetaDataComponent>(ent);
+                if (md2 != null && md2.EntityPrototype != null && md2.EntityPrototype.ID == id)
+                {
+                    _popup.PopupEntity(Loc.GetString("mech-duplicate-equipment-popup"), args.User);
+                    return;
+                }
+            }
+        }
 
         if (mechComp.EquipmentContainer.ContainedEntities.Count >= mechComp.MaxEquipmentAmount)
+        {
+            _popup.PopupEntity(Loc.GetString("mech-capacity-equipment-full-popup"), args.User);
             return;
+        }
 
         if (_whitelistSystem.IsWhitelistFail(mechComp.EquipmentWhitelist, args.Used))
             return;
 
-        _popup.PopupEntity(Loc.GetString("mech-equipment-begin-install", ("item", uid)), mech);
+        _popup.PopupEntity(Loc.GetString("mech-equipment-begin-install-popup", ("item", uid)), mech);
 
         var doAfterEventArgs = new DoAfterArgs(EntityManager, args.User, component.InstallDuration, new InsertEquipmentEvent(), uid, target: mech, used: uid)
         {
@@ -60,8 +94,20 @@ public sealed class MechEquipmentSystem : EntitySystem
         if (args.Handled || args.Cancelled || args.Args.Target == null)
             return;
 
-        _popup.PopupEntity(Loc.GetString("mech-equipment-finish-install", ("item", uid)), args.Args.Target.Value);
-        _mech.InsertEquipment(args.Args.Target.Value, uid);
+        // Access check
+        var mech = args.Args.Target.Value;
+        if (TryComp<MechLockComponent>(mech, out var lockComp) && lockComp.IsLocked)
+        {
+            var lockSys = EntityManager.System<MechLockSystem>();
+            if (!lockSys.CheckAccessWithFeedback(mech, args.Args.User, lockComp))
+                return;
+        }
+
+        if (!TryComp<MechComponent>(mech, out var mechComp))
+            return;
+
+        _popup.PopupEntity(Loc.GetString("mech-equipment-finish-install-popup", ("item", uid)), mech);
+        _mechSystem.InsertEquipment(mech, uid, mechComp, component);
 
         args.Handled = true;
     }

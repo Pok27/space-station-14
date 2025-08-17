@@ -2,7 +2,13 @@
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.EntitySystems;
 using Robust.Client.GameObjects;
+using Robust.Client.UserInterface;
+using Content.Client.UserInterface.Controls;
+using System.Numerics;
 using DrawDepth = Content.Shared.DrawDepth.DrawDepth;
+using Content.Client.Mech.Ui;
+using Content.Shared.Weapons.Melee.Events;
+using Robust.Shared.GameStates;
 
 namespace Content.Client.Mech;
 
@@ -18,6 +24,9 @@ public sealed class MechSystem : SharedMechSystem
         base.Initialize();
 
         SubscribeLocalEvent<MechComponent, AppearanceChangeEvent>(OnAppearanceChanged);
+        SubscribeLocalEvent<MechPilotComponent, PrepareMeleeLungeEvent>(OnPrepareMeleeLunge);
+        SubscribeLocalEvent<MechComponent, PrepareMeleeLungeEvent>(OnPrepareMeleeLunge);
+        SubscribeLocalEvent<MechPilotComponent, GetMeleeAttackerEntityEvent>(OnGetMeleeAttacker);
     }
 
     private void OnAppearanceChanged(EntityUid uid, MechComponent component, ref AppearanceChangeEvent args)
@@ -30,7 +39,9 @@ public sealed class MechSystem : SharedMechSystem
 
         var state = component.BaseState;
         var drawDepth = DrawDepth.Mobs;
-        if (component.BrokenState != null && _appearance.TryGetData<bool>(uid, MechVisuals.Broken, out var broken, args.Component) && broken)
+
+        // Priority: Critical > Open > Base
+        if (component.BrokenState != null && _appearance.TryGetData<bool>(uid, MechVisuals.Critical, out var critical, args.Component) && critical)
         {
             state = component.BrokenState;
             drawDepth = DrawDepth.SmallMobs;
@@ -43,5 +54,26 @@ public sealed class MechSystem : SharedMechSystem
 
         _sprite.LayerSetRsiState((uid, args.Sprite), MechVisualLayers.Base, state);
         _sprite.SetDrawDepth((uid, args.Sprite), (int)drawDepth);
+    }
+
+    private void OnPrepareMeleeLunge(EntityUid uid, MechPilotComponent comp, ref PrepareMeleeLungeEvent args)
+    {
+        args.SpawnAtMap = true;
+        args.DisableTracking = true;
+    }
+
+    private void OnPrepareMeleeLunge(EntityUid uid, MechComponent comp, ref PrepareMeleeLungeEvent args)
+    {
+        args.SpawnAtMap = true;
+        args.DisableTracking = true;
+    }
+
+    private void OnGetMeleeAttacker(EntityUid uid, MechPilotComponent comp, ref GetMeleeAttackerEntityEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        args.Attacker = comp.Mech;
+        args.Handled = true;
     }
 }

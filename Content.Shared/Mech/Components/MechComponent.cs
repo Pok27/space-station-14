@@ -1,5 +1,6 @@
 using Content.Shared.FixedPoint;
 using Content.Shared.Whitelist;
+using Robust.Shared.Audio;
 using Robust.Shared.Containers;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
@@ -13,6 +14,13 @@ namespace Content.Shared.Mech.Components;
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class MechComponent : Component
 {
+    /// <summary>
+    /// Whether or not an emag disables it.
+    /// </summary>
+    [DataField]
+    [AutoNetworkedField]
+    public bool BreakOnEmag = true;
+
     /// <summary>
     /// How much "health" the mech has left.
     /// </summary>
@@ -40,6 +48,19 @@ public sealed partial class MechComponent : Component
     public FixedPoint2 MaxEnergy = 0;
 
     /// <summary>
+    /// The health threshold below which the mech enters critical state.
+    /// Critical state is between 0 HP and this value.
+    /// </summary>
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
+    public FixedPoint2 CriticalThreshold = 25;
+
+    /// <summary>
+    /// Sound played when entering critical state.
+    /// </summary>
+    [DataField]
+    public SoundSpecifier CriticalSound = new SoundPathSpecifier("/Audio/Effects/alert.ogg");
+
+    /// <summary>
     /// The slot the battery is stored in.
     /// </summary>
     [ViewVariables]
@@ -49,17 +70,10 @@ public sealed partial class MechComponent : Component
     public readonly string BatterySlotId = "mech-battery-slot";
 
     /// <summary>
-    /// A multiplier used to calculate how much of the damage done to a mech
-    /// is transfered to the pilot
-    /// </summary>
-    [DataField, ViewVariables(VVAccess.ReadWrite)]
-    public float MechToPilotDamageMultiplier;
-
-    /// <summary>
-    /// Whether the mech has been destroyed and is no longer pilotable.
+    /// Whether the mech is in a critical state.
     /// </summary>
     [ViewVariables(VVAccess.ReadWrite), AutoNetworkedField]
-    public bool Broken = false;
+    public bool Critical = false;
 
     /// <summary>
     /// The slot the pilot is stored in.
@@ -80,7 +94,7 @@ public sealed partial class MechComponent : Component
     /// <summary>
     /// The maximum amount of equipment items that can be installed in the mech
     /// </summary>
-    [DataField("maxEquipmentAmount"), ViewVariables(VVAccess.ReadWrite)]
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
     public int MaxEquipmentAmount = 3;
 
     /// <summary>
@@ -88,9 +102,6 @@ public sealed partial class MechComponent : Component
     /// </summary>
     [DataField]
     public EntityWhitelist? EquipmentWhitelist;
-
-    [DataField]
-    public EntityWhitelist? PilotWhitelist;
 
     /// <summary>
     /// A container for storing the equipment entities.
@@ -100,6 +111,33 @@ public sealed partial class MechComponent : Component
 
     [ViewVariables]
     public readonly string EquipmentContainerId = "mech-equipment-container";
+
+    /// <summary>
+    /// A container for storing passive module entities.
+    /// </summary>
+    [ViewVariables(VVAccess.ReadWrite)]
+    public Container ModuleContainer = default!;
+
+    [ViewVariables]
+    public readonly string ModuleContainerId = "mech-passive-module-container";
+
+    /// <summary>
+    /// Max passive module capacity in space units.
+    /// </summary>
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
+    public int MaxModuleAmount = 4;
+
+    /// <summary>
+    /// How long it takes to remove a passive module with a prying tool
+    /// </summary>
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
+    public float ModuleRemovalDelay = 2f;
+
+    /// <summary>
+    /// Whitelist for passive modules allowed to be installed
+    /// </summary>
+    [DataField]
+    public EntityWhitelist? ModuleWhitelist;
 
     /// <summary>
     /// How long it takes to enter the mech.
@@ -122,11 +160,8 @@ public sealed partial class MechComponent : Component
 
     /// <summary>
     /// Whether or not the mech is airtight.
+    /// When true, the mech uses internal air storage. When false, it uses external air.
     /// </summary>
-    /// <remarks>
-    /// This needs to be redone
-    /// when mech internals are added
-    /// </remarks>
     [DataField, ViewVariables(VVAccess.ReadWrite)]
     public bool Airtight;
 
@@ -136,6 +171,12 @@ public sealed partial class MechComponent : Component
     /// </summary>
     [DataField]
     public List<EntProtoId> StartingEquipment = new();
+
+    /// <summary>
+    /// The passive modules that the mech initially has when it spawns.
+    /// </summary>
+    [DataField]
+    public List<EntProtoId> StartingModules = new();
 
     #region Action Prototypes
     [DataField]
@@ -158,4 +199,10 @@ public sealed partial class MechComponent : Component
     [DataField] public EntityUid? MechCycleActionEntity;
     [DataField] public EntityUid? MechUiActionEntity;
     [DataField] public EntityUid? MechEjectActionEntity;
+
+    /// <summary>
+    /// Time the UI was last updated automatically.
+    /// Used to prevent spam updates of energy/pressure values.
+    /// </summary>
+    public TimeSpan LastUiUpdate;
 }

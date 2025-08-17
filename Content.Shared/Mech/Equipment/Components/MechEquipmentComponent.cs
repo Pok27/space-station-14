@@ -16,9 +16,20 @@ public sealed partial class MechEquipmentComponent : Component
     [DataField("installDuration")] public float InstallDuration = 5;
 
     /// <summary>
+    /// Space units this equipment occupies in the mech (for UI display)
+    /// </summary>
+    [DataField("size")] public int Size = 1;
+
+    /// <summary>
     /// The mech that the equipment is inside of.
     /// </summary>
     [ViewVariables] public EntityUid? EquipmentOwner;
+
+    /// <summary>
+    /// If true, this equipment cannot be used outside of a mech.
+    /// </summary>
+    [DataField]
+    public bool BlockUseOutsideMech = true;
 }
 
 /// <summary>
@@ -50,4 +61,3 @@ public sealed partial class GrabberDoAfterEvent : SimpleDoAfterEvent
 public sealed partial class InsertEquipmentEvent : SimpleDoAfterEvent
 {
 }
-

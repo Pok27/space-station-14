@@ -1,6 +1,10 @@
 using Content.Server.Atmos.Components;
 using Content.Server.Atmos.Piping.Components;
+using Content.Server.Mech.Components;
 using Content.Shared.Atmos;
+using Content.Shared.Atmos.Components;
+using Content.Shared.Mech.Components;
+using Robust.Shared.Containers;
 using Robust.Shared.Map;
 using System.Diagnostics.CodeAnalysis;
 
@@ -13,6 +17,7 @@ public sealed class AirFilterSystem : EntitySystem
 {
     [Dependency] private readonly AtmosphereSystem _atmosphere = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private readonly SharedContainerSystem _containers = default!;
 
     public override void Initialize()
     {
@@ -50,6 +55,14 @@ public sealed class AirFilterSystem : EntitySystem
 
     private void OnFilterUpdate(EntityUid uid, AirFilterComponent filter, ref AtmosDeviceUpdateEvent args)
     {
+        // if this filter is mounted inside a mech, only run when its fan module filter is enabled
+        if (TryGetContainingMech(uid, out _, out var mech))
+        {
+            var fan = GetFanModule(mech);
+            if (fan == null || !fan.FilterEnabled)
+                return;
+        }
+
         if (!GetAir(uid, out var air))
             return;
 
@@ -97,7 +110,67 @@ public sealed class AirFilterSystem : EntitySystem
         var ev = new GetFilterAirEvent();
         RaiseLocalEvent(uid, ref ev);
         air = ev.Air;
+
+        if (air == null && TryGetContainingMech(uid, out _, out var mech))
+        {
+            if (TryGetGasModuleAir(mech, out var tankAir))
+                air = tankAir;
+        }
+
         return air != null;
+    }
+
+    private bool TryGetContainingMech(EntityUid uid, [NotNullWhen(true)] out EntityUid mechUid, [NotNullWhen(true)] out MechComponent mech)
+    {
+        mechUid = EntityUid.Invalid;
+        mech = default!;
+
+        var current = uid;
+        for (var i = 0; i < 5; i++)
+        {
+            if (_containers.TryGetContainingContainer(current, out var container))
+            {
+                var owner = container.Owner;
+                if (TryComp(owner, out MechComponent? comp))
+                {
+                    mech = comp!;
+                    mechUid = owner;
+                    return true;
+                }
+                current = owner;
+                continue;
+            }
+            break;
+        }
+        return false;
+    }
+
+    private bool TryGetGasModuleAir(MechComponent mech, out GasMixture? air)
+    {
+        air = null;
+        if (mech.ModuleContainer == null)
+            return false;
+
+        foreach (var ent in mech.ModuleContainer.ContainedEntities)
+        {
+            if (TryComp<GasTankComponent>(ent, out var tank))
+            {
+                air = tank.Air;
+                if (air != null)
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    private MechFanModuleComponent? GetFanModule(MechComponent mech)
+    {
+        foreach (var ent in mech.ModuleContainer.ContainedEntities)
+        {
+            if (TryComp<MechFanModuleComponent>(ent, out var fan))
+                return fan;
+        }
+        return null;
     }
 }
 

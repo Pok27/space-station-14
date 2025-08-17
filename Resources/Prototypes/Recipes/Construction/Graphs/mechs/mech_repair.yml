@@ -1,0 +1,25 @@
+- type: constructionGraph
+  id: MechRepair
+  start: start
+  graph:
+  - node: start
+    edges:
+    - to: repaired
+      steps:
+      - material: Steel
+        amount: 5
+        completed:
+        - !type:VisualizerDataInt
+          key: "enum.MechAssemblyVisuals.State"
+          data: 1
+
+      - tool: Welding
+        doAfter: 1
+        completed:
+        - !type:VisualizerDataInt
+          key: "enum.MechAssemblyVisuals.State"
+          data: 2
+
+  - node: repaired
+    actions:
+    - !type:RepairMech

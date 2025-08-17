@@ -1,0 +1,103 @@
+- type: entity
+  id: MechModuleBase
+  parent: BaseItem
+  abstract: true
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Mech/mecha_equipment.rsi
+  - type: Item
+    sprite: Objects/Specific/Mech/mecha_equipment.rsi
+    size: Ginormous
+  - type: MultiHandedItem
+  - type: MechModule
+  - type: GuideHelp
+    guides:
+    - Robotics
+  - type: Tag
+    tags:
+    - MechModule
+
+- type: entity
+  id: MechModuleFan
+  parent: MechModuleBase
+  name: mecha_wholegen
+  description: mecha_wholegen.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Mech/mecha_equipment.rsi
+    state: mecha_air_tank # mecha_advanced_wholegen
+  - type: MechFanModule
+  - type: AirFilter
+    gases: [ Plasma, CarbonDioxide, NitrousOxide ]
+    overflowGases: [ Nitrogen ]
+    targetOxygen: 0.21
+
+- type: entity
+  id: MechModuleAdvancedFan
+  parent: MechModuleBase
+  name: mecha_wholegen
+  description: mecha_wholegen.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Mech/mecha_equipment.rsi
+    state: mecha_air_tank # mecha_wholegen
+  - type: MechFanModule
+    energyConsumption: 2
+    gasProcessingRate: 2
+  - type: AirFilter
+    gases: [ Plasma, CarbonDioxide, NitrousOxide ]
+    overflowGases: [ Nitrogen ]
+    targetOxygen: 0.21
+
+- type: entity
+  id: MechModuleHorn
+  parent: MechModuleBase
+  name: mech horn
+  description: An enhanced bike horn that plays a hilarious array of sounds for the enjoyment of the crew. HONK!
+  components:
+  - type: Sprite
+    state: mecha_honker
+  - type: MechSoundboard
+    sounds:
+    - collection: BikeHorn
+    - collection: CluwneHorn
+    - collection: TrollAnimals
+    - collection: TrollBeeping
+    - collection: TrollEsword
+  - type: UIFragment
+    ui: !type:MechSoundboardUi
+  - type: UseDelay
+    delay: 0.5
+  - type: Tag
+    tags:
+    - MechModule
+
+- type: entity
+  id: MechModuleGasCylinder
+  parent: MechModuleBase
+  name: mech gas cylinder
+  description: Provides internal air storage for airtight mechs.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Mech/mecha_equipment.rsi
+    state: mecha_air_tank
+  - type: MechGasCylinderModule
+  - type: GasTank
+    outputPressure: 101.3
+    air:
+      volume: 25
+
+- type: entity
+  id: MechModuleAdvancedGasCylinder
+  parent: MechModuleBase
+  name: mech advanced gas cylinder
+  description: Provides internal air storage for airtight mechs.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Mech/mecha_equipment.rsi
+    state: mecha_air_tank # mecha_advanced_air_tank
+  - type: MechGasCylinderModule
+  - type: GasTank
+    outputPressure: 101.3
+    air:
+      volume: 50
