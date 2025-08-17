@@ -17,7 +17,6 @@ using Content.Shared.Tools;
 using Content.Shared.Tools.Components;
 using Content.Shared.Tools.Systems;
 using Content.Shared.Verbs;
-using Content.Shared.Whitelist;
 using Content.Shared.Wires;
 using Robust.Server.Containers;
 using Robust.Server.GameObjects;
@@ -36,10 +35,8 @@ public sealed partial class MechSystem : SharedMechSystem
 {
     [Dependency] private readonly ActionBlockerSystem _actionBlocker = default!;
     [Dependency] private readonly ContainerSystem _container = default!;
-    [Dependency] private readonly DamageableSystem _damageable = default!;
     [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
     [Dependency] private readonly SharedToolSystem _toolSystem = default!;
     [Dependency] private readonly MechLockSystem _lockSystem = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
@@ -155,55 +152,7 @@ public sealed partial class MechSystem : SharedMechSystem
 
         // UI can always be opened, access control is handled in the UI itself
         args.Handled = true;
-        ToggleMechUi(uid, component, user);
-    }
-
-    private void OnMechEntry(EntityUid uid, MechComponent component, MechEntryEvent args)
-    {
-        if (args.Cancelled || args.Handled)
-            return;
-
-        // Allow entry if locks are not active; block only if active and user lacks access
-        if (TryComp<MechLockComponent>(uid, out var lockComp) && lockComp.IsLocked && !_lockSystem.CheckAccess(uid, args.User, lockComp))
-        {
-            _lockSystem.CheckAccessWithFeedback(uid, args.User, lockComp);
-            return;
-        }
-
-        if (_whitelistSystem.IsWhitelistFail(component.PilotWhitelist, args.User))
-        {
-            _popup.PopupEntity(Loc.GetString("mech-no-enter-popup", ("item", uid)), args.User);
-            return;
-        }
-
-        TryInsert(uid, args.Args.User, component);
-        _actionBlocker.UpdateCanMove(uid);
-
-        args.Handled = true;
-    }
-
-    private void OnMechExit(EntityUid uid, MechComponent component, MechExitEvent args)
-    {
-        if (args.Cancelled || args.Handled)
-            return;
-
-        TryEject(uid, component);
-
-        args.Handled = true;
-    }
-
-    private void OnDamageChanged(EntityUid uid, MechComponent component, DamageChangedEvent args)
-    {
-        var integrity = component.MaxIntegrity - args.Damageable.TotalDamage;
-        SetIntegrity(uid, integrity, component);
-
-        if (args.DamageIncreased &&
-            args.DamageDelta != null &&
-            component.PilotSlot.ContainedEntity != null)
-        {
-            var damage = args.DamageDelta * component.MechToPilotDamageMultiplier;
-            _damageable.TryChangeDamage(component.PilotSlot.ContainedEntity, damage);
-        }
+        ToggleMechUi(uid, component);
     }
 
     private void OnToolUseAttempt(EntityUid uid, MechPilotComponent component, ref ToolUserAttemptUseEvent args)
@@ -242,7 +191,7 @@ public sealed partial class MechSystem : SharedMechSystem
             };
             args.Verbs.Add(enterVerb);
         }
-        else if (!IsEmpty(component))
+        else if (Vehicle.HasOperator(uid))
         {
             var ejectVerb = new AlternativeVerb
             {
@@ -269,12 +218,57 @@ public sealed partial class MechSystem : SharedMechSystem
         }
     }
 
+    private void OnMechEntry(EntityUid uid, MechComponent component, MechEntryEvent args)
+    {
+        if (args.Cancelled || args.Handled)
+            return;
+
+        // Allow entry if locks are not active; block only if active and user lacks access
+        if (TryComp<MechLockComponent>(uid, out var lockComp) && lockComp.IsLocked && !_lockSystem.CheckAccess(uid, args.User, lockComp))
+        {
+            _lockSystem.CheckAccessWithFeedback(uid, args.User, lockComp);
+            return;
+        }
+
+        if (!Vehicle.CanOperate(uid, args.User))
+        {
+            _popup.PopupEntity(Loc.GetString("mech-no-enter-popup", ("item", uid)), args.User);
+            return;
+        }
+
+        TryInsert(uid, args.Args.User, component);
+        args.Handled = true;
+    }
+
+    private void OnMechExit(EntityUid uid, MechComponent component, MechExitEvent args)
+    {
+        if (args.Cancelled || args.Handled)
+            return;
+
+        TryEject(uid, component);
+
+        args.Handled = true;
+    }
+
+    private void OnDamageChanged(EntityUid uid, MechComponent component, DamageChangedEvent args)
+    {
+        var integrity = component.MaxIntegrity - args.Damageable.TotalDamage;
+        SetIntegrity(uid, integrity, component);
+
+        if (args.DamageIncreased &&
+            args.DamageDelta != null &&
+            component.PilotSlot.ContainedEntity != null)
+        {
+            var damage = args.DamageDelta * component.MechToPilotDamageMultiplier;
+            _damageable.TryChangeDamage(component.PilotSlot.ContainedEntity, damage);
+        }
+    }
+
     private void ToggleMechUi(EntityUid uid, MechComponent? component = null, EntityUid? user = null)
     {
         if (!Resolve(uid, ref component))
             return;
-
-        user ??= component.PilotSlot.ContainedEntity;
+        user ??= Vehicle.GetOperatorOrNull(uid);
         if (user == null)
             return;
 

@@ -3,7 +3,7 @@ using Content.Shared.DoAfter;
 using Content.Shared.Interaction;
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.Equipment.Components;
-using Content.Shared.Mech.EntitySystems;
+using Content.Shared.Vehicle;
 using Content.Shared.Whitelist;
 using Robust.Server.Containers;
 
@@ -18,7 +18,7 @@ public sealed class MechEquipmentSystem : EntitySystem
     [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
     [Dependency] private readonly PopupSystem _popup = default!;
     [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
-    [Dependency] private readonly SharedMechSystem _mechSystem = default!;
+    [Dependency] private readonly VehicleSystem _vehicle = default!;
 
     public override void Initialize()
     {
@@ -49,7 +49,7 @@ public sealed class MechEquipmentSystem : EntitySystem
             return;
         }
 
-        if (args.User == mechComp.PilotSlot.ContainedEntity)
+        if (args.User == _vehicle.GetOperatorOrNull(mech))
             return;
 
         // Duplicate by prototype id

@@ -7,6 +7,7 @@ using Content.Shared.Movement.Components;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Shuttles.Components;
 using Content.Shared.Shuttles.Systems;
+using Prometheus;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Player;
 using DroneConsoleComponent = Content.Server.Shuttles.DroneConsoleComponent;
@@ -17,6 +18,10 @@ namespace Content.Server.Physics.Controllers;
 
 public sealed class MoverController : SharedMoverController
 {
+    private static readonly Gauge ActiveMoverGauge = Metrics.CreateGauge(
+        "physics_active_mover_count",
+        "Active amount of InputMovers being processed by MoverController");
+
     [Dependency] private readonly ThrusterSystem _thruster = default!;
     [Dependency] private readonly SharedTransformSystem _xformSystem = default!;
 
@@ -65,7 +70,7 @@ public sealed class MoverController : SharedMoverController
     {
         if (TryComp(source, out MovementRelayTargetComponent? relay))
         {
-            if (TryComp(relay.Source, out InputMoverComponent? relayMover))
+            if (TryComp(relay.Source, out InputMoverComponent? relayMover) && relayMover.CanMove)
             {
                 InsertMover((relay.Source, relayMover));
             }
@@ -96,6 +101,8 @@ public sealed class MoverController : SharedMoverController
         {
             HandleMobMovement(mover, frameTime);
         }
+
+        ActiveMoverGauge.Set(_movers.Count);
 
         HandleShuttleMovement(frameTime);
     }
