@@ -33,6 +33,9 @@ using Robust.Shared.Random;
 using Content.Shared.Throwing;
 using Robust.Shared.Maths;
 using Content.Shared.Repairable.Events;
+using Content.Shared.Inventory.VirtualItem;
+using Content.Shared.Hands.EntitySystems;
+using Content.Shared.Hands.Components;
 
 namespace Content.Shared.Mech.EntitySystems;
 
@@ -53,6 +56,9 @@ public abstract partial class SharedMechSystem : EntitySystem
     [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly ThrowingSystem _throwing = default!;
+    [Dependency] private readonly SharedVirtualItemSystem _virtualItem = default!;
+    [Dependency] private readonly SharedHandsSystem _hands = default!;
+    [Dependency] private readonly SharedPopupSystem _popup = default!;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -79,6 +85,9 @@ public abstract partial class SharedMechSystem : EntitySystem
         SubscribeLocalEvent<MechEquipmentComponent, AttemptMeleeEvent>(OnMechEquipmentMeleeAttempt);
 
         InitializeRelay();
+        SubscribeLocalEvent<MechPilotComponent, GetUsedEntityEvent>(OnGetUsedEntity);
+        SubscribeLocalEvent<MechPilotComponent, AccessibleOverrideEvent>(OnPilotAccessible);
+        SubscribeLocalEvent<MechPilotComponent, InRangeOverrideEvent>(OnPilotInRange);
     }
 
     private void OnToggleEquipmentAction(EntityUid uid, MechComponent component, MechToggleEquipmentEvent args)
@@ -138,16 +147,33 @@ public abstract partial class SharedMechSystem : EntitySystem
             return;
 
         var rider = EnsureComp<MechPilotComponent>(pilot);
-
-        // Warning: this bypasses most normal interaction blocking components on the user, like drone laws and the like.
-        var irelay = EnsureComp<InteractionRelayComponent>(pilot);
-
-        _interaction.SetRelay(pilot, mech, irelay);
         rider.Mech = mech;
         Dirty(pilot, rider);
 
         if (_net.IsClient)
             return;
+
+        // Drop held items upon entering
+        if (TryComp(pilot, out HandsComponent? handsComp))
+        {
+            foreach (var hand in _hands.EnumerateHands(pilot))
+            {
+                if (_hands.TryGetHeldItem(pilot, hand, out _))
+                    _hands.TryDrop((pilot, handsComp), hand);
+            }
+        }
+
+        // Lock both hands using virtual items linked to the mech
+        if (_hands.TryGetEmptyHand(pilot, out _))
+        {
+            if (_virtualItem.TrySpawnVirtualItemInHand(mech, pilot, out var virt1, dropOthers: false))
+                EnsureComp<UnremoveableComponent>(virt1.Value);
+        }
+        if (_hands.TryGetEmptyHand(pilot, out _))
+        {
+            if (_virtualItem.TrySpawnVirtualItemInHand(mech, pilot, out var virt2, dropOthers: false))
+                EnsureComp<UnremoveableComponent>(virt2.Value);
+        }
 
         _actions.AddAction(pilot, ref component.MechCycleActionEntity, component.MechCycleAction, mech);
         _actions.AddAction(pilot, ref component.MechUiActionEntity, component.MechUiAction, mech);
@@ -158,7 +184,7 @@ public abstract partial class SharedMechSystem : EntitySystem
     {
         if (!RemComp<MechPilotComponent>(pilot))
             return;
-        RemComp<InteractionRelayComponent>(pilot);
+        _virtualItem.DeleteInHandsMatching(pilot, mech);
 
         _actions.RemoveProvidedActions(pilot, mech);
     }
@@ -668,6 +694,27 @@ public abstract partial class SharedMechSystem : EntitySystem
         component.EquipmentWhitelist = null;
         component.ModuleWhitelist = null;
         Dirty(uid, component);
+    }
+
+    private void OnGetUsedEntity(EntityUid uid, MechPilotComponent pilot, ref GetUsedEntityEvent args)
+    {
+        if (args.Handled)
+            return;
+        if (!TryComp<MechComponent>(pilot.Mech, out var mech))
+            return;
+        args.Used = mech.CurrentSelectedEquipment ?? pilot.Mech;
+    }
+
+    private void OnPilotAccessible(EntityUid uid, MechPilotComponent pilot, ref AccessibleOverrideEvent args)
+    {
+        args.Handled = true;
+        args.Accessible = _interaction.IsAccessible(pilot.Mech, args.Target);
+    }
+
+    private void OnPilotInRange(EntityUid uid, MechPilotComponent pilot, ref InRangeOverrideEvent args)
+    {
+        args.Handled = true;
+        args.InRange = _interaction.InRangeUnobstructed(pilot.Mech, args.Target);
     }
 }
 

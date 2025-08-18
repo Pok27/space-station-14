@@ -101,3 +101,4 @@ mech-remove-disabled-tooltip = Cannot remove while a pilot is inside.
 
 # Broken state
 mech-cannot-insert-broken = You cannot insert anything while the mech is in broken state.
+mech-enter-drop-items-warning = Items in your hands will be dropped when you enter the mech.
