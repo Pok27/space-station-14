@@ -36,6 +36,7 @@ using Content.Shared.Repairable.Events;
 using Content.Shared.Inventory.VirtualItem;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Hands.Components;
+using Content.Shared.Inventory.VirtualItem;
 
 namespace Content.Shared.Mech.EntitySystems;
 
@@ -111,7 +112,12 @@ public abstract partial class SharedMechSystem : EntitySystem
         if (args.Handled)
             return;
         args.Handled = true;
-        TryEject(uid, component);
+
+        var doAfterEventArgs = new DoAfterArgs(EntityManager, args.Performer, component.EntryDelay, new MechExitEvent(), uid, target: uid)
+        {
+            BreakOnMove = true,
+        };
+        _doAfter.TryStartDoAfter(doAfterEventArgs);
     }
 
     private void RelayInteractionEvent(EntityUid uid, MechComponent component, UserActivateInWorldEvent args)
@@ -163,15 +169,16 @@ public abstract partial class SharedMechSystem : EntitySystem
             }
         }
 
-        // Lock both hands using virtual items linked to the mech
+        // Lock both hands using virtual items linked to the current selected equipment
+        var blocking = component.CurrentSelectedEquipment ?? mech;
         if (_hands.TryGetEmptyHand(pilot, out _))
         {
-            if (_virtualItem.TrySpawnVirtualItemInHand(mech, pilot, out var virt1, dropOthers: false))
+            if (_virtualItem.TrySpawnVirtualItemInHand(blocking, pilot, out var virt1, dropOthers: false))
                 EnsureComp<UnremoveableComponent>(virt1.Value);
         }
         if (_hands.TryGetEmptyHand(pilot, out _))
         {
-            if (_virtualItem.TrySpawnVirtualItemInHand(mech, pilot, out var virt2, dropOthers: false))
+            if (_virtualItem.TrySpawnVirtualItemInHand(blocking, pilot, out var virt2, dropOthers: false))
                 EnsureComp<UnremoveableComponent>(virt2.Value);
         }
 
@@ -301,11 +308,42 @@ public abstract partial class SharedMechSystem : EntitySystem
         RaiseLocalEvent(toRemove, ref ev);
 
         if (component.CurrentSelectedEquipment == toRemove)
+        {
             component.CurrentSelectedEquipment = null;
+            RefreshPilotHandVirtualItems(uid, component);
+        }
 
         equipmentComponent.EquipmentOwner = null;
         _container.Remove(toRemove, component.EquipmentContainer);
         UpdateUserInterface(uid);
+    }
+
+    /// <summary>
+    /// Updates the pilot's virtual items in their hands to visually match the selected equipment.
+    /// </summary>
+    public void RefreshPilotHandVirtualItems(EntityUid mech, MechComponent? component = null)
+    {
+        if (!Resolve(mech, ref component))
+            return;
+
+        var pilot = Vehicle.GetOperatorOrNull(mech);
+        if (pilot == null)
+            return;
+
+        var newBlocking = component.CurrentSelectedEquipment ?? mech;
+
+        foreach (var held in _hands.EnumerateHeld(pilot.Value))
+        {
+            if (!TryComp<VirtualItemComponent>(held, out var virt))
+                continue;
+
+            var isFromMech = virt.BlockingEntity == mech || component.EquipmentContainer.ContainedEntities.Contains(virt.BlockingEntity);
+            if (!isFromMech)
+                continue;
+
+            virt.BlockingEntity = newBlocking;
+            Dirty(held, virt);
+        }
     }
 
     /// <summary>
@@ -392,11 +430,10 @@ public abstract partial class SharedMechSystem : EntitySystem
 
         var pilot = component.PilotSlot.ContainedEntity;
 
-        // In critical state, pilot stays but equipment, modules, and battery are ejected
+        // In broken state, equipment, modules, and battery are ejected
         var equipment = new List<EntityUid>(component.EquipmentContainer.ContainedEntities);
         foreach (var ent in equipment)
         {
-            // Remove from container and throw from mech position
             RemoveEquipment(uid, ent, component, forced: true);
             ScatterEntityFromMech(uid, ent);
         }
@@ -404,7 +441,6 @@ public abstract partial class SharedMechSystem : EntitySystem
         var modules = new List<EntityUid>(component.ModuleContainer.ContainedEntities);
         foreach (var ent in modules)
         {
-            // Remove from container and throw from mech position
             _container.Remove(ent, component.ModuleContainer);
             ScatterEntityFromMech(uid, ent);
         }
@@ -420,10 +456,11 @@ public abstract partial class SharedMechSystem : EntitySystem
             ScatterEntityFromMech(uid, battery);
         }
 
-        // Ensure pilot stays in the mech
-        if (pilot.HasValue && !component.PilotSlot.ContainedEntities.Any(e => e == pilot.Value))
+        // Eject pilot from the mech when entering broken state
+        if (pilot.HasValue)
         {
-            _container.Insert(pilot.Value, component.PilotSlot);
+            TryEject(uid, component);
+            ScatterEntityFromMech(uid, pilot.Value);
         }
 
         component.Broken = true;
@@ -480,6 +517,9 @@ public abstract partial class SharedMechSystem : EntitySystem
     public virtual bool CanInsert(EntityUid uid, EntityUid toInsert, MechComponent? component = null)
     {
         if (!Resolve(uid, ref component))
+            return false;
+
+        if (component.Broken)
             return false;
 
         if (!_actionBlocker.CanMove(toInsert))
