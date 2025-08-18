@@ -15,7 +15,6 @@ namespace Content.Client.Mech;
 /// <inheritdoc/>
 public sealed class MechSystem : SharedMechSystem
 {
-    [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
     [Dependency] private readonly SpriteSystem _sprite = default!;
 
     /// <inheritdoc/>

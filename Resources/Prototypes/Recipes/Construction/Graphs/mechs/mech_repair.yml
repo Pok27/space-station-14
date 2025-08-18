@@ -22,4 +22,5 @@
 
   - node: repaired
     actions:
-    - !type:RepairMech
+    - !type:RaiseEvent
+      event: !type:RepairMechEvent

@@ -1,4 +1,5 @@
 using Content.Server.Mech.Components;
+using Content.Server.Mech.Events;
 using Content.Server.Mech.Equipment.Components;
 using Content.Server.Power.Components;
 using Content.Server.Power.EntitySystems;
@@ -49,6 +50,7 @@ public sealed partial class MechSystem : SharedMechSystem
         base.Initialize();
 
         SubscribeLocalEvent<MechComponent, InteractUsingEvent>(OnInteractUsing);
+        SubscribeLocalEvent<MechComponent, RepairMechEvent>(OnRepairMechEvent);
         SubscribeLocalEvent<MechComponent, EntInsertedIntoContainerMessage>(OnInsertBattery);
         SubscribeLocalEvent<MechComponent, RemoveBatteryEvent>(OnRemoveBattery);
         SubscribeLocalEvent<MechComponent, MechEntryEvent>(OnMechEntry);
@@ -63,6 +65,11 @@ public sealed partial class MechSystem : SharedMechSystem
         SubscribeAllEvent<RequestMechEquipmentSelectEvent>(OnEquipmentSelectRequest);
         SubscribeLocalEvent<MechComponent, MechOpenUiEvent>(OnOpenUi);
         SubscribeLocalEvent<MechComponent, MechBrokenSoundEvent>(OnMechBrokenSound);
+    }
+
+    private void OnRepairMechEvent(EntityUid uid, MechComponent component, RepairMechEvent args)
+    {
+        RepairMech(uid, component);
     }
 
     private void OnMechCanMoveEvent(EntityUid uid, MechComponent component, UpdateCanMoveEvent args)

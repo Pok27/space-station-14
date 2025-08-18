@@ -4,7 +4,7 @@ using Content.Shared.Interaction;
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.EntitySystems;
 using Content.Shared.Whitelist;
-using Robust.Server.Containers;
+// using Robust.Server.Containers;
 using Content.Shared.Vehicle;
 
 namespace Content.Server.Mech.Systems;
@@ -14,7 +14,6 @@ namespace Content.Server.Mech.Systems;
 /// </summary>
 public sealed class MechModuleSystem : EntitySystem
 {
-    [Dependency] private readonly ContainerSystem _container = default!;
     [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
     [Dependency] private readonly PopupSystem _popup = default!;
     [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;

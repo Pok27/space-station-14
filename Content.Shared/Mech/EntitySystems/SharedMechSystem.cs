@@ -48,7 +48,6 @@ public abstract partial class SharedMechSystem : EntitySystem
     [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
     [Dependency] private readonly SharedContainerSystem _container = default!;
     [Dependency] private readonly SharedInteractionSystem _interaction = default!;
-    [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
     [Dependency] protected readonly VehicleSystem Vehicle = default!;
     [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
