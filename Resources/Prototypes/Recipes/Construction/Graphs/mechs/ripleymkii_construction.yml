@@ -106,15 +106,6 @@
           key: "enum.MechAssemblyVisuals.State"
           data: 17
 
-      - tag: MechAirTank
-        name: exosuit air tank
-        icon:
-          sprite: Objects/Specific/Mech/mecha_equipment.rsi
-          state: mecha_air_tank
-
-      - tool: Anchoring
-        doAfter: 1
-
       - material: Plasteel
         amount: 10
         completed:

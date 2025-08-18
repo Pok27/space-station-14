@@ -293,7 +293,7 @@ public sealed class MechInterfaceSystem : EntitySystem
         {
             if (HasComp<MechFanModuleComponent>(ent))
                 hasFanModule = true;
-            if (HasComp<MechGasCylinderModuleComponent>(ent))
+            if (HasComp<MechAirTankModuleComponent>(ent))
                 hasGasModule = true;
             if (TryComp<MechModuleComponent>(ent, out var m))
                 moduleUsed += m.Size;
@@ -311,7 +311,7 @@ public sealed class MechInterfaceSystem : EntitySystem
         GasMixture? tankAir = null;
         foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
         {
-            if (TryComp<MechGasCylinderModuleComponent>(ent, out _))
+            if (TryComp<MechAirTankModuleComponent>(ent, out _))
             {
                 if (TryComp<GasTankComponent>(ent, out var tank))
                 {

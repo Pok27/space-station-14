@@ -8,7 +8,7 @@
     storedRotation: -90
     size: Ginormous
   - type: Sprite
-    sprite: Objects/Specific/Mech/mecha_equipment.rsi
+    sprite: Objects/Specific/Mech/mecha_modules.rsi
     state: mecha_camera
   - type: StaticPrice
     price: 100
@@ -61,27 +61,11 @@
     - type: Item
       storedRotation: 0
     - type: Sprite
+      sprite: Objects/Specific/Mech/mecha_details.rsi
       state: ripleyupgrade
     - type: Tag
       tags:
       - RipleyMKIIUpgradeKit
-    - type: GuideHelp
-      guides:
-      - Robotics
-
-- type: entity
-  id: MechAirTank
-  parent: BaseExosuitParts
-  name: exosuit air tank
-  description: A special air canister capable of holding a large amount of air.
-  components:
-    - type: Item
-      storedRotation: 0
-    - type: Sprite
-      state: mecha_air_tank
-    - type: Tag
-      tags:
-      - MechAirTank
     - type: GuideHelp
       guides:
       - Robotics
@@ -95,6 +79,7 @@
     - type: Item
       storedRotation: 0
     - type: Sprite
+      sprite: Objects/Specific/Mech/mecha_details.rsi
       state: mecha_bin
     - type: Tag
       tags:

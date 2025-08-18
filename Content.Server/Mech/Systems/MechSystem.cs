@@ -308,7 +308,7 @@ public sealed partial class MechSystem : SharedMechSystem
 
         foreach (var ent in mech.ModuleContainer.ContainedEntities)
         {
-            if (TryComp<MechGasCylinderModuleComponent>(ent, out _))
+            if (TryComp<MechAirTankModuleComponent>(ent, out _))
             {
                 if (TryComp<GasTankComponent>(ent, out var tank))
                 {

@@ -998,9 +998,6 @@
   id: Meat
 
 - type: Tag
-  id: MechAirTank
-
-- type: Tag
   id: MechThruster
 
 - type: Tag

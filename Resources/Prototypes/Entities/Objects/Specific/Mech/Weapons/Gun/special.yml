@@ -25,7 +25,7 @@
     proto: MousetrapArmed
     fireCost: 100
   - type: Appearance
-  
+
 - type: entity
   id: WeaponMechSpecialBananaMortar
   parent: [ BaseMechWeaponRange, SpecialMechEquipment ]

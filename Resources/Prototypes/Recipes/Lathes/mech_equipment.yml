@@ -72,8 +72,8 @@
 
 - type: latheRecipe
   parent: BaseMechEquipmentRecipe
-  id: MechAirTank
-  result: MechAirTank
+  id: MechModuleAirTank
+  result: MechModuleAirTank
   materials:
     Steel: 1000
     Glass: 150

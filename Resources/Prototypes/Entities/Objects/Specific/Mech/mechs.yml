@@ -372,7 +372,7 @@
       - WeaponMechSpecialMousetrapMortar
     startingModules:
       - MechModuleFan
-      - MechModuleGasCylinder
+      - MechModuleAirTank
       - MechModuleHorn
 
 # HAMTR
@@ -706,7 +706,7 @@
       - WeaponMechCombatMissileRack8
     startingModules:
       - MechModuleFan
-      - MechModuleGasCylinder
+      - MechModuleAirTank
 
 # Seraph
 - type: entity
@@ -786,7 +786,7 @@
       - WeaponMechCombatUltraRifle
     startingModules:
       - MechModuleFan
-      - MechModuleGasCylinder
+      - MechModuleAirTank
 
 # Syndicate Combat Mech
 
@@ -867,7 +867,7 @@
       - WeaponMechCombatTeslaCannon
     startingModules:
       - MechModuleFan
-      - MechModuleGasCylinder
+      - MechModuleAirTank
 
 # Mauler
 - type: entity
@@ -947,4 +947,4 @@
       - WeaponMechCombatTeslaCannon
     startingModules:
       - MechModuleFan
-      - MechModuleGasCylinder
+      - MechModuleAirTank

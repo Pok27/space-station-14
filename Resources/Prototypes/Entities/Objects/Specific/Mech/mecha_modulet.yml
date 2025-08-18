@@ -4,9 +4,9 @@
   abstract: true
   components:
   - type: Sprite
-    sprite: Objects/Specific/Mech/mecha_equipment.rsi
+    sprite: Objects/Specific/Mech/mecha_modules.rsi
   - type: Item
-    sprite: Objects/Specific/Mech/mecha_equipment.rsi
+    sprite: Objects/Specific/Mech/mecha_modules.rsi
     size: Ginormous
   - type: MultiHandedItem
   - type: MechModule
@@ -20,30 +20,12 @@
 - type: entity
   id: MechModuleFan
   parent: MechModuleBase
-  name: mecha_wholegen
-  description: mecha_wholegen.
+  name: mecha_fan
+  description: mecha_fan.
   components:
   - type: Sprite
-    sprite: Objects/Specific/Mech/mecha_equipment.rsi
-    state: mecha_air_tank # mecha_advanced_wholegen
+    state: mecha_fan
   - type: MechFanModule
-  - type: AirFilter
-    gases: [ Plasma, CarbonDioxide, NitrousOxide ]
-    overflowGases: [ Nitrogen ]
-    targetOxygen: 0.21
-
-- type: entity
-  id: MechModuleAdvancedFan
-  parent: MechModuleBase
-  name: mecha_wholegen
-  description: mecha_wholegen.
-  components:
-  - type: Sprite
-    sprite: Objects/Specific/Mech/mecha_equipment.rsi
-    state: mecha_air_tank # mecha_wholegen
-  - type: MechFanModule
-    energyConsumption: 2
-    gasProcessingRate: 2
   - type: AirFilter
     gases: [ Plasma, CarbonDioxide, NitrousOxide ]
     overflowGases: [ Nitrogen ]
@@ -73,31 +55,15 @@
     - MechModule
 
 - type: entity
-  id: MechModuleGasCylinder
+  id: MechModuleAirTank
   parent: MechModuleBase
-  name: mech gas cylinder
-  description: Provides internal air storage for airtight mechs.
+  name: exosuit air tank
+  description: A special air canister capable of holding a large amount of air.
   components:
   - type: Sprite
-    sprite: Objects/Specific/Mech/mecha_equipment.rsi
     state: mecha_air_tank
-  - type: MechGasCylinderModule
+  - type: MechAirTankModule
   - type: GasTank
     outputPressure: 101.3
     air:
       volume: 25
-
-- type: entity
-  id: MechModuleAdvancedGasCylinder
-  parent: MechModuleBase
-  name: mech advanced gas cylinder
-  description: Provides internal air storage for airtight mechs.
-  components:
-  - type: Sprite
-    sprite: Objects/Specific/Mech/mecha_equipment.rsi
-    state: mecha_air_tank # mecha_advanced_air_tank
-  - type: MechGasCylinderModule
-  - type: GasTank
-    outputPressure: 101.3
-    air:
-      volume: 50

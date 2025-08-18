@@ -98,7 +98,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
     {
         foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
         {
-            if (TryComp<MechGasCylinderModuleComponent>(ent, out _) && TryComp<GasTankComponent>(ent, out var tank))
+            if (TryComp<MechAirTankModuleComponent>(ent, out _) && TryComp<GasTankComponent>(ent, out var tank))
                 return (tank, tank.Air);
         }
         return (null, null);

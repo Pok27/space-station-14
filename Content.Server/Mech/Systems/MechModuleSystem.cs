@@ -74,9 +74,9 @@ public sealed class MechModuleSystem : EntitySystem
         foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
         {
             hasFan |= HasComp<MechFanModuleComponent>(ent);
-            hasGas |= HasComp<MechGasCylinderModuleComponent>(ent);
+            hasGas |= HasComp<MechAirTankModuleComponent>(ent);
         }
-        if ((hasFan && HasComp<MechFanModuleComponent>(uid)) || (hasGas && HasComp<MechGasCylinderModuleComponent>(uid)))
+        if ((hasFan && HasComp<MechFanModuleComponent>(uid)) || (hasGas && HasComp<MechAirTankModuleComponent>(uid)))
         {
             _popup.PopupEntity(Loc.GetString("mech-duplicate-module-popup"), args.User);
             return;
