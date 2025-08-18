@@ -132,7 +132,7 @@
       - tag: MechThruster
         name: exosuit thruster
         icon:
-          sprite: Objects/Specific/Mech/mecha_details.rsi
+          sprite: Objects/Specific/Mech/mecha_comonets.rsi
           state: mecha_bin
 
       - tool: Anchoring

@@ -307,18 +307,13 @@ public abstract partial class SharedMechSystem : EntitySystem
         // Module
         if (Resolve(toInsert, ref moduleComponent, false))
         {
-            var used = 0;
-            foreach (var ent in component.ModuleContainer.ContainedEntities)
-            {
-                if (TryComp<MechModuleComponent>(ent, out var m))
-                    used += m.Size;
-            }
-            if (used + moduleComponent.Size > component.MaxModuleAmount)
+            if (component.ModuleContainer.ContainedEntities.Count >= component.MaxModuleAmount)
                 return;
 
             if (_whitelistSystem.IsWhitelistFail(component.ModuleWhitelist, toInsert))
                 return;
 
+            moduleComponent.ModuleOwner = uid;
             _container.Insert(toInsert, component.ModuleContainer);
             var modEv = new MechModuleInsertedEvent(uid);
             RaiseLocalEvent(toInsert, ref modEv);

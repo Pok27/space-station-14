@@ -11,19 +11,22 @@ namespace Content.Shared.Mech.Equipment.Components;
 public sealed partial class MechEquipmentComponent : Component
 {
     /// <summary>
-    /// How long does it take to install this piece of equipment
+    /// How long does it take to install this piece of equipment.
     /// </summary>
-    [DataField("installDuration")] public float InstallDuration = 5;
+    [DataField]
+    public float InstallDuration = 5;
 
     /// <summary>
-    /// Space units this equipment occupies in the mech (for UI display)
+    /// Space units this equipment occupies in the mech (for UI display).
     /// </summary>
-    [DataField("size")] public int Size = 1;
+    [DataField]
+    public int Size = 1;
 
     /// <summary>
     /// The mech that the equipment is inside of.
     /// </summary>
-    [ViewVariables] public EntityUid? EquipmentOwner;
+    [ViewVariables]
+    public EntityUid? EquipmentOwner;
 
     /// <summary>
     /// If true, this equipment cannot be used outside of a mech.
@@ -33,16 +36,11 @@ public sealed partial class MechEquipmentComponent : Component
 }
 
 /// <summary>
-/// Raised on the equipment when the installation is finished successfully
+/// Raised on the equipment when the installation is finished successfully.
 /// </summary>
-public sealed class MechEquipmentInstallFinished : EntityEventArgs
+public sealed class MechEquipmentInstallFinished(EntityUid mech) : EntityEventArgs
 {
-    public EntityUid Mech;
-
-    public MechEquipmentInstallFinished(EntityUid mech)
-    {
-        Mech = mech;
-    }
+    public EntityUid Mech = mech;
 }
 
 /// <summary>

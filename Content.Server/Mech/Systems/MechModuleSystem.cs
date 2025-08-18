@@ -4,7 +4,6 @@ using Content.Shared.Interaction;
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.EntitySystems;
 using Content.Shared.Whitelist;
-// using Robust.Server.Containers;
 using Content.Shared.Vehicle;
 
 namespace Content.Server.Mech.Systems;
@@ -18,6 +17,7 @@ public sealed class MechModuleSystem : EntitySystem
     [Dependency] private readonly PopupSystem _popup = default!;
     [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
     [Dependency] private readonly VehicleSystem _vehicle = default!;
+    [Dependency] private readonly SharedMechSystem _mechSystem = default!;
 
     public override void Initialize()
     {
@@ -48,7 +48,7 @@ public sealed class MechModuleSystem : EntitySystem
             return;
         }
 
-        if (args.User == mechComp.PilotSlot.ContainedEntity)
+        if (args.User == _vehicle.GetOperatorOrNull(mech))
             return;
 
         // Duplicate by prototype id
@@ -67,21 +67,7 @@ public sealed class MechModuleSystem : EntitySystem
             }
         }
 
-        // Duplicate by component type (e.g., only 1 fan, only 1 gas cylinder).
-        var hasFan = false;
-        var hasGas = false;
-        foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
-        {
-            hasFan |= HasComp<MechFanModuleComponent>(ent);
-            hasGas |= HasComp<MechAirTankModuleComponent>(ent);
-        }
-        if ((hasFan && HasComp<MechFanModuleComponent>(uid)) || (hasGas && HasComp<MechAirTankModuleComponent>(uid)))
-        {
-            _popup.PopupEntity(Loc.GetString("mech-duplicate-module-popup"), args.User);
-            return;
-        }
-
-        if (mechComp.ModuleContainer.ContainedEntities.Count > mechComp.MaxModuleAmount)
+        if (mechComp.ModuleContainer.ContainedEntities.Count >= mechComp.MaxModuleAmount)
         {
             _popup.PopupEntity(Loc.GetString("mech-capacity-modules-full-popup"), args.User);
             return;
@@ -118,7 +104,7 @@ public sealed class MechModuleSystem : EntitySystem
             return;
 
         _popup.PopupEntity(Loc.GetString("mech-equipment-finish-install-popup", ("item", uid)), mech);
-        EntityManager.System<MechSystem>().InsertEquipment(mech, uid, mechComp);
+        _mechSystem.InsertEquipment(mech, uid, mechComp, moduleComponent: component);
 
         args.Handled = true;
     }

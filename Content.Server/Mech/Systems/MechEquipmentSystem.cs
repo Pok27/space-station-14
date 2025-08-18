@@ -106,7 +106,7 @@ public sealed class MechEquipmentSystem : EntitySystem
             return;
 
         _popup.PopupEntity(Loc.GetString("mech-equipment-finish-install-popup", ("item", uid)), mech);
-        _mechSystem.InsertEquipment(mech, uid, mechComp, component);
+        _mechSystem.InsertEquipment(mech, uid, mechComp, equipmentComponent: component);
 
         args.Handled = true;
     }
