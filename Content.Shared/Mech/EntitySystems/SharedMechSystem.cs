@@ -152,6 +152,56 @@ public abstract partial class SharedMechSystem : EntitySystem
         args.Cancelled = true;
     }
 
+    private void ManageVirtualItems(EntityUid pilot, EntityUid mech, bool create)
+    {
+        if (!TryComp<HandsComponent>(pilot, out var handsComp))
+            return;
+
+        if (create)
+        {
+            // Creating virtual objects to block hands.
+            var blocking = TryComp<MechComponent>(mech, out var mechComp) && mechComp.CurrentSelectedEquipment != null
+                ? mechComp.CurrentSelectedEquipment.Value
+                : mech;
+
+            foreach (var hand in _hands.EnumerateHands(pilot))
+            {
+                if (_hands.TryGetHeldItem(pilot, hand, out _))
+                    continue;
+
+                if (_virtualItem.TrySpawnVirtualItemInHand(blocking, pilot, out var virtualItem, dropOthers: false))
+                {
+                    EnsureComp<UnremoveableComponent>(virtualItem.Value);
+                }
+            }
+        }
+        else
+        {
+            // Remove all virtual items and unlock your hands.
+            foreach (var hand in _hands.EnumerateHands(pilot))
+            {
+                if (_hands.TryGetHeldItem(pilot, hand, out var heldItem) && heldItem != null)
+                {
+                    if (HasComp<UnremoveableComponent>(heldItem.Value))
+                    {
+                        RemComp<UnremoveableComponent>(heldItem.Value);
+                    }
+                    _virtualItem.DeleteInHandsMatching(pilot, heldItem.Value);
+                }
+            }
+
+            // Removing virtual items for fur and equipment.
+            _virtualItem.DeleteInHandsMatching(pilot, mech);
+            if (TryComp<MechComponent>(mech, out var mechComp))
+            {
+                foreach (var eq in mechComp.EquipmentContainer.ContainedEntities)
+                {
+                    _virtualItem.DeleteInHandsMatching(pilot, eq);
+                }
+            }
+        }
+    }
+
     private void SetupUser(EntityUid mech, EntityUid pilot, MechComponent? component = null)
     {
         if (!Resolve(mech, ref component))
@@ -168,28 +218,17 @@ public abstract partial class SharedMechSystem : EntitySystem
         if (_net.IsClient)
             return;
 
-        // Drop held items upon entering
-        if (TryComp(pilot, out HandsComponent? handsComp))
+        // Drop held items upon entering.
+        if (!TryComp<HandsComponent>(pilot, out var handsComp))
+            return;
+
+        foreach (var hand in _hands.EnumerateHands(pilot))
         {
-            foreach (var hand in _hands.EnumerateHands(pilot))
-            {
-                if (_hands.TryGetHeldItem(pilot, hand, out _))
-                    _hands.TryDrop((pilot, handsComp), hand);
-            }
+            if (_hands.TryGetHeldItem(pilot, hand, out _))
+                _hands.TryDrop((pilot, handsComp), hand);
         }
 
-        // Lock both hands using virtual items linked to the current selected equipment
-        var blocking = component.CurrentSelectedEquipment ?? mech;
-        if (_hands.TryGetEmptyHand(pilot, out _))
-        {
-            if (_virtualItem.TrySpawnVirtualItemInHand(blocking, pilot, out var virt1, dropOthers: false))
-                EnsureComp<UnremoveableComponent>(virt1.Value);
-        }
-        if (_hands.TryGetEmptyHand(pilot, out _))
-        {
-            if (_virtualItem.TrySpawnVirtualItemInHand(blocking, pilot, out var virt2, dropOthers: false))
-                EnsureComp<UnremoveableComponent>(virt2.Value);
-        }
+        ManageVirtualItems(pilot, mech, create: true);
 
         _actions.AddAction(pilot, ref component.MechCycleActionEntity, component.MechCycleAction, mech);
         _actions.AddAction(pilot, ref component.MechUiActionEntity, component.MechUiAction, mech);
@@ -200,15 +239,7 @@ public abstract partial class SharedMechSystem : EntitySystem
     {
         RemComp<MechPilotComponent>(pilot);
 
-        if (TryComp<MechComponent>(mech, out var mechComp))
-        {
-            foreach (var eq in mechComp.EquipmentContainer.ContainedEntities)
-            {
-                _virtualItem.DeleteInHandsMatching(pilot, eq);
-            }
-        }
-
-        _virtualItem.DeleteInHandsMatching(pilot, mech);
+        ManageVirtualItems(pilot, mech, create: false);
 
         _actions.RemoveProvidedActions(pilot, mech);
     }
