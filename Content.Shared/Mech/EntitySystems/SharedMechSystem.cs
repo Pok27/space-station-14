@@ -36,7 +36,6 @@ using Content.Shared.Repairable.Events;
 using Content.Shared.Inventory.VirtualItem;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Hands.Components;
-using Content.Shared.Inventory.VirtualItem;
 
 namespace Content.Shared.Mech.EntitySystems;
 
@@ -115,7 +114,7 @@ public abstract partial class SharedMechSystem : EntitySystem
 
         var doAfterEventArgs = new DoAfterArgs(EntityManager, args.Performer, component.EntryDelay, new MechExitEvent(), uid, target: uid)
         {
-            BreakOnMove = true,
+            BreakOnMove = true
         };
         _doAfter.TryStartDoAfter(doAfterEventArgs);
     }
@@ -189,8 +188,16 @@ public abstract partial class SharedMechSystem : EntitySystem
 
     private void RemoveUser(EntityUid mech, EntityUid pilot)
     {
-        if (!RemComp<MechPilotComponent>(pilot))
-            return;
+        RemComp<MechPilotComponent>(pilot);
+
+        if (TryComp<MechComponent>(mech, out var mechComp))
+        {
+            foreach (var eq in mechComp.EquipmentContainer.ContainedEntities)
+            {
+                _virtualItem.DeleteInHandsMatching(pilot, eq);
+            }
+        }
+
         _virtualItem.DeleteInHandsMatching(pilot, mech);
 
         _actions.RemoveProvidedActions(pilot, mech);
@@ -330,17 +337,12 @@ public abstract partial class SharedMechSystem : EntitySystem
         if (pilot == null)
             return;
 
-        var newBlocking = component.CurrentSelectedEquipment ?? mech;
-
         foreach (var held in _hands.EnumerateHeld(pilot.Value))
         {
             if (!TryComp<VirtualItemComponent>(held, out var virt))
                 continue;
 
-            var isFromMech = virt.BlockingEntity == mech || component.EquipmentContainer.ContainedEntities.Contains(virt.BlockingEntity);
-            if (!isFromMech)
-                continue;
-
+            var newBlocking = component.CurrentSelectedEquipment ?? held;
             virt.BlockingEntity = newBlocking;
             Dirty(held, virt);
         }

@@ -422,6 +422,7 @@ public sealed partial class MechSystem : SharedMechSystem
         }
 
         Dirty(mech, mechComp);
+        RefreshPilotHandVirtualItems(mech, mechComp);
     }
 
     private void OnBeingGibbed(EntityUid uid, MechComponent component, ref BeingGibbedEvent args)
