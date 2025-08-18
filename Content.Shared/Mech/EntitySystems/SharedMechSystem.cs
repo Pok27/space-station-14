@@ -87,9 +87,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         SubscribeLocalEvent<MechEquipmentComponent, AttemptMeleeEvent>(OnMechEquipmentMeleeAttempt);
 
         InitializeRelay();
-        SubscribeLocalEvent<MechPilotComponent, GetUsedEntityEvent>(OnGetUsedEntity);
         SubscribeLocalEvent<MechPilotComponent, AccessibleOverrideEvent>(OnPilotAccessible);
-        SubscribeLocalEvent<MechPilotComponent, InRangeOverrideEvent>(OnPilotInRange);
     }
 
     private void OnToggleEquipmentAction(EntityUid uid, MechComponent component, MechToggleEquipmentEvent args)
@@ -241,7 +239,7 @@ public abstract partial class SharedMechSystem : EntitySystem
     /// Removes an equipment item from a mech.
     /// </summary>
     /// <param name="uid"></param>
-    /// <param name="toRemove"></param>
+    /// <param name="toInsert"></param>
     /// <param name="component"></param>
     /// <param name="equipmentComponent"></param>
     /// <param name="forced">Whether or not the removal can be cancelled</param>
@@ -357,7 +355,7 @@ public abstract partial class SharedMechSystem : EntitySystem
             if (!TryComp<VirtualItemComponent>(held, out var virt))
                 continue;
 
-            var newBlocking = component.CurrentSelectedEquipment ?? held;
+            var newBlocking = component.CurrentSelectedEquipment ?? mech;
             virt.BlockingEntity = newBlocking;
             Dirty(held, virt);
         }
@@ -537,6 +535,9 @@ public abstract partial class SharedMechSystem : EntitySystem
             return false;
 
         if (component.Broken)
+            return false;
+
+        if (HasComp<VehicleOperatorComponent>(toInsert))
             return false;
 
         if (!_actionBlocker.CanMove(toInsert))
@@ -753,25 +754,10 @@ public abstract partial class SharedMechSystem : EntitySystem
         Dirty(uid, component);
     }
 
-    private void OnGetUsedEntity(EntityUid uid, MechPilotComponent pilot, ref GetUsedEntityEvent args)
-    {
-        if (args.Handled)
-            return;
-        if (!TryComp<MechComponent>(pilot.Mech, out var mech))
-            return;
-        args.Used = mech.CurrentSelectedEquipment ?? pilot.Mech;
-    }
-
     private void OnPilotAccessible(EntityUid uid, MechPilotComponent pilot, ref AccessibleOverrideEvent args)
     {
         args.Handled = true;
         args.Accessible = _interaction.IsAccessible(pilot.Mech, args.Target);
-    }
-
-    private void OnPilotInRange(EntityUid uid, MechPilotComponent pilot, ref InRangeOverrideEvent args)
-    {
-        args.Handled = true;
-        args.InRange = _interaction.InRangeUnobstructed(pilot.Mech, args.Target);
     }
 }
 
