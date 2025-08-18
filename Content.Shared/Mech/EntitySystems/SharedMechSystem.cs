@@ -157,6 +157,10 @@ public abstract partial class SharedMechSystem : EntitySystem
         if (!Resolve(mech, ref component))
             return;
 
+        // Warning: this bypasses most normal interaction blocking components on the user, like drone laws and the like.
+        var irelay = EnsureComp<InteractionRelayComponent>(pilot);
+
+        _interaction.SetRelay(pilot, mech, irelay);
         var rider = EnsureComp<MechPilotComponent>(pilot);
         rider.Mech = mech;
         Dirty(pilot, rider);
