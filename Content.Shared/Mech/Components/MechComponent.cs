@@ -1,4 +1,5 @@
 using Content.Shared.FixedPoint;
+using Content.Shared.Alert;
 using Content.Shared.Whitelist;
 using Robust.Shared.Audio;
 using Robust.Shared.Containers;
@@ -58,7 +59,25 @@ public sealed partial class MechComponent : Component
     /// Sound played when entering broken state.
     /// </summary>
     [DataField]
-    public SoundSpecifier BrokenSound = new SoundPathSpecifier("/Audio/Effects/alert.ogg");
+    public SoundSpecifier? BrokenSound;
+
+    /// <summary>
+    /// Optional sound played after a pilot successfully enters the mech.
+    /// </summary>
+    [DataField]
+    public SoundSpecifier? EntrySuccessSound;
+
+    /// <summary>
+    /// Battery alert to show on the pilot when operating the mech.
+    /// </summary>
+    [DataField]
+    public ProtoId<AlertPrototype> BatteryAlert = "BorgBattery";
+
+    /// <summary>
+    /// Alert to show when the mech has no battery installed.
+    /// </summary>
+    [DataField]
+    public ProtoId<AlertPrototype> NoBatteryAlert = "BorgBatteryNone";
 
     /// <summary>
     /// The slot the battery is stored in.

@@ -65,11 +65,17 @@ public sealed partial class MechSystem : SharedMechSystem
         SubscribeAllEvent<RequestMechEquipmentSelectEvent>(OnEquipmentSelectRequest);
         SubscribeLocalEvent<MechComponent, MechOpenUiEvent>(OnOpenUi);
         SubscribeLocalEvent<MechComponent, MechBrokenSoundEvent>(OnMechBrokenSound);
+        SubscribeLocalEvent<MechComponent, MechEntrySuccessSoundEvent>(OnMechEntrySuccessSound);
     }
 
     private void OnRepairMechEvent(EntityUid uid, MechComponent component, RepairMechEvent args)
     {
         RepairMech(uid, component);
+    }
+
+    private void OnMechEntrySuccessSound(EntityUid uid, MechComponent component, MechEntrySuccessSoundEvent args)
+    {
+        _audio.PlayPvs(args.Sound, uid);
     }
 
     private void OnMechCanMoveEvent(EntityUid uid, MechComponent component, UpdateCanMoveEvent args)

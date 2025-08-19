@@ -553,6 +553,12 @@ public abstract partial class SharedMechSystem : EntitySystem
     public readonly record struct MechBrokenSoundEvent(EntityUid Mech, SoundSpecifier Sound);
 
     /// <summary>
+    /// Raised when a pilot successfully enters a mech and an optional entry sound should be played.
+    /// </summary>
+    [ByRefEvent]
+    public readonly record struct MechEntrySuccessSoundEvent(EntityUid Mech, SoundSpecifier Sound);
+
+    /// <summary>
     /// Checks if an entity can be inserted into the mech.
     /// </summary>
     /// <param name="uid"></param>
@@ -770,6 +776,11 @@ public abstract partial class SharedMechSystem : EntitySystem
         if (args.NewOperator is { } newOperator)
         {
             SetupUser(ent, newOperator, ent);
+            if (ent.Comp.EntrySuccessSound != null)
+            {
+                var ev = new MechEntrySuccessSoundEvent(ent.Owner, ent.Comp.EntrySuccessSound);
+                RaiseLocalEvent(ent, ref ev);
+            }
         }
 
         UpdateAppearance(ent);
