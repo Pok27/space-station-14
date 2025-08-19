@@ -181,7 +181,6 @@ public sealed partial class MechSystem : SharedMechSystem
             _actionBlocker.UpdateCanMove(uid);
 
             RaiseLocalEvent(uid, new UpdateMechUiEvent());
-            UpdateBatteryAlert((uid, component));
         }
         else if (args.Container == component.PilotSlot)
         {
@@ -234,7 +233,6 @@ public sealed partial class MechSystem : SharedMechSystem
         _actionBlocker.UpdateCanMove(uid);
 
         RaiseLocalEvent(uid, new UpdateMechUiEvent());
-        UpdateBatteryAlert((uid, component));
         UpdateHealthAlert((uid, component));
     }
 
@@ -375,8 +373,6 @@ public sealed partial class MechSystem : SharedMechSystem
             component.MaxEnergy = battery.MaxCharge;
             Dirty(uid, component);
         }
-
-        UpdateBatteryAlert((uid, component));
     }
 
     private void OnBatteryChanged(EntityUid uid, MechComponent component, PowerCellSlotEmptyEvent args)
@@ -385,8 +381,6 @@ public sealed partial class MechSystem : SharedMechSystem
         component.Energy = 0;
         component.MaxEnergy = 0;
         Dirty(uid, component);
-
-        UpdateBatteryAlert((uid, component));
     }
 
     private void ToggleMechUi(EntityUid uid, MechComponent? component = null, EntityUid? user = null)
@@ -445,6 +439,7 @@ public sealed partial class MechSystem : SharedMechSystem
         component.Energy = newEnergy;
         Dirty(uid, component);
         UpdateMechUi(uid);
+        UpdateBatteryAlert((uid, component));
         return true;
     }
 
@@ -454,21 +449,19 @@ public sealed partial class MechSystem : SharedMechSystem
         if (pilot == null)
             return;
 
-        if (!_powerCell.TryGetBatteryFromSlot(ent, out var battery))
+        if (!_powerCell.TryGetBatteryFromSlot(ent, out _))
         {
             _alerts.ClearAlert(pilot.Value, ent.Comp.BatteryAlert);
             _alerts.ShowAlert(pilot.Value, ent.Comp.NoBatteryAlert);
             return;
         }
 
-        var chargePercent = (short) MathF.Round(battery.CurrentCharge / battery.MaxCharge * 10f);
+        var chargePercent = (short)MathF.Round(ent.Comp.Energy.Float() / ent.Comp.MaxEnergy.Float() * 10f);
 
         // we make sure 0 only shows if they have absolutely no battery.
         // also account for floating point imprecision
-        if (chargePercent == 0 && _powerCell.HasDrawCharge(ent))
-        {
+        if (chargePercent == 0 && ent.Comp.Energy > 0)
             chargePercent = 1;
-        }
 
         _alerts.ClearAlert(pilot.Value, ent.Comp.NoBatteryAlert);
         _alerts.ShowAlert(pilot.Value, ent.Comp.BatteryAlert, chargePercent);
@@ -493,7 +486,7 @@ public sealed partial class MechSystem : SharedMechSystem
 
             var integrity = ent.Comp.Integrity.Float();
             var maxIntegrity = ent.Comp.MaxIntegrity.Float();
-            var healthPercent = (short) MathF.Round((1f - integrity / maxIntegrity) * 4f);
+            var healthPercent = (short)MathF.Round((1f - integrity / maxIntegrity) * 4f);
             _alerts.ShowAlert(pilot.Value, ent.Comp.HealthAlert, healthPercent);
         }
     }

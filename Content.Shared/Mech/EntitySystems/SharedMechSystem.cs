@@ -802,6 +802,10 @@ public abstract partial class SharedMechSystem : EntitySystem
 
     private void OnPilotAccessible(EntityUid uid, MechPilotComponent pilot, ref AccessibleOverrideEvent args)
     {
+        // Only relay accessibility through the mech when no equipment is selected
+        if (!TryComp<MechComponent>(pilot.Mech, out var mech) || mech.CurrentSelectedEquipment != null)
+            return;
+
         args.Handled = true;
         args.Accessible = _interaction.IsAccessible(pilot.Mech, args.Target);
     }
