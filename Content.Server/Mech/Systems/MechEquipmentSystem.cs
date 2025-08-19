@@ -6,7 +6,6 @@ using Content.Shared.Mech.Equipment.Components;
 using Content.Shared.Mech.EntitySystems;
 using Content.Shared.Vehicle;
 using Content.Shared.Whitelist;
-// using Robust.Server.Containers;
 
 namespace Content.Server.Mech.Systems;
 

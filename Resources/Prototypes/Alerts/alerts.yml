@@ -255,7 +255,6 @@
 
 - type: alert
   id: MechaHealth
-  category: Health
   icons:
   - sprite: /Textures/Interface/Alerts/mecha_alive.rsi
     state: health0
@@ -274,7 +273,6 @@
 
 - type: alert
   id: MechaBroken
-  category: Health
   icons:
   - sprite: /Textures/Interface/Alerts/mecha_broken.rsi
     state: broken

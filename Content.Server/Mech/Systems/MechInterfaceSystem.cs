@@ -3,10 +3,6 @@ using Content.Server.Mech.Components;
 using Content.Shared.Mech;
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.EntitySystems;
-using Content.Shared.PowerCell;
-using Content.Server.PowerCell;
-using Content.Shared.PowerCell.Components;
-using Content.Shared.Alert;
 using Robust.Server.GameObjects;
 using Robust.Server.Containers;
 using Robust.Shared.Containers;
@@ -45,6 +41,7 @@ public sealed class MechInterfaceSystem : EntitySystem
         base.Initialize();
 
         SubscribeLocalEvent<MechComponent, UpdateMechUiEvent>(OnUpdateMechUi);
+
         Subs.BuiEvents<MechComponent>(MechUiKey.Key, subs =>
         {
             subs.Event<BoundUIOpenedEvent>(OnMechUiOpened);
@@ -393,30 +390,6 @@ public sealed class MechInterfaceSystem : EntitySystem
         CollectEquipmentUiStates(mechComp.ModuleContainer.ContainedEntities, state.EquipmentUiStates);
 
         _uiSystem.SetUiState(uid, MechUiKey.Key, state);
-
-        // Battery alerts: mirror cyborg behavior using battery.rsi alerts
-        // Show battery percentage (0-10) or no-battery alert to the pilot
-        var pilot = mechComp.PilotSlot.ContainedEntity;
-        if (pilot.HasValue)
-        {
-            // Find battery slot component to compute percent
-            if (TryComp<PowerCellSlotComponent>(uid, out var slot))
-            {
-                var power = EntityManager.System<PowerCellSystem>();
-                var alerts = EntityManager.System<AlertsSystem>();
-                if (!power.TryGetBatteryFromSlot(uid, out var battery, slot))
-                {
-                    alerts.ShowAlert(pilot.Value, mechComp.NoBatteryAlert);
-                }
-                else
-                {
-                    short percent = (short) MathF.Round(battery.CurrentCharge / battery.MaxCharge * 10f);
-                    if (percent == 0 && power.HasDrawCharge(uid, cell: slot))
-                        percent = 1;
-                    alerts.ShowAlert(pilot.Value, mechComp.BatteryAlert, percent);
-                }
-            }
-        }
     }
 
     private void UpdateMechUi(EntityUid uid)

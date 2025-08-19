@@ -28,6 +28,11 @@ using Content.Shared.Atmos.Components;
 using Content.Shared.Atmos;
 using Content.Shared.Body.Events;
 using Robust.Shared.Audio.Systems;
+using Content.Shared.Vehicle;
+using Content.Shared.Alert;
+using Content.Shared.PowerCell;
+using Content.Server.PowerCell;
+using Content.Shared.PowerCell.Components;
 
 namespace Content.Server.Mech.Systems;
 
@@ -41,6 +46,8 @@ public sealed partial class MechSystem : SharedMechSystem
     [Dependency] private readonly SharedToolSystem _toolSystem = default!;
     [Dependency] private readonly MechLockSystem _lockSystem = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
+    [Dependency] private readonly AlertsSystem _alerts = default!;
+    [Dependency] private readonly PowerCellSystem _powerCell = default!;
 
     private static readonly ProtoId<ToolQualityPrototype> PryingQuality = "Prying";
 
@@ -51,7 +58,8 @@ public sealed partial class MechSystem : SharedMechSystem
 
         SubscribeLocalEvent<MechComponent, InteractUsingEvent>(OnInteractUsing);
         SubscribeLocalEvent<MechComponent, RepairMechEvent>(OnRepairMechEvent);
-        SubscribeLocalEvent<MechComponent, EntInsertedIntoContainerMessage>(OnInsertBattery);
+        SubscribeLocalEvent<MechComponent, EntInsertedIntoContainerMessage>(OnContainerChanged);
+        SubscribeLocalEvent<MechComponent, EntRemovedFromContainerMessage>(OnContainerChanged);
         SubscribeLocalEvent<MechComponent, RemoveBatteryEvent>(OnRemoveBattery);
         SubscribeLocalEvent<MechComponent, MechEntryEvent>(OnMechEntry);
         SubscribeLocalEvent<MechComponent, MechExitEvent>(OnMechExit);
@@ -59,6 +67,8 @@ public sealed partial class MechSystem : SharedMechSystem
         SubscribeLocalEvent<MechComponent, MapInitEvent>(OnMapInit);
         SubscribeLocalEvent<MechComponent, BeingGibbedEvent>(OnBeingGibbed);
         SubscribeLocalEvent<MechComponent, UpdateCanMoveEvent>(OnMechCanMoveEvent);
+        SubscribeLocalEvent<MechComponent, PowerCellChangedEvent>(OnBatteryChanged);
+        SubscribeLocalEvent<MechComponent, PowerCellSlotEmptyEvent>(OnBatteryChanged);
 
         SubscribeLocalEvent<MechPilotComponent, ToolUserAttemptUseEvent>(OnToolUseAttempt);
         SubscribeLocalEvent<MechComponent, GetVerbsEvent<AlternativeVerb>>(OnAlternativeVerb);
@@ -136,16 +146,52 @@ public sealed partial class MechSystem : SharedMechSystem
         }
     }
 
-    private void OnInsertBattery(EntityUid uid, MechComponent component, EntInsertedIntoContainerMessage args)
+    private void OnContainerChanged(EntityUid uid, MechComponent component, EntInsertedIntoContainerMessage args)
     {
-        if (args.Container != component.BatterySlot || !TryComp<BatteryComponent>(args.Entity, out var battery))
-            return;
+        if (args.Container == component.BatterySlot)
+        {
+            if (!TryComp<BatteryComponent>(args.Entity, out var battery))
+                return;
 
-        component.Energy = battery.CurrentCharge;
-        component.MaxEnergy = battery.MaxCharge;
+            component.Energy = battery.CurrentCharge;
+            component.MaxEnergy = battery.MaxCharge;
 
-        Dirty(uid, component);
-        _actionBlocker.UpdateCanMove(uid);
+            Dirty(uid, component);
+            _actionBlocker.UpdateCanMove(uid);
+
+            RaiseLocalEvent(uid, new UpdateMechUiEvent());
+            UpdateBatteryAlert((uid, component));
+        }
+        else if (args.Container == component.PilotSlot)
+        {
+            // Pilot entered, update alerts
+            UpdateBatteryAlert((uid, component));
+            UpdateHealthAlert((uid, component));
+        }
+    }
+
+    private void OnContainerChanged(EntityUid uid, MechComponent component, EntRemovedFromContainerMessage args)
+    {
+        if (args.Container == component.BatterySlot)
+        {
+            component.Energy = 0;
+            component.MaxEnergy = 0;
+
+            Dirty(uid, component);
+            _actionBlocker.UpdateCanMove(uid);
+
+            RaiseLocalEvent(uid, new UpdateMechUiEvent());
+            UpdateBatteryAlert((uid, component));
+        }
+        else if (args.Container == component.PilotSlot)
+        {
+            // Pilot left, clear alerts
+            var pilot = args.Entity;
+            _alerts.ClearAlert(pilot, component.BatteryAlert);
+            _alerts.ClearAlert(pilot, component.NoBatteryAlert);
+            _alerts.ClearAlert(pilot, component.HealthAlert);
+            _alerts.ClearAlert(pilot, component.BrokenAlert);
+        }
     }
 
     private void OnRemoveBattery(EntityUid uid, MechComponent component, RemoveBatteryEvent args)
@@ -157,6 +203,8 @@ public sealed partial class MechSystem : SharedMechSystem
         _actionBlocker.UpdateCanMove(uid);
 
         args.Handled = true;
+
+        RaiseLocalEvent(uid, new UpdateMechUiEvent());
     }
 
     private void OnMapInit(EntityUid uid, MechComponent component, MapInitEvent args)
@@ -184,6 +232,10 @@ public sealed partial class MechSystem : SharedMechSystem
 
         SetIntegrity(uid, component.MaxIntegrity, component);
         _actionBlocker.UpdateCanMove(uid);
+
+        RaiseLocalEvent(uid, new UpdateMechUiEvent());
+        UpdateBatteryAlert((uid, component));
+        UpdateHealthAlert((uid, component));
     }
 
     private void OnOpenUi(EntityUid uid, MechComponent component, MechOpenUiEvent args)
@@ -274,6 +326,10 @@ public sealed partial class MechSystem : SharedMechSystem
 
         TryInsert(uid, args.Args.User, component);
         args.Handled = true;
+
+        RaiseLocalEvent(uid, new UpdateMechUiEvent());
+        UpdateBatteryAlert((uid, component));
+        UpdateHealthAlert((uid, component));
     }
 
     private void OnMechExit(EntityUid uid, MechComponent component, MechExitEvent args)
@@ -281,15 +337,43 @@ public sealed partial class MechSystem : SharedMechSystem
         if (args.Cancelled || args.Handled)
             return;
 
+        var pilot = Vehicle.GetOperatorOrNull(uid);
+
         TryEject(uid, component);
 
         args.Handled = true;
+
+        RaiseLocalEvent(uid, new UpdateMechUiEvent());
+
+        // Clear alerts after pilot exit
+        if (pilot.HasValue)
+        {
+            _alerts.ClearAlert(pilot.Value, component.BatteryAlert);
+            _alerts.ClearAlert(pilot.Value, component.NoBatteryAlert);
+            _alerts.ClearAlert(pilot.Value, component.HealthAlert);
+            _alerts.ClearAlert(pilot.Value, component.BrokenAlert);
+
+            _actionBlocker.UpdateCanMove(pilot.Value);
+        }
     }
 
     private void OnDamageChanged(EntityUid uid, MechComponent component, DamageChangedEvent args)
     {
         var integrity = component.MaxIntegrity - args.Damageable.TotalDamage;
         SetIntegrity(uid, integrity, component);
+
+        RaiseLocalEvent(uid, new UpdateMechUiEvent());
+        UpdateHealthAlert((uid, component));
+    }
+
+    private void OnBatteryChanged(EntityUid uid, MechComponent component, PowerCellChangedEvent args)
+    {
+        UpdateBatteryAlert((uid, component));
+    }
+
+    private void OnBatteryChanged(EntityUid uid, MechComponent component, PowerCellSlotEmptyEvent args)
+    {
+        UpdateBatteryAlert((uid, component));
     }
 
     private void ToggleMechUi(EntityUid uid, MechComponent? component = null, EntityUid? user = null)
@@ -349,6 +433,57 @@ public sealed partial class MechSystem : SharedMechSystem
         Dirty(uid, component);
         UpdateMechUi(uid);
         return true;
+    }
+
+    private void UpdateBatteryAlert(Entity<MechComponent> ent)
+    {
+        var pilot = ent.Comp.PilotSlot.ContainedEntity;
+        if (pilot == null)
+            return;
+
+        var batteryEntity = ent.Comp.BatterySlot.ContainedEntity;
+        if (batteryEntity == null || !TryComp<BatteryComponent>(batteryEntity, out var battery))
+        {
+            _alerts.ClearAlert(pilot.Value, ent.Comp.BatteryAlert);
+            _alerts.ShowAlert(pilot.Value, ent.Comp.NoBatteryAlert);
+            return;
+        }
+
+        var chargePercent = (short) MathF.Round(battery.CurrentCharge / battery.MaxCharge * 10f);
+
+        // we make sure 0 only shows if they have absolutely no battery.
+        // also account for floating point imprecision
+        if (chargePercent == 0 && battery.CurrentCharge > 0)
+        {
+            chargePercent = 1;
+        }
+
+        _alerts.ClearAlert(pilot.Value, ent.Comp.NoBatteryAlert);
+        _alerts.ShowAlert(pilot.Value, ent.Comp.BatteryAlert, chargePercent);
+    }
+
+    private void UpdateHealthAlert(Entity<MechComponent> ent)
+    {
+        var pilot = ent.Comp.PilotSlot.ContainedEntity;
+        if (pilot == null)
+            return;
+
+        if (ent.Comp.Broken)
+        {
+            // Mech is broken
+            _alerts.ClearAlert(pilot.Value, ent.Comp.HealthAlert);
+            _alerts.ShowAlert(pilot.Value, ent.Comp.BrokenAlert);
+        }
+        else
+        {
+            // Mech is healthy, show health percentage
+            _alerts.ClearAlert(pilot.Value, ent.Comp.BrokenAlert);
+
+            var integrity = ent.Comp.Integrity.Float();
+            var maxIntegrity = ent.Comp.MaxIntegrity.Float();
+            var healthPercent = (short) MathF.Round((1f - integrity / maxIntegrity) * 4f);
+            _alerts.ShowAlert(pilot.Value, ent.Comp.HealthAlert, healthPercent);
+        }
     }
 
     public void InsertBattery(EntityUid uid, EntityUid toInsert, MechComponent? component = null, BatteryComponent? battery = null)

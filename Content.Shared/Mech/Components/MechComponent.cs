@@ -80,6 +80,18 @@ public sealed partial class MechComponent : Component
     public ProtoId<AlertPrototype> NoBatteryAlert = "BorgBatteryNone";
 
     /// <summary>
+    /// Health alert to show on the pilot when operating the mech.
+    /// </summary>
+    [DataField]
+    public ProtoId<AlertPrototype> HealthAlert = "MechaHealth";
+
+    /// <summary>
+    /// Alert to show when the mech is in a broken state.
+    /// </summary>
+    [DataField]
+    public ProtoId<AlertPrototype> BrokenAlert = "MechaBroken";
+
+    /// <summary>
     /// The slot the battery is stored in.
     /// </summary>
     [ViewVariables]

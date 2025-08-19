@@ -737,11 +737,9 @@ public abstract partial class SharedMechSystem : EntitySystem
             return;
 
         var isOpen = !Vehicle.HasOperator(uid);
-        var hasIntegrity = component.Integrity > 0;
-        var isCrit = hasIntegrity && component.Integrity <= component.BrokenThreshold;
 
         _appearance.SetData(uid, MechVisuals.Open, isOpen, appearance);
-        _appearance.SetData(uid, MechVisuals.Broken, component.Broken || isCrit, appearance);
+        _appearance.SetData(uid, MechVisuals.Broken, component.Broken, appearance);
     }
 
     private void OnDragDrop(EntityUid uid, MechComponent component, ref DragDropTargetEvent args)
