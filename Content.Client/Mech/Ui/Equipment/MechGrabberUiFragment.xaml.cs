@@ -21,6 +21,10 @@ public sealed partial class MechGrabberUiFragment : BoxContainer
     public void UpdateContents(MechGrabberUiState state)
     {
         SpaceLabel.Text = $"{state.Contents.Count}/{state.MaxContents}";
+
+        ItemList.Clear();
+        ItemList.ClearSelected();
+
         for (var i = 0; i < state.Contents.Count; i++)
         {
             var ent = _entity.GetEntity(state.Contents[i]);
@@ -28,8 +32,8 @@ public sealed partial class MechGrabberUiFragment : BoxContainer
             if (!_entity.TryGetComponent<MetaDataComponent>(ent, out var meta))
                 continue;
 
-            ItemList.AddItem(meta.EntityName);
-            ItemList[i].OnSelected += _ => OnEjectAction?.Invoke(ent);
+            var item = ItemList.AddItem(meta.EntityName);
+            item.OnSelected += _ => OnEjectAction?.Invoke(ent);
         }
     }
 }

@@ -34,11 +34,7 @@ public sealed class MechLockSystem : SharedMechLockSystem
         if (user == EntityUid.Invalid)
             return;
 
-        if (TryRegisterLock(uid, user, MechLockType.Dna, component))
-        {
-            var (_, isActive, _) = GetLockState(MechLockType.Dna, component);
-            ShowLockMessage(uid, user, component, isActive);
-        }
+        TryRegisterLock(uid, user, MechLockType.Dna, component);
     }
 
     /// <summary>

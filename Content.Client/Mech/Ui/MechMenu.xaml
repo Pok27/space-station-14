@@ -3,8 +3,8 @@
                       xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
                       xmlns:customControls="clr-namespace:Content.Client.Administration.UI.CustomControls"
                       Title="{Loc 'mech-menu-title'}"
-                      MinSize="600 500"
-                      SetSize="720 500">
+                      MinSize="600 480"
+                      SetSize="720 480">
     <BoxContainer Orientation="Horizontal"
                   HorizontalExpand="True"
                   VerticalExpand="True"
@@ -14,11 +14,11 @@
         <BoxContainer Orientation="Vertical"
                       VerticalExpand="True"
                       HorizontalExpand="False"
-                      Margin="0 0 4 0"
+                      Margin="0 0 8 0"
                       MinWidth="380">
 
             <!-- Mech sprite and statistics -->
-            <PanelContainer Margin="0 0 0 5">
+            <PanelContainer Margin="0 0 0 8">
                 <PanelContainer.PanelOverride>
                     <gfx:StyleBoxFlat BackgroundColor="#1B1B1E"/>
                 </PanelContainer.PanelOverride>
@@ -88,14 +88,12 @@
                                     <Label Text="{Loc 'mech-cabin-pressure-label'}"
                                            StyleClasses="StatusFieldTitle"/>
                                     <Label Name="CabinPressureLabel"
-                                           SetHeight="18"
-                                           FontColorOverride="LightGray"/>
+                                           SetHeight="18"/>
 
                                     <Label Text="{Loc 'mech-tank-pressure-label'}"
                                            StyleClasses="StatusFieldTitle"/>
                                     <Label Name="TankPressureLabel"
-                                           SetHeight="18"
-                                           FontColorOverride="LightGray"/>
+                                           SetHeight="18"/>
 
                                     <Label Text="{Loc 'mech-fan-status-label'}"
                                            StyleClasses="StatusFieldTitle"/>
@@ -115,7 +113,7 @@
                 <PanelContainer Name="NoAccessSettings"
                                 Visible="False"
                                 StyleClasses="Inset"
-                                Margin="0 0 0 5"
+                                Margin="0 0 0 6"
                                 HorizontalExpand="True">
                     <BoxContainer HorizontalExpand="True"
                                   Margin="8"
@@ -124,9 +122,10 @@
                     </BoxContainer>
                 </PanelContainer>
                 <GridContainer Name="HaveAccessSettings"
-                               Columns="2">
+                               Columns="2"
+                               VSeparationOverride="6">
                     <PanelContainer StyleClasses="Inset"
-                                    Margin="0 0 0 5"
+                                    Margin="0 0 0 6"
                                     HorizontalExpand="True">
                         <BoxContainer Orientation="Vertical">
                             <Label StyleClasses="StatusFieldTitle"
@@ -148,7 +147,7 @@
                     </PanelContainer>
 
                     <PanelContainer StyleClasses="Inset"
-                                    Margin="0 0 0 5"
+                                    Margin="0 0 0 6"
                                     HorizontalExpand="True">
                         <BoxContainer Orientation="Vertical">
                             <Label StyleClasses="StatusFieldTitle"
@@ -172,88 +171,96 @@
             </BoxContainer>
 
             <!-- Bottom block -->
-            <PanelContainer StyleClasses="Inset"
-                            VerticalExpand="True">
-                <GridContainer Columns="2">
-                    <Label StyleClasses="StatusFieldTitle"
-                           Text="{Loc 'mech-lock-dna-label'}"
-                           Margin="0 0 0 3"/>
-                    <BoxContainer Orientation="Vertical"
-                                  Margin="0 0 0 3">
-                        <BoxContainer>
-                            <Button Name="DnaLockRegisterButton"
-                                    Text="{Loc 'mech-lock-register'}"
-                                    ToggleMode="False"
-                                    HorizontalExpand="False"/>
-                            <Button Name="DnaLockBlockButton"
-                                    Text=""
-                                    StyleClasses="OpenRight"
-                                    ToggleMode="True"
-                                    HorizontalExpand="False"
-                                    Visible="False"/>
-                            <Button StyleClasses="OpenLeft"
-                                    Name="DnaLockResetButton"
-                                    ToolTip="{Loc 'mech-lock-reset'}">
-                                <TextureButton
-                                    HorizontalExpand="False"
-                                    ToggleMode="False"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    MouseFilter="Ignore"
-                                    Scale="0.9 0.9"
-                                    StyleClasses="Refresh"/>
-                            </Button>
-                        </BoxContainer>
-                        <BoxContainer>
-                            <Label StyleClasses="WindowFooterText"
-                                   Name="DnaLockInfoLabel"/>
+            <GridContainer Columns="2"
+                           VSeparationOverride="6"
+                           VerticalExpand="True">
+                <PanelContainer StyleClasses="Inset"
+                                HorizontalExpand="True"
+                                VerticalExpand="True">
+                    <BoxContainer Orientation="Vertical">
+                        <Label StyleClasses="StatusFieldTitle"
+                               Text="{Loc 'mech-lock-dna-label'}"
+                               Margin="0 0 0 3"/>
+                        <BoxContainer Orientation="Vertical">
+                            <BoxContainer Margin="0 0 0 3">
+                                <Button Name="DnaLockRegisterButton"
+                                        Text="{Loc 'mech-lock-register'}"
+                                        ToggleMode="False"
+                                        HorizontalExpand="False"/>
+                                <Button Name="DnaLockBlockButton"
+                                        Text=""
+                                        StyleClasses="OpenRight"
+                                        ToggleMode="True"
+                                        HorizontalExpand="False"
+                                        Visible="False"/>
+                                <Button StyleClasses="OpenLeft"
+                                        Name="DnaLockResetButton"
+                                        ToolTip="{Loc 'mech-lock-reset'}">
+                                    <TextureButton
+                                        HorizontalExpand="False"
+                                        ToggleMode="False"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        MouseFilter="Ignore"
+                                        Scale="0.9 0.9"
+                                        StyleClasses="Refresh"/>
+                                </Button>
+                            </BoxContainer>
+                            <BoxContainer>
+                                <Label Name="DnaLockInfoLabel"
+                                       StyleClasses="ItemStatus"/>
+                            </BoxContainer>
                         </BoxContainer>
                     </BoxContainer>
+                </PanelContainer>
 
-                    <Label StyleClasses="StatusFieldTitle"
-                           Text="{Loc 'mech-lock-card-label'}"
-                           Margin="0 0 0 3"/>
-                    <BoxContainer Orientation="Vertical"
-                                  Margin="0 0 0 3">
-                        <BoxContainer>
-                            <Button Name="CardLockRegisterButton"
-                                    Text="{Loc 'mech-lock-register'}"
-                                    ToggleMode="False"
-                                    HorizontalExpand="False"/>
-                            <Button Name="CardLockBlockButton"
-                                    Text=""
-                                    StyleClasses="OpenRight"
-                                    ToggleMode="True"
-                                    HorizontalExpand="False"
-                                    Visible="False"/>
-                            <Button StyleClasses="OpenLeft"
-                                    Name="CardLockResetButton"
-                                    ToolTip="{Loc 'mech-lock-reset'}">
-                                <TextureButton
-                                    HorizontalExpand="False"
-                                    ToggleMode="False"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    MouseFilter="Ignore"
-                                    Scale="0.9 0.9"
-                                    StyleClasses="Refresh"/>
-                            </Button>
-                        </BoxContainer>
-                        <BoxContainer>
-                            <Label StyleClasses="WindowFooterText"
-                                   Name="CardLockInfoLabel"/>
+                <PanelContainer StyleClasses="Inset"
+                                HorizontalExpand="True"
+                                VerticalExpand="True">
+                    <BoxContainer Orientation="Vertical">
+                        <Label StyleClasses="StatusFieldTitle"
+                               Text="{Loc 'mech-lock-card-label'}"
+                               Margin="0 0 0 3"/>
+                        <BoxContainer Orientation="Vertical">
+                            <BoxContainer Margin="0 0 0 3">
+                                <Button Name="CardLockRegisterButton"
+                                        Text="{Loc 'mech-lock-register'}"
+                                        ToggleMode="False"
+                                        HorizontalExpand="False"/>
+                                <Button Name="CardLockBlockButton"
+                                        Text=""
+                                        StyleClasses="OpenRight"
+                                        ToggleMode="True"
+                                        HorizontalExpand="False"
+                                        Visible="False"/>
+                                <Button StyleClasses="OpenLeft"
+                                        Name="CardLockResetButton"
+                                        ToolTip="{Loc 'mech-lock-reset'}">
+                                    <TextureButton
+                                        HorizontalExpand="False"
+                                        ToggleMode="False"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        MouseFilter="Ignore"
+                                        Scale="0.9 0.9"
+                                        StyleClasses="Refresh"/>
+                                </Button>
+                            </BoxContainer>
+                            <BoxContainer>
+                                <Label Name="CardLockInfoLabel"
+                                       StyleClasses="ItemStatus"/>
+                            </BoxContainer>
                         </BoxContainer>
                     </BoxContainer>
-                </GridContainer>
-            </PanelContainer>
+                </PanelContainer>
+            </GridContainer>
 
         </BoxContainer>
 
         <!-- RIGHT COLUMN: equipment / modules (see. MechEquipmentControl.xaml) -->
         <BoxContainer Orientation="Vertical"
                       VerticalExpand="True"
-                      HorizontalExpand="True"
-                      Margin="6 0 0 0">
+                      HorizontalExpand="True">
 
             <PanelContainer VerticalExpand="True">
                 <PanelContainer.PanelOverride>
@@ -264,7 +271,7 @@
                     <!-- No access overlay -->
                     <PanelContainer Name="NoAccessEquipment"
                                     Visible="False"
-                                    Margin="0 0 0 5"
+                                    Margin="0 0 0 6"
                                     HorizontalExpand="True"
                                     VerticalExpand="True">
                         <BoxContainer HorizontalExpand="True"

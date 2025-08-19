@@ -198,6 +198,8 @@ public sealed partial class MechMenu : FancyWindow
         // Disable removing only if pilot is present
         SetRemoveDisabledForContainer(EquipmentControlContainer, _pilotPresent);
         SetRemoveDisabledForContainer(ModuleControlContainer, _pilotPresent);
+
+        RefreshEquipmentFragmentStates(state);
     }
 
     private void UpdateFanStatusDisplay(MechFanState fanState)
@@ -276,6 +278,29 @@ public sealed partial class MechMenu : FancyWindow
         if (_lastState != null)
         {
             SetAccessVisibility(_lastState.IsLocked);
+        }
+    }
+
+    private void RefreshEquipmentFragmentStates(MechBoundUiState state)
+    {
+        UpdateFragmentsForContainer(EquipmentControlContainer, state.EquipmentUiStates);
+        UpdateFragmentsForContainer(ModuleControlContainer, state.EquipmentUiStates);
+    }
+
+    private void UpdateFragmentsForContainer(Control container, Dictionary<NetEntity, BoundUserInterfaceState> states)
+    {
+        foreach (var control in container.Children.OfType<MechEquipmentControl>())
+        {
+            var ent = control.Entity;
+            var netEnt = _entityManager.GetNetEntity(ent);
+            if (!states.TryGetValue(netEnt, out var eqState))
+                continue;
+
+            var uicomp = _entityManager.GetComponentOrNull<UIFragmentComponent>(ent);
+            if (uicomp?.Ui != null)
+            {
+                uicomp.Ui.UpdateState(eqState);
+            }
         }
     }
 
