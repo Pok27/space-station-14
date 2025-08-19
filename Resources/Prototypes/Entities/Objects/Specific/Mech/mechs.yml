@@ -149,6 +149,12 @@
   - type: Charger
     slotId: mech-equipment-container
     chargeRate: 25
+  - type: PowerCellSlot
+    cellSlotId: mech-battery-slot
+  - type: ItemSlots
+    slots:
+      mech-battery-slot:
+        name: power-cell-slot-component-slot-name-default
 
 # Ripley MK-I
 - type: entity
@@ -198,10 +204,11 @@
   parent: MechRipley
   suffix: Battery
   components:
-  - type: ContainerFill
-    containers:
+  - type: ItemSlots
+    slots:
       mech-battery-slot:
-      - PowerCellHigh
+        name: power-cell-slot-component-slot-name-default
+        startingItem: PowerCellHigh
 
 # Ripley MK-II
 - type: entity
@@ -254,10 +261,11 @@
   parent: MechRipley2
   suffix: Battery
   components:
-  - type: ContainerFill
-    containers:
+  - type: ItemSlots
+    slots:
       mech-battery-slot:
-      - PowerCellHigh
+        name: power-cell-slot-component-slot-name-default
+        startingItem: PowerCellHigh
 
 # Clarke
 - type: entity
@@ -310,10 +318,11 @@
   parent: MechClarke
   suffix: Battery
   components:
-  - type: ContainerFill
-    containers:
+  - type: ItemSlots
+    slots:
       mech-battery-slot:
-      - PowerCellHigh
+        name: power-cell-slot-component-slot-name-default
+        startingItem: PowerCellHigh
 
 # H.O.N.K.
 - type: entity
@@ -358,10 +367,11 @@
   id: MechHonkerBattery
   suffix: Battery
   components:
-  - type: ContainerFill
-    containers:
+  - type: ItemSlots
+    slots:
       mech-battery-slot:
-      - PowerCellHigh
+        name: power-cell-slot-component-slot-name-default
+        startingItem: PowerCellHigh
 
 - type: entity
   parent: MechHonkerBattery
@@ -428,10 +438,11 @@
   id: MechHamtrBattery
   suffix: Battery
   components:
-  - type: ContainerFill
-    containers:
+  - type: ItemSlots
+    slots:
       mech-battery-slot:
-      - PowerCellHigh
+        name: power-cell-slot-component-slot-name-default
+        startingItem: PowerCellHigh
 
 # Vim!!!!!!!
 
@@ -504,10 +515,11 @@
   id: MechVimBattery
   suffix: Battery
   components:
-  - type: ContainerFill
-    containers:
+  - type: ItemSlots
+    slots:
       mech-battery-slot:
-      - PowerCellHigh
+        name: power-cell-slot-component-slot-name-default
+        startingItem: PowerCellHigh
 
 # Combat-Station Mechs
 
@@ -561,10 +573,11 @@
   parent: MechGygax
   suffix: Battery
   components:
-  - type: ContainerFill
-    containers:
+  - type: ItemSlots
+    slots:
       mech-battery-slot:
-      - PowerCellHigh
+        name: power-cell-slot-component-slot-name-default
+        startingItem: PowerCellHigh
 
 # Durand
 - type: entity
@@ -624,10 +637,11 @@
   parent: MechDurand
   suffix: Battery
   components:
-  - type: ContainerFill
-    containers:
+  - type: ItemSlots
+    slots:
       mech-battery-slot:
-      - PowerCellHigh
+        name: power-cell-slot-component-slot-name-default
+        startingItem: PowerCellHigh
 
 # Nanotrasen Combat Mechs
 
@@ -690,10 +704,11 @@
   parent: MechMarauder
   suffix: Battery
   components:
-  - type: ContainerFill
-    containers:
+  - type: ItemSlots
+    slots:
       mech-battery-slot:
-      - PowerCellHyper
+        name: power-cell-slot-component-slot-name-default
+        startingItem: PowerCellHyper
 
 - type: entity
   id: MechMarauderFilled
@@ -769,10 +784,11 @@
   parent: MechSeraph
   suffix: Battery
   components:
-  - type: ContainerFill
-    containers:
+  - type: ItemSlots
+    slots:
       mech-battery-slot:
-      - PowerCellAntiqueProto
+        name: power-cell-slot-component-slot-name-default
+        startingItem: PowerCellAntiqueProto
 
 - type: entity
   id: MechSeraphFilled
@@ -851,10 +867,11 @@
   parent: MechGygaxSyndie
   suffix: Battery
   components:
-  - type: ContainerFill
-    containers:
+  - type: ItemSlots
+    slots:
       mech-battery-slot:
-      - PowerCellHyper
+        name: power-cell-slot-component-slot-name-default
+        startingItem: PowerCellHyper
 
 - type: entity
   id: MechGygaxSyndieFilled
@@ -930,10 +947,11 @@
   parent: MechMaulerSyndie
   suffix: Battery
   components:
-  - type: ContainerFill
-    containers:
+  - type: ItemSlots
+    slots:
       mech-battery-slot:
-      - PowerCellHyper
+        name: power-cell-slot-component-slot-name-default
+        startingItem: PowerCellHyper
 
 - type: entity
   id: MechMaulerSyndieFilled

@@ -169,7 +169,7 @@ public sealed partial class MechMenu : FancyWindow
         if (state.HasGasModule)
         {
             TankPressureLabel.Text = _loc.GetString("mech-tank-pressure-level", ("state", "ok"), ("pressure", $"{state.TankPressure:F1}"));
-            TankPressureLabel.FontColorOverride = Color.LightGray;
+            TankPressureLabel.FontColorOverride = Color.White;
         }
         else
         {

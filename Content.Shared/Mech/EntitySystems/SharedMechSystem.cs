@@ -190,7 +190,7 @@ public abstract partial class SharedMechSystem : EntitySystem
                 }
             }
 
-            // Removing virtual items for fur and equipment.
+            // Remove all virtual items for mech and equipment
             _virtualItem.DeleteInHandsMatching(pilot, mech);
             if (TryComp<MechComponent>(mech, out var mechComp))
             {
@@ -242,6 +242,13 @@ public abstract partial class SharedMechSystem : EntitySystem
         ManageVirtualItems(pilot, mech, create: false);
 
         _actions.RemoveProvidedActions(pilot, mech);
+
+        // Remove interaction relay to restore normal interaction behavior
+        if (TryComp<InteractionRelayComponent>(pilot, out var relay))
+        {
+            _interaction.SetRelay(pilot, null, relay);
+            RemComp<InteractionRelayComponent>(pilot);
+        }
     }
 
     /// <summary>

@@ -150,11 +150,11 @@ public sealed partial class MechSystem : SharedMechSystem
     {
         if (args.Container == component.BatterySlot)
         {
-            if (!TryComp<BatteryComponent>(args.Entity, out var battery))
-                return;
-
-            component.Energy = battery.CurrentCharge;
-            component.MaxEnergy = battery.MaxCharge;
+            if (_powerCell.TryGetBatteryFromSlot(uid, out var battery))
+            {
+                component.Energy = battery.CurrentCharge;
+                component.MaxEnergy = battery.MaxCharge;
+            }
 
             Dirty(uid, component);
             _actionBlocker.UpdateCanMove(uid);
@@ -368,11 +368,24 @@ public sealed partial class MechSystem : SharedMechSystem
 
     private void OnBatteryChanged(EntityUid uid, MechComponent component, PowerCellChangedEvent args)
     {
+        // Update mech energy from battery
+        if (_powerCell.TryGetBatteryFromSlot(uid, out var battery))
+        {
+            component.Energy = battery.CurrentCharge;
+            component.MaxEnergy = battery.MaxCharge;
+            Dirty(uid, component);
+        }
+
         UpdateBatteryAlert((uid, component));
     }
 
     private void OnBatteryChanged(EntityUid uid, MechComponent component, PowerCellSlotEmptyEvent args)
     {
+        // Reset mech energy when battery is removed
+        component.Energy = 0;
+        component.MaxEnergy = 0;
+        Dirty(uid, component);
+
         UpdateBatteryAlert((uid, component));
     }
 
@@ -441,8 +454,7 @@ public sealed partial class MechSystem : SharedMechSystem
         if (pilot == null)
             return;
 
-        var batteryEntity = ent.Comp.BatterySlot.ContainedEntity;
-        if (batteryEntity == null || !TryComp<BatteryComponent>(batteryEntity, out var battery))
+        if (!_powerCell.TryGetBatteryFromSlot(ent, out var battery))
         {
             _alerts.ClearAlert(pilot.Value, ent.Comp.BatteryAlert);
             _alerts.ShowAlert(pilot.Value, ent.Comp.NoBatteryAlert);
@@ -453,7 +465,7 @@ public sealed partial class MechSystem : SharedMechSystem
 
         // we make sure 0 only shows if they have absolutely no battery.
         // also account for floating point imprecision
-        if (chargePercent == 0 && battery.CurrentCharge > 0)
+        if (chargePercent == 0 && _powerCell.HasDrawCharge(ent))
         {
             chargePercent = 1;
         }
@@ -495,8 +507,12 @@ public sealed partial class MechSystem : SharedMechSystem
             return;
 
         _container.Insert(toInsert, component.BatterySlot);
-        component.Energy = battery.CurrentCharge;
-        component.MaxEnergy = battery.MaxCharge;
+
+        if (_powerCell.TryGetBatteryFromSlot(uid, out var newBattery))
+        {
+            component.Energy = newBattery.CurrentCharge;
+            component.MaxEnergy = newBattery.MaxCharge;
+        }
 
         _actionBlocker.UpdateCanMove(uid);
         Dirty(uid, component);
@@ -509,6 +525,8 @@ public sealed partial class MechSystem : SharedMechSystem
             return;
 
         _container.EmptyContainer(component.BatterySlot);
+
+        // Reset energy when battery is removed
         component.Energy = 0;
         component.MaxEnergy = 0;
 
