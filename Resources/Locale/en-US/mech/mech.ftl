@@ -29,6 +29,7 @@ mech-energy-missing = MISSING
 mech-equipment-slot-display = Equipment: {$used}/{$max} used
 mech-module-slot-display = Modules: {$used}/{$max} used
 mech-grabber-capacity = {$current}/{$max}
+mech-na-status = No data
 
 # Atmospheric system
 mech-cabin-pressure-label = Cabin Air:
@@ -37,6 +38,7 @@ mech-cabin-temperature-label = Temperature:
 mech-cabin-temperature-level = {$tempC} °C
 mech-air-toggle = Toggle
 mech-cabin-purge = Purge
+mech-airtight-unavailable = Not airtight cabin
 
 mech-tank-pressure-label = Tank Air:
 mech-tank-pressure-level = { $state ->

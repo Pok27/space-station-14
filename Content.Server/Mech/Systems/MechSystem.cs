@@ -78,7 +78,6 @@ public sealed partial class MechSystem : SharedMechSystem
         SubscribeLocalEvent<MechComponent, MechOpenUiEvent>(OnOpenUi);
         SubscribeLocalEvent<MechComponent, MechBrokenSoundEvent>(OnMechBrokenSound);
         SubscribeLocalEvent<MechComponent, MechEntrySuccessSoundEvent>(OnMechEntrySuccessSound);
-        SubscribeLocalEvent<MechComponent, ComponentRemove>(OnConstructionCompRemoved);
     }
 
     private void OnRepairMechEvent(EntityUid uid, MechComponent component, RepairMechEvent args)
@@ -94,7 +93,8 @@ public sealed partial class MechSystem : SharedMechSystem
     private void OnMechCanMoveEvent(EntityUid uid, MechComponent component, UpdateCanMoveEvent args)
     {
         // Block movement if mech is in broken state or has no energy/integrity
-        if (component.Broken || component.Integrity <= 0 || component.Energy <= 0)
+        var hasCharge = _powerCell.TryGetBatteryFromSlot(uid, out var battery) && battery.CurrentCharge > 0;
+        if (component.Broken || component.Integrity <= 0 || !hasCharge)
         {
             args.Cancel();
             return;
@@ -114,9 +114,7 @@ public sealed partial class MechSystem : SharedMechSystem
 
     private void OnInteractUsing(EntityUid uid, MechComponent component, InteractUsingEvent args)
     {
-        if (TryComp<WiresPanelComponent>(uid, out var panel) && !panel.Open)
-            return;
-
+        // Insert battery directly when slot is empty
         if (component.BatterySlot.ContainedEntity == null && TryComp<BatteryComponent>(args.Used, out var battery))
         {
             if (Vehicle.HasOperator(uid))
@@ -130,6 +128,7 @@ public sealed partial class MechSystem : SharedMechSystem
             return;
         }
 
+        // Fallback: allow prying removal as before
         if (_toolSystem.HasQuality(args.Used, PryingQuality) && component.BatterySlot.ContainedEntity != null)
         {
             if (Vehicle.HasOperator(uid))
@@ -153,12 +152,6 @@ public sealed partial class MechSystem : SharedMechSystem
     {
         if (args.Container == component.BatterySlot)
         {
-            if (_powerCell.TryGetBatteryFromSlot(uid, out var battery))
-            {
-                component.Energy = battery.CurrentCharge;
-                component.MaxEnergy = battery.MaxCharge;
-            }
-
             Dirty(uid, component);
             _actionBlocker.UpdateCanMove(uid);
 
@@ -177,9 +170,6 @@ public sealed partial class MechSystem : SharedMechSystem
     {
         if (args.Container == component.BatterySlot)
         {
-            component.Energy = 0;
-            component.MaxEnergy = 0;
-
             Dirty(uid, component);
             _actionBlocker.UpdateCanMove(uid);
 
@@ -229,7 +219,6 @@ public sealed partial class MechSystem : SharedMechSystem
         EnsureComp<MechCabinAirComponent>(uid);
 
         component.Integrity = component.MaxIntegrity;
-        component.Energy = component.MaxEnergy;
         component.Airtight = false;
 
         SetIntegrity(uid, component.MaxIntegrity, component);
@@ -388,21 +377,16 @@ public sealed partial class MechSystem : SharedMechSystem
 
     private void OnBatteryChanged(EntityUid uid, MechComponent component, PowerCellChangedEvent args)
     {
-        // Update mech energy from battery
-        if (_powerCell.TryGetBatteryFromSlot(uid, out var battery))
-        {
-            component.Energy = battery.CurrentCharge;
-            component.MaxEnergy = battery.MaxCharge;
-            Dirty(uid, component);
-        }
+        // Battery changed, update UI and alerts
+        Dirty(uid, component);
+        UpdateBatteryAlert((uid, component));
     }
 
     private void OnBatteryChanged(EntityUid uid, MechComponent component, PowerCellSlotEmptyEvent args)
     {
-        // Reset mech energy when battery is removed
-        component.Energy = 0;
-        component.MaxEnergy = 0;
+        // Battery removed, update UI and alerts
         Dirty(uid, component);
+        UpdateBatteryAlert((uid, component));
     }
 
     private void ToggleMechUi(EntityUid uid, MechComponent? component = null, EntityUid? user = null)
@@ -449,19 +433,21 @@ public sealed partial class MechSystem : SharedMechSystem
         _actionBlocker.UpdateCanMove(uid);
     }
 
-    public override bool TryChangeEnergy(EntityUid uid, FixedPoint2 delta, MechComponent? component = null)
+    public bool TryChangeEnergy(EntityUid uid, FixedPoint2 delta, MechComponent? component = null)
     {
         if (!Resolve(uid, ref component))
             return false;
 
-        var newEnergy = component.Energy + delta;
-        if (newEnergy < 0 || newEnergy > component.MaxEnergy)
+        if (delta > 0)
             return false;
 
-        component.Energy = newEnergy;
-        Dirty(uid, component);
+        var amount = MathF.Abs(delta.Float());
+        if (!_powerCell.TryUseCharge(uid, amount))
+            return false;
+
         UpdateMechUi(uid);
         UpdateBatteryAlert((uid, component));
+
         return true;
     }
 
@@ -471,18 +457,19 @@ public sealed partial class MechSystem : SharedMechSystem
         if (pilot == null)
             return;
 
-        if (!_powerCell.TryGetBatteryFromSlot(ent, out _))
+        if (!_powerCell.TryGetBatteryFromSlot(ent, out var batt))
         {
             _alerts.ClearAlert(pilot.Value, ent.Comp.BatteryAlert);
             _alerts.ShowAlert(pilot.Value, ent.Comp.NoBatteryAlert);
             return;
         }
 
-        var chargePercent = (short)MathF.Round(ent.Comp.Energy.Float() / ent.Comp.MaxEnergy.Float() * 10f);
+        var max = MathF.Max(batt.MaxCharge, 0.0001f);
+        var chargePercent = (short)MathF.Round(batt.CurrentCharge / max * 10f);
 
         // we make sure 0 only shows if they have absolutely no battery.
         // also account for floating point imprecision
-        if (chargePercent == 0 && ent.Comp.Energy > 0)
+        if (chargePercent == 0 && batt.CurrentCharge > 0)
             chargePercent = 1;
 
         _alerts.ClearAlert(pilot.Value, ent.Comp.NoBatteryAlert);
@@ -523,12 +510,6 @@ public sealed partial class MechSystem : SharedMechSystem
 
         _container.Insert(toInsert, component.BatterySlot);
 
-        if (_powerCell.TryGetBatteryFromSlot(uid, out var newBattery))
-        {
-            component.Energy = newBattery.CurrentCharge;
-            component.MaxEnergy = newBattery.MaxCharge;
-        }
-
         _actionBlocker.UpdateCanMove(uid);
         Dirty(uid, component);
         UpdateMechUi(uid);
@@ -540,10 +521,6 @@ public sealed partial class MechSystem : SharedMechSystem
             return;
 
         _container.EmptyContainer(component.BatterySlot);
-
-        // Reset energy when battery is removed
-        component.Energy = 0;
-        component.MaxEnergy = 0;
 
         _actionBlocker.UpdateCanMove(uid);
         Dirty(uid, component);
@@ -614,4 +591,3 @@ public sealed partial class MechSystem : SharedMechSystem
         QueueDel(uid);
     }
 }
-

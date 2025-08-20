@@ -235,6 +235,7 @@ public sealed class MechBoundUiState : BoundUserInterfaceState
     public float MaxIntegrity;
     public float Energy;
     public float MaxEnergy;
+    public bool CanAirtight;
     public int EquipmentUsed;
     public int MaxEquipmentAmount;
     public bool IsBroken;

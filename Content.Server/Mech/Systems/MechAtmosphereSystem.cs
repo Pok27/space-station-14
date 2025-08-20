@@ -12,7 +12,7 @@ using Robust.Server.GameObjects;
 namespace Content.Server.Mech.Systems;
 
 /// <summary>
-/// Handles atmospheric systems for mechs including air circulation, fans, and life support
+/// Handles atmospheric systems for mechs including air circulation, fans, and life support.
 /// </summary>
 public sealed class MechAtmosphereSystem : EntitySystem
 {
@@ -111,7 +111,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
         var targetTankPressure = tankComp.MaxOutputPressure;
         var tankPressure = internalAir.Pressure;
 
-        // If already at target or no external air, idle
+        // If already at target or no external air, idle.
         if (tankPressure >= targetTankPressure - 0.1f || !externalOk)
         {
             if (fanModule.State != MechFanState.Idle)
@@ -136,7 +136,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
         if (external == null)
             return false;
 
-        // Pump air from external to internal tank
+        // Pump air from external to internal tank.
         var desiredDeltaP = MathF.Max(0f, targetTankPressure - tankPressure);
         if (desiredDeltaP <= 0)
             return false;
@@ -183,7 +183,8 @@ public sealed class MechAtmosphereSystem : EntitySystem
 
     private void OnAirtightMessage(EntityUid uid, MechComponent component, MechAirtightMessage args)
     {
-        component.Airtight = args.IsAirtight;
+        // Сannot be airtight if CanAirtight is false.
+        component.Airtight = component.CanAirtight && args.IsAirtight;
         Dirty(uid, component);
         UpdateMechUi(uid);
     }

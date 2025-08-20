@@ -146,7 +146,11 @@ public sealed partial class MechMenu : FancyWindow
         FanMissingLabel.Visible = !state.HasFanModule;
 
         CabinPurgeButton.Text = _loc.GetString("mech-cabin-purge");
-        CabinPurgeButton.Disabled = !state.CabinPurgeAvailable;
+        CabinPurgeButton.Disabled = !state.CabinPurgeAvailable || !state.CanAirtight;
+
+        AirtightButton.Visible = state.CanAirtight;
+        CabinPurgeButton.Visible = state.CanAirtight;
+        AirtightUnavailableLabel.Visible = !state.CanAirtight;
 
         if (AirtightButton.Pressed != state.IsAirtight)
             AirtightButton.Pressed = state.IsAirtight;
@@ -160,11 +164,23 @@ public sealed partial class MechMenu : FancyWindow
                 FilterEnabledCheck.Pressed = state.FilterEnabled;
         }
 
-        CabinPressureLabel.Text = _loc.GetString("mech-cabin-pressure-level", ("level", $"{state.CabinPressureLevel:F1}"));
-
         // Display temperature in Celsius
         var tempC = Content.Shared.Temperature.TemperatureHelpers.KelvinToCelsius(state.CabinTemperature);
-        CabinTemperatureLabel.Text = _loc.GetString("mech-cabin-temperature-level", ("tempC", $"{tempC:F1}"));
+
+        if (state.CanAirtight)
+        {
+            CabinPressureLabel.Text = _loc.GetString("mech-cabin-pressure-level", ("level", $"{state.CabinPressureLevel:F1}"));
+            CabinTemperatureLabel.Text = _loc.GetString("mech-cabin-temperature-level", ("tempC", $"{tempC:F1}"));
+            CabinPressureLabel.FontColorOverride = Color.White;
+            CabinTemperatureLabel.FontColorOverride = Color.Orange;
+        }
+        else
+        {
+            CabinPressureLabel.Text = _loc.GetString("mech-no-data-status");
+            CabinTemperatureLabel.Text = _loc.GetString("mech-no-data-status");
+            CabinPressureLabel.FontColorOverride = Color.Gray;
+            CabinTemperatureLabel.FontColorOverride = Color.Gray;
+        }
 
         if (state.HasGasModule)
         {

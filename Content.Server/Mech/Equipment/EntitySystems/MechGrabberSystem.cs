@@ -161,9 +161,6 @@ public sealed class MechGrabberSystem : EntitySystem
         if (!TryComp<MechComponent>(args.User, out var mechComp))
             return;
 
-        if (mechComp.Energy + component.GrabEnergyDelta < 0)
-            return;
-
         if (!_interaction.InRangeUnobstructed(args.User, target))
             return;
 

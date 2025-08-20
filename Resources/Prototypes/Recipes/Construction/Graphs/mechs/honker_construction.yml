@@ -96,6 +96,13 @@
           key: "enum.MechAssemblyVisuals.State"
           data: 10
 
+      - tag: LightBulb
+        name: construction-graph-tag-light-bulb
+        icon:
+          sprite: Objects/Power/lights.rsi
+          state: bulb
+        doAfter: 1
+
       - tag: ClownShoes
         icon:
           sprite: "Clothing/Shoes/Specific/clown.rsi"

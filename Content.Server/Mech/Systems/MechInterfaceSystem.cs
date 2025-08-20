@@ -3,6 +3,7 @@ using Content.Server.Mech.Components;
 using Content.Shared.Mech;
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.EntitySystems;
+using Content.Server.PowerCell;
 using Robust.Server.GameObjects;
 using Robust.Server.Containers;
 using Robust.Shared.Containers;
@@ -29,6 +30,7 @@ public sealed class MechInterfaceSystem : EntitySystem
 {
     [Dependency] private readonly UserInterfaceSystem _uiSystem = null!;
     [Dependency] private readonly MechSystem _mechSystem = null!;
+    [Dependency] private readonly PowerCellSystem _powerCell = null!;
     [Dependency] private readonly MechLockSystem _mechLockSystem = null!;
     [Dependency] private readonly ContainerSystem _container = null!;
     [Dependency] private readonly IGameTiming _gameTiming = null!;
@@ -332,6 +334,15 @@ public sealed class MechInterfaceSystem : EntitySystem
                 gasAmountLiters = 0f;
         }
 
+        // Compute energy from battery
+        float energy = 0f;
+        float maxEnergy = 0f;
+        if (_powerCell.TryGetBatteryFromSlot(uid, out var battery))
+        {
+            energy = battery.CurrentCharge;
+            maxEnergy = battery.MaxCharge;
+        }
+
         var state = new MechBoundUiState
         {
             Equipment = equipment,
@@ -351,8 +362,9 @@ public sealed class MechInterfaceSystem : EntitySystem
             PilotPresent = mechComp.PilotSlot.ContainedEntity != null,
             Integrity = mechComp.Integrity.Float(),
             MaxIntegrity = mechComp.MaxIntegrity.Float(),
-            Energy = mechComp.Energy.Float(),
-            MaxEnergy = mechComp.MaxEnergy.Float(),
+            Energy = energy,
+            MaxEnergy = maxEnergy,
+            CanAirtight = mechComp.CanAirtight,
             EquipmentUsed = mechComp.EquipmentContainer.ContainedEntities.Count,
             MaxEquipmentAmount = mechComp.MaxEquipmentAmount,
             IsBroken = mechComp.Broken,

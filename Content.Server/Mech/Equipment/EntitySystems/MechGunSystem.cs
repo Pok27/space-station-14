@@ -1,6 +1,7 @@
 using Content.Server.Mech.Systems;
 using Content.Server.Power.Components;
 using Content.Server.Power.EntitySystems;
+using Content.Server.PowerCell;
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.Equipment.Components;
 using Content.Shared.Weapons.Ranged.Systems;
@@ -12,6 +13,7 @@ public sealed class MechGunSystem : EntitySystem
 {
     [Dependency] private readonly MechSystem _mech = default!;
     [Dependency] private readonly BatterySystem _battery = default!;
+    [Dependency] private readonly PowerCellSystem _powerCell = default!;
     [Dependency] private readonly SharedContainerSystem _containers = default!;
     [Dependency] private readonly EntityWhitelistSystem _whitelist = default!;
 
@@ -28,7 +30,10 @@ public sealed class MechGunSystem : EntitySystem
         var query = EntityQueryEnumerator<MechComponent>();
         while (query.MoveNext(out var mechUid, out var mech))
         {
-            if (mech.Energy <= 0)
+            if (!_powerCell.TryGetBatteryFromSlot(mechUid, out var mechBatteryEnt, out var mechBattery, null))
+                continue;
+
+            if (mechBatteryEnt == null || mechBattery.CurrentCharge <= 0)
                 continue;
 
             if (!TryComp<ChargerComponent>(mechUid, out var charger))
@@ -56,16 +61,14 @@ public sealed class MechGunSystem : EntitySystem
                     continue;
 
                 var chargeNeeded = battery.MaxCharge - battery.CurrentCharge;
-                var chargeAvailable = mech.Energy.Float();
+                var chargeAvailable = mechBattery.CurrentCharge;
                 var chargeToAdd = MathF.Min(MathF.Min(chargeRate, chargeNeeded), chargeAvailable);
 
                 if (chargeToAdd <= 0)
                     continue;
 
-                if (_mech.TryChangeEnergy(mechUid, -chargeToAdd, mech))
-                {
+                if (_battery.TryUseCharge(mechBatteryEnt.Value, chargeToAdd, mechBattery))
                     _battery.SetCharge(weapon, battery.CurrentCharge + chargeToAdd, battery);
-                }
             }
         }
     }

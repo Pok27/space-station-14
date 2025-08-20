@@ -35,18 +35,18 @@ public sealed partial class MechComponent : Component
     public FixedPoint2 MaxIntegrity = 250;
 
     /// <summary>
-    /// How much energy the mech has.
-    /// Derived from the currently inserted battery.
+    /// Whether this mech can ever be airtight (pressurized cabin capability).
+    /// If false, the mech cannot be made airtight.
     /// </summary>
-    [ViewVariables(VVAccess.ReadWrite), AutoNetworkedField]
-    public FixedPoint2 Energy = 0;
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
+    public bool CanAirtight = true;
 
     /// <summary>
-    /// The maximum amount of energy the mech can have.
-    /// Derived from the currently inserted battery.
+    /// Whether or not the mech is airtight.
+    /// When true, the mech uses internal air storage. When false, it uses external air.
     /// </summary>
-    [DataField, AutoNetworkedField, ViewVariables(VVAccess.ReadWrite)]
-    public FixedPoint2 MaxEnergy = 0;
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
+    public bool Airtight;
 
     /// <summary>
     /// The health threshold below which the mech enters broken state.
@@ -189,12 +189,7 @@ public sealed partial class MechComponent : Component
     [DataField, ViewVariables(VVAccess.ReadWrite)]
     public float BatteryRemovalDelay = 2;
 
-    /// <summary>
-    /// Whether or not the mech is airtight.
-    /// When true, the mech uses internal air storage. When false, it uses external air.
-    /// </summary>
-    [DataField, ViewVariables(VVAccess.ReadWrite)]
-    public bool Airtight;
+    // NOTE: Energy is derived directly from the installed battery and not stored here.
 
     /// <summary>
     /// The equipment that the mech initially has when it spawns.
