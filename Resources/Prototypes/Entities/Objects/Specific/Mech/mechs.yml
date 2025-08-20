@@ -356,6 +356,12 @@
     toggleOnInteract: false
     wattage: 0.2
     toggleAction: ActionMechToggleLight
+  - type: ToggleableVisuals
+    spriteLayer: light
+  - type: PointLight
+    enabled: false
+    radius: 6
+    netsync: false
   - type: Vehicle
     transferDamageModifier:
       coefficients:

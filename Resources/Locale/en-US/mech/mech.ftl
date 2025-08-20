@@ -29,7 +29,7 @@ mech-energy-missing = MISSING
 mech-equipment-slot-display = Equipment: {$used}/{$max} used
 mech-module-slot-display = Modules: {$used}/{$max} used
 mech-grabber-capacity = {$current}/{$max}
-mech-na-status = No data
+mech-no-data-status = No data
 
 # Atmospheric system
 mech-cabin-pressure-label = Cabin Air:
