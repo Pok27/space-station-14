@@ -142,10 +142,6 @@
         node: start
       - !type:DoActsBehavior
         acts: ["Destruction"]
-  - type: Construction
-    graph: MechRepair
-    node: start
-    defaultTarget: repaired
   - type: Charger
     slotId: mech-equipment-container
     chargeRate: 25

@@ -1,3 +1,5 @@
+using Content.Server.Construction.Components;
+using Content.Server.Construction;
 using Content.Server.Mech.Components;
 using Content.Server.Mech.Events;
 using Content.Server.Mech.Equipment.Components;
@@ -76,6 +78,7 @@ public sealed partial class MechSystem : SharedMechSystem
         SubscribeLocalEvent<MechComponent, MechOpenUiEvent>(OnOpenUi);
         SubscribeLocalEvent<MechComponent, MechBrokenSoundEvent>(OnMechBrokenSound);
         SubscribeLocalEvent<MechComponent, MechEntrySuccessSoundEvent>(OnMechEntrySuccessSound);
+        SubscribeLocalEvent<MechComponent, ComponentRemove>(OnConstructionCompRemoved);
     }
 
     private void OnRepairMechEvent(EntityUid uid, MechComponent component, RepairMechEvent args)
@@ -360,6 +363,25 @@ public sealed partial class MechSystem : SharedMechSystem
         var integrity = component.MaxIntegrity - args.Damageable.TotalDamage;
         SetIntegrity(uid, integrity, component);
 
+        // Sync repair availability with broken state by toggling Construction component
+        if (component.Broken)
+        {
+            if (!HasComp<ConstructionComponent>(uid))
+            {
+                var cc = EnsureComp<ConstructionComponent>(uid);
+                var construction = EntityManager.System<ConstructionSystem>();
+                if (construction.ChangeGraph(uid, null, "MechRepair", "start", performActions: false, cc))
+                {
+                    construction.SetPathfindingTarget(uid, "repaired", cc);
+                }
+            }
+        }
+        else
+        {
+            if (TryComp<ConstructionComponent>(uid, out _))
+                RemComp<ConstructionComponent>(uid);
+        }
+
         RaiseLocalEvent(uid, new UpdateMechUiEvent());
         UpdateHealthAlert((uid, component));
     }
@@ -592,3 +614,4 @@ public sealed partial class MechSystem : SharedMechSystem
         QueueDel(uid);
     }
 }
+
