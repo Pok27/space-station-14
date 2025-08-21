@@ -147,6 +147,7 @@
     chargeRate: 25
   - type: PowerCellSlot
     cellSlotId: mech-battery-slot
+    fitsInCharger: true
   - type: ItemSlots
     slots:
       mech-battery-slot:

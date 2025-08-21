@@ -189,8 +189,6 @@ public sealed partial class MechComponent : Component
     [DataField, ViewVariables(VVAccess.ReadWrite)]
     public float BatteryRemovalDelay = 2;
 
-    // NOTE: Energy is derived directly from the installed battery and not stored here.
-
     /// <summary>
     /// The equipment that the mech initially has when it spawns.
     /// Good for things like nukie mechs that start with guns.
@@ -211,6 +209,8 @@ public sealed partial class MechComponent : Component
     public EntProtoId MechUiAction = "ActionMechOpenUI";
     [DataField]
     public EntProtoId MechEjectAction = "ActionMechEject";
+    [DataField]
+    public EntProtoId MechLightAction = "ActionMechToggleLight";
     #endregion
 
     #region Visualizer States
@@ -225,6 +225,7 @@ public sealed partial class MechComponent : Component
     [DataField] public EntityUid? MechCycleActionEntity;
     [DataField] public EntityUid? MechUiActionEntity;
     [DataField] public EntityUid? MechEjectActionEntity;
+    [DataField] public EntityUid? MechToggleLightEntity;
 
     /// <summary>
     /// Time the UI was last updated automatically.

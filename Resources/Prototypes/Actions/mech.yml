@@ -48,7 +48,7 @@
     event: !type:MechEjectPilotEvent
 
 - type: entity
-  parent: BaseToggleAction
+  parent: BaseMechAction
   id: ActionMechToggleLight
   name: Toggle Lights
   description: Toggle mech lights
