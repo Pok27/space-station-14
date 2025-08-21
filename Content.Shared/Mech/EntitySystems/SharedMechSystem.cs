@@ -25,6 +25,9 @@ using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Melee.Events;
 using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Whitelist;
+using Content.Shared.Light.Components;
+using Content.Shared.Actions.Components;
+using Content.Shared.UserInterface;
 using Robust.Shared.Audio;
 using Robust.Shared.Containers;
 using Robust.Shared.GameStates;
@@ -98,6 +101,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         SubscribeLocalEvent<MechEquipmentComponent, GettingUsedAttemptEvent>(OnMechEquipmentGettingUsedAttempt);
         SubscribeLocalEvent<MechPilotComponent, UseAttemptEvent>(OnPilotUseAttempt);
         SubscribeLocalEvent<MechComponent, DoAfterNeedHandOverrideEvent>(OnMechDoAfterNeedHandOverride);
+        SubscribeLocalEvent<MechEquipmentComponent, ActivatableUIOpenAttemptEvent>(OnMechEquipmentUiOpenAttempt);
     }
 
     private void OnToggleEquipmentAction(EntityUid uid, MechComponent component, MechToggleEquipmentEvent args)
@@ -243,7 +247,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         _actions.AddAction(pilot, ref component.MechCycleActionEntity, component.MechCycleAction, mech);
         _actions.AddAction(pilot, ref component.MechUiActionEntity, component.MechUiAction, mech);
         _actions.AddAction(pilot, ref component.MechEjectActionEntity, component.MechEjectAction, mech);
-        _actions.GrantContainedActions(pilot, mech);
+        GrantMechProvidedActions(pilot, mech);
     }
 
     private void RemoveUser(EntityUid mech, EntityUid pilot)
@@ -632,6 +636,91 @@ public abstract partial class SharedMechSystem : EntitySystem
         return true;
     }
 
+    /// <summary>
+    /// Grants actions from the mech's action container to the pilot, excluding any actions already attached to the mech itself.
+    /// </summary>
+    private void GrantMechProvidedActions(EntityUid pilot, EntityUid mech)
+    {
+        if (!TryComp<ActionsContainerComponent>(mech, out var container))
+            return;
+
+        foreach (var actionId in container.Container.ContainedEntities)
+        {
+            if (_actions.GetAction(actionId) is not { } ent)
+                continue;
+
+            // Skip actions already attached to the mech.
+            if (ent.Comp.AttachedEntity == mech)
+                continue;
+
+            _actions.AddActionDirect(pilot, (ent, ent));
+        }
+    }
+
+    private void UpdateAppearance(EntityUid uid, MechComponent? component = null,
+        AppearanceComponent? appearance = null)
+    {
+        if (!Resolve(uid, ref component, ref appearance, false))
+            return;
+
+        var isOpen = !Vehicle.HasOperator(uid);
+
+        _appearance.SetData(uid, MechVisuals.Open, isOpen, appearance);
+        _appearance.SetData(uid, MechVisuals.Broken, component.Broken, appearance);
+    }
+
+    private void OnDragDrop(EntityUid uid, MechComponent component, ref DragDropTargetEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        args.Handled = true;
+
+        var doAfterEventArgs = new DoAfterArgs(EntityManager, args.Dragged, component.EntryDelay, new MechEntryEvent(), uid, target: uid)
+        {
+            BreakOnMove = true,
+        };
+
+        _doAfter.TryStartDoAfter(doAfterEventArgs);
+    }
+
+    private void OnCanDragDrop(EntityUid uid, MechComponent component, ref CanDropTargetEvent args)
+    {
+        args.Handled = true;
+
+        args.CanDrop |= CanInsert(uid, args.Dragged, component);
+    }
+
+    private void OnOperatorSet(Entity<MechComponent> ent, ref VehicleOperatorSetEvent args)
+    {
+        if (args.OldOperator is { } oldOperator)
+        {
+            RemoveUser(ent, oldOperator);
+        }
+
+        if (args.NewOperator is { } newOperator)
+        {
+            SetupUser(ent, newOperator, ent);
+            if (ent.Comp.EntrySuccessSound != null)
+            {
+                var ev = new MechEntrySuccessSoundEvent(ent.Owner, ent.Comp.EntrySuccessSound);
+                RaiseLocalEvent(ent, ref ev);
+            }
+        }
+
+        UpdateAppearance(ent);
+    }
+
+    private void OnEmagged(EntityUid uid, MechComponent component, ref GotEmaggedEvent args)
+    {
+        if (!component.BreakOnEmag)
+            return;
+        args.Handled = true;
+        component.EquipmentWhitelist = null;
+        component.ModuleWhitelist = null;
+        Dirty(uid, component);
+    }
+
     private void OnGetMeleeWeapon(EntityUid uid, MechPilotComponent component, GetMeleeWeaponEvent args)
     {
         if (args.Handled)
@@ -768,69 +857,6 @@ public abstract partial class SharedMechSystem : EntitySystem
         }
     }
 
-    private void UpdateAppearance(EntityUid uid, MechComponent? component = null,
-        AppearanceComponent? appearance = null)
-    {
-        if (!Resolve(uid, ref component, ref appearance, false))
-            return;
-
-        var isOpen = !Vehicle.HasOperator(uid);
-
-        _appearance.SetData(uid, MechVisuals.Open, isOpen, appearance);
-        _appearance.SetData(uid, MechVisuals.Broken, component.Broken, appearance);
-    }
-
-    private void OnDragDrop(EntityUid uid, MechComponent component, ref DragDropTargetEvent args)
-    {
-        if (args.Handled)
-            return;
-
-        args.Handled = true;
-
-        var doAfterEventArgs = new DoAfterArgs(EntityManager, args.Dragged, component.EntryDelay, new MechEntryEvent(), uid, target: uid)
-        {
-            BreakOnMove = true,
-        };
-
-        _doAfter.TryStartDoAfter(doAfterEventArgs);
-    }
-
-    private void OnCanDragDrop(EntityUid uid, MechComponent component, ref CanDropTargetEvent args)
-    {
-        args.Handled = true;
-
-        args.CanDrop |= CanInsert(uid, args.Dragged, component);
-    }
-
-    private void OnOperatorSet(Entity<MechComponent> ent, ref VehicleOperatorSetEvent args)
-    {
-        if (args.OldOperator is { } oldOperator)
-        {
-            RemoveUser(ent, oldOperator);
-        }
-
-        if (args.NewOperator is { } newOperator)
-        {
-            SetupUser(ent, newOperator, ent);
-            if (ent.Comp.EntrySuccessSound != null)
-            {
-                var ev = new MechEntrySuccessSoundEvent(ent.Owner, ent.Comp.EntrySuccessSound);
-                RaiseLocalEvent(ent, ref ev);
-            }
-        }
-
-        UpdateAppearance(ent);
-    }
-    private void OnEmagged(EntityUid uid, MechComponent component, ref GotEmaggedEvent args)
-    {
-        if (!component.BreakOnEmag)
-            return;
-        args.Handled = true;
-        component.EquipmentWhitelist = null;
-        component.ModuleWhitelist = null;
-        Dirty(uid, component);
-    }
-
     private void OnPilotAccessible(EntityUid uid, MechPilotComponent pilot, ref AccessibleOverrideEvent args)
     {
         // Only relay accessibility through the mech when no equipment is selected
@@ -877,6 +903,13 @@ public abstract partial class SharedMechSystem : EntitySystem
         }
 
         if (mechComp.CurrentSelectedEquipment != equipment)
+            args.Cancel();
+    }
+
+    private void OnMechEquipmentUiOpenAttempt(Entity<MechEquipmentComponent> ent, ref ActivatableUIOpenAttemptEvent args)
+    {
+        // If equipment is outside of a mech, prevent its activatable UI from opening and from adding verbs
+        if (ent.Comp.EquipmentOwner == null)
             args.Cancel();
     }
 }
