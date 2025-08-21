@@ -93,22 +93,25 @@
   components:
   - type: Sprite
     state: mecha_clamp_small
-  - type: Item
-    inhandVisuals:
-      left:
-      - state: inhand-left-small
-      right:
-      - state: inhand-right-small
-  - type: MultiHandedItem
-  - type: MechGrabber
-    maxContents: 4
-    grabDelay: 3
-    grabEnergyDelta: -20
-  - type: UIFragment
-    ui: !type:MechGrabberUi
-  - type: ContainerContainer
-    containers:
-      item-container: !type:Container
+  - type: GasAnalyzer
+  - type: ActivatableUI
+    inHandsOnly: true
+    singleUser: true
+    requireActiveHand: false
+    key: enum.GasAnalyzerUiKey.Key
+  - type: UserInterface
+    interfaces:
+      enum.GasAnalyzerUiKey.Key:
+        type: GasAnalyzerBoundUserInterface
+
+  - type: GenericVisualizer
+    visuals:
+        enum.GasAnalyzerVisuals.Enabled:
+          enabled:
+            True: { state: working }
+            False: { state: icon }
+  - type: StaticPrice
+    price: 80
   - type: Tag
     tags:
     - IndustrialMech

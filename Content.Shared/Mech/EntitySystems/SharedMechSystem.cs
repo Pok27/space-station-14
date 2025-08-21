@@ -96,6 +96,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         InitializeRelay();
         SubscribeLocalEvent<MechPilotComponent, AccessibleOverrideEvent>(OnPilotAccessible);
         SubscribeLocalEvent<MechEquipmentComponent, GettingUsedAttemptEvent>(OnMechEquipmentGettingUsedAttempt);
+        SubscribeLocalEvent<MechPilotComponent, UseAttemptEvent>(OnPilotUseAttempt);
         SubscribeLocalEvent<MechComponent, DoAfterNeedHandOverrideEvent>(OnMechDoAfterNeedHandOverride);
     }
 
@@ -838,6 +839,21 @@ public abstract partial class SharedMechSystem : EntitySystem
 
         args.Handled = true;
         args.Accessible = _interaction.IsAccessible(pilot.Mech, args.Target);
+    }
+
+    private void OnPilotUseAttempt(EntityUid uid, MechPilotComponent pilot, UseAttemptEvent args)
+    {
+        if (!TryComp<MechComponent>(pilot.Mech, out var mech))
+        {
+            args.Cancel();
+            return;
+        }
+
+        // Permit using the selected mech equipment
+        if (mech.CurrentSelectedEquipment == args.Used)
+            return;
+
+        args.Cancel();
     }
 
     private void OnMechEquipmentGettingUsedAttempt(Entity<MechEquipmentComponent> ent, ref GettingUsedAttemptEvent args)
