@@ -214,17 +214,28 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
         // This does not mean their hand needs to be empty.
         if (args.NeedHand)
         {
-            if (!handsQuery.TryGetComponent(args.User, out var hands) || hands.Count == 0)
-                return true;
+            // Allow systems to override NeedHand during runtime (e.g., mech using selected equipment)
+            var overrideEv = new Events.DoAfterNeedHandOverrideEvent(args.User, args.Used);
+            RaiseLocalEvent(args.User, ref overrideEv);
+            if (!overrideEv.Handled && args.Used != null)
+                RaiseLocalEvent(args.Used.Value, ref overrideEv);
 
-            // If an item was in the user's hand to begin with,
-            // check if the user is no longer holding the item.
-            if (args.BreakOnDropItem && doAfter.InitialItem != null && !_hands.IsHolding((args.User, hands), doAfter.InitialItem))
+            var ignoreHandChecks = overrideEv.Handled && overrideEv.AllowWithoutHands;
+
+            if (!ignoreHandChecks)
+            {
+                if (!handsQuery.TryGetComponent(args.User, out var hands) || hands.Count == 0)
                     return true;
 
-            // If the user changes which hand is active at all, interrupt the do-after
-            if (args.BreakOnHandChange && hands.ActiveHandId != doAfter.InitialHand)
-                return true;
+                // If an item was in the user's hand to begin with,
+                // check if the user is no longer holding the item.
+                if (args.BreakOnDropItem && doAfter.InitialItem != null && !_hands.IsHolding((args.User, hands), doAfter.InitialItem))
+                        return true;
+
+                // If the user changes which hand is active at all, interrupt the do-after
+                if (args.BreakOnHandChange && hands.ActiveHandId != doAfter.InitialHand)
+                    return true;
+            }
         }
 
         if (args.RequireCanInteract && !_actionBlocker.CanInteract(args.User, args.Target))

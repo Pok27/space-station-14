@@ -12,6 +12,7 @@ using Content.Shared.Emag.Components;
 using Content.Shared.Emag.Systems;
 using Content.Shared.FixedPoint;
 using Content.Shared.Interaction;
+using Content.Shared.Interaction.Events;
 using Content.Shared.Interaction.Components;
 using Content.Shared.Interaction.Events;
 using Content.Shared.Mech.Components;
@@ -37,6 +38,8 @@ using Content.Shared.Repairable.Events;
 using Content.Shared.Inventory.VirtualItem;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Hands.Components;
+using Content.Shared.DoAfter.Events;
+using Robust.Shared.Map;
 
 namespace Content.Shared.Mech.EntitySystems;
 
@@ -60,6 +63,7 @@ public abstract partial class SharedMechSystem : EntitySystem
     [Dependency] private readonly SharedVirtualItemSystem _virtualItem = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
+    [Dependency] private readonly SharedTransformSystem _transform = default!;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -86,8 +90,13 @@ public abstract partial class SharedMechSystem : EntitySystem
         SubscribeLocalEvent<MechEquipmentComponent, ShotAttemptedEvent>(OnMechEquipmentShotAttempt);
         SubscribeLocalEvent<MechEquipmentComponent, AttemptMeleeEvent>(OnMechEquipmentMeleeAttempt);
 
+        SubscribeLocalEvent<MechPilotComponent, GetUsedEntityEvent>(OnPilotGetUsedEntity);
+        SubscribeLocalEvent<MechComponent, GetUsedEntityEvent>(OnMechGetUsedEntity);
+
         InitializeRelay();
         SubscribeLocalEvent<MechPilotComponent, AccessibleOverrideEvent>(OnPilotAccessible);
+        SubscribeLocalEvent<MechEquipmentComponent, GettingUsedAttemptEvent>(OnMechEquipmentGettingUsedAttempt);
+        SubscribeLocalEvent<MechComponent, DoAfterNeedHandOverrideEvent>(OnMechDoAfterNeedHandOverride);
     }
 
     private void OnToggleEquipmentAction(EntityUid uid, MechComponent component, MechToggleEquipmentEvent args)
@@ -233,7 +242,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         _actions.AddAction(pilot, ref component.MechCycleActionEntity, component.MechCycleAction, mech);
         _actions.AddAction(pilot, ref component.MechUiActionEntity, component.MechUiAction, mech);
         _actions.AddAction(pilot, ref component.MechEjectActionEntity, component.MechEjectAction, mech);
-        _actions.AddAction(pilot, ref component.MechToggleLightEntity, component.MechLightAction, mech);
+        _actions.GrantContainedActions(pilot, mech);
     }
 
     private void RemoveUser(EntityUid mech, EntityUid pilot)
@@ -716,6 +725,48 @@ public abstract partial class SharedMechSystem : EntitySystem
         args.Cancelled = true;
     }
 
+    private void OnPilotGetUsedEntity(EntityUid uid, MechPilotComponent pilot, ref GetUsedEntityEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        if (!TryComp<MechComponent>(pilot.Mech, out var mech))
+            return;
+
+        if (!Vehicle.HasOperator(pilot.Mech))
+            return;
+
+        if (mech.CurrentSelectedEquipment != null)
+            args.Used = mech.CurrentSelectedEquipment;
+    }
+
+    private void OnMechGetUsedEntity(EntityUid uid, MechComponent mech, ref GetUsedEntityEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        if (!Vehicle.HasOperator(uid))
+            return;
+
+        if (mech.CurrentSelectedEquipment != null)
+            args.Used = mech.CurrentSelectedEquipment;
+    }
+
+    private void OnMechDoAfterNeedHandOverride(EntityUid uid, MechComponent mech, ref DoAfterNeedHandOverrideEvent args)
+    {
+        if (!Vehicle.HasOperator(uid))
+            return;
+
+        if (mech.CurrentSelectedEquipment == null)
+            return;
+
+        if (args.Used == mech.CurrentSelectedEquipment)
+        {
+            args.Handled = true;
+            args.AllowWithoutHands = true;
+        }
+    }
+
     private void UpdateAppearance(EntityUid uid, MechComponent? component = null,
         AppearanceComponent? appearance = null)
     {
@@ -787,6 +838,30 @@ public abstract partial class SharedMechSystem : EntitySystem
 
         args.Handled = true;
         args.Accessible = _interaction.IsAccessible(pilot.Mech, args.Target);
+    }
+
+    private void OnMechEquipmentGettingUsedAttempt(Entity<MechEquipmentComponent> ent, ref GettingUsedAttemptEvent args)
+    {
+        if (!ent.Comp.BlockUseOutsideMech)
+            return;
+
+        var equipment = ent.Owner;
+        var owner = ent.Comp.EquipmentOwner;
+
+        if (owner == null)
+        {
+            args.Cancel();
+            return;
+        }
+
+        if (!TryComp<MechComponent>(owner.Value, out var mechComp))
+        {
+            args.Cancel();
+            return;
+        }
+
+        if (mechComp.CurrentSelectedEquipment != equipment)
+            args.Cancel();
     }
 }
 

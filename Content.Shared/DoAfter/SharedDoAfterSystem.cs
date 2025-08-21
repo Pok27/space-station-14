@@ -218,11 +218,30 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
         // (or if there is no item there we need to keep it free).
         if (args.NeedHand && (args.BreakOnHandChange || args.BreakOnDropItem))
         {
-            if (!TryComp(args.User, out HandsComponent? handsComponent))
-                return false;
+            // Allow systems to override NeedHand.
+            var overrideEv = new Events.DoAfterNeedHandOverrideEvent(args.User, args.Used);
+            // Allow user or the tool to override hand requirement.
+            RaiseLocalEvent(args.User, ref overrideEv);
+            if (!overrideEv.Handled && args.Used != null)
+                RaiseLocalEvent(args.Used.Value, ref overrideEv);
 
-            doAfter.InitialHand = handsComponent.ActiveHandId;
-            doAfter.InitialItem = _hands.GetActiveItem((args.User, handsComponent));
+            if (!overrideEv.Handled || !overrideEv.AllowWithoutHands)
+            {
+                if (!TryComp(args.User, out HandsComponent? handsComponent))
+                    return false;
+
+                doAfter.InitialHand = handsComponent.ActiveHandId;
+                doAfter.InitialItem = _hands.GetActiveItem((args.User, handsComponent));
+            }
+            else
+            {
+                // No hands required; still track initial item if any exists for consistency.
+                if (TryComp(args.User, out HandsComponent? handsComponent))
+                {
+                    doAfter.InitialHand = handsComponent.ActiveHandId;
+                    doAfter.InitialItem = _hands.GetActiveItem((args.User, handsComponent));
+                }
+            }
         }
 
         doAfter.NetInitialItem = GetNetEntity(doAfter.InitialItem);
