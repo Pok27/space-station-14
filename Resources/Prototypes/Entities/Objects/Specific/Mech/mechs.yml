@@ -118,7 +118,7 @@
     containers:
       mech-pilot-slot: !type:ContainerSlot
       mech-equipment-container: !type:Container
-      mech-battery-slot: !type:ContainerSlot
+      cell_slot: !type:ContainerSlot
       mech-passive-module-container: !type:Container
   - type: Damageable
     damageContainer: Inorganic
@@ -146,11 +146,11 @@
     slotId: mech-equipment-container
     chargeRate: 25
   - type: PowerCellSlot
-    cellSlotId: mech-battery-slot
+    cellSlotId: cell_slot
     fitsInCharger: true
   - type: ItemSlots
     slots:
-      mech-battery-slot:
+      cell_slot:
         name: power-cell-slot-component-slot-name-default
         disableEject: true
         swap: false
@@ -205,7 +205,7 @@
   components:
   - type: ItemSlots
     slots:
-      mech-battery-slot:
+      cell_slot:
         name: power-cell-slot-component-slot-name-default
         startingItem: PowerCellHigh
         disableEject: true
@@ -263,7 +263,7 @@
   components:
   - type: ItemSlots
     slots:
-      mech-battery-slot:
+      cell_slot:
         name: power-cell-slot-component-slot-name-default
         startingItem: PowerCellHigh
         disableEject: true
@@ -321,7 +321,7 @@
   components:
   - type: ItemSlots
     slots:
-      mech-battery-slot:
+      cell_slot:
         name: power-cell-slot-component-slot-name-default
         startingItem: PowerCellHigh
         disableEject: true
@@ -383,7 +383,7 @@
   components:
   - type: ItemSlots
     slots:
-      mech-battery-slot:
+      cell_slot:
         name: power-cell-slot-component-slot-name-default
         startingItem: PowerCellHigh
         disableEject: true
@@ -401,6 +401,7 @@
     startingModules:
       - MechModuleFan
       - MechModuleAirTank
+      - MechModuleTeslaRelay
       - MechModuleHorn
 
 # HAMTR
@@ -455,7 +456,7 @@
   components:
   - type: ItemSlots
     slots:
-      mech-battery-slot:
+      cell_slot:
         name: power-cell-slot-component-slot-name-default
         startingItem: PowerCellHigh
         disableEject: true
@@ -533,7 +534,7 @@
   components:
   - type: ItemSlots
     slots:
-      mech-battery-slot:
+      cell_slot:
         name: power-cell-slot-component-slot-name-default
         startingItem: PowerCellHigh
         disableEject: true
@@ -592,7 +593,7 @@
   components:
   - type: ItemSlots
     slots:
-      mech-battery-slot:
+      cell_slot:
         name: power-cell-slot-component-slot-name-default
         startingItem: PowerCellHigh
         disableEject: true
@@ -657,7 +658,7 @@
   components:
   - type: ItemSlots
     slots:
-      mech-battery-slot:
+      cell_slot:
         name: power-cell-slot-component-slot-name-default
         startingItem: PowerCellHigh
         disableEject: true
@@ -725,7 +726,7 @@
   components:
   - type: ItemSlots
     slots:
-      mech-battery-slot:
+      cell_slot:
         name: power-cell-slot-component-slot-name-default
         startingItem: PowerCellHyper
         disableEject: true
@@ -745,6 +746,7 @@
     startingModules:
       - MechModuleFan
       - MechModuleAirTank
+      - MechModuleTeslaRelay
 
 # Seraph
 - type: entity
@@ -806,7 +808,7 @@
   components:
   - type: ItemSlots
     slots:
-      mech-battery-slot:
+      cell_slot:
         name: power-cell-slot-component-slot-name-default
         startingItem: PowerCellAntiqueProto
         disableEject: true
@@ -827,6 +829,7 @@
     startingModules:
       - MechModuleFan
       - MechModuleAirTank
+      - MechModuleTeslaRelay
 
 # Syndicate Combat Mech
 
@@ -890,7 +893,7 @@
   components:
   - type: ItemSlots
     slots:
-      mech-battery-slot:
+      cell_slot:
         name: power-cell-slot-component-slot-name-default
         startingItem: PowerCellHyper
         disableEject: true
@@ -910,6 +913,7 @@
     startingModules:
       - MechModuleFan
       - MechModuleAirTank
+      - MechModuleTeslaRelay
 
 # Mauler
 - type: entity
@@ -971,7 +975,7 @@
   components:
   - type: ItemSlots
     slots:
-      mech-battery-slot:
+      cell_slot:
         name: power-cell-slot-component-slot-name-default
         startingItem: PowerCellHyper
         disableEject: true
@@ -992,3 +996,4 @@
     startingModules:
       - MechModuleFan
       - MechModuleAirTank
+      - MechModuleTeslaRelay

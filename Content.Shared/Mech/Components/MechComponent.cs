@@ -98,7 +98,7 @@ public sealed partial class MechComponent : Component
     public ContainerSlot BatterySlot = default!;
 
     [ViewVariables]
-    public readonly string BatterySlotId = "mech-battery-slot";
+    public readonly string BatterySlotId = "cell_slot";
 
     /// <summary>
     /// Whether the mech is in a broken state.

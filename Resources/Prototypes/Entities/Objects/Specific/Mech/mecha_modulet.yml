@@ -67,3 +67,41 @@
     outputPressure: 101.3
     air:
       volume: 25
+
+- type: entity
+  id: MechModuleTeslaRelay
+  parent: MechModuleBase
+  name: tesla energy relay
+  description: Connects the mech to nearby APCs and trickle-charges its battery.
+  components:
+  - type: Sprite
+    state: tesla
+  - type: MechGeneratorModule
+    generationType: TeslaRelay
+    chargeRate: 20
+    radius: 3
+
+- type: entity
+  id: MechModulePlasmaGenerator
+  parent: MechModuleBase
+  name: plasma generator module
+  description: Generates energy by consuming plasma sheets stored internally.
+  components:
+  - type: Sprite
+    state: tesla
+  - type: MechGeneratorModule
+    generationType: PlasmaGenerator
+    chargeRate: 30
+  - type: FuelGenerator
+    minTargetPower: 5000
+    maxTargetPower: 30000
+    targetPower: 30000
+    optimalPower: 30000
+    optimalBurnRate: 0.0333333
+    fuelEfficiencyConstant: 0.75
+  - type: SolidFuelGeneratorAdapter
+    fuelMaterial: Plasma
+    multiplier: 0.01
+  - type: MaterialStorage
+    storageLimit: 3000
+    materialWhiteList: [Plasma]

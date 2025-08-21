@@ -35,6 +35,9 @@ using Content.Shared.Alert;
 using Content.Shared.PowerCell;
 using Content.Server.PowerCell;
 using Content.Shared.PowerCell.Components;
+using Content.Shared.Materials;
+using Content.Server.Materials;
+using Content.Shared.Containers.ItemSlots;
 
 namespace Content.Server.Mech.Systems;
 
@@ -50,6 +53,7 @@ public sealed partial class MechSystem : SharedMechSystem
     [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly AlertsSystem _alerts = default!;
     [Dependency] private readonly PowerCellSystem _powerCell = default!;
+    [Dependency] private readonly MaterialStorageSystem _material = default!;
 
     private static readonly ProtoId<ToolQualityPrototype> PryingQuality = "Prying";
 
@@ -114,21 +118,7 @@ public sealed partial class MechSystem : SharedMechSystem
 
     private void OnInteractUsing(EntityUid uid, MechComponent component, InteractUsingEvent args)
     {
-        // Insert battery directly when slot is empty
-        if (component.BatterySlot.ContainedEntity == null && TryComp<BatteryComponent>(args.Used, out var battery))
-        {
-            if (Vehicle.HasOperator(uid))
-            {
-                _popup.PopupEntity(Loc.GetString("mech-cannot-modify-closed"), args.User);
-                return;
-            }
-
-            InsertBattery(uid, args.Used, component, battery);
-            _actionBlocker.UpdateCanMove(uid);
-            return;
-        }
-
-        // Fallback: allow prying removal as before
+        // Allow prying removal when a battery is present
         if (_toolSystem.HasQuality(args.Used, PryingQuality) && component.BatterySlot.ContainedEntity != null)
         {
             if (Vehicle.HasOperator(uid))
@@ -145,6 +135,22 @@ public sealed partial class MechSystem : SharedMechSystem
 
             _doAfter.TryStartDoAfter(doAfterEventArgs);
             return;
+        }
+
+        // Try forwarding material sheets into plasma generator module storage when hatch is open
+        if (!Vehicle.HasOperator(uid) && TryComp<MaterialComponent>(args.Used, out var materialComp))
+        {
+            foreach (var mod in component.ModuleContainer.ContainedEntities)
+            {
+                if (TryComp<MaterialStorageComponent>(mod, out var storage))
+                {
+                    if (_material.TryInsertMaterialEntity(args.User, args.Used, mod, storage))
+                    {
+                        args.Handled = true;
+                        return;
+                    }
+                }
+            }
         }
     }
 
@@ -163,6 +169,13 @@ public sealed partial class MechSystem : SharedMechSystem
             // Pilot entered, update alerts
             UpdateBatteryAlert((uid, component));
             UpdateHealthAlert((uid, component));
+
+            // Lock battery slot while occupied
+            if (TryComp<ItemSlotsComponent>(uid, out var slots))
+            {
+                var itemSlots = EntityManager.System<ItemSlotsSystem>();
+                itemSlots.SetLock(uid, component.BatterySlotId, true, slots);
+            }
         }
     }
 
@@ -183,6 +196,13 @@ public sealed partial class MechSystem : SharedMechSystem
             _alerts.ClearAlert(pilot, component.NoBatteryAlert);
             _alerts.ClearAlert(pilot, component.HealthAlert);
             _alerts.ClearAlert(pilot, component.BrokenAlert);
+
+            // Unlock battery slot when unoccupied
+            if (TryComp<ItemSlotsComponent>(uid, out var slots))
+            {
+                var itemSlots = EntityManager.System<ItemSlotsSystem>();
+                itemSlots.SetLock(uid, component.BatterySlotId, false, slots);
+            }
         }
     }
 
@@ -498,21 +518,6 @@ public sealed partial class MechSystem : SharedMechSystem
             var healthPercent = (short)MathF.Round((1f - integrity / maxIntegrity) * 4f);
             _alerts.ShowAlert(pilot.Value, ent.Comp.HealthAlert, healthPercent);
         }
-    }
-
-    public void InsertBattery(EntityUid uid, EntityUid toInsert, MechComponent? component = null, BatteryComponent? battery = null)
-    {
-        if (!Resolve(uid, ref component, false))
-            return;
-
-        if (!Resolve(toInsert, ref battery, false))
-            return;
-
-        _container.Insert(toInsert, component.BatterySlot);
-
-        _actionBlocker.UpdateCanMove(uid);
-        Dirty(uid, component);
-        UpdateMechUi(uid);
     }
 
     public void RemoveBattery(EntityUid uid, MechComponent? component = null)
