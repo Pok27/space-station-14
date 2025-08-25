@@ -93,7 +93,7 @@ public abstract partial class SharedMechSystem : EntitySystem
 
         InitializeRelay();
         SubscribeLocalEvent<MechPilotComponent, AccessibleOverrideEvent>(OnPilotAccessible);
-        SubscribeLocalEvent<MechEquipmentComponent, GettingUsedAttemptEvent>(OnMechEquipmentGettingUsedAttempt);
+        SubscribeLocalEvent<MechEquipmentComponent, BeforeRangedInteractEvent>(OnMechEquipmentGettingUsedAttempt);
         SubscribeLocalEvent<MechPilotComponent, UseAttemptEvent>(OnPilotUseAttempt);
         SubscribeLocalEvent<MechComponent, DoAfterNeedHandOverrideEvent>(OnMechDoAfterNeedHandOverride);
         SubscribeLocalEvent<MechEquipmentComponent, ActivatableUIOpenAttemptEvent>(OnMechEquipmentUiOpenAttempt);
@@ -877,28 +877,27 @@ public abstract partial class SharedMechSystem : EntitySystem
         args.Cancel();
     }
 
-    private void OnMechEquipmentGettingUsedAttempt(Entity<MechEquipmentComponent> ent, ref GettingUsedAttemptEvent args)
+    private void OnMechEquipmentGettingUsedAttempt(Entity<MechEquipmentComponent> ent, ref BeforeRangedInteractEvent args)
     {
         if (!ent.Comp.BlockUseOutsideMech)
             return;
 
-        var equipment = ent.Owner;
-        var owner = ent.Comp.EquipmentOwner;
+        // Already installed, normal behavior applies
+        if (ent.Comp.EquipmentOwner != null)
+            return;
 
-        if (owner == null)
+        // Only allow interactions that target a mech capable of accepting the equipment.
+        if (args.Target == null)
         {
-            args.Cancel();
+            args.Handled = true;
             return;
         }
 
-        if (!TryComp<MechComponent>(owner.Value, out var mechComp))
+        if (!TryComp<MechComponent>(args.Target.Value, out var mech))
         {
-            args.Cancel();
+            args.Handled = true;
             return;
         }
-
-        if (mechComp.CurrentSelectedEquipment != equipment)
-            args.Cancel();
     }
 
     private void OnMechEquipmentUiOpenAttempt(Entity<MechEquipmentComponent> ent, ref ActivatableUIOpenAttemptEvent args)
