@@ -12,7 +12,7 @@ using Content.Shared.Damage.Systems;
 using Content.Shared.Database;
 using Content.Shared.Effects;
 using Content.Shared.Interaction.Components;
-using Content.Shared.Mech.Equipment.Components;
+using Content.Shared.Mech.Components;
 using Content.Shared.Projectiles;
 using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Ranged;

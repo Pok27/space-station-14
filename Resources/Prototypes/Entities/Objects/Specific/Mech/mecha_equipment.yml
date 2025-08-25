@@ -100,15 +100,18 @@
       right:
       - state: inhand-right-small
   - type: MultiHandedItem
-  - type: MechGrabber
-    maxContents: 4
-    grabDelay: 3
-    grabEnergyDelta: -20
-  - type: UIFragment
-    ui: !type:MechGrabberUi
-  - type: ContainerContainer
-    containers:
-      item-container: !type:Container
+  - type: Prying
+  - type: MeleeWeapon
+    wideAnimationRotation: -135
+    damage:
+      types:
+        Blunt: 8
+    soundHit:
+      collection: MetalThud
+  - type: Tool
+    qualities:
+      - Prying
+  - type: ToolTileCompatible
   - type: Tag
     tags:
     - IndustrialMech

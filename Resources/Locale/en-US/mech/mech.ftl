@@ -8,13 +8,13 @@ mech-verb-enter = Enter
 mech-verb-exit = Remove pilot
 mech-ui-open-verb = Open control panel
 
-# Equipment installation
-mech-equipment-begin-install-popup = Installing the {THE($item)}...
-mech-equipment-finish-install-popup = Finished installing the {THE($item)}
+# Installation (generalized)
+mech-install-begin-popup = Installing the {THE($item)}...
+mech-install-finish-popup = Finished installing the {THE($item)}
 
-# Equipment selection
-mech-equipment-select-popup = {$item} selected
-mech-equipment-select-none-popup = Nothing selected
+# Selection (generalized)
+mech-select-popup = {$item} selected
+mech-select-none-popup = Nothing selected
 
 # Radial menu
 mech-radial-no-equipment = No Equipment
@@ -69,10 +69,10 @@ mech-eject-pilot-alert-popup = {$user} is pulling the pilot out of the {$item}!
 
 # Installation constraint
 mech-cannot-modify-closed = You cannot modify while the cabin is closed!
-mech-capacity-equipment-full-popup = No free equipment slots.
-mech-capacity-modules-full-popup = No free module capacity.
-mech-duplicate-equipment-popup = Identical equipment already installed.
-mech-duplicate-module-popup = Identical module already installed.
+mech-capacity-full-popup = No free slots.
+mech-duplicate-installed-popup = Identical item already installed.
+
+
 
 # Lock system
 mech-lock-dna-label = DNA Lock:

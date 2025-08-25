@@ -13,7 +13,6 @@ namespace Content.Server.Mech.Systems;
 public sealed partial class MechBatteryRechargeApplySystem : EntitySystem
 {
 	[Dependency] private readonly PowerCellSystem _powerCell = default!;
-	[Dependency] private readonly BatterySystem _battery = default!;
 
 	public override void Update(float frameTime)
 	{

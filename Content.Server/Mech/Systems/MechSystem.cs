@@ -84,37 +84,7 @@ public sealed partial class MechSystem : SharedMechSystem
         SubscribeLocalEvent<MechComponent, MechOpenUiEvent>(OnOpenUi);
         SubscribeLocalEvent<MechComponent, MechBrokenSoundEvent>(OnMechBrokenSound);
         SubscribeLocalEvent<MechComponent, MechEntrySuccessSoundEvent>(OnMechEntrySuccessSound);
-    }
 
-    public override void Update(float frameTime)
-    {
-        base.Update(frameTime);
-
-        // Drain battery while the mech is actively moving, based on a configurable rate.
-        var enumerate = EntityQueryEnumerator<MechComponent, InputMoverComponent>();
-        while (enumerate.MoveNext(out var mechUid, out var mech, out var mover))
-        {
-            if (mech.MovementEnergyPerSecond <= 0f)
-                continue;
-
-            // Only drain when piloted and actually attempting to move
-            if (!Vehicle.HasOperator(mechUid))
-                continue;
-
-            if (!mover.CanMove)
-                continue;
-
-            if (mover.WishDir == Vector2.Zero)
-                continue;
-
-            var toDrain = mech.MovementEnergyPerSecond * frameTime;
-            if (toDrain <= 0f)
-                continue;
-
-            TryChangeEnergy(mechUid, -FixedPoint2.New(toDrain), mech);
-
-            _actionBlocker.UpdateCanMove(mechUid);
-        }
     }
 
     private void OnRepairMechEvent(EntityUid uid, MechComponent component, RepairMechEvent args)
@@ -598,7 +568,7 @@ public sealed partial class MechSystem : SharedMechSystem
         if (args.Equipment == null)
         {
             mechComp.CurrentSelectedEquipment = null;
-            _popup.PopupEntity(Loc.GetString("mech-equipment-select-none-popup"), mech);
+            _popup.PopupEntity(Loc.GetString("mech-select-none-popup"), mech);
         }
         else
         {
@@ -606,7 +576,7 @@ public sealed partial class MechSystem : SharedMechSystem
             if (Exists(equipment) && mechComp.EquipmentContainer.ContainedEntities.Any(e => e == equipment))
             {
                 mechComp.CurrentSelectedEquipment = equipment;
-                _popup.PopupEntity(Loc.GetString("mech-equipment-select-popup", ("item", equipment)), mech);
+                _popup.PopupEntity(Loc.GetString("mech-select-popup", ("item", equipment)), mech);
             }
         }
 

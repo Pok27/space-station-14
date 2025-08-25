@@ -1,9 +1,9 @@
 using System.Linq;
-using Content.Shared.Mech.Equipment.Components;
+using Content.Shared.Mech.Components;
 using Content.Shared.Timing;
 using Robust.Shared.Audio.Systems;
 
-namespace Content.Shared.Mech.Equipment.Systems;
+namespace Content.Shared.Mech.Systems;
 
 /// <summary>
 /// Handles everything for mech soundboard.

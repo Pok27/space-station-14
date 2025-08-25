@@ -2,7 +2,7 @@
 using Content.Shared.Mech.Components;
 using Robust.Shared.Serialization;
 
-namespace Content.Shared.Mech.Equipment.Components;
+namespace Content.Shared.Mech.Components;
 
 /// <summary>
 /// A piece of equipment that can be installed into <see cref="MechComponent"/>
