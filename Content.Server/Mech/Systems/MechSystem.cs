@@ -16,6 +16,7 @@ using Content.Shared.Mech;
 using Content.Shared.Popups;
 using System.Linq;
 using Content.Shared.Movement.Events;
+using Content.Shared.Movement.Components;
 using Content.Shared.Tools;
 using Content.Shared.Tools.Components;
 using Content.Shared.Tools.Systems;
@@ -38,6 +39,7 @@ using Content.Shared.PowerCell.Components;
 using Content.Shared.Materials;
 using Content.Server.Materials;
 using Content.Shared.Containers.ItemSlots;
+using System.Numerics;
 
 namespace Content.Server.Mech.Systems;
 
@@ -82,6 +84,37 @@ public sealed partial class MechSystem : SharedMechSystem
         SubscribeLocalEvent<MechComponent, MechOpenUiEvent>(OnOpenUi);
         SubscribeLocalEvent<MechComponent, MechBrokenSoundEvent>(OnMechBrokenSound);
         SubscribeLocalEvent<MechComponent, MechEntrySuccessSoundEvent>(OnMechEntrySuccessSound);
+    }
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        // Drain battery while the mech is actively moving, based on a configurable rate.
+        var enumerate = EntityQueryEnumerator<MechComponent, InputMoverComponent>();
+        while (enumerate.MoveNext(out var mechUid, out var mech, out var mover))
+        {
+            if (mech.MovementEnergyPerSecond <= 0f)
+                continue;
+
+            // Only drain when piloted and actually attempting to move
+            if (!Vehicle.HasOperator(mechUid))
+                continue;
+
+            if (!mover.CanMove)
+                continue;
+
+            if (mover.WishDir == Vector2.Zero)
+                continue;
+
+            var toDrain = mech.MovementEnergyPerSecond * frameTime;
+            if (toDrain <= 0f)
+                continue;
+
+            TryChangeEnergy(mechUid, -FixedPoint2.New(toDrain), mech);
+
+            _actionBlocker.UpdateCanMove(mechUid);
+        }
     }
 
     private void OnRepairMechEvent(EntityUid uid, MechComponent component, RepairMechEvent args)

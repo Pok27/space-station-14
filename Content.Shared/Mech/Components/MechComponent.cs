@@ -190,6 +190,12 @@ public sealed partial class MechComponent : Component
     public float BatteryRemovalDelay = 2;
 
     /// <summary>
+    /// Energy consumed from the mech's internal battery while actively moving, in charge units per second.
+    /// </summary>
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
+    public float MovementEnergyPerSecond = 10f;
+
+    /// <summary>
     /// The equipment that the mech initially has when it spawns.
     /// Good for things like nukie mechs that start with guns.
     /// </summary>
