@@ -31,7 +31,7 @@ public sealed partial class MechTeslaRelaySystem : EntitySystem
 				if (gen.GenerationType != MechGenerationType.TeslaRelay)
                     continue;
 
-				var telem = EnsureComp<MechGeneratorTelemetryComponent>(module);
+				var telem = EnsureComp<MechRechargeAccumulatorComponent>(module);
 				var radius = gen.Tesla?.Radius ?? 0f;
 				var rate = gen.Tesla?.ChargeRate ?? 0f;
 				telem.Max = rate;

@@ -27,7 +27,7 @@ public sealed partial class MechFuelGeneratorBridgeSystem : EntitySystem
 				if (gen.GenerationType != MechGenerationType.FuelGenerator)
 					continue;
 
-				var telem = EnsureComp<MechGeneratorTelemetryComponent>(module);
+				var telem = EnsureComp<MechRechargeAccumulatorComponent>(module);
 				telem.Max = 0f;
 				telem.Current = 0f;
 
