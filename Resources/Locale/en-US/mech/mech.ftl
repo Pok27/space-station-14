@@ -8,12 +8,18 @@ mech-verb-enter = Enter
 mech-verb-exit = Remove pilot
 mech-ui-open-verb = Open control panel
 
-# Installation (generalized)
+# Installation
 mech-install-begin-popup = Installing the {THE($item)}...
 mech-install-finish-popup = Finished installing the {THE($item)}
-mech-install-whitelist-fail-popup = Cannot install. Not compatible with this mech.
+mech-cannot-modify-closed = You cannot modify while the cabin is closed!
+mech-duplicate-installed-popup = Identical item already installed.
 
-# Selection (generalized)
+mech-equipment-slot-full-popup = No free equipment slots.
+mech-module-slot-full-popup = No free module slots.
+mech-equipment-whitelist-fail-popup = Equipment not compatible with this mech.
+mech-module-whitelist-fail-popup = Module not compatible with this mech.
+
+# Selection
 mech-select-popup = {$item} selected
 mech-select-none-popup = Nothing selected
 
@@ -71,11 +77,6 @@ mech-no-enter-popup = You cannot pilot this.
 
 # Alert
 mech-eject-pilot-alert-popup = {$user} is pulling the pilot out of the {$item}!
-
-# Installation constraint
-mech-cannot-modify-closed = You cannot modify while the cabin is closed!
-mech-capacity-full-popup = No free slots.
-mech-duplicate-installed-popup = Identical item already installed.
 
 # Lock system
 mech-lock-dna-label = DNA Lock:

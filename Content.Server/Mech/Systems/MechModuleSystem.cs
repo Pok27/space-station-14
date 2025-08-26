@@ -8,21 +8,56 @@ namespace Content.Server.Mech.Systems;
 /// <summary>
 /// Handles the insertion of mech module into mechs.
 /// </summary>
-public sealed class MechModuleSystem : MechInstallBaseSystem<MechModuleComponent, InsertModuleEvent>
+public sealed class MechModuleSystem : MechInstallSystem
 {
-    protected override IReadOnlyList<EntityUid> GetInstalled(MechComponent mech)
-        => mech.ModuleContainer.ContainedEntities;
-
-    protected override int GetInstalledCount(MechComponent mech) => mech.ModuleContainer.ContainedEntities.Count;
-    protected override int GetMaxInstall(MechComponent mech) => mech.MaxModuleAmount;
-
-    protected override bool IsWhitelistFail(MechComponent mech, EntityUid used)
-        => EntityManager.System<EntityWhitelistSystem>().IsWhitelistFail(mech.ModuleWhitelist, used);
-
-    protected override void PerformInsert(EntityUid mech, EntityUid item, MechComponent mechComp, MechModuleComponent itemComp)
+    public override void Initialize()
     {
-        EntityManager.System<SharedMechSystem>().InsertEquipment(mech, item, mechComp, moduleComponent: itemComp);
+        base.Initialize();
+        SubscribeLocalEvent<MechModuleComponent, AfterInteractEvent>(OnUsed);
+        SubscribeLocalEvent<MechModuleComponent, InsertModuleEvent>(OnInsert);
     }
 
-    protected override float GetInstallDuration(EntityUid uid, MechModuleComponent comp) => comp.InstallDuration;
+    private void OnUsed(EntityUid uid, MechModuleComponent component, AfterInteractEvent args)
+    {
+        if (args.Handled || !args.CanReach || args.Target == null)
+            return;
+
+        var mech = args.Target.Value;
+        if (!TryPrepareInstall(uid, args.User, mech, out var mechComp))
+            return;
+
+        if (mechComp == null)
+            return;
+
+        if (mechComp.ModuleContainer.ContainedEntities.Count >= mechComp.MaxModuleAmount)
+        {
+            Popup.PopupEntity(Loc.GetString("mech-module-slot-full-popup"), args.User);
+            return;
+        }
+
+        if (Whitelist.IsWhitelistFail(mechComp.ModuleWhitelist, uid))
+        {
+            Popup.PopupEntity(Loc.GetString("mech-module-whitelist-fail-popup"), args.User);
+            return;
+        }
+
+        if (HasDuplicateInstalled(uid, mechComp.ModuleContainer.ContainedEntities, args.User))
+            return;
+
+        StartInstallDoAfter(args.User, uid, mech, component.InstallDuration, new InsertModuleEvent());
+    }
+
+    private void OnInsert(EntityUid uid, MechModuleComponent component, InsertModuleEvent args)
+    {
+        if (args.Handled || args.Cancelled || args.Args.Target == null)
+            return;
+
+        var mech = args.Args.Target.Value;
+        if (!TryFinalizeInsert(mech, args.Args.User, out var mechComp))
+            return;
+
+        PopupFinish(mech, uid);
+        MechSystem.InsertEquipment(mech, uid, mechComp, moduleComponent: component);
+        args.Handled = true;
+    }
 }

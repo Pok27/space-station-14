@@ -57,9 +57,10 @@ public sealed partial class MechMenu : FancyWindow
     public void SetEntity(EntityUid entity)
     {
         _mech = entity;
-        this.SetInfoFromEntity(_entityManager, _mech);
-        MechView.SetEntity(entity);
 
+        this.SetInfoFromEntity(_entityManager, _mech);
+
+        MechView.SetEntity(entity);
         MechName.Text = _entityManager.GetComponent<MetaDataComponent>(_mech).EntityName;
     }
 
