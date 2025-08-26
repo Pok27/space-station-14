@@ -80,7 +80,6 @@ namespace Content.Shared.Interaction
         private EntityQuery<ItemComponent> _itemQuery;
         private EntityQuery<PhysicsComponent> _physicsQuery;
         private EntityQuery<HandsComponent> _handsQuery;
-
         private EntityQuery<InteractionRelayComponent> _relayQuery;
         private EntityQuery<CombatModeComponent> _combatQuery;
         private EntityQuery<WallMountComponent> _wallMountQuery;

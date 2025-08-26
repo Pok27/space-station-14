@@ -262,13 +262,13 @@ public abstract partial class SharedMechSystem : EntitySystem
     }
 
     /// <summary>
-    /// Removes an equipment item from a mech.
+    /// Inserts a piece of equipment or a module into a mech.
     /// </summary>
     /// <param name="uid"></param>
     /// <param name="toInsert"></param>
     /// <param name="component"></param>
     /// <param name="equipmentComponent"></param>
-    /// <param name="forced">Whether or not the removal can be cancelled</param>
+    /// <param name="moduleComponent"></param>
     public void InsertEquipment(EntityUid uid, EntityUid toInsert, MechComponent? component = null,
         MechEquipmentComponent? equipmentComponent = null, MechModuleComponent? moduleComponent = null)
     {
