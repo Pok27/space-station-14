@@ -107,7 +107,7 @@ public sealed class MechInterfaceSystem : EntitySystem
         if (!TryRemoveItem(ent, equipment, ent.Comp.EquipmentContainer))
             return;
 
-        _mechSystem.RemoveEquipment(ent, equipment, ent.Comp);
+        _container.Remove(equipment, ent.Comp.EquipmentContainer);
         UpdateMechUi(ent);
     }
 

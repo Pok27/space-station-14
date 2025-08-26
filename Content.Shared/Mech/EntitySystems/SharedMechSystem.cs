@@ -93,8 +93,7 @@ public abstract partial class SharedMechSystem : EntitySystem
 
         InitializeRelay();
         SubscribeLocalEvent<MechPilotComponent, AccessibleOverrideEvent>(OnPilotAccessible);
-        SubscribeLocalEvent<MechEquipmentComponent, BeforeRangedInteractEvent>(OnMechEquipmentGettingUsedAttempt);
-        SubscribeLocalEvent<MechPilotComponent, UseAttemptEvent>(OnPilotUseAttempt);
+        SubscribeLocalEvent<MechEquipmentComponent, GettingUsedAttemptEvent>(OnMechEquipmentGettingUsedAttempt);
         SubscribeLocalEvent<MechComponent, DoAfterNeedHandOverrideEvent>(OnMechDoAfterNeedHandOverride);
         SubscribeLocalEvent<MechEquipmentComponent, ActivatableUIOpenAttemptEvent>(OnMechEquipmentUiOpenAttempt);
     }
@@ -152,7 +151,8 @@ public abstract partial class SharedMechSystem : EntitySystem
 
     private void OnDestruction(EntityUid uid, MechComponent component, DestructionEventArgs args)
     {
-        BreakMech(uid, component);
+        TryEject(uid, component);
+        UpdateAppearance(uid, component);
     }
 
     private void OnEntityStorageDump(Entity<MechComponent> entity, ref EntityStorageIntoContainerAttemptEvent args)
@@ -262,32 +262,6 @@ public abstract partial class SharedMechSystem : EntitySystem
     }
 
     /// <summary>
-    /// Destroys the mech, removing the user and ejecting anything contained.
-    /// </summary>
-    /// <param name="uid"></param>
-    /// <param name="component"></param>
-    public virtual void BreakMech(EntityUid uid, MechComponent? component = null)
-    {
-        if (!Resolve(uid, ref component))
-            return;
-
-        TryEject(uid, component);
-        var equipment = new List<EntityUid>(component.EquipmentContainer.ContainedEntities);
-        foreach (var ent in equipment)
-        {
-            RemoveEquipment(uid, ent, component, forced: true);
-        }
-
-        var modules = new List<EntityUid>(component.ModuleContainer.ContainedEntities);
-        foreach (var ent in modules)
-        {
-            _container.Remove(ent, component.ModuleContainer);
-        }
-
-        UpdateAppearance(uid, component);
-    }
-
-    /// <summary>
     /// Removes an equipment item from a mech.
     /// </summary>
     /// <param name="uid"></param>
@@ -337,52 +311,6 @@ public abstract partial class SharedMechSystem : EntitySystem
             UpdateUserInterface(uid);
             return;
         }
-    }
-
-    /// <summary>
-    /// Removes an equipment item from a mech.
-    /// </summary>
-    /// <param name="uid"></param>
-    /// <param name="toRemove"></param>
-    /// <param name="component"></param>
-    /// <param name="equipmentComponent"></param>
-    /// <param name="forced">
-    ///     Whether or not the removal can be cancelled, and if non-mech equipment should be ejected.
-    /// </param>
-    public void RemoveEquipment(EntityUid uid, EntityUid toRemove, MechComponent? component = null,
-        MechEquipmentComponent? equipmentComponent = null, bool forced = false)
-    {
-        if (!Resolve(uid, ref component))
-            return;
-
-        // When forced, we also want to handle the possibility that the "equipment" isn't actually equipment.
-        // This /shouldn't/ be possible thanks to OnEntityStorageDump, but there's been quite a few regressions
-        // with entities being hardlock stuck inside mechs.
-        if (!Resolve(toRemove, ref equipmentComponent) && !forced)
-            return;
-
-        if (!forced)
-        {
-            var attemptev = new AttemptRemoveMechEquipmentEvent();
-            RaiseLocalEvent(toRemove, ref attemptev);
-            if (attemptev.Cancelled)
-                return;
-        }
-
-        var ev = new MechEquipmentRemovedEvent(uid);
-        RaiseLocalEvent(toRemove, ref ev);
-
-        if (component.CurrentSelectedEquipment == toRemove)
-        {
-            component.CurrentSelectedEquipment = null;
-            RefreshPilotHandVirtualItems(uid, component);
-        }
-
-        if (forced && equipmentComponent != null)
-            equipmentComponent.EquipmentOwner = null;
-
-        _container.Remove(toRemove, component.EquipmentContainer);
-        UpdateUserInterface(uid);
     }
 
     /// <summary>
@@ -476,7 +404,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         var equipment = new List<EntityUid>(component.EquipmentContainer.ContainedEntities);
         foreach (var ent in equipment)
         {
-            RemoveEquipment(uid, ent, component, forced: true);
+            _container.Remove(ent, component.EquipmentContainer);
             ScatterEntityFromMech(uid, ent);
         }
 
@@ -862,42 +790,28 @@ public abstract partial class SharedMechSystem : EntitySystem
         args.Accessible = _interaction.IsAccessible(pilot.Mech, args.Target);
     }
 
-    private void OnPilotUseAttempt(EntityUid uid, MechPilotComponent pilot, UseAttemptEvent args)
+    private void OnMechEquipmentGettingUsedAttempt(Entity<MechEquipmentComponent> ent, ref GettingUsedAttemptEvent args)
     {
-        if (!TryComp<MechComponent>(pilot.Mech, out var mech))
+        if (!ent.Comp.BlockUseOutsideMech)
+            return;
+
+        var equipment = ent.Owner;
+        var owner = ent.Comp.EquipmentOwner;
+
+        if (owner == null)
         {
             args.Cancel();
             return;
         }
 
-        // Permit using the selected mech equipment
-        if (mech.CurrentSelectedEquipment == args.Used)
-            return;
+        if (!TryComp<MechComponent>(owner.Value, out var mechComp))
+            {
+                args.Cancel();
+                return;
+            }
 
-        args.Cancel();
-    }
-
-    private void OnMechEquipmentGettingUsedAttempt(Entity<MechEquipmentComponent> ent, ref BeforeRangedInteractEvent args)
-    {
-        if (!ent.Comp.BlockUseOutsideMech)
-            return;
-
-        // Already installed, normal behavior applies.
-        if (ent.Comp.EquipmentOwner != null)
-            return;
-
-        // Only allow interactions that target a mech capable of accepting the equipment.
-        if (args.Target == null)
-        {
-            args.Handled = true;
-            return;
-        }
-
-        if (!TryComp<MechComponent>(args.Target.Value, out var mech))
-        {
-            args.Handled = true;
-            return;
-        }
+        if (mechComp.CurrentSelectedEquipment != equipment)
+            args.Cancel();
     }
 
     private void OnMechEquipmentUiOpenAttempt(Entity<MechEquipmentComponent> ent, ref ActivatableUIOpenAttemptEvent args)

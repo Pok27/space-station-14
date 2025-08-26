@@ -144,7 +144,7 @@ public sealed partial class MechSystem : SharedMechSystem
             return;
         }
 
-        // Try forwarding material sheets into plasma generator module storage when hatch is open
+        // Try forwarding material sheets into generator module storage when hatch is open
         if (!Vehicle.HasOperator(uid) && TryComp<MaterialComponent>(args.Used, out var materialComp))
         {
             foreach (var mod in component.ModuleContainer.ContainedEntities)
@@ -257,9 +257,6 @@ public sealed partial class MechSystem : SharedMechSystem
 
     private void OnOpenUi(EntityUid uid, MechComponent component, MechOpenUiEvent args)
     {
-        // For InstantActionEvent, we need to get the user from the event context
-        var user = args.Performer;
-
         // UI can always be opened, access control is handled in the UI itself
         args.Handled = true;
         ToggleMechUi(uid, component);
@@ -452,12 +449,6 @@ public sealed partial class MechSystem : SharedMechSystem
         }
 
         return false;
-    }
-
-    public override void BreakMech(EntityUid uid, MechComponent? component = null)
-    {
-        base.BreakMech(uid, component);
-        _actionBlocker.UpdateCanMove(uid);
     }
 
     public bool TryChangeEnergy(EntityUid uid, FixedPoint2 delta, MechComponent? component = null)
