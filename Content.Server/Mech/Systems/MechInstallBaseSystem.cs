@@ -89,7 +89,10 @@ public abstract class MechInstallBaseSystem<TItemComponent, TInsertEvent> : Enti
         }
 
         if (IsWhitelistFail(mechComp, args.Used))
+        {
+            Popup.PopupEntity(Loc.GetString("mech-install-whitelist-fail-popup"), args.User);
             return;
+        }
 
         Popup.PopupEntity(Loc.GetString("mech-install-begin-popup", ("item", uid)), mech);
 

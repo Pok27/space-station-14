@@ -882,7 +882,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         if (!ent.Comp.BlockUseOutsideMech)
             return;
 
-        // Already installed, normal behavior applies
+        // Already installed, normal behavior applies.
         if (ent.Comp.EquipmentOwner != null)
             return;
 

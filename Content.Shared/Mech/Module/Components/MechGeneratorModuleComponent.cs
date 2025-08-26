@@ -9,7 +9,7 @@ namespace Content.Shared.Mech.Components;
 public enum MechGenerationType
 {
 	TeslaRelay,
-	PlasmaGenerator
+	FuelGenerator
 }
 
 /// <summary>
@@ -25,14 +25,19 @@ public sealed partial class MechGeneratorModuleComponent : Component
 	public MechGenerationType GenerationType;
 
 	/// <summary>
-	/// Output rate in watt-seconds per second added to the mech's internal battery when active.
+	/// Tesla-specific configuration.
 	/// </summary>
+	[DataField]
+	public TeslaRelayGeneratorConfig? Tesla;
+}
+
+[Serializable, NetSerializable]
+[DataDefinition]
+public sealed partial class TeslaRelayGeneratorConfig
+{
 	[DataField]
 	public float ChargeRate = 20f;
 
-	/// <summary>
-	/// For Tesla relay mode only: search radius (in tiles) to detect a powered APC.
-	/// </summary>
 	[DataField]
 	public float Radius = 3f;
 }

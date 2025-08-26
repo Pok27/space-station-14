@@ -24,24 +24,33 @@ public sealed partial class MechFuelGeneratorBridgeSystem : EntitySystem
 			{
 				if (!TryComp<MechGeneratorModuleComponent>(module, out var gen))
 					continue;
-				if (gen.GenerationType != MechGenerationType.PlasmaGenerator)
+				if (gen.GenerationType != MechGenerationType.FuelGenerator)
 					continue;
 
-				// Check fuel
+				var telem = EnsureComp<MechGeneratorTelemetryComponent>(module);
+				telem.Max = 0f;
+				telem.Current = 0f;
+
 				var getFuel = new GeneratorGetFuelEvent(default);
 				RaiseLocalEvent(module, ref getFuel);
-				if (getFuel.Fuel <= 0)
+
+				if (!TryComp<FuelGeneratorComponent>(module, out var fuelGen))
 					continue;
 
-				// Use FuelGenerator params
-				if (!TryComp<FuelGeneratorComponent>(module, out var fuelGen))
+				// max output is the configured target power
+				telem.Max = fuelGen.TargetPower;
+
+				if (getFuel.Fuel <= 0)
 					continue;
 
 				var eff = 1 / SharedGeneratorSystem.CalcFuelEfficiency(fuelGen.TargetPower, fuelGen.OptimalPower, fuelGen);
 				var burn = fuelGen.OptimalBurnRate * frameTime * eff;
 				RaiseLocalEvent(module, new GeneratorUseFuel(burn));
 
-				acc.PendingRechargeRate += gen.ChargeRate;
+				// Current contribution equals target power when fuel is available
+				var current = fuelGen.TargetPower;
+				acc.PendingRechargeRate += current;
+				telem.Current = current;
 			}
 		}
 	}

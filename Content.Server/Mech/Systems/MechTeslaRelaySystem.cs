@@ -26,11 +26,24 @@ public sealed partial class MechTeslaRelaySystem : EntitySystem
 			foreach (var module in mech.ModuleContainer.ContainedEntities)
 			{
 				if (!TryComp<MechGeneratorModuleComponent>(module, out var gen))
-					continue;
+                    continue;
+
 				if (gen.GenerationType != MechGenerationType.TeslaRelay)
+                    continue;
+
+				var telem = EnsureComp<MechGeneratorTelemetryComponent>(module);
+				var radius = gen.Tesla?.Radius ?? 0f;
+				var rate = gen.Tesla?.ChargeRate ?? 0f;
+				telem.Max = rate;
+				telem.Current = 0f;
+				if (radius <= 0f || rate <= 0f)
 					continue;
-				if (IsNearPoweredApc(mechUid, gen.Radius))
-					acc.PendingRechargeRate += gen.ChargeRate;
+
+				if (IsNearPoweredApc(mechUid, radius))
+                {
+                    acc.PendingRechargeRate += rate;
+                    telem.Current = rate;
+                }
 			}
 		}
 	}
@@ -44,6 +57,7 @@ public sealed partial class MechTeslaRelaySystem : EntitySystem
 			if (apc.Comp.MainBreakerEnabled && apc.Comp.LastExternalState != ApcExternalPowerState.None)
 				return true;
 		}
+
 		return false;
 	}
 }

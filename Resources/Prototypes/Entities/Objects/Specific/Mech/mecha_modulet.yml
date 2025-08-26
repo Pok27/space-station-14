@@ -78,8 +78,11 @@
     state: tesla
   - type: MechGeneratorModule
     generationType: TeslaRelay
-    chargeRate: 20
-    radius: 3
+    tesla:
+      chargeRate: 20
+      radius: 3
+  - type: UIFragment
+    ui: !type:MechGeneratorUi
 
 - type: entity
   id: MechModulePlasmaGenerator
@@ -90,8 +93,7 @@
   - type: Sprite
     state: tesla
   - type: MechGeneratorModule
-    generationType: PlasmaGenerator
-    chargeRate: 30
+    generationType: FuelGenerator
   - type: FuelGenerator
     minTargetPower: 5000
     maxTargetPower: 30000
@@ -105,3 +107,5 @@
   - type: MaterialStorage
     storageLimit: 3000
     materialWhiteList: [Plasma]
+  - type: UIFragment
+    ui: !type:MechGeneratorUi

@@ -249,6 +249,18 @@ public sealed class MechGrabberUiState : BoundUserInterfaceState
     public int MaxContents;
 }
 
+[Serializable, NetSerializable]
+public sealed class MechGeneratorUiState : BoundUserInterfaceState
+{
+    public float ChargeCurrent;
+    public float ChargeMax;
+
+    public bool HasFuel;
+    public string? FuelName;
+    public float FuelAmount;
+    public float FuelCapacity;
+}
+
 /// <summary>
 /// List of sound collection ids to be localized and displayed.
 /// </summary>

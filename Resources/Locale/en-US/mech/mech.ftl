@@ -11,6 +11,7 @@ mech-ui-open-verb = Open control panel
 # Installation (generalized)
 mech-install-begin-popup = Installing the {THE($item)}...
 mech-install-finish-popup = Finished installing the {THE($item)}
+mech-install-whitelist-fail-popup = Cannot install. Not compatible with this mech.
 
 # Selection (generalized)
 mech-select-popup = {$item} selected
@@ -26,10 +27,14 @@ mech-integrity-display-broken = BROKEN
 mech-energy-display-label = Energy
 mech-energy-display = {$amount} %
 mech-energy-missing = MISSING
+
 mech-equipment-slot-display = Equipment: {$used}/{$max} used
 mech-module-slot-display = Modules: {$used}/{$max} used
 mech-grabber-capacity = {$current}/{$max}
 mech-no-data-status = No data
+
+mech-generator-output = Output: {$rate} W
+mech-generator-fuel = Fuel: {$amount} ({$name})
 
 # Atmospheric system
 mech-cabin-pressure-label = Cabin Air:
@@ -71,8 +76,6 @@ mech-eject-pilot-alert-popup = {$user} is pulling the pilot out of the {$item}!
 mech-cannot-modify-closed = You cannot modify while the cabin is closed!
 mech-capacity-full-popup = No free slots.
 mech-duplicate-installed-popup = Identical item already installed.
-
-
 
 # Lock system
 mech-lock-dna-label = DNA Lock:

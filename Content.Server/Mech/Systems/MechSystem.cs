@@ -94,7 +94,11 @@ public sealed partial class MechSystem : SharedMechSystem
 
     private void OnMechEntrySuccessSound(EntityUid uid, MechComponent component, MechEntrySuccessSoundEvent args)
     {
-        _audio.PlayPvs(args.Sound, uid);
+        var pilot = Vehicle.GetOperatorOrNull(uid);
+        if (!pilot.HasValue)
+            return;
+
+        _audio.PlayEntity(args.Sound, Filter.Entities(pilot.Value), uid, false);
     }
 
     private void OnMechCanMoveEvent(EntityUid uid, MechComponent component, UpdateCanMoveEvent args)
