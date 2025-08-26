@@ -88,10 +88,8 @@ public abstract partial class SharedMechSystem : EntitySystem
         SubscribeLocalEvent<MechEquipmentComponent, ShotAttemptedEvent>(OnMechEquipmentShotAttempt);
         SubscribeLocalEvent<MechEquipmentComponent, AttemptMeleeEvent>(OnMechEquipmentMeleeAttempt);
 
-        SubscribeLocalEvent<MechPilotComponent, GetUsedEntityEvent>(OnPilotGetUsedEntity);
-        SubscribeLocalEvent<MechComponent, GetUsedEntityEvent>(OnMechGetUsedEntity);
-
         InitializeRelay();
+        SubscribeLocalEvent<MechComponent, GetUsedEntityEvent>(OnMechGetUsedEntity);
         SubscribeLocalEvent<MechPilotComponent, AccessibleOverrideEvent>(OnPilotAccessible);
         SubscribeLocalEvent<MechEquipmentComponent, GettingUsedAttemptEvent>(OnMechEquipmentGettingUsedAttempt);
         SubscribeLocalEvent<MechComponent, DoAfterNeedHandOverrideEvent>(OnMechDoAfterNeedHandOverride);
@@ -737,21 +735,6 @@ public abstract partial class SharedMechSystem : EntitySystem
             return;
 
         args.Cancelled = true;
-    }
-
-    private void OnPilotGetUsedEntity(EntityUid uid, MechPilotComponent pilot, ref GetUsedEntityEvent args)
-    {
-        if (args.Handled)
-            return;
-
-        if (!TryComp<MechComponent>(pilot.Mech, out var mech))
-            return;
-
-        if (!Vehicle.HasOperator(pilot.Mech))
-            return;
-
-        if (mech.CurrentSelectedEquipment != null)
-            args.Used = mech.CurrentSelectedEquipment;
     }
 
     private void OnMechGetUsedEntity(EntityUid uid, MechComponent mech, ref GetUsedEntityEvent args)
