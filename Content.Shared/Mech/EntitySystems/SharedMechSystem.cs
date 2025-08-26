@@ -96,6 +96,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         SubscribeLocalEvent<MechEquipmentComponent, GettingUsedAttemptEvent>(OnMechEquipmentGettingUsedAttempt);
         SubscribeLocalEvent<MechComponent, DoAfterNeedHandOverrideEvent>(OnMechDoAfterNeedHandOverride);
         SubscribeLocalEvent<MechEquipmentComponent, ActivatableUIOpenAttemptEvent>(OnMechEquipmentUiOpenAttempt);
+        SubscribeLocalEvent<MechComponent, UseHeldBypassAttemptEvent>(OnUseHeldBypass);
     }
 
     private void OnToggleEquipmentAction(EntityUid uid, MechComponent component, MechToggleEquipmentEvent args)
@@ -798,17 +799,19 @@ public abstract partial class SharedMechSystem : EntitySystem
         var equipment = ent.Owner;
         var owner = ent.Comp.EquipmentOwner;
 
+        // If the equipment is not inside a mech, block using in hands.
         if (owner == null)
         {
             args.Cancel();
             return;
         }
 
+        // If the equipment is inside a mech, only allow use when it is the currently selected equipment.
         if (!TryComp<MechComponent>(owner.Value, out var mechComp))
-            {
-                args.Cancel();
-                return;
-            }
+        {
+            args.Cancel();
+            return;
+        }
 
         if (mechComp.CurrentSelectedEquipment != equipment)
             args.Cancel();
@@ -819,6 +822,16 @@ public abstract partial class SharedMechSystem : EntitySystem
         // If equipment is outside of a mech, prevent its activatable UI from opening and from adding verbs
         if (ent.Comp.EquipmentOwner == null)
             args.Cancel();
+    }
+
+    private void OnUseHeldBypass(EntityUid uid, MechComponent component, ref UseHeldBypassAttemptEvent args)
+    {
+        // Allow only using mech equipment items on a mech (i.e., inserting).
+        if (!_hands.TryGetActiveItem(args.User, out var held))
+            return;
+
+        if (HasComp<MechEquipmentComponent>(held.Value))
+            args.Bypass = true;
     }
 }
 

@@ -211,6 +211,15 @@ public sealed partial class MechSystem : SharedMechSystem
                 itemSlots.SetLock(uid, component.BatterySlotId, false, slots);
             }
         }
+        else if (args.Container == component.EquipmentContainer)
+        {
+            // Clear owner and raise removal event.
+            if (!TryComp<MechEquipmentComponent>(args.Entity, out var eq))
+                return;
+
+            if (eq.EquipmentOwner == uid)
+                eq.EquipmentOwner = null;
+        }
     }
 
     private void OnRemoveBattery(EntityUid uid, MechComponent component, RemoveBatteryEvent args)
@@ -417,6 +426,7 @@ public sealed partial class MechSystem : SharedMechSystem
     {
         if (!Resolve(uid, ref component))
             return;
+
         user ??= Vehicle.GetOperatorOrNull(uid);
         if (user == null)
             return;

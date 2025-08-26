@@ -93,25 +93,25 @@
   components:
   - type: Sprite
     state: mecha_clamp_small
-  - type: Item
-    inhandVisuals:
-      left:
-      - state: inhand-left-small
-      right:
-      - state: inhand-right-small
-  - type: MultiHandedItem
-  - type: Prying
-  - type: MeleeWeapon
-    wideAnimationRotation: -135
-    damage:
-      types:
-        Blunt: 8
-    soundHit:
-      collection: MetalThud
-  - type: Tool
-    qualities:
-      - Prying
-  - type: ToolTileCompatible
+  - type: GasAnalyzer
+  - type: ActivatableUI
+    inHandsOnly: true
+    singleUser: true
+    requireActiveHand: false
+    key: enum.GasAnalyzerUiKey.Key
+  - type: UserInterface
+    interfaces:
+      enum.GasAnalyzerUiKey.Key:
+        type: GasAnalyzerBoundUserInterface
+  - type: Appearance
+  - type: GenericVisualizer
+    visuals:
+        enum.GasAnalyzerVisuals.Enabled:
+          enabled:
+            True: { state: working }
+            False: { state: icon }
+  - type: StaticPrice
+    price: 80
   - type: Tag
     tags:
     - IndustrialMech
