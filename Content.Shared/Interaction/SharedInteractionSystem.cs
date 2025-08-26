@@ -16,6 +16,7 @@ using Content.Shared.Interaction.Events;
 using Content.Shared.Inventory;
 using Content.Shared.Inventory.Events;
 using Content.Shared.Item;
+using Content.Shared.Mech.Components;
 using Content.Shared.Movement.Components;
 using Content.Shared.Movement.Pulling.Systems;
 using Content.Shared.Movement.Systems;
@@ -439,7 +440,15 @@ namespace Content.Shared.Interaction
             // empty-hand interactions
             // combat mode hand interactions will always be true here -- since
             // they check this earlier before returning in
-            if (!TryGetUsedEntity(user, out var used, checkCanUse))
+            EntityUid? used;
+            var bypassCanUseForMechInsertion = false;
+            if (checkCanUse && target != null && _handsQuery.TryComp(user, out var handsTmp))
+            {
+                var activeItem = _hands.GetActiveItem((user, handsTmp));
+                if (activeItem != null && HasComp<MechEquipmentComponent>(activeItem.Value) && HasComp<MechComponent>(target.Value))
+                    bypassCanUseForMechInsertion = true;
+            }
+            if (!TryGetUsedEntity(user, out used, checkCanUse && !bypassCanUseForMechInsertion))
             {
                 if (inRangeUnobstructed && target != null)
                     InteractHand(user, target.Value);
