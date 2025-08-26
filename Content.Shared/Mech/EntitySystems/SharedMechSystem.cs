@@ -96,6 +96,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         SubscribeLocalEvent<MechEquipmentComponent, GettingUsedAttemptEvent>(OnMechEquipmentGettingUsedAttempt);
         SubscribeLocalEvent<MechComponent, DoAfterNeedHandOverrideEvent>(OnMechDoAfterNeedHandOverride);
         SubscribeLocalEvent<MechEquipmentComponent, ActivatableUIOpenAttemptEvent>(OnMechEquipmentUiOpenAttempt);
+        SubscribeLocalEvent<MechEquipmentComponent, HeldEntityCanBypassUseBlockingEvent>(OnHeldBypassUseBlocking);
     }
 
     private void OnToggleEquipmentAction(EntityUid uid, MechComponent component, MechToggleEquipmentEvent args)
@@ -819,6 +820,17 @@ public abstract partial class SharedMechSystem : EntitySystem
         // If equipment is outside of a mech, prevent its activatable UI from opening and from adding verbs
         if (ent.Comp.EquipmentOwner == null)
             args.Cancel();
+    }
+
+    private void OnHeldBypassUseBlocking(Entity<MechEquipmentComponent> ent, ref HeldEntityCanBypassUseBlockingEvent args)
+    {
+        if (ent.Comp.EquipmentOwner != null)
+            return;
+
+        if (!HasComp<MechComponent>(args.Target))
+            return;
+
+        args.Bypass = true;
     }
 }
 

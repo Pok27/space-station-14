@@ -150,6 +150,13 @@ namespace Content.Shared.Interaction
             InitializeBlocking();
         }
 
+        /// <summary>
+        ///     Raised by-ref on the currently held entity to allow it to bypass CanUseHeldEntity blocking for a specific target.
+        ///     If Bypass is set to true by any system, Use-blocking checks will be skipped for this interaction only.
+        /// </summary>
+        [ByRefEvent]
+        public record struct HeldEntityCanBypassUseBlockingEvent(EntityUid User, EntityUid Target, bool Bypass = false);
+
         private void RateLimitAlertAdmins(ICommonSession session)
         {
             _chat.SendAdminAlert(Loc.GetString("interaction-rate-limit-admin-announcement", ("player", session.Name)));
@@ -441,14 +448,18 @@ namespace Content.Shared.Interaction
             // combat mode hand interactions will always be true here -- since
             // they check this earlier before returning in
             EntityUid? used;
-            var bypassCanUseForMechInsertion = false;
+            var bypassUseCheck = false;
             if (checkCanUse && target != null && _handsQuery.TryComp(user, out var handsTmp))
             {
                 var activeItem = _hands.GetActiveItem((user, handsTmp));
-                if (activeItem != null && HasComp<MechEquipmentComponent>(activeItem.Value) && HasComp<MechComponent>(target.Value))
-                    bypassCanUseForMechInsertion = true;
+                if (activeItem != null)
+                {
+                    var bypassEv = new HeldEntityCanBypassUseBlockingEvent(user, target.Value);
+                    RaiseLocalEvent(activeItem.Value, ref bypassEv);
+                    bypassUseCheck = bypassEv.Bypass;
+                }
             }
-            if (!TryGetUsedEntity(user, out used, checkCanUse && !bypassCanUseForMechInsertion))
+            if (!TryGetUsedEntity(user, out used, checkCanUse && !bypassUseCheck))
             {
                 if (inRangeUnobstructed && target != null)
                     InteractHand(user, target.Value);
