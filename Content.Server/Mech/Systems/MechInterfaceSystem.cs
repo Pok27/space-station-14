@@ -429,7 +429,7 @@ public sealed class MechInterfaceSystem : EntitySystem
                 var ui = new MechGeneratorUiState();
 
                 // Read live telemetry written by generator systems each tick
-                if (TryComp<MechRechargeAccumulatorComponent>(entity, out var telem))
+                if (TryComp<MechEnergyAccumulatorComponent>(entity, out var telem))
                 {
                     ui.ChargeCurrent = telem.Current;
                     ui.ChargeMax = telem.Max;

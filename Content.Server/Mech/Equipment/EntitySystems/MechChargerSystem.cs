@@ -8,18 +8,12 @@ using Robust.Shared.Containers;
 using Content.Shared.Whitelist;
 
 namespace Content.Server.Mech.Equipment.EntitySystems;
-public sealed class MechGunSystem : EntitySystem
+public sealed class MechChargerSystem : EntitySystem
 {
     [Dependency] private readonly BatterySystem _battery = default!;
     [Dependency] private readonly PowerCellSystem _powerCell = default!;
     [Dependency] private readonly SharedContainerSystem _containers = default!;
     [Dependency] private readonly EntityWhitelistSystem _whitelist = default!;
-
-    public override void Initialize()
-    {
-        base.Initialize();
-        SubscribeLocalEvent<MechEquipmentComponent, GunShotEvent>(MechGunShot);
-    }
 
     public override void Update(float frameTime)
     {
@@ -69,10 +63,5 @@ public sealed class MechGunSystem : EntitySystem
                     _battery.SetCharge(weapon, battery.CurrentCharge + chargeToAdd, battery);
             }
         }
-    }
-
-    private void MechGunShot(EntityUid uid, MechEquipmentComponent component, ref GunShotEvent args)
-    {
-        // No-op: passive charging handled in Update
     }
 }

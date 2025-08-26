@@ -20,8 +20,8 @@ public sealed partial class MechTeslaRelaySystem : EntitySystem
 		var query = EntityQueryEnumerator<MechComponent>();
 		while (query.MoveNext(out var mechUid, out var mech))
 		{
-			if (!TryComp<MechRechargeAccumulatorComponent>(mechUid, out var acc))
-				acc = EnsureComp<MechRechargeAccumulatorComponent>(mechUid);
+			if (!TryComp<MechEnergyAccumulatorComponent>(mechUid, out var acc))
+				acc = EnsureComp<MechEnergyAccumulatorComponent>(mechUid);
 
 			foreach (var module in mech.ModuleContainer.ContainedEntities)
 			{
@@ -31,7 +31,7 @@ public sealed partial class MechTeslaRelaySystem : EntitySystem
 				if (gen.GenerationType != MechGenerationType.TeslaRelay)
                     continue;
 
-				var telem = EnsureComp<MechRechargeAccumulatorComponent>(module);
+				var telem = EnsureComp<MechEnergyAccumulatorComponent>(module);
 				var radius = gen.Tesla?.Radius ?? 0f;
 				var rate = gen.Tesla?.ChargeRate ?? 0f;
 				telem.Max = rate;

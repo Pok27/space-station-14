@@ -16,7 +16,7 @@ public sealed partial class MechBatteryRechargeApplySystem : EntitySystem
 
 	public override void Update(float frameTime)
 	{
-		var query = EntityQueryEnumerator<MechComponent, MechRechargeAccumulatorComponent>();
+		var query = EntityQueryEnumerator<MechComponent, MechEnergyAccumulatorComponent>();
 		while (query.MoveNext(out var mechUid, out var mech, out var acc))
 		{
 			if (!_powerCell.TryGetBatteryFromSlot(mechUid, out var mechBatteryEnt, out var mechBattery, null))
