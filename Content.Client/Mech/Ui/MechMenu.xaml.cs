@@ -176,8 +176,8 @@ public sealed partial class MechMenu : FancyWindow
         }
         else
         {
-            CabinPressureLabel.Text = _loc.GetString("mech-no-data-status");
-            CabinTemperatureLabel.Text = _loc.GetString("mech-no-data-status");
+            CabinPressureLabel.Text = _loc.GetString("mech-no-airtight-status");
+            CabinTemperatureLabel.Text = _loc.GetString("mech-no-airtight-status");
             CabinPressureLabel.FontColorOverride = Color.Gray;
             CabinTemperatureLabel.FontColorOverride = Color.Gray;
         }
@@ -243,7 +243,7 @@ public sealed partial class MechMenu : FancyWindow
     {
         if (state.DnaLockRegistered && !string.IsNullOrEmpty(state.OwnerDna))
         {
-            DnaLockInfoLabel.Text = _loc.GetString("mech-lock-dna-info", ("dna", state.OwnerDna));
+            DnaLockInfoLabel.Text = $"[{state.OwnerDna}]";
         }
         else
         {
@@ -252,7 +252,7 @@ public sealed partial class MechMenu : FancyWindow
 
         if (state.CardLockRegistered && !string.IsNullOrEmpty(state.OwnerJobTitle))
         {
-            CardLockInfoLabel.Text = _loc.GetString("mech-lock-card-info", ("name", state.OwnerJobTitle));
+            CardLockInfoLabel.Text = $"[{state.OwnerJobTitle}]";
         }
         else
         {

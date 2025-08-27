@@ -37,7 +37,7 @@ mech-energy-missing = MISSING
 mech-equipment-slot-display = Equipment: {$used}/{$max} used
 mech-module-slot-display = Modules: {$used}/{$max} used
 mech-grabber-capacity = {$current}/{$max}
-mech-no-data-status = No data
+mech-no-data-status = No airtight
 
 mech-generator-output = Output: {$rate} W
 mech-generator-fuel = Fuel: {$amount} ({$name})
@@ -96,9 +96,6 @@ mech-lock-card-registered-popup = ID lock registered!
 mech-lock-activated-popup = Lock activated!
 mech-lock-deactivated-popup = Lock deactivated!
 mech-lock-reset-success-popup = Lock reset!
-
-mech-lock-dna-info = [{$dna}]
-mech-lock-card-info = [{$name}]
 mech-lock-not-set = Not set
 
 # Settings access banner

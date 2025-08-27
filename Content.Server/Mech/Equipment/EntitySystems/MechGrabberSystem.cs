@@ -41,7 +41,7 @@ public sealed class MechGrabberSystem : EntitySystem
         SubscribeLocalEvent<MechGrabberComponent, MechEquipmentRemovedEvent>(OnEquipmentRemoved);
         SubscribeLocalEvent<MechGrabberComponent, AttemptRemoveMechEquipmentEvent>(OnAttemptRemove);
 
-        SubscribeLocalEvent<MechGrabberComponent, UserActivateInWorldEvent>(OnInteract);
+        SubscribeLocalEvent<MechGrabberComponent, AfterInteractEvent>(OnAfterInteract);
         SubscribeLocalEvent<MechGrabberComponent, GrabberDoAfterEvent>(OnMechGrab);
     }
 
@@ -124,15 +124,16 @@ public sealed class MechGrabberSystem : EntitySystem
         args.States.Add(GetNetEntity(uid), state);
     }
 
-    private void OnInteract(EntityUid uid, MechGrabberComponent component, UserActivateInWorldEvent args)
+    private void OnAfterInteract(EntityUid uid, MechGrabberComponent component, AfterInteractEvent args)
     {
         if (args.Handled)
             return;
 
-        var target = args.Target;
+        if (args.Target is not { } target)
+            return;
 
         // Stop if target is same as grabber or already doing after
-        if (args.Target == uid || component.DoAfter != null)
+        if (target == uid || component.DoAfter != null)
             return;
 
         if (!TryComp<MechEquipmentComponent>(uid, out var equipmentComponent) ||
@@ -160,7 +161,7 @@ public sealed class MechGrabberSystem : EntitySystem
         if (!TryComp<MechComponent>(args.User, out var mechComp))
             return;
 
-        if (!_interaction.InRangeUnobstructed(args.User, target))
+        if (!_interaction.InRangeUnobstructed(args.User, Transform(target).Coordinates))
             return;
 
         args.Handled = true;
