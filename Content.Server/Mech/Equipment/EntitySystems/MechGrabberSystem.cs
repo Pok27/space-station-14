@@ -155,13 +155,12 @@ public sealed class MechGrabberSystem : EntitySystem
         if (component.ItemContainer.ContainedEntities.Count >= component.MaxContents)
             return;
 
-        if (_vehicle.GetOperatorOrNull(args.User) == target)
+        // Prevent grabbing the pilot operating this mech
+        if (_vehicle.GetOperatorOrNull(mech) == target)
             return;
 
-        if (!TryComp<MechComponent>(args.User, out var mechComp))
-            return;
-
-        if (!_interaction.InRangeUnobstructed(args.User, Transform(target).Coordinates))
+        // Use mech range for interaction checks instead of the pilot
+        if (!_interaction.InRangeUnobstructed(mech, Transform(target).Coordinates))
             return;
 
         args.Handled = true;

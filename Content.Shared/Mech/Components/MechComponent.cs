@@ -18,8 +18,7 @@ public sealed partial class MechComponent : Component
     /// <summary>
     /// Whether or not an emag disables it.
     /// </summary>
-    [DataField]
-    [AutoNetworkedField]
+    [DataField, AutoNetworkedField]
     public bool BreakOnEmag = true;
 
     /// <summary>
@@ -35,6 +34,13 @@ public sealed partial class MechComponent : Component
     public FixedPoint2 MaxIntegrity = 250;
 
     /// <summary>
+    /// The health threshold below which the mech enters broken state.
+    /// Broken state is between 0 HP and this value.
+    /// </summary>
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
+    public FixedPoint2 BrokenThreshold = 25;
+
+    /// <summary>
     /// Whether this mech can ever be airtight (pressurized cabin capability).
     /// If false, the mech cannot be made airtight.
     /// </summary>
@@ -45,15 +51,8 @@ public sealed partial class MechComponent : Component
     /// Whether or not the mech is airtight.
     /// When true, the mech uses internal air storage. When false, it uses external air.
     /// </summary>
-    [DataField, ViewVariables(VVAccess.ReadWrite)]
+    [ViewVariables(VVAccess.ReadWrite)]
     public bool Airtight;
-
-    /// <summary>
-    /// The health threshold below which the mech enters broken state.
-    /// Broken state is between 0 HP and this value.
-    /// </summary>
-    [DataField, ViewVariables(VVAccess.ReadWrite)]
-    public FixedPoint2 BrokenThreshold = 25;
 
     /// <summary>
     /// Sound played when entering broken state.
@@ -115,6 +114,7 @@ public sealed partial class MechComponent : Component
     [ViewVariables]
     public readonly string PilotSlotId = "mech-pilot-slot";
 
+    #region Equipments
     /// <summary>
     /// The current selected equipment of the mech.
     /// If null, the mech is using just its fists.
@@ -123,16 +123,10 @@ public sealed partial class MechComponent : Component
     public EntityUid? CurrentSelectedEquipment;
 
     /// <summary>
-    /// The maximum amount of equipment items that can be installed in the mech
+    /// The maximum amount of equipment items that can be installed in the mech.
     /// </summary>
     [DataField, ViewVariables(VVAccess.ReadWrite)]
     public int MaxEquipmentAmount = 3;
-
-    /// <summary>
-    /// A whitelist for inserting equipment items.
-    /// </summary>
-    [DataField]
-    public EntityWhitelist? EquipmentWhitelist;
 
     /// <summary>
     /// A container for storing the equipment entities.
@@ -144,6 +138,27 @@ public sealed partial class MechComponent : Component
     public readonly string EquipmentContainerId = "mech-equipment-container";
 
     /// <summary>
+    /// A whitelist for inserting equipment items.
+    /// </summary>
+    [DataField]
+    public EntityWhitelist? EquipmentWhitelist;
+
+    /// <summary>
+    /// The equipment that the mech initially has when it spawns.
+    /// Good for things like nukie mechs that start with guns.
+    /// </summary>
+    [DataField]
+    public List<EntProtoId> StartingEquipment = new();
+    #endregion
+
+    #region Modules
+    /// <summary>
+    /// Max passive module capacity in space units.
+    /// </summary>
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
+    public int MaxModuleAmount = 4;
+
+    /// <summary>
     /// A container for storing passive module entities.
     /// </summary>
     [ViewVariables(VVAccess.ReadWrite)]
@@ -153,22 +168,17 @@ public sealed partial class MechComponent : Component
     public readonly string ModuleContainerId = "mech-passive-module-container";
 
     /// <summary>
-    /// Max passive module capacity in space units.
-    /// </summary>
-    [DataField, ViewVariables(VVAccess.ReadWrite)]
-    public int MaxModuleAmount = 4;
-
-    /// <summary>
-    /// How long it takes to remove a passive module with a prying tool
-    /// </summary>
-    [DataField, ViewVariables(VVAccess.ReadWrite)]
-    public float ModuleRemovalDelay = 2f;
-
-    /// <summary>
-    /// Whitelist for passive modules allowed to be installed
+    /// A whitelist for inserting module items.
     /// </summary>
     [DataField]
     public EntityWhitelist? ModuleWhitelist;
+
+    /// <summary>
+    /// The passive modules that the mech initially has when it spawns.
+    /// </summary>
+    [DataField]
+    public List<EntProtoId> StartingModules = new();
+    #endregion
 
     /// <summary>
     /// How long it takes to enter the mech.
@@ -194,19 +204,6 @@ public sealed partial class MechComponent : Component
     /// </summary>
     [DataField, ViewVariables(VVAccess.ReadWrite)]
     public float MovementEnergyPerSecond = 10f;
-
-    /// <summary>
-    /// The equipment that the mech initially has when it spawns.
-    /// Good for things like nukie mechs that start with guns.
-    /// </summary>
-    [DataField]
-    public List<EntProtoId> StartingEquipment = new();
-
-    /// <summary>
-    /// The passive modules that the mech initially has when it spawns.
-    /// </summary>
-    [DataField]
-    public List<EntProtoId> StartingModules = new();
 
     #region Action Prototypes
     [DataField]

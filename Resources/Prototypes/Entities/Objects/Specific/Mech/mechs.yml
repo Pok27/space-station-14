@@ -326,6 +326,10 @@
         startingItem: PowerCellHigh
         disableEject: true
         swap: false
+  - type: Mech
+    startingEquipment:
+      - MechEquipmentGrabberSmall
+      - MechEquipmentGrabber
 
 # H.O.N.K.
 - type: entity

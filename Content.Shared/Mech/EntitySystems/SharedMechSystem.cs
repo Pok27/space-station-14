@@ -68,7 +68,6 @@ public abstract partial class SharedMechSystem : EntitySystem
     {
         SubscribeLocalEvent<MechComponent, MechToggleEquipmentEvent>(OnToggleEquipmentAction);
         SubscribeLocalEvent<MechComponent, MechEjectPilotEvent>(OnEjectPilotEvent);
-        SubscribeLocalEvent<MechComponent, UserActivateInWorldEvent>(RelayInteractionEvent);
         SubscribeLocalEvent<MechComponent, ComponentStartup>(OnStartup);
         SubscribeLocalEvent<MechComponent, DestructionEventArgs>(OnDestruction);
         SubscribeLocalEvent<MechComponent, EntityStorageIntoContainerAttemptEvent>(OnEntityStorageDump);
@@ -88,13 +87,15 @@ public abstract partial class SharedMechSystem : EntitySystem
         SubscribeLocalEvent<MechEquipmentComponent, ShotAttemptedEvent>(OnMechEquipmentShotAttempt);
         SubscribeLocalEvent<MechEquipmentComponent, AttemptMeleeEvent>(OnMechEquipmentMeleeAttempt);
 
-        InitializeRelay();
-        SubscribeLocalEvent<MechComponent, GetUsedEntityEvent>(OnMechGetUsedEntity);
+        SubscribeLocalEvent<MechComponent, UserActivateInWorldEvent>(RelayInteractionEvent);
         SubscribeLocalEvent<MechPilotComponent, AccessibleOverrideEvent>(OnPilotAccessible);
         SubscribeLocalEvent<MechEquipmentComponent, GettingUsedAttemptEvent>(OnMechEquipmentGettingUsedAttempt);
         SubscribeLocalEvent<MechComponent, DoAfterNeedHandOverrideEvent>(OnMechDoAfterNeedHandOverride);
         SubscribeLocalEvent<MechEquipmentComponent, ActivatableUIOpenAttemptEvent>(OnMechEquipmentUiOpenAttempt);
+        SubscribeLocalEvent<MechPilotComponent, GetUsedEntityEvent>(OnPilotGetUsedEntity);
         SubscribeLocalEvent<MechComponent, UseHeldBypassAttemptEvent>(OnUseHeldBypass);
+
+        InitializeRelay();
     }
 
     private void OnToggleEquipmentAction(EntityUid uid, MechComponent component, MechToggleEquipmentEvent args)
@@ -124,20 +125,6 @@ public abstract partial class SharedMechSystem : EntitySystem
             BreakOnMove = true
         };
         _doAfter.TryStartDoAfter(doAfterEventArgs);
-    }
-
-    private void RelayInteractionEvent(EntityUid uid, MechComponent component, UserActivateInWorldEvent args)
-    {
-        if (!Vehicle.HasOperator(uid))
-            return;
-
-        if (!_timing.IsFirstTimePredicted)
-            return;
-
-        if (component.CurrentSelectedEquipment != null)
-        {
-            RaiseLocalEvent(component.CurrentSelectedEquipment.Value, args);
-        }
     }
 
     private void OnStartup(EntityUid uid, MechComponent component, ComponentStartup args)
@@ -215,10 +202,6 @@ public abstract partial class SharedMechSystem : EntitySystem
         if (!Resolve(mech, ref component))
             return;
 
-        // Warning: this bypasses most normal interaction blocking components on the user, like drone laws and the like.
-        var irelay = EnsureComp<InteractionRelayComponent>(pilot);
-
-        _interaction.SetRelay(pilot, mech, irelay);
         var rider = EnsureComp<MechPilotComponent>(pilot);
         rider.Mech = mech;
         Dirty(pilot, rider);
@@ -251,13 +234,6 @@ public abstract partial class SharedMechSystem : EntitySystem
         ManageVirtualItems(pilot, mech, create: false);
 
         _actions.RemoveProvidedActions(pilot, mech);
-
-        // Remove interaction relay to restore normal interaction behavior
-        if (TryComp<InteractionRelayComponent>(pilot, out var relay))
-        {
-            _interaction.SetRelay(pilot, null, relay);
-            RemComp<InteractionRelayComponent>(pilot);
-        }
     }
 
     /// <summary>
@@ -737,12 +713,27 @@ public abstract partial class SharedMechSystem : EntitySystem
         args.Cancelled = true;
     }
 
-    private void OnMechGetUsedEntity(EntityUid uid, MechComponent mech, ref GetUsedEntityEvent args)
+    private void RelayInteractionEvent(EntityUid uid, MechComponent component, UserActivateInWorldEvent args)
     {
-        if (args.Handled)
+        if (!Vehicle.HasOperator(uid))
             return;
 
-        if (!Vehicle.HasOperator(uid))
+        if (!_timing.IsFirstTimePredicted)
+            return;
+
+        if (component.CurrentSelectedEquipment != null)
+        {
+            RaiseLocalEvent(component.CurrentSelectedEquipment.Value, args);
+        }
+    }
+
+    private void OnPilotGetUsedEntity(EntityUid uid, MechPilotComponent pilot, ref GetUsedEntityEvent args)
+    {
+        // Map pilot interactions to the currently selected equipment on their mech
+        if (!TryComp<MechComponent>(pilot.Mech, out var mech))
+            return;
+
+        if (!Vehicle.HasOperator(pilot.Mech))
             return;
 
         if (mech.CurrentSelectedEquipment != null)
@@ -767,7 +758,7 @@ public abstract partial class SharedMechSystem : EntitySystem
     private void OnPilotAccessible(EntityUid uid, MechPilotComponent pilot, ref AccessibleOverrideEvent args)
     {
         // Only relay accessibility through the mech when no equipment is selected
-        if (!TryComp<MechComponent>(pilot.Mech, out var mech) || mech.CurrentSelectedEquipment != null)
+        if (!TryComp<MechComponent>(pilot.Mech, out var mech))
             return;
 
         args.Handled = true;
