@@ -87,7 +87,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         SubscribeLocalEvent<MechEquipmentComponent, ShotAttemptedEvent>(OnMechEquipmentShotAttempt);
         SubscribeLocalEvent<MechEquipmentComponent, AttemptMeleeEvent>(OnMechEquipmentMeleeAttempt);
 
-        SubscribeLocalEvent<MechComponent, UserActivateInWorldEvent>(RelayInteractionEvent);
+        SubscribeLocalEvent<MechComponent, UserActivateInWorldEvent>(OnMechActivateInWorld);
         SubscribeLocalEvent<MechPilotComponent, AccessibleOverrideEvent>(OnPilotAccessible);
         SubscribeLocalEvent<MechEquipmentComponent, GettingUsedAttemptEvent>(OnMechEquipmentGettingUsedAttempt);
         SubscribeLocalEvent<MechComponent, DoAfterNeedHandOverrideEvent>(OnMechDoAfterNeedHandOverride);
@@ -713,12 +713,9 @@ public abstract partial class SharedMechSystem : EntitySystem
         args.Cancelled = true;
     }
 
-    private void RelayInteractionEvent(EntityUid uid, MechComponent component, UserActivateInWorldEvent args)
+    private void OnMechActivateInWorld(EntityUid uid, MechComponent component, UserActivateInWorldEvent args)
     {
         if (!Vehicle.HasOperator(uid))
-            return;
-
-        if (!_timing.IsFirstTimePredicted)
             return;
 
         if (component.CurrentSelectedEquipment != null)
