@@ -767,6 +767,11 @@ public abstract partial class SharedMechSystem : EntitySystem
 
     private void OnMechEquipmentGettingUsedAttempt(Entity<MechEquipmentComponent> ent, ref GettingUsedAttemptEvent args)
     {
+        // On client, do not block CanUseHeldEntity by selection state to avoid incorrect
+        // empty-hand prediction leading to unintended target activation.
+        if (_net.IsClient)
+            return;
+
         if (!ent.Comp.BlockUseOutsideMech)
             return;
 
