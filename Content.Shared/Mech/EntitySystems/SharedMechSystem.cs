@@ -90,7 +90,6 @@ public abstract partial class SharedMechSystem : EntitySystem
         SubscribeLocalEvent<MechComponent, UserActivateInWorldEvent>(OnMechActivateInWorld);
         SubscribeLocalEvent<MechPilotComponent, AccessibleOverrideEvent>(OnPilotAccessible);
         SubscribeLocalEvent<MechEquipmentComponent, GettingUsedAttemptEvent>(OnMechEquipmentGettingUsedAttempt);
-        SubscribeLocalEvent<MechComponent, DoAfterNeedHandOverrideEvent>(OnMechDoAfterNeedHandOverride);
         SubscribeLocalEvent<MechEquipmentComponent, ActivatableUIOpenAttemptEvent>(OnMechEquipmentUiOpenAttempt);
         SubscribeLocalEvent<MechPilotComponent, GetUsedEntityEvent>(OnPilotGetUsedEntity);
         SubscribeLocalEvent<MechComponent, UseHeldBypassAttemptEvent>(OnUseHeldBypass);
@@ -735,21 +734,6 @@ public abstract partial class SharedMechSystem : EntitySystem
 
         if (mech.CurrentSelectedEquipment != null)
             args.Used = mech.CurrentSelectedEquipment;
-    }
-
-    private void OnMechDoAfterNeedHandOverride(EntityUid uid, MechComponent mech, ref DoAfterNeedHandOverrideEvent args)
-    {
-        if (!Vehicle.HasOperator(uid))
-            return;
-
-        if (mech.CurrentSelectedEquipment == null)
-            return;
-
-        if (args.Used == mech.CurrentSelectedEquipment)
-        {
-            args.Handled = true;
-            args.AllowWithoutHands = true;
-        }
     }
 
     private void OnPilotAccessible(EntityUid uid, MechPilotComponent pilot, ref AccessibleOverrideEvent args)
