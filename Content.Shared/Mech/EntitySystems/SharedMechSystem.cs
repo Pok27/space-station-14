@@ -791,6 +791,10 @@ public abstract partial class SharedMechSystem : EntitySystem
 
     private void OnMechEquipmentGettingUsedAttempt(Entity<MechEquipmentComponent> ent, ref GettingUsedAttemptEvent args)
     {
+        // To avoid incorrect empty-hand prediction leading to unintended target activation.
+        if (_net.IsClient)
+            return;
+
         if (!ent.Comp.BlockUseOutsideMech)
             return;
 
