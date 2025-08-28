@@ -38,7 +38,6 @@ using Content.Shared.Repairable.Events;
 using Content.Shared.Inventory.VirtualItem;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Hands.Components;
-using Content.Shared.DoAfter.Events;
 using Robust.Shared.Map;
 
 namespace Content.Shared.Mech.EntitySystems;
