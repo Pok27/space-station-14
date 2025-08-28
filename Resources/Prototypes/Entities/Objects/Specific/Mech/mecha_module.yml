@@ -27,6 +27,7 @@
     gases: [ Plasma, CarbonDioxide, NitrousOxide ]
     overflowGases: [ Nitrogen ]
     targetOxygen: 0.21
+    transferRate: 1
 
 - type: entity
   id: MechModuleAirTank
