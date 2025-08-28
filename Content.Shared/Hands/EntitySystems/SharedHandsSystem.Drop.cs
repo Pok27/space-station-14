@@ -41,6 +41,7 @@ public abstract partial class SharedHandsSystem
             _virtualSystem.DeleteVirtualItem((args.Entity, @virtual), uid);
     }
 
+
     private void OnEntityStorageDump(Entity<HandsComponent> ent, ref EntityStorageIntoContainerAttemptEvent args)
     {
         // If you're physically carrying an EntityStroage which tries to dump its contents out,
