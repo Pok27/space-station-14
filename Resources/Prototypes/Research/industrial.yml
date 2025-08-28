@@ -87,6 +87,8 @@
   - SolarControlComputerCircuitboard
   - SolarTrackerElectronics
   - EmitterCircuitboard
+  - MechModuleTeslaRelay
+  - MechModulePlasmaGenerator
 
 - type: technology
   id: AtmosphericTech
@@ -200,6 +202,21 @@
   - RipleyUpgradeKit
   technologyPrerequisites:
   - RipleyAPLU
+
+- type: technology
+  id: MechModule
+  name: research-technology-mech-module
+  icon:
+    sprite: Objects/Specific/Mech/mecha_modules.rsi
+    state: mecha_fan
+  discipline: Industrial
+  tier: 2
+  cost: 7500
+  recipeUnlocks:
+  - MechModuleFan
+  - MechModuleAirTank
+  technologyPrerequisites:
+  - Ripley2
 
 - type: technology
   id: Clarke

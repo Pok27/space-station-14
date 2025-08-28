@@ -29,14 +29,6 @@
 
 - type: latheRecipe
   parent: BaseMechEquipmentRecipe
-  id: MechModuleHorn
-  result: MechModuleHorn
-  materials:
-    Steel: 500
-    Bananium: 200
-
-- type: latheRecipe
-  parent: BaseMechEquipmentRecipe
   id: MechEquipmentHonkerBananaMortar
   result: WeaponMechSpecialBananaMortar
   materials:
@@ -74,14 +66,6 @@
   parent: BaseMechEquipmentRecipe
   id: MechModuleAirTank
   result: MechModuleAirTank
-  materials:
-    Steel: 1000
-    Glass: 150
-
-- type: latheRecipe
-  parent: BaseMechEquipmentRecipe
-  id: MechThruster
-  result: MechThruster
   materials:
     Steel: 1000
     Glass: 150

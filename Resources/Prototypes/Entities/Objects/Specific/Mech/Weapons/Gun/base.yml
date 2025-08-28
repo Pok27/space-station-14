@@ -4,8 +4,8 @@
   abstract: true
   components:
   - type: Battery
-    maxCharge: 100 # Battery is charged by mech
-    startingCharge: 100
+    maxCharge: 1000 # Battery is charged by mech
+    startingCharge: 1000
   - type: Appearance
   - type: StaticPrice
     price: 1

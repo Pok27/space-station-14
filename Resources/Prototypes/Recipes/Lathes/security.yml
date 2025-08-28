@@ -384,8 +384,8 @@
 
 - type: latheRecipe
   parent: BaseWeaponRecipeMechWeapons
-  id: WeaponMechCombatMissileRack8
-  result: WeaponMechCombatMissileRack8
+  id: WeaponMechCombatMissileRack6
+  result: WeaponMechCombatMissileRack6
   materials:
     Steel: 2500
     Glass: 1500

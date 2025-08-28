@@ -85,6 +85,24 @@
           key: "enum.MechAssemblyVisuals.State"
           data: 12
 
+      - tag: LightBulb
+        name: construction-graph-tag-light-bulb
+        icon:
+          sprite: Objects/Power/lights.rsi
+          state: bulb
+        doAfter: 1
+        completed:
+        - !type:VisualizerDataInt
+          key: "enum.MechAssemblyVisuals.State"
+          data: 13
+
+      - tool: Screwing
+        doAfter: 1
+        completed:
+        - !type:VisualizerDataInt
+          key: "enum.MechAssemblyVisuals.State"
+          data: 14
+
       - material: Steel
         amount: 5
         completed:

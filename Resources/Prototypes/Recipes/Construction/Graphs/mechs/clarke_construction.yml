@@ -95,26 +95,44 @@
           key: "enum.MechAssemblyVisuals.State"
           data: 11
 
-      - tool: Screwing
+      - tag: LightBulb
+        name: construction-graph-tag-light-bulb
+        icon:
+          sprite: Objects/Power/lights.rsi
+          state: bulb
         doAfter: 1
         completed:
         - !type:VisualizerDataInt
           key: "enum.MechAssemblyVisuals.State"
           data: 12
 
+      - tool: Screwing
+        doAfter: 1
+        completed:
+        - !type:VisualizerDataInt
+          key: "enum.MechAssemblyVisuals.State"
+          data: 13
+
+      - tool: Screwing
+        doAfter: 1
+        completed:
+        - !type:VisualizerDataInt
+          key: "enum.MechAssemblyVisuals.State"
+          data: 14
+
       - material: Steel
         amount: 5
         completed:
         - !type:VisualizerDataInt
           key: "enum.MechAssemblyVisuals.State"
-          data: 14
+          data: 15
 
       - tool: Anchoring
         doAfter: 1
         completed:
         - !type:VisualizerDataInt
           key: "enum.MechAssemblyVisuals.State"
-          data: 15
+          data: 16
 
       - tool: Welding
         doAfter: 1
@@ -124,16 +142,10 @@
         completed:
         - !type:VisualizerDataInt
           key: "enum.MechAssemblyVisuals.State"
-          data: 16
+          data: 17
 
       - tool: Anchoring
         doAfter: 1
-
-      - tag: MechThruster
-        name: exosuit thruster
-        icon:
-          sprite: Objects/Specific/Mech/mecha_comonets.rsi
-          state: mecha_bin
 
       - tool: Anchoring
         doAfter: 1

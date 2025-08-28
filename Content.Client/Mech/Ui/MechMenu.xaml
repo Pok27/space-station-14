@@ -4,7 +4,7 @@
                       xmlns:customControls="clr-namespace:Content.Client.Administration.UI.CustomControls"
                       Title="{Loc 'mech-menu-title'}"
                       MinSize="600 480"
-                      SetSize="720 480">
+                      SetSize="725 480">
     <BoxContainer Orientation="Horizontal"
                   HorizontalExpand="True"
                   VerticalExpand="True"

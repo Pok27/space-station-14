@@ -318,6 +318,7 @@
     - BorgModules
     - MechParts
     - MechEquipment
+    - MechModule
   - type: EmagLatheRecipes
     emagDynamicRecipes:
     - WeaponMechCombatImmolationGun
@@ -328,7 +329,7 @@
     - WeaponMechCombatShotgunIncendiary
     - WeaponMechCombatDisabler
     - WeaponMechCombatFlashbangLauncher
-    - WeaponMechCombatMissileRack8
+    - WeaponMechCombatMissileRack6
   - type: MaterialStorage
     whitelist:
       tags:

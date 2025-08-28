@@ -218,7 +218,7 @@
   - WeaponMechCombatUltraRifle
   technologyPrerequisites:
   - Ripley2
-  
+
 - type: technology
   id: DualWieldingTechnology
   name: research-technology-dual-wielding-technology
@@ -257,7 +257,7 @@
   tier: 3
   cost: 15000
   recipeUnlocks:
-  - WeaponMechCombatMissileRack8
+  - WeaponMechCombatMissileRack6
   technologyPrerequisites:
   - ExplosiveTechnology
 

@@ -1,4 +1,36 @@
 - type: entity
+  id: DebugMech
+  abstract: true
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Mech
+    equipmentWhitelist:
+      tags:
+      - CombatMech
+      - IndustrialMech
+      - SpecialMech
+      - UniversalMech
+    moduleWhitelist:
+      tags:
+      - CombatMech
+      - IndustrialMech
+      - SpecialMech
+      - UniversalMech
+
+- type: entity
+  id: UniversalMech
+  abstract: true
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Mech
+    equipmentWhitelist:
+      tags:
+      - UniversalMech
+    moduleWhitelist:
+      tags:
+      - UniversalMech
+
+- type: entity
   id: CombatMech
   abstract: true
   categories: [ HideSpawnMenu ]
@@ -7,9 +39,11 @@
     equipmentWhitelist:
       tags:
       - CombatMech
+      - UniversalMech
     moduleWhitelist:
       tags:
-      - MechModule
+      - CombatMech
+      - UniversalMech
 
 - type: entity
   id: IndustrialMech
@@ -20,9 +54,11 @@
     equipmentWhitelist:
       tags:
       - IndustrialMech
+      - UniversalMech
     moduleWhitelist:
       tags:
-      - MechModule
+      - IndustrialMech
+      - UniversalMech
 
 - type: entity
   id: SpecialMech
@@ -33,22 +69,11 @@
     equipmentWhitelist:
       tags:
       - SpecialMech
+      - UniversalMech
     moduleWhitelist:
       tags:
-      - MechModule
-
-- type: entity
-  id: SmallMech
-  abstract: true
-  categories: [ HideSpawnMenu ]
-  components:
-  - type: Mech
-    equipmentWhitelist:
-      tags:
-      - SmallMech
-    moduleWhitelist:
-      tags:
-      - MechModule
+      - SpecialMech
+      - UniversalMech
 
 - type: entity
   id: BaseMech
@@ -59,16 +84,22 @@
   - type: Mech
     brokenSound: /Audio/Effects/alert.ogg
     entrySuccessSound: /Audio/Effects/sadtrombone.ogg
+  - type: ItemTogglePointLight
+  - type: HandheldLight
+    toggleOnInteract: false
+    wattage: 0.2
+    toggleAction: ActionMechToggleLight
+  - type: ToggleableVisuals
+    spriteLayer: light
+  - type: PointLight
+    enabled: false
+    radius: 6
+    netsync: false
   - type: MechLock
     isLocked: false
   - type: Vehicle
   - type: ContainerVehicle
     containerId: "mech-pilot-slot"
-  - type: AirIntake
-  # for intake and filter to work
-  - type: AtmosDevice
-    requireAnchored: false
-    joinSystem: true
   - type: DoAfter
   - type: Repairable
     fuelCost: 25
@@ -144,7 +175,7 @@
         acts: ["Destruction"]
   - type: Charger
     slotId: mech-equipment-container
-    chargeRate: 25
+    chargeRate: 0.5
   - type: PowerCellSlot
     cellSlotId: cell_slot
     fitsInCharger: true
@@ -176,6 +207,7 @@
     baseState: ripley
     openState: ripley-open
     brokenState: ripley-broken
+    canAirtight: false
   - type: Vehicle
     transferDamageModifier:
       coefficients:
@@ -326,10 +358,6 @@
         startingItem: PowerCellHigh
         disableEject: true
         swap: false
-  - type: Mech
-    startingEquipment:
-      - MechEquipmentGrabberSmall
-      - MechEquipmentGrabber
 
 # H.O.N.K.
 - type: entity
@@ -355,18 +383,6 @@
     openState: honker-open
     brokenState: honker-broken
     brokenSound: /Audio/Effects/sadtrombone.ogg
-    canAirtight: false
-  - type: ItemTogglePointLight
-  - type: HandheldLight
-    toggleOnInteract: false
-    wattage: 0.2
-    toggleAction: ActionMechToggleLight
-  - type: ToggleableVisuals
-    spriteLayer: light
-  - type: PointLight
-    enabled: false
-    radius: 6
-    netsync: false
   - type: Vehicle
     transferDamageModifier:
       coefficients:
@@ -410,7 +426,7 @@
 
 # HAMTR
 - type: entity
-  parent: [ BaseMech, SmallMech ]
+  parent: [ BaseMech, UniversalMech ]
   id: MechHamtr
   name: HAMTR
   description: "An experimental mech which uses a brain–computer interface to connect directly to a hamsters brain."
@@ -467,9 +483,8 @@
         swap: false
 
 # Vim!!!!!!!
-
 - type: entity
-  parent: BaseMech
+  parent: [ BaseMech, UniversalMech]
   id: MechVim
   name: Vim
   description: A miniature exosuit from Nanotrasen, developed to let the irreplaceable station pets live a little longer.
@@ -912,8 +927,7 @@
     startingEquipment:
       - WeaponMechChainSword
       - WeaponMechCombatShotgun
-      - WeaponMechCombatMissileRack8
-      - WeaponMechCombatTeslaCannon
+      - WeaponMechCombatMissileRack6
     startingModules:
       - MechModuleFan
       - MechModuleAirTank
@@ -995,8 +1009,7 @@
       - WeaponMechChainSword
       - WeaponMechCombatUltraRifle
       - WeaponMechCombatShotgun
-      - WeaponMechCombatMissileRack6
-      - WeaponMechCombatTeslaCannon
+      - WeaponMechCombatMissileRack8
     startingModules:
       - MechModuleFan
       - MechModuleAirTank

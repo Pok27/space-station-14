@@ -998,12 +998,6 @@
   id: Meat
 
 - type: Tag
-  id: MechThruster
-
-- type: Tag
-  id: MechModule
-
-- type: Tag
   id: Medal
 
 - type: Tag
@@ -1375,7 +1369,6 @@
 
 - type: Tag
   id: CombatMech
-# TODO: Make medical mech
 
 - type: Tag
   id: SpecialMech

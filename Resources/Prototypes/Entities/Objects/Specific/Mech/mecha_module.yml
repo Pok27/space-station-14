@@ -13,13 +13,10 @@
   - type: GuideHelp
     guides:
     - Robotics
-  - type: Tag
-    tags:
-    - MechModule
 
 - type: entity
   id: MechModuleFan
-  parent: MechModuleBase
+  parent: [ MechModuleBase, UniversalMech ]
   name: mecha_fan
   description: mecha_fan.
   components:
@@ -32,31 +29,8 @@
     targetOxygen: 0.21
 
 - type: entity
-  id: MechModuleHorn
-  parent: MechModuleBase
-  name: mech horn
-  description: An enhanced bike horn that plays a hilarious array of sounds for the enjoyment of the crew. HONK!
-  components:
-  - type: Sprite
-    state: mecha_honker
-  - type: MechSoundboard
-    sounds:
-    - collection: BikeHorn
-    - collection: CluwneHorn
-    - collection: TrollAnimals
-    - collection: TrollBeeping
-    - collection: TrollEsword
-  - type: UIFragment
-    ui: !type:MechSoundboardUi
-  - type: UseDelay
-    delay: 0.5
-  - type: Tag
-    tags:
-    - MechModule
-
-- type: entity
   id: MechModuleAirTank
-  parent: MechModuleBase
+  parent: [ MechModuleBase, UniversalMech ]
   name: exosuit air tank
   description: A special air canister capable of holding a large amount of air.
   components:
@@ -70,7 +44,7 @@
 
 - type: entity
   id: MechModuleTeslaRelay
-  parent: MechModuleBase
+  parent: [ MechModuleBase, UniversalMech ]
   name: tesla energy relay
   description: Connects the mech to nearby APCs and trickle-charges its battery.
   components:
@@ -86,7 +60,7 @@
 
 - type: entity
   id: MechModulePlasmaGenerator
-  parent: MechModuleBase
+  parent: [ MechModuleBase, UniversalMech ]
   name: plasma generator module
   description: Generates energy by consuming plasma sheets stored internally.
   components:
@@ -109,3 +83,26 @@
     materialWhiteList: [Plasma]
   - type: UIFragment
     ui: !type:MechGeneratorUi
+
+- type: entity
+  id: MechModuleHorn
+  parent: [ MechModuleBase, SpecialMechEquipment ]
+  name: mech horn
+  description: An enhanced bike horn that plays a hilarious array of sounds for the enjoyment of the crew. HONK!
+  components:
+  - type: Sprite
+    state: mecha_honker
+  - type: MechSoundboard
+    sounds:
+    - collection: BikeHorn
+    - collection: CluwneHorn
+    - collection: TrollAnimals
+    - collection: TrollBeeping
+    - collection: TrollEsword
+  - type: UIFragment
+    ui: !type:MechSoundboardUi
+  - type: UseDelay
+    delay: 0.5
+  - type: Tag
+    tags:
+    - MechModule
