@@ -152,7 +152,7 @@ public abstract partial class SharedMechSystem : EntitySystem
 
         if (create)
         {
-            // Creating virtual objects to block hands.
+            // Creating virtual items to block hands.
             var blocking = TryComp<MechComponent>(mech, out var mechComp) && mechComp.CurrentSelectedEquipment != null
                 ? mechComp.CurrentSelectedEquipment.Value
                 : mech;
@@ -170,20 +170,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         }
         else
         {
-            // Remove all virtual items and unlock your hands.
-            foreach (var hand in _hands.EnumerateHands(pilot))
-            {
-                if (_hands.TryGetHeldItem(pilot, hand, out var heldItem) && heldItem != null)
-                {
-                    if (HasComp<UnremoveableComponent>(heldItem.Value))
-                    {
-                        RemComp<UnremoveableComponent>(heldItem.Value);
-                    }
-                    _virtualItem.DeleteInHandsMatching(pilot, heldItem.Value);
-                }
-            }
-
-            // Remove all virtual items for mech and equipment
+            // Remove virtual items for mech and equipment.
             _virtualItem.DeleteInHandsMatching(pilot, mech);
             if (TryComp<MechComponent>(mech, out var mechComp))
             {
@@ -304,8 +291,11 @@ public abstract partial class SharedMechSystem : EntitySystem
                 continue;
 
             var newBlocking = component.CurrentSelectedEquipment ?? mech;
-            virt.BlockingEntity = newBlocking;
-            Dirty(held, virt);
+            if (virt.BlockingEntity != newBlocking)
+            {
+                virt.BlockingEntity = newBlocking;
+                Dirty(held, virt);
+            }
         }
     }
 
@@ -687,28 +677,33 @@ public abstract partial class SharedMechSystem : EntitySystem
         }
     }
 
-    private void OnMechEquipmentShotAttempt(Entity<MechEquipmentComponent> ent, ref ShotAttemptedEvent args)
+    /// <summary>
+    /// Returns whether the given mech equipment can be used from hands, accounting for "block outside mech" rules.
+    /// </summary>
+    private bool IsMechEquipmentUsableFromHands(Entity<MechEquipmentComponent> ent)
     {
         if (!ent.Comp.BlockUseOutsideMech)
-            return;
+            return true;
 
-        if (!ent.Comp.EquipmentOwner.HasValue)
+        if (ent.Comp.EquipmentOwner.HasValue)
+            return true;
+
+        if (_container.TryGetContainingContainer(ent.Owner, out var container) &&
+            HasComp<MechComponent>(container.Owner))
+            return true;
+
+        return false;
+    }
+
+    private void OnMechEquipmentShotAttempt(Entity<MechEquipmentComponent> ent, ref ShotAttemptedEvent args)
+    {
+        if (!IsMechEquipmentUsableFromHands(ent))
             args.Cancel();
     }
 
     private void OnMechEquipmentMeleeAttempt(Entity<MechEquipmentComponent> ent, ref AttemptMeleeEvent args)
     {
-        if (!ent.Comp.BlockUseOutsideMech)
-            return;
-
-        var owner = ent.Comp.EquipmentOwner;
-        if (owner.HasValue)
-            return;
-
-        if (_container.TryGetContainingContainer(ent.Owner, out var container) && HasComp<MechComponent>(container.Owner))
-            return;
-
-        args.Cancelled = true;
+        args.Cancelled = !IsMechEquipmentUsableFromHands(ent);
     }
 
     private void OnMechActivateInWorld(EntityUid uid, MechComponent component, UserActivateInWorldEvent args)

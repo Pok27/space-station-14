@@ -1,9 +1,7 @@
-using Content.Server.Mech.Systems;
 using Content.Server.Power.Components;
 using Content.Server.Power.EntitySystems;
 using Content.Server.PowerCell;
 using Content.Shared.Mech.Components;
-using Content.Shared.Weapons.Ranged.Systems;
 using Robust.Shared.Containers;
 using Content.Shared.Whitelist;
 
@@ -19,16 +17,13 @@ public sealed class MechChargerSystem : EntitySystem
     {
         base.Update(frameTime);
 
-        var query = EntityQueryEnumerator<MechComponent>();
-        while (query.MoveNext(out var mechUid, out var mech))
+        var query = EntityQueryEnumerator<MechComponent, ChargerComponent>();
+        while (query.MoveNext(out var mechUid, out var mech, out var charger))
         {
             if (!_powerCell.TryGetBatteryFromSlot(mechUid, out var mechBatteryEnt, out var mechBattery, null))
                 continue;
 
             if (mechBatteryEnt == null || mechBattery.CurrentCharge <= 0)
-                continue;
-
-            if (!TryComp<ChargerComponent>(mechUid, out var charger))
                 continue;
 
             var chargeRate = charger.ChargeRate;
