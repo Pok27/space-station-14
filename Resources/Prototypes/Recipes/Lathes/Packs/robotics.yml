@@ -90,4 +90,12 @@
   - MechEquipmentHonkerBananaMortar
   - MechEquipmentHonkerMousetrapMortar
   - MechEquipmentKineticAccelerator
+
+- type: latheRecipePack
+  id: MechModule
+  recipes:
+  - MechModuleFan
+  - MechModuleAirTank
+  - MechModuleTeslaRelay
+  - MechModulePlasmaGenerator
   - MechModuleHorn

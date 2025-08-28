@@ -5,7 +5,6 @@
   id: BaseMechModuleRecipe
   categories:
   - Mech
-  - Parts
   - MechModule
   completetime: 10
   materials:
@@ -31,16 +30,17 @@
   id: MechModuleTeslaRelay
   result: MechModuleTeslaRelay
   materials:
-    Steel: 800
-    Plastic: 400
+    Steel: 1000
+    Glass: 200
 
 - type: latheRecipe
   parent: BaseMechModuleRecipe
   id: MechModulePlasmaGenerator
   result: MechModulePlasmaGenerator
   materials:
-    Steel: 1200
-    Plastic: 500
+    Steel: 1000
+    Glass: 100
+    Plasma: 500
     Silver: 200
 
 - type: latheRecipe

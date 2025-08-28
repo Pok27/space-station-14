@@ -107,7 +107,8 @@
 
             <!-- Settings -->
             <!-- Top block -->
-            <BoxContainer Orientation="Vertical" VerticalExpand="True">
+            <BoxContainer Orientation="Vertical"
+                          VerticalExpand="True">
                 <!-- No access overlay -->
                 <PanelContainer Name="NoAccessSettings"
                                 Visible="False"
@@ -115,12 +116,24 @@
                                 Margin="0 0 0 6"
                                 HorizontalExpand="True"
                                 VerticalExpand="True">
-                    <BoxContainer HorizontalExpand="True"
-                                  Margin="8"
-                                  HorizontalAlignment="Center">
-                        <RichTextLabel Text="{Loc 'mech-settings-no-access'}"/>
-                    </BoxContainer>
+                    <controls:StripeBack VerticalExpand="True"
+                                         HorizontalExpand="True">
+                        <PanelContainer VerticalExpand="True"
+                                        HorizontalExpand="True">
+                            <BoxContainer VerticalExpand="True"
+                                          HorizontalExpand="True"
+                                          Orientation="Vertical">
+                                <Control VerticalExpand="True"/>
+                                <Label Text="{Loc 'mech-settings-no-access'}"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Center"
+                                       Margin="5"/>
+                                <Control VerticalExpand="True"/>
+                            </BoxContainer>
+                        </PanelContainer>
+                    </controls:StripeBack>
                 </PanelContainer>
+
                 <GridContainer Name="HaveAccessSettings"
                                Columns="2"
                                VSeparationOverride="6"
@@ -279,15 +292,26 @@
                     <!-- No access overlay -->
                     <PanelContainer Name="NoAccessEquipment"
                                     Visible="False"
-                                    Margin="0 0 0 6"
                                     HorizontalExpand="True"
                                     VerticalExpand="True">
-                        <BoxContainer HorizontalExpand="True"
-                                      VerticalExpand="True"
-                                      HorizontalAlignment="Center"
-                                      Margin="8">
-                            <RichTextLabel Text="{Loc 'mech-settings-no-access'}"/>
-                        </BoxContainer>
+                        <controls:StripeBack VerticalExpand="True"
+                                             HorizontalExpand="True">
+                            <PanelContainer VerticalExpand="True"
+                                            HorizontalExpand="True">
+                                <BoxContainer VerticalExpand="True"
+                                              HorizontalExpand="True"
+                                              Orientation="Vertical">
+                                    <Control VerticalExpand="True"/>
+                                    <TextureRect VerticalAlignment="Center"
+                                                 HorizontalAlignment="Center"
+                                                 SetSize="64 64"
+                                                 Stretch="KeepAspectCentered"
+                                                 TexturePath="/Textures/Interface/VerbIcons/lock.svg.192dpi.png">
+                                    </TextureRect>
+                                    <Control VerticalExpand="True"/>
+                                </BoxContainer>
+                            </PanelContainer>
+                        </controls:StripeBack>
                     </PanelContainer>
 
                     <BoxContainer Name="HaveAccessEquipment"

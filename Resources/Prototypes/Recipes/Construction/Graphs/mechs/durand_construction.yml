@@ -30,7 +30,7 @@
           data: 3
 
       - tag: DurandCentralControlModule
-        name: durand central control module
+        name: construction-graph-tag-durand-central-control-module
         icon:
           sprite: "Objects/Misc/module.rsi"
           state: "mainboard"
@@ -47,7 +47,7 @@
           data: 5
 
       - tag: DurandPeripheralsControlModule
-        name: durand peripherals control module
+        name: construction-graph-tag-durand-peripherals-control-module
         icon:
           sprite: "Objects/Misc/module.rsi"
           state: id_mod
@@ -64,7 +64,7 @@
           data: 7
 
       - tag: DurandTargetingControlModule
-        name: durand weapon control and targeting module
+        name: construction-graph-tag-durand-weapon-control-and-targeting-module
         icon:
           sprite: "Objects/Misc/module.rsi"
           state: mcontroller
@@ -80,11 +80,9 @@
           key: "enum.MechAssemblyVisuals.State"
           data: 9
 
-      - tag: CapacitorStockPart
-        name: capacitor
-        icon:
-          sprite: Objects/Misc/stock_parts.rsi
-          state: capacitor
+      - material: Manipulator
+        amount: 1
+        doAfter: 1
         completed:
         - !type:VisualizerDataInt
           key: "enum.MechAssemblyVisuals.State"
@@ -98,7 +96,7 @@
           data: 11
 
       - component: PowerCell
-        name: power cell
+        name: construction-graph-component-power-cell
         store: battery-container
         icon:
           sprite: Objects/Power/power_cells.rsi

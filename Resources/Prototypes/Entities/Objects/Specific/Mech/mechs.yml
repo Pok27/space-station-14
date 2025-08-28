@@ -74,6 +74,7 @@
       tags:
       - SpecialMech
       - UniversalMech
+# TODO: Make medical mech.
 
 - type: entity
   id: BaseMech
@@ -108,6 +109,8 @@
     interfaces:
       enum.MechUiKey.Key:
         type: MechBoundUserInterface
+  - type: ActivatableUI
+    key: enum.MechUiKey.Key
   - type: MeleeWeapon
     hidden: true
     attackRate: 0.75

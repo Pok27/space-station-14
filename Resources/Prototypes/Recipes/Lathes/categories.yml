@@ -82,6 +82,10 @@
   name: lathe-category-mechs-equipment
 
 - type: latheCategory
+  id: MechModule
+  name: lathe-category-mechs-module
+
+- type: latheCategory
   id: MechWeapons
   name: lathe-category-mechs-weapons
 

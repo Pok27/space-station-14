@@ -9,8 +9,8 @@
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
     state: mecha_pulse
   - type: Battery
-    maxCharge: 1000
-    startingCharge: 1000
+    maxCharge: 500
+    startingCharge: 500
   - type: Gun
     fireRate: 1.5
     selectedMode: SemiAuto
@@ -20,7 +20,7 @@
       path: /Audio/Weapons/Guns/Gunshots/laser3.ogg
   - type: HitscanBatteryAmmoProvider
     proto: Pulse
-    fireCost: 40
+    fireCost: 20
   - type: Appearance
   - type: AmmoCounter
 
@@ -35,8 +35,8 @@
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
     state: mecha_laser
   - type: Battery
-    maxCharge: 500
-    startingCharge: 500
+    maxCharge: 250
+    startingCharge: 250
   - type: Gun
     fireRate: 0.6
     selectedMode: SemiAuto
@@ -46,7 +46,7 @@
       path: /Audio/Weapons/Guns/Gunshots/laser_cannon.ogg
   - type: HitscanBatteryAmmoProvider
     proto: RedHeavyLaser
-    fireCost: 100
+    fireCost: 50
   - type: Appearance
   - type: AmmoCounter
 
@@ -61,8 +61,8 @@
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
     state: mecha_laser
   - type: Battery
-    maxCharge: 500
-    startingCharge: 500
+    maxCharge: 250
+    startingCharge: 250
   - type: Gun
     fireRate: 1
     selectedMode: SemiAuto
@@ -72,7 +72,7 @@
       path: /Audio/Weapons/Guns/Gunshots/laser.ogg
   - type: HitscanBatteryAmmoProvider
     proto: RedMediumLaser
-    fireCost: 60
+    fireCost: 30
   - type: Appearance
   - type: AmmoCounter
 
@@ -87,8 +87,8 @@
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
     state: mecha_laser
   - type: Battery
-    maxCharge: 500
-    startingCharge: 500
+    maxCharge: 250
+    startingCharge: 250
   - type: Gun
     fireRate: 0.8
     selectedMode: SemiAuto
@@ -98,7 +98,7 @@
       path: /Audio/Weapons/Guns/Gunshots/laser.ogg
   - type: HitscanBatteryAmmoProvider
     proto: RedLaser
-    fireCost: 40
+    fireCost: 20
   - type: Appearance
   - type: AmmoCounter
 
@@ -113,8 +113,8 @@
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
     state: mecha_wholegen
   - type: Battery
-    maxCharge: 500
-    startingCharge: 500
+    maxCharge: 250
+    startingCharge: 250
   - type: Gun
     projectileSpeed: 1
     projectileSpeedModified: 5
@@ -128,7 +128,7 @@
         variation: 0.2
   - type: ProjectileBatteryAmmoProvider
     proto: TeslaGunBullet
-    fireCost: 100
+    fireCost: 50
   - type: Appearance
   - type: AmmoCounter
 
@@ -143,8 +143,8 @@
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
     state: mecha_disabler
   - type: Battery
-    maxCharge: 1000
-    startingCharge: 1000
+    maxCharge: 500
+    startingCharge: 500
   - type: Gun
     fireRate: 1
     selectedMode: SemiAuto
@@ -154,7 +154,7 @@
       path: /Audio/Weapons/Guns/Gunshots/taser2.ogg
   - type: ProjectileBatteryAmmoProvider
     proto: BulletDisabler
-    fireCost: 30
+    fireCost: 15
   - type: Appearance
   - type: AmmoCounter
 
@@ -169,8 +169,8 @@
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
     state: mecha_taser
   - type: Battery
-    maxCharge: 1000
-    startingCharge: 1000
+    maxCharge: 500
+    startingCharge: 500
   - type: Gun
     fireRate: 1
     selectedMode: SemiAuto
@@ -180,7 +180,7 @@
       path: /Audio/Weapons/Guns/Gunshots/taser2.ogg
   - type: ProjectileBatteryAmmoProvider
     proto: BulletTaser
-    fireCost: 20
+    fireCost: 10
   - type: Appearance
   - type: AmmoCounter
 
@@ -195,8 +195,8 @@
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
     state: mecha_scatter
   - type: Battery
-    maxCharge: 500
-    startingCharge: 500
+    maxCharge: 250
+    startingCharge: 250
   - type: Gun
     fireRate: 0.5
     selectedMode: SemiAuto
@@ -206,7 +206,7 @@
       path: /Audio/Weapons/Guns/Gunshots/shotgun.ogg
   - type: ProjectileBatteryAmmoProvider
     proto: ShellShotgun
-    fireCost: 100
+    fireCost: 50
   - type: Appearance
   - type: AmmoCounter
 
@@ -221,8 +221,8 @@
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
     state: mecha_carbine
   - type: Battery
-    maxCharge: 500
-    startingCharge: 500
+    maxCharge: 250
+    startingCharge: 250
   - type: Gun
     fireRate: 1.2
     selectedMode: SemiAuto
@@ -232,7 +232,7 @@
       path: /Audio/Weapons/Guns/Gunshots/shotgun.ogg
   - type: ProjectileBatteryAmmoProvider
     proto: ShellShotgunIncendiary
-    fireCost: 100
+    fireCost: 50
   - type: Appearance
   - type: AmmoCounter
 
@@ -247,8 +247,8 @@
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
     state: mecha_uac2
   - type: Battery
-    maxCharge: 750
-    startingCharge: 750
+    maxCharge: 200
+    startingCharge: 200
   - type: Gun
     fireRate: 3
     selectedMode: FullAuto
@@ -273,8 +273,8 @@
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
     state: mecha_missilerack_six
   - type: Battery
-    maxCharge: 600
-    startingCharge: 600
+    maxCharge: 300
+    startingCharge: 300
   - type: Gun
     fireRate: 0.5
     selectedMode: SemiAuto
@@ -284,7 +284,7 @@
       path: /Audio/Weapons/Guns/Gunshots/rpgfire.ogg
   - type: ProjectileBatteryAmmoProvider
     proto: BulletWeakRocket
-    fireCost: 100
+    fireCost: 50
   - type: Appearance
   - type: AmmoCounter
 
@@ -310,7 +310,7 @@
       path: /Audio/Weapons/Guns/Gunshots/rpgfire.ogg
   - type: ProjectileBatteryAmmoProvider
     proto: GrenadeBlast
-    fireCost: 400
+    fireCost: 200
   - type: Appearance
   - type: AmmoCounter
 
@@ -325,8 +325,8 @@
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
     state: mecha_grenadelnchr
   - type: Battery
-    maxCharge: 600
-    startingCharge: 600
+    maxCharge: 300
+    startingCharge: 300
   - type: Gun
     fireRate: 1
     selectedMode: SemiAuto
@@ -338,6 +338,6 @@
       path: /Audio/Weapons/Guns/Empty/lmg_empty.ogg
   - type: ProjectileBatteryAmmoProvider
     proto: GrenadeFlash
-    fireCost: 200
+    fireCost: 100
   - type: Appearance
   - type: AmmoCounter

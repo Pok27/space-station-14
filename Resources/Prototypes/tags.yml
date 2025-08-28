@@ -1362,9 +1362,6 @@
   id: SmallAIChip
 
 - type: Tag
-  id: SmallMech
-
-- type: Tag
   id: IndustrialMech
 
 - type: Tag
@@ -1519,6 +1516,9 @@
 
 - type: Tag
   id: Unimplantable
+
+- type: Tag
+  id: UniversalMech
 
 - type: Tag
   id: Unstackable # To prevent things like atmos devices (filters etc) being stacked on one tile. See NoUnstackableInTile

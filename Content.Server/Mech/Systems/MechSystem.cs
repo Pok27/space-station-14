@@ -79,7 +79,6 @@ public sealed partial class MechSystem : SharedMechSystem
         SubscribeLocalEvent<MechComponent, PowerCellSlotEmptyEvent>(OnBatteryChanged);
 
         SubscribeLocalEvent<MechPilotComponent, ToolUserAttemptUseEvent>(OnToolUseAttempt);
-        SubscribeLocalEvent<MechComponent, GetVerbsEvent<AlternativeVerb>>(OnAlternativeVerb);
         SubscribeAllEvent<RequestMechEquipmentSelectEvent>(OnEquipmentSelectRequest);
         SubscribeLocalEvent<MechComponent, MechOpenUiEvent>(OnOpenUi);
         SubscribeLocalEvent<MechComponent, MechBrokenSoundEvent>(OnMechBrokenSound);
@@ -275,58 +274,6 @@ public sealed partial class MechSystem : SharedMechSystem
     {
         if (args.Target == component.Mech)
             args.Cancelled = true;
-    }
-
-    private void OnAlternativeVerb(EntityUid uid, MechComponent component, GetVerbsEvent<AlternativeVerb> args)
-    {
-        if (!args.CanAccess || !args.CanInteract)
-            return;
-
-        // Always add UI open verb
-        var openUiVerb = new AlternativeVerb
-        {
-            Act = () => ToggleMechUi(uid, component, args.User),
-            Text = Loc.GetString("mech-ui-open-verb")
-        };
-        args.Verbs.Add(openUiVerb);
-
-        if (CanInsert(uid, args.User, component))
-        {
-            var enterVerb = new AlternativeVerb
-            {
-                Text = Loc.GetString("mech-verb-enter"),
-                Act = () =>
-                {
-                    var doAfterEventArgs = new DoAfterArgs(EntityManager, args.User, component.EntryDelay, new MechEntryEvent(), uid, target: uid)
-                    {
-                        BreakOnMove = true,
-                    };
-
-                    _doAfter.TryStartDoAfter(doAfterEventArgs);
-                }
-            };
-            args.Verbs.Add(enterVerb);
-        }
-        else if (Vehicle.HasOperator(uid))
-        {
-            var ejectVerb = new AlternativeVerb
-            {
-                Text = Loc.GetString("mech-verb-exit"),
-                Priority = 1, // Promote to top to make ejecting the ALT-click action
-                Act = () =>
-                {
-                    var doAfterEventArgs = new DoAfterArgs(EntityManager, args.User, component.ExitDelay, new MechExitEvent(), uid, target: uid)
-                    {
-                        BreakOnMove = true,
-                    };
-                    if (args.User != uid && args.User != component.PilotSlot.ContainedEntity)
-                        _popup.PopupEntity(Loc.GetString("mech-eject-pilot-alert-popup", ("item", uid), ("user", args.User)), uid, PopupType.Large);
-
-                    _doAfter.TryStartDoAfter(doAfterEventArgs);
-                }
-            };
-            args.Verbs.Add(ejectVerb);
-        }
     }
 
     private void OnMechEntry(EntityUid uid, MechComponent component, MechEntryEvent args)

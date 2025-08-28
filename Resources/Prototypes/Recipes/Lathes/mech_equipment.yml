@@ -5,7 +5,6 @@
   id: BaseMechEquipmentRecipe
   categories:
   - Mech
-  - Parts
   - MechEquipment
   completetime: 10
   materials:
@@ -61,11 +60,3 @@
     Plastic: 500
     Silver: 200
     Diamond: 150
-
-- type: latheRecipe
-  parent: BaseMechEquipmentRecipe
-  id: MechModuleAirTank
-  result: MechModuleAirTank
-  materials:
-    Steel: 1000
-    Glass: 150

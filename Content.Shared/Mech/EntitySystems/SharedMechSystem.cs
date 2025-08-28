@@ -15,9 +15,11 @@ using Content.Shared.Interaction;
 using Content.Shared.Interaction.Events;
 using Content.Shared.Interaction.Components;
 using Content.Shared.Mech.Components;
+using Content.Shared.Popups;
 using Content.Shared.Storage.Components;
 using Content.Shared.Vehicle;
 using Content.Shared.Vehicle.Components;
+using Content.Shared.Verbs;
 using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Melee.Events;
 using Content.Shared.Weapons.Ranged.Events;
@@ -39,6 +41,7 @@ using Content.Shared.Inventory.VirtualItem;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Hands.Components;
 using Robust.Shared.Map;
+using Robust.Shared.Utility;
 
 namespace Content.Shared.Mech.EntitySystems;
 
@@ -73,6 +76,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         SubscribeLocalEvent<MechComponent, DragDropTargetEvent>(OnDragDrop);
         SubscribeLocalEvent<MechComponent, CanDropTargetEvent>(OnCanDragDrop);
         SubscribeLocalEvent<MechComponent, VehicleOperatorSetEvent>(OnOperatorSet);
+        SubscribeLocalEvent<MechComponent, GetVerbsEvent<Verb>>(OnGetVerb);
 
         SubscribeLocalEvent<MechPilotComponent, GetMeleeWeaponEvent>(OnGetMeleeWeapon);
         SubscribeLocalEvent<MechPilotComponent, GetActiveWeaponEvent>(OnGetActiveWeapon);
@@ -597,6 +601,55 @@ public abstract partial class SharedMechSystem : EntitySystem
         UpdateAppearance(ent);
     }
 
+    private void OnGetVerb(EntityUid uid, MechComponent component, GetVerbsEvent<Verb> args)
+    {
+        if (!args.CanAccess || !args.CanInteract)
+            return;
+
+        // Enter verb (when user can insert)
+        if (CanInsert(uid, args.User, component))
+        {
+            var enterVerb = new AlternativeVerb
+            {
+                Text = Loc.GetString("mech-verb-enter"),
+                Icon = new SpriteSpecifier.Texture(new ResPath("/Textures/Interface/VerbIcons/in.svg.192dpi.png")),
+                Act = () =>
+                {
+                    var doAfterEventArgs = new DoAfterArgs(EntityManager, args.User, component.EntryDelay, new MechEntryEvent(), uid, target: uid)
+                    {
+                        BreakOnMove = true,
+                    };
+
+                    _doAfter.TryStartDoAfter(doAfterEventArgs);
+                }
+            };
+            args.Verbs.Add(enterVerb);
+        }
+        // Exit verb (when there's an operator)
+        else if (Vehicle.HasOperator(uid))
+        {
+            var ejectVerb = new AlternativeVerb
+            {
+                Text = Loc.GetString("mech-verb-exit"),
+                Priority = 1,
+                Icon = new SpriteSpecifier.Texture(new ResPath("/Textures/Interface/VerbIcons/eject.svg.192dpi.png")),
+                Act = () =>
+                {
+                    var doAfterEventArgs = new DoAfterArgs(EntityManager, args.User, component.ExitDelay, new MechExitEvent(), uid, target: uid)
+                    {
+                        BreakOnMove = true,
+                    };
+
+                    if (args.User != uid && args.User != component.PilotSlot.ContainedEntity)
+                        EntityManager.System<SharedPopupSystem>().PopupEntity(Loc.GetString("mech-eject-pilot-alert-popup", ("item", uid), ("user", args.User)), uid);
+
+                    _doAfter.TryStartDoAfter(doAfterEventArgs);
+                }
+            };
+            args.Verbs.Add(ejectVerb);
+        }
+    }
+
     private void OnEmagged(EntityUid uid, MechComponent component, ref GotEmaggedEvent args)
     {
         if (!component.BreakOnEmag)
@@ -678,7 +731,7 @@ public abstract partial class SharedMechSystem : EntitySystem
     }
 
     /// <summary>
-    /// Returns whether the given mech equipment can be used from hands, accounting for "block outside mech" rules.
+    /// Returns whether the given mech equipment can be used from hands.
     /// </summary>
     private bool IsMechEquipmentUsableFromHands(Entity<MechEquipmentComponent> ent)
     {
@@ -732,21 +785,12 @@ public abstract partial class SharedMechSystem : EntitySystem
 
     private void OnPilotAccessible(EntityUid uid, MechPilotComponent pilot, ref AccessibleOverrideEvent args)
     {
-        // Only relay accessibility through the mech when no equipment is selected
-        if (!TryComp<MechComponent>(pilot.Mech, out var mech))
-            return;
-
         args.Handled = true;
         args.Accessible = _interaction.IsAccessible(pilot.Mech, args.Target);
     }
 
     private void OnMechEquipmentGettingUsedAttempt(Entity<MechEquipmentComponent> ent, ref GettingUsedAttemptEvent args)
     {
-        // On client, do not block CanUseHeldEntity by selection state to avoid incorrect
-        // empty-hand prediction leading to unintended target activation.
-        if (_net.IsClient)
-            return;
-
         if (!ent.Comp.BlockUseOutsideMech)
             return;
 

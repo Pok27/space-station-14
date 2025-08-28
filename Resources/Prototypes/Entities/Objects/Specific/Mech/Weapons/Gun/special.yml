@@ -7,6 +7,9 @@
   components:
   - type: Sprite
     state: mecha_mousetrapmrtr
+  - type: Battery
+    maxCharge: 300
+    startingCharge: 300
   - type: Gun
     minAngle: 24
     maxAngle: 45
@@ -35,6 +38,9 @@
   components:
   - type: Sprite
     state: mecha_bananamrtr
+  - type: Battery
+    maxCharge: 300
+    startingCharge: 300
   - type: Gun
     minAngle: 24
     maxAngle: 25

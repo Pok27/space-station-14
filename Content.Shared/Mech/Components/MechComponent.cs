@@ -203,7 +203,7 @@ public sealed partial class MechComponent : Component
     /// Energy consumed from the mech's internal battery while actively moving, in charge units per second.
     /// </summary>
     [DataField, ViewVariables(VVAccess.ReadWrite)]
-    public float MovementEnergyPerSecond = 10f;
+    public float MovementEnergyPerSecond = 5f;
 
     #region Action Prototypes
     [DataField]

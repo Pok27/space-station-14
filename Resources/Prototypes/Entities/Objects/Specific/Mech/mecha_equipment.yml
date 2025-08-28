@@ -6,10 +6,10 @@
   components:
   - type: Tag
     tags:
+    - UniversalMech
     - CombatMech
     - IndustrialMech
     - SpecialMech
-    - UniversalMech
 
 - type: entity
   id: UniversalMechEquipment
@@ -86,8 +86,8 @@
       item-container: !type:Container
 
 - type: entity
-  id: [ MechEquipmentGrabberSmall, IndustrialMechEquipment ]
-  parent: BaseMechEquipment
+  id: MechEquipmentGrabberSmall
+  parent: [ BaseMechEquipment, UniversalMechEquipment ]
   name: small hydraulic clamp
   description: Gives the mech the ability to grab things and drag them around.
   components:
