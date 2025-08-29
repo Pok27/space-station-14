@@ -6,19 +6,31 @@
     edges:
     - to: repaired
       steps:
+
+      - tool: Screwing
+        doAfter: 1
+
+      - tool: Cutting
+        doAfter: 10
+
+      - material: Cable
+        amount: 20
+        doAfter: 10
+
+      - tool: Screwing
+        doAfter: 1
+
       - material: Steel
-        amount: 5
-        completed:
-        - !type:VisualizerDataInt
-          key: "enum.MechAssemblyVisuals.State"
-          data: 1
+        amount: 15
 
       - tool: Welding
-        doAfter: 1
-        completed:
-        - !type:VisualizerDataInt
-          key: "enum.MechAssemblyVisuals.State"
-          data: 2
+        doAfter: 20
+
+      - material: Steel
+        amount: 15
+
+      - tool: Welding
+        doAfter: 20
 
   - node: repaired
     actions:

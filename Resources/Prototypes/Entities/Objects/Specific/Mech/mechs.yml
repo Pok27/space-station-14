@@ -83,8 +83,8 @@
   components:
   - type: MobMover
   - type: Mech
-    brokenSound: /Audio/Effects/alert.ogg
-    entrySuccessSound: /Audio/Effects/sadtrombone.ogg
+    entrySuccessSound: /Audio/Effects/nominal.ogg
+    brokenSound: /Audio/Effects/critdestr.ogg
   - type: ItemTogglePointLight
   - type: HandheldLight
     toggleOnInteract: false
