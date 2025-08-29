@@ -2,9 +2,12 @@ using System.Diagnostics.CodeAnalysis;
 using Content.Shared.Access.Components;
 using Content.Shared.ActionBlocker;
 using Content.Shared.Damage;
+using Content.Shared.Mobs.Components;
 using Content.Shared.Movement.Components;
 using Content.Shared.Movement.Events;
 using Content.Shared.Movement.Systems;
+using Content.Shared.NPC.Components;
+using Content.Shared.NPC.Systems;
 using Content.Shared.Vehicle.Components;
 using Content.Shared.Whitelist;
 using JetBrains.Annotations;
@@ -23,6 +26,7 @@ public sealed partial class VehicleSystem : EntitySystem
     [Dependency] private readonly DamageableSystem _damageable = default!;
     [Dependency] private readonly EntityWhitelistSystem _entityWhitelist = default!;
     [Dependency] private readonly SharedMoverController _mover = default!;
+    [Dependency] private readonly NpcFactionSystem _factionSystem = default!;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -109,6 +113,8 @@ public sealed partial class VehicleSystem : EntitySystem
 
         if (entity.Comp.Operator is { } currentOperator && TryComp<VehicleOperatorComponent>(currentOperator, out var currentOperatorComponent))
         {
+            RemovePilotFactions(entity.Owner);
+
             var exitEvent = new OnVehicleExitedEvent(entity, currentOperator);
             RaiseLocalEvent(currentOperator, ref exitEvent);
 
@@ -127,6 +133,8 @@ public sealed partial class VehicleSystem : EntitySystem
             Dirty(uid.Value, vehicleOperator);
 
             _mover.SetRelay(uid.Value, entity);
+
+            TransferPilotFactions(entity.Owner, uid.Value);
 
             var enterEvent = new OnVehicleEnteredEvent(entity, uid.Value);
             RaiseLocalEvent(uid.Value, ref enterEvent);
@@ -256,5 +264,40 @@ public sealed partial class VehicleSystem : EntitySystem
         }
 
         _appearance.SetData(entity, VehicleVisuals.HasOperator, entity.Comp.Operator is not null, appearance);
+    }
+
+    /// <summary>
+    /// Transfers the pilot's factions to the vehicle for NPC targeting.
+    /// </summary>
+    private void TransferPilotFactions(EntityUid vehicle, EntityUid pilot)
+    {
+        if (!TryComp<NpcFactionMemberComponent>(pilot, out var pilotFactions))
+            return;
+
+        var vehicleFactions = EnsureComp<NpcFactionMemberComponent>(vehicle);
+        foreach (var faction in pilotFactions.Factions)
+        {
+            _factionSystem.AddFaction(vehicle, faction.ToString());
+        }
+
+        // Ensure the vehicle has MobStateComponent so NPCs can target it.
+        EnsureComp<MobStateComponent>(vehicle);
+    }
+
+    /// <summary>
+    /// Removes all factions from the vehicle when the pilot exits.
+    /// </summary>
+    private void RemovePilotFactions(EntityUid vehicle)
+    {
+        if (TryComp<NpcFactionMemberComponent>(vehicle, out var vehicleFactions))
+        {
+            foreach (var faction in vehicleFactions.Factions)
+            {
+                _factionSystem.RemoveFaction(vehicle, faction.ToString());
+            }
+        }
+
+        RemCompDeferred<NpcFactionMemberComponent>(vehicle);
+        RemCompDeferred<MobStateComponent>(vehicle);
     }
 }
