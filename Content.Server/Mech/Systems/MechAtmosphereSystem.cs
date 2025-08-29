@@ -73,7 +73,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
         var fanModule = GetFanModule(uid, mechComp);
         if (fanModule == null || !fanModule.IsActive)
         {
-            if (fanModule != null && fanModule.State != MechFanState.Off)
+            if (fanModule != null)
             {
                 fanModule.State = MechFanState.Off;
                 Dirty(uid, mechComp);
@@ -105,18 +105,42 @@ public sealed class MechAtmosphereSystem : EntitySystem
     private bool ProcessFanOperation(EntityUid uid, MechFanModuleComponent fanModule, GasTankComponent tankComp, GasMixture internalAir, MechComponent mechComp, float frameTime)
     {
         var external = _atmosphere.GetContainingMixture(uid);
-        var externalOk = external != null && external.Pressure > 0.05f;
-        var targetTankPressure = tankComp.MaxOutputPressure;
-        var tankPressure = internalAir.Pressure;
-
-        // If already at target or no external air, idle.
-        if (tankPressure >= targetTankPressure - 0.1f || !externalOk)
+        if (external == null || external.Pressure <= 0.05f)
         {
-            if (fanModule.State != MechFanState.Idle)
+            // No suitable external environment.
+            fanModule.State = MechFanState.Idle;
+            Dirty(uid, mechComp);
+            return false;
+        }
+
+        // Check if there are any gases available for sampling (if the filter is active).
+        if (fanModule.FilterEnabled && fanModule.FilterGases.Count > 0)
+        {
+            var hasAllowedGas = false;
+            foreach (var gas in Enum.GetValues<Gas>())
+            {
+                if (!fanModule.FilterGases.Contains(gas) && external.GetMoles(gas) > 0)
+                {
+                    hasAllowedGas = true;
+                    break;
+                }
+            }
+
+            if (!hasAllowedGas)
             {
                 fanModule.State = MechFanState.Idle;
                 Dirty(uid, mechComp);
+                return false;
             }
+        }
+
+        var targetTankPressure = tankComp.MaxOutputPressure;
+        var tankPressure = internalAir.Pressure;
+
+        if (tankPressure >= targetTankPressure - 0.1f)
+        {
+            fanModule.State = MechFanState.Idle;
+            Dirty(uid, mechComp);
             return false;
         }
 
@@ -130,9 +154,6 @@ public sealed class MechAtmosphereSystem : EntitySystem
 
         fanModule.State = MechFanState.On;
         Dirty(uid, mechComp);
-
-        if (external == null)
-            return false;
 
         // Pump air from external to internal tank.
         var desiredDeltaP = MathF.Max(0f, targetTankPressure - tankPressure);
@@ -149,6 +170,19 @@ public sealed class MechAtmosphereSystem : EntitySystem
         if (takeMoles > 0)
         {
             var removed = external.Remove(takeMoles);
+
+            if (fanModule.FilterEnabled && fanModule.FilterGases.Count > 0)
+            {
+                // We return the filtered gases back to the external environment.
+                var filteredMoles = new GasMixture();
+                foreach (var gas in fanModule.FilterGases)
+                {
+                    filteredMoles.AdjustMoles(gas, removed.GetMoles(gas));
+                    removed.SetMoles(gas, 0f);
+                }
+                _atmosphere.Merge(external, filteredMoles);
+            }
+
             _atmosphere.Merge(internalAir, removed);
             return true;
         }
@@ -215,7 +249,6 @@ public sealed class MechAtmosphereSystem : EntitySystem
             return;
 
         args.Gas = GetInhaleMixture(component.Mech, mech, args.Respirator?.BreathVolume ?? 0f);
-
         UpdateMechUi(component.Mech);
     }
 
@@ -225,7 +258,6 @@ public sealed class MechAtmosphereSystem : EntitySystem
             return;
 
         args.Gas = GetExhaleMixture(component.Mech, mech);
-
         UpdateMechUi(component.Mech);
     }
 
@@ -245,7 +277,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
 
     private GasMixture? GetInhaleMixture(EntityUid mechUid, MechComponent mechComp, float breathVolume)
     {
-        // Closed cabin: construct a breath-volume mixture from cabin air proportionally by pressure
+        // Closed cabin: construct a breath-volume mixture from cabin air proportionally by pressure.
         if (mechComp.Airtight && TryComp<MechCabinAirComponent>(mechUid, out var cabin))
         {
             var vol = breathVolume > 0f ? breathVolume : Atmospherics.BreathVolume;
@@ -256,13 +288,13 @@ public sealed class MechAtmosphereSystem : EntitySystem
             return removed;
         }
 
-        // Open cabin: use external atmosphere
+        // Open cabin: use external atmosphere.
         return _atmosphere.GetContainingMixture(mechUid, excite: true);
     }
 
     private GasMixture? GetExhaleMixture(EntityUid mechUid, MechComponent mechComp)
     {
-        // Exhale to cabin when airtight, otherwise to external
+        // Exhale to cabin when airtight, otherwise to external.
         if (mechComp.Airtight && TryComp<MechCabinAirComponent>(mechUid, out var cabin))
             return cabin.Air;
 
