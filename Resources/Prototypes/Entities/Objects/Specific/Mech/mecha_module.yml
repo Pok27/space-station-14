@@ -23,11 +23,7 @@
   - type: Sprite
     state: mecha_fan
   - type: MechFanModule
-  - type: AirFilter
-    gases: [ Plasma, CarbonDioxide, NitrousOxide ]
-    overflowGases: [ Nitrogen ]
-    targetOxygen: 0.21
-    transferRate: 1
+    filterGases: [ Plasma, CarbonDioxide, NitrousOxide ]
 
 - type: entity
   id: MechModuleAirTank

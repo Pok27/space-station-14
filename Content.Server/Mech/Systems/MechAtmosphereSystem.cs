@@ -1,5 +1,4 @@
 using Content.Server.Atmos.EntitySystems;
-using Content.Server.Atmos.Components;
 using Content.Server.Body.Systems;
 using Content.Server.Mech.Components;
 using Content.Server.Mech.Systems;
@@ -9,7 +8,6 @@ using Content.Shared.Mech;
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.EntitySystems;
 using Robust.Server.GameObjects;
-using Robust.Shared.Maths;
 
 namespace Content.Server.Mech.Systems;
 
@@ -32,8 +30,6 @@ public sealed class MechAtmosphereSystem : EntitySystem
         SubscribeLocalEvent<MechPilotComponent, InhaleLocationEvent>(OnInhale);
         SubscribeLocalEvent<MechPilotComponent, ExhaleLocationEvent>(OnExhale);
         SubscribeLocalEvent<MechPilotComponent, AtmosExposedGetAirEvent>(OnExpose);
-
-        SubscribeLocalEvent<MechComponent, GetFilterAirEvent>(OnGetFilterAir);
     }
 
     public override void Update(float frameTime)
@@ -74,7 +70,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
 
     private bool UpdateFanModule(EntityUid uid, MechComponent mechComp, float frameTime)
     {
-        var (fanModuleUid, fanModule) = TryGetFanModule(uid, mechComp);
+        var fanModule = GetFanModule(uid, mechComp);
         if (fanModule == null || !fanModule.IsActive)
         {
             if (fanModule != null && fanModule.State != MechFanState.Off)
@@ -93,16 +89,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
             return false;
         }
 
-        var changed = ProcessFanOperation(uid, fanModule, tankComp, internalAir, mechComp, frameTime);
-
-        // Inline filtering of internal air when filter is enabled
-        if (changed && fanModule.FilterEnabled && fanModuleUid != EntityUid.Invalid && TryComp<AirFilterComponent>(fanModuleUid, out var filter))
-        {
-            ApplyInlineFilter(uid, internalAir, filter, frameTime);
-            changed = true;
-        }
-
-        return changed;
+        return ProcessFanOperation(uid, fanModule, tankComp, internalAir, mechComp, frameTime);
     }
 
     private (GasTankComponent? tank, GasMixture? air) GetGasTank(MechComponent mechComp)
@@ -169,30 +156,6 @@ public sealed class MechAtmosphereSystem : EntitySystem
         return false;
     }
 
-    private void ApplyInlineFilter(EntityUid mechUid, GasMixture air, AirFilterComponent filter, float frameTime)
-    {
-        // Fraction to process this tick (mirrors AirFilterSystem)
-        var ratio = MathF.Min(1f, frameTime * filter.TransferRate * _atmosphere.PumpSpeedup());
-        var removed = air.RemoveRatio(ratio);
-        if (MathHelper.CloseToPercent(removed.TotalMoles, 0f))
-            return;
-
-        // Choose which gases to scrub based on oxygen fraction
-        var oxygenFrac = air.TotalMoles > 0f ? air.GetMoles(filter.Oxygen) / air.TotalMoles : 1f;
-        var gases = oxygenFrac >= filter.TargetOxygen ? filter.Gases : filter.OverflowGases;
-
-        var destination = _atmosphere.GetContainingMixture(mechUid);
-        if (destination != null)
-            _atmosphere.ScrubInto(removed, destination, gases);
-        else
-        {
-            foreach (var gas in gases)
-                removed.SetMoles(gas, 0f);
-        }
-
-        _atmosphere.Merge(air, removed);
-    }
-
     private bool UpdateCabinPressure(EntityUid uid, MechComponent mechComp)
     {
         if (!TryComp(uid, out MechCabinAirComponent? cabin))
@@ -226,7 +189,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
 
     private void OnFanToggleMessage(EntityUid uid, MechComponent component, MechFanToggleMessage args)
     {
-        var (_, fanModule) = TryGetFanModule(uid, component);
+        var fanModule = GetFanModule(uid, component);
         if (fanModule == null)
             return;
 
@@ -237,7 +200,7 @@ public sealed class MechAtmosphereSystem : EntitySystem
 
     private void OnFilterToggleMessage(EntityUid uid, MechComponent component, MechFilterToggleMessage args)
     {
-        var (_, fanModule) = TryGetFanModule(uid, component);
+        var fanModule = GetFanModule(uid, component);
         if (fanModule == null)
             return;
 
@@ -314,28 +277,14 @@ public sealed class MechAtmosphereSystem : EntitySystem
         return _atmosphere.GetContainingMixture(mechUid, excite: excite);
     }
 
-    private void OnGetFilterAir(EntityUid uid, MechComponent component, ref GetFilterAirEvent args)
-    {
-        if (args.Air != null)
-            return;
-
-        var (_, fan) = TryGetFanModule(uid, component);
-        if (fan == null || !fan.FilterEnabled || fan.State != MechFanState.On)
-            return;
-
-        // Source for filter is the gas cylinder module's tank air
-        if (_mech.TryGetGasModuleAir(uid, out var tankAir) && tankAir != null)
-            args.Air = tankAir;
-    }
-
-    private (EntityUid, MechFanModuleComponent?) TryGetFanModule(EntityUid mech, MechComponent mechComp)
+    private MechFanModuleComponent? GetFanModule(EntityUid mech, MechComponent mechComp)
     {
         foreach (var ent in mechComp.ModuleContainer.ContainedEntities)
         {
             if (TryComp<MechFanModuleComponent>(ent, out var fanModule))
-                return (ent, fanModule);
+                return fanModule;
         }
-        return (EntityUid.Invalid, null);
+        return null;
     }
 
     private void UpdateMechUi(EntityUid uid)

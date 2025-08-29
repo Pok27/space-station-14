@@ -33,7 +33,6 @@ namespace Content.Server.Mech.Systems;
 public sealed class MechInterfaceSystem : EntitySystem
 {
     [Dependency] private readonly UserInterfaceSystem _uiSystem = null!;
-    [Dependency] private readonly MechSystem _mechSystem = null!;
     [Dependency] private readonly PowerCellSystem _powerCell = null!;
     [Dependency] private readonly MechLockSystem _mechLockSystem = null!;
     [Dependency] private readonly ContainerSystem _container = null!;

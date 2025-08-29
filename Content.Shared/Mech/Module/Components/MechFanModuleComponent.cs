@@ -1,4 +1,5 @@
 using Content.Shared.FixedPoint;
+using Content.Shared.Atmos;
 using Robust.Shared.GameStates;
 
 namespace Content.Shared.Mech.Components;
@@ -31,8 +32,14 @@ public sealed partial class MechFanModuleComponent : Component
     public float GasProcessingRate = 1f;
 
     /// <summary>
-    /// Whether the attached filter (if any) should be active
+    /// Whether the attached filter should be active
     /// </summary>
     [DataField, ViewVariables(VVAccess.ReadWrite), AutoNetworkedField]
     public bool FilterEnabled = true;
+
+    /// <summary>
+    /// Gases that will be filtered during fan operation
+    /// </summary>
+    [DataField(required: true)]
+    public HashSet<Gas> FilterGases = new();
 }
