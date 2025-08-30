@@ -60,15 +60,10 @@ public sealed class MechMovementEnergySystem : EntitySystem
             if (!_powerCell.TryGetBatteryFromSlot(mechUid, out var battEnt, out var battery))
                 continue;
 
-            if (battery.CurrentCharge <= 0f)
-                continue;
-
             var toDrain = mech.MovementEnergyPerSecond * frameTime;
 
-            // If requested drain exceeds remaining charge, clamp battery to zero.
             if (battery.CurrentCharge < toDrain)
             {
-                EntityManager.System<Power.EntitySystems.BatterySystem>().SetCharge(battEnt.Value, 0f, battery);
                 _actionBlocker.UpdateCanMove(mechUid);
                 _activeMechs.Remove(mechUid);
                 continue;
