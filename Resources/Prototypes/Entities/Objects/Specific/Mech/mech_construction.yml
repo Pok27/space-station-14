@@ -870,7 +870,9 @@
       Vim:
       - HelmetEVA
       - BorgLeg
+      - BorgLeg
     containerId: mech-assembly-container
   - type: Construction
     graph: Vim
     node: start
+    defaultTarget: vim
