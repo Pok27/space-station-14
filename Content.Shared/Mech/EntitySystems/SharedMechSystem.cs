@@ -79,23 +79,18 @@ public abstract partial class SharedMechSystem : EntitySystem
         SubscribeLocalEvent<MechComponent, VehicleOperatorSetEvent>(OnOperatorSet);
         SubscribeLocalEvent<MechComponent, GetVerbsEvent<AlternativeVerb>>(OnGetVerb);
         SubscribeLocalEvent<MechComponent, GotEmaggedEvent>(OnEmagged);
-
-        SubscribeLocalEvent<MechPilotComponent, GetMeleeWeaponEvent>(OnGetMeleeWeapon);
-        SubscribeLocalEvent<MechPilotComponent, GetShootingEntityEvent>(OnGetShootingEntity);
-        SubscribeLocalEvent<MechPilotComponent, GetProjectileShooterEvent>(OnGetProjectileShooter);
-
-        SubscribeLocalEvent<MechPilotComponent, CanAttackFromContainerEvent>(OnCanAttackFromContainer);
-        SubscribeLocalEvent<MechPilotComponent, AttackAttemptEvent>(OnAttackAttempt);
         SubscribeLocalEvent<MechComponent, RepairAttemptEvent>(OnRepairAttempt);
 
         SubscribeLocalEvent<MechEquipmentComponent, ShotAttemptedEvent>(OnMechEquipmentShotAttempt);
         SubscribeLocalEvent<MechEquipmentComponent, AttemptMeleeEvent>(OnMechEquipmentMeleeAttempt);
-
-        SubscribeLocalEvent<MechPilotComponent, AccessibleOverrideEvent>(OnPilotAccessible);
         SubscribeLocalEvent<MechEquipmentComponent, GettingUsedAttemptEvent>(OnMechEquipmentGettingUsedAttempt);
         SubscribeLocalEvent<MechEquipmentComponent, ActivatableUIOpenAttemptEvent>(OnMechEquipmentUiOpenAttempt);
-        SubscribeLocalEvent<MechPilotComponent, GetUsedEntityEvent>(OnPilotGetUsedEntity);
         SubscribeLocalEvent<MechComponent, UseHeldBypassAttemptEvent>(OnUseHeldBypass);
+
+        SubscribeLocalEvent<MechComponent, GetUsedEntityEvent>(OnGetUsedEntityOnMech);
+        SubscribeLocalEvent<MechComponent, AccessibleOverrideEvent>(OnMechAccessible);
+        SubscribeLocalEvent<MechComponent, GetMeleeWeaponEvent>(OnMechGetMeleeWeapon);
+        SubscribeLocalEvent<MechComponent, GetActiveWeaponEvent>(OnMechGetActiveWeapon);
 
         InitializeRelay();
     }
@@ -209,10 +204,6 @@ public abstract partial class SharedMechSystem : EntitySystem
         }
 
         ManageVirtualItems(pilot, mech, create: true);
-
-        _actions.AddAction(pilot, ref component.MechCycleActionEntity, component.MechCycleAction, mech);
-        _actions.AddAction(pilot, ref component.MechUiActionEntity, component.MechUiAction, mech);
-        _actions.AddAction(pilot, ref component.MechEjectActionEntity, component.MechEjectAction, mech);
         GrantMechProvidedActions(pilot, mech);
     }
 
@@ -527,23 +518,18 @@ public abstract partial class SharedMechSystem : EntitySystem
     }
 
     /// <summary>
-    /// Grants actions from the mech's action container to the pilot, excluding any actions already attached to the mech itself.
+    /// Grants actions from the mech's action container to the pilot.
     /// </summary>
     private void GrantMechProvidedActions(EntityUid pilot, EntityUid mech)
     {
-        if (!TryComp<ActionsContainerComponent>(mech, out var container))
-            return;
-
-        foreach (var actionId in container.Container.ContainedEntities)
+        // Replicate actions declared on the mech via ActionGrant.
+        if (TryComp<ActionGrantComponent>(mech, out var grant))
         {
-            if (_actions.GetAction(actionId) is not { } ent)
-                continue;
-
-            // Skip actions already attached to the mech.
-            if (ent.Comp.AttachedEntity == mech)
-                continue;
-
-            _actions.AddActionDirect(pilot, (ent, ent));
+            foreach (var proto in grant.Actions)
+            {
+                EntityUid? actionEnt = null;
+                _actions.AddAction(pilot, ref actionEnt, proto, mech);
+            }
         }
     }
 
@@ -670,57 +656,6 @@ public abstract partial class SharedMechSystem : EntitySystem
         Dirty(uid, component);
     }
 
-    private void OnGetMeleeWeapon(EntityUid uid, MechPilotComponent component, GetMeleeWeaponEvent args)
-    {
-        if (args.Handled)
-            return;
-
-        if (!HasComp<HandsComponent>(uid))
-        {
-            args.Handled = true;
-            return;
-        }
-
-        if (!TryComp<MechComponent>(component.Mech, out var mech))
-            return;
-
-        // Use the currently selected equipment if available, otherwise the mech itself
-        var weapon = mech.CurrentSelectedEquipment ?? component.Mech;
-        args.Weapon = weapon;
-        args.Handled = true;
-    }
-
-    private void OnGetShootingEntity(EntityUid uid, MechPilotComponent component, ref GetShootingEntityEvent args)
-    {
-        if (args.Handled)
-            return;
-
-        // Use the mech entity for shooting coordinates and physics instead of the pilot
-        args.ShootingEntity = component.Mech;
-        args.Handled = true;
-    }
-
-    private void OnGetProjectileShooter(EntityUid uid, MechPilotComponent component, ref GetProjectileShooterEvent args)
-    {
-        if (args.Handled)
-            return;
-
-        // Use the mech entity as the shooter for projectiles to prevent self-damage
-        args.ProjectileShooter = component.Mech;
-        args.Handled = true;
-    }
-
-    private void OnCanAttackFromContainer(EntityUid uid, MechPilotComponent component, CanAttackFromContainerEvent args)
-    {
-        args.CanAttack = true;
-    }
-
-    private void OnAttackAttempt(EntityUid uid, MechPilotComponent component, AttackAttemptEvent args)
-    {
-        if (args.Target == component.Mech)
-            args.Cancel();
-    }
-
     private void OnRepairAttempt(EntityUid uid, MechComponent component, ref RepairAttemptEvent args)
     {
         if (args.Cancelled)
@@ -760,25 +695,6 @@ public abstract partial class SharedMechSystem : EntitySystem
     private void OnMechEquipmentMeleeAttempt(Entity<MechEquipmentComponent> ent, ref AttemptMeleeEvent args)
     {
         args.Cancelled = !IsMechEquipmentUsableFromHands(ent);
-    }
-
-    private void OnPilotGetUsedEntity(EntityUid uid, MechPilotComponent pilot, ref GetUsedEntityEvent args)
-    {
-        // Map pilot interactions to the currently selected equipment on their mech
-        if (!TryComp<MechComponent>(pilot.Mech, out var mech))
-            return;
-
-        if (!Vehicle.HasOperator(pilot.Mech))
-            return;
-
-        if (mech.CurrentSelectedEquipment != null)
-            args.Used = mech.CurrentSelectedEquipment;
-    }
-
-    private void OnPilotAccessible(EntityUid uid, MechPilotComponent pilot, ref AccessibleOverrideEvent args)
-    {
-        args.Handled = true;
-        args.Accessible = _interaction.IsAccessible(pilot.Mech, args.Target);
     }
 
     private void OnMechEquipmentGettingUsedAttempt(Entity<MechEquipmentComponent> ent, ref GettingUsedAttemptEvent args)
@@ -826,6 +742,40 @@ public abstract partial class SharedMechSystem : EntitySystem
 
         if (HasComp<MechEquipmentComponent>(held.Value))
             args.Bypass = true;
+    }
+
+    private void OnMechAccessible(EntityUid uid, MechComponent component, ref AccessibleOverrideEvent args)
+    {
+        args.Handled = true;
+        args.Accessible = true;
+    }
+
+    private void OnGetUsedEntityOnMech(EntityUid uid, MechComponent component, ref GetUsedEntityEvent args)
+    {
+        if (component.CurrentSelectedEquipment != null)
+            args.Used = component.CurrentSelectedEquipment;
+    }
+
+    private void OnMechGetMeleeWeapon(EntityUid uid, MechComponent component, GetMeleeWeaponEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        // Use the currently selected equipment if available, otherwise the mech itself
+        var weapon = component.CurrentSelectedEquipment ?? uid;
+        args.Weapon = weapon;
+        args.Handled = true;
+    }
+
+    private void OnMechGetActiveWeapon(EntityUid uid, MechComponent component, ref GetActiveWeaponEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        // Use the currently selected equipment if available, otherwise the mech itself
+        var weapon = component.CurrentSelectedEquipment ?? uid;
+        args.Weapon = weapon;
+        args.Handled = true;
     }
 }
 

@@ -81,6 +81,7 @@
   save: false
   abstract: true
   components:
+  - type: Alerts
   - type: MobMover
   - type: Mech
     entrySuccessSound: /Audio/Effects/nominal.ogg
@@ -127,6 +128,18 @@
   - type: MovementSpeedModifier
     baseWalkSpeed: 1
     baseSprintSpeed: 2
+  - type: CombatMode
+  - type: Hands
+    hands:
+      mech-hand:
+        location: Middle
+  - type: ComplexInteraction
+  - type: ActionGrant
+    actions:
+    - ActionMechCycleEquipment
+    - ActionMechOpenUI
+    - ActionMechEject
+    - ActionMechToggleLight
   - type: Tag
     tags:
     - DoorBumpOpener

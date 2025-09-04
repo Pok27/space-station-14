@@ -24,7 +24,6 @@ public sealed class MechSystem : SharedMechSystem
 
         SubscribeLocalEvent<MechComponent, AppearanceChangeEvent>(OnAppearanceChanged);
         SubscribeLocalEvent<MechComponent, PrepareMeleeLungeEvent>(OnPrepareMeleeLunge);
-        SubscribeLocalEvent<MechPilotComponent, GetMeleeAttackerEntityEvent>(OnGetMeleeAttacker);
     }
 
     private void OnAppearanceChanged(EntityUid uid, MechComponent component, ref AppearanceChangeEvent args)
@@ -65,14 +64,5 @@ public sealed class MechSystem : SharedMechSystem
     {
         args.SpawnAtMap = true;
         args.DisableTracking = true;
-    }
-
-    private void OnGetMeleeAttacker(EntityUid uid, MechPilotComponent comp, ref GetMeleeAttackerEntityEvent args)
-    {
-        if (args.Handled)
-            return;
-
-        args.Attacker = comp.Mech;
-        args.Handled = true;
     }
 }
