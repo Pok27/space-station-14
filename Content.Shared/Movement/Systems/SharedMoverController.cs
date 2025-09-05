@@ -10,7 +10,6 @@ using Content.Shared.Mobs.Systems;
 using Content.Shared.Movement.Components;
 using Content.Shared.Movement.Events;
 using Content.Shared.Tag;
-using Content.Shared.Mind.Components;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Configuration;
@@ -332,7 +331,15 @@ public abstract partial class SharedMoverController : VirtualController
                     .WithVolume(sound.Params.Volume + soundModifier)
                     .WithVariation(sound.Params.Variation ?? mobMover.FootstepVariation);
 
-                _audio.PlayPredicted(sound, uid, uid, audioParams);
+                // If we're a relay target then predict the sound for all relays.
+                if (relaySource != null)
+                {
+                    _audio.PlayPredicted(sound, uid, relaySource.Value, audioParams);
+                }
+                else
+                {
+                    _audio.PlayPredicted(sound, uid, uid, audioParams);
+                }
             }
         }
     }

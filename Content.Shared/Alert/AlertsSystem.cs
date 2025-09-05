@@ -314,17 +314,7 @@ public abstract class AlertsSystem : EntitySystem
         if (player is null || !HasComp<AlertsComponent>(player))
             return;
 
-        // If this entity is displaying alerts for another source via relay, decide target based on InteractAsSource
-        var target = player.Value;
-        if (TryComp<AlertsDisplayRelayComponent>(player.Value, out var relay) && relay.Source is { } src)
-        {
-            if (relay.InteractAsSource)
-                target = src;
-            else
-                target = player.Value;
-        }
-
-        if (!IsShowingAlert(target, msg.Type))
+        if (!IsShowingAlert(player.Value, msg.Type))
         {
             Log.Debug("User {0} attempted to" +
                                    " click alert {1} which is not currently showing for them",
@@ -338,7 +328,7 @@ public abstract class AlertsSystem : EntitySystem
             return;
         }
 
-        if (ActivateAlert(target, alert) && _timing.IsFirstTimePredicted)
+        if (ActivateAlert(player.Value, alert) && _timing.IsFirstTimePredicted)
         {
             HandledAlert();
         }

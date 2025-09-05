@@ -42,9 +42,6 @@ using Content.Shared.Containers.ItemSlots;
 using System.Numerics;
 using Content.Shared.Hands;
 using Content.Shared.Hands.Components;
-using Content.Server.Mind;
-using Content.Shared.Actions.Components;
-using Content.Shared.Inventory.Components;
 
 namespace Content.Server.Mech.Systems;
 
@@ -64,7 +61,6 @@ public sealed partial class MechSystem : SharedMechSystem
     [Dependency] private readonly ConstructionSystem _construction = default!;
     [Dependency] private readonly ItemSlotsSystem _itemSlots = default!;
     [Dependency] private readonly UserInterfaceSystem _ui = default!;
-    [Dependency] private readonly MindSystem _mind = default!;
 
     private static readonly ProtoId<ToolQualityPrototype> PryingQuality = "Prying";
 
@@ -215,13 +211,16 @@ public sealed partial class MechSystem : SharedMechSystem
         }
         else if (args.Container == component.PilotSlot)
         {
+            // Pilot left, clear alerts
+            var pilot = args.Entity;
+            _alerts.ClearAlert(pilot, component.BatteryAlert);
+            _alerts.ClearAlert(pilot, component.NoBatteryAlert);
+            _alerts.ClearAlert(pilot, component.HealthAlert);
+            _alerts.ClearAlert(pilot, component.BrokenAlert);
+
             // Unlock battery slot when unoccupied
             if (TryComp<ItemSlotsComponent>(uid, out var slots))
                 _itemSlots.SetLock(uid, component.BatterySlotId, false, slots);
-
-            // Clear any mirrored pilot alerts from the mech and restore mech alerts
-            UpdateBatteryAlert((uid, component));
-            UpdateHealthAlert((uid, component));
         }
         else if (args.Container == component.EquipmentContainer)
         {
@@ -313,31 +312,6 @@ public sealed partial class MechSystem : SharedMechSystem
         UpdateUserInterface(uid, component);
         UpdateBatteryAlert((uid, component));
         UpdateHealthAlert((uid, component));
-
-        // Ensure HUD carrier components exist on mech before attaching (so client Link handlers fire)
-        var mechActs = EnsureComp<ActionsComponent>(uid);
-        Dirty(uid, mechActs);
-
-        // Possess: attach the pilot's session to the mech entity via Mind.Visit
-        if (_mind.TryGetMind(args.User, out var mindId, out var mind))
-            _mind.Visit(mindId, uid, mind);
-
-        // Relay pilot HUD to mech-attached session: actions and alerts
-        var actRelay = EnsureComp<ActionsDisplayRelayComponent>(uid);
-        actRelay.Source = args.User;
-        actRelay.InteractAsSource = true;
-        Dirty(uid, actRelay);
-
-        var alertRelay = EnsureComp<AlertsDisplayRelayComponent>(uid);
-        alertRelay.Source = args.User;
-        alertRelay.InteractAsSource = true;
-        Dirty(uid, alertRelay);
-
-        // Relay pilot inventory to mech HUD
-        var invRelay = EnsureComp<InventoryDisplayRelayComponent>(uid);
-        invRelay.Source = args.User;
-        invRelay.InteractAsSource = true;
-        Dirty(uid, invRelay);
     }
 
     private void OnMechExit(EntityUid uid, MechComponent component, MechExitEvent args)
@@ -347,32 +321,19 @@ public sealed partial class MechSystem : SharedMechSystem
 
         var pilot = Vehicle.GetOperatorOrNull(uid);
 
-        // Unvisit: return the session to its owned entity before ejecting
-        if (pilot.HasValue && _mind.TryGetMind(pilot.Value, out var mindId, out var mind))
-            _mind.UnVisit(mindId, mind);
-
         TryEject(uid, component);
 
         args.Handled = true;
 
         UpdateUserInterface(uid, component);
 
+        // Clear alerts after pilot exit
         if (pilot.HasValue)
         {
-            var actRelay = EnsureComp<ActionsDisplayRelayComponent>(uid);
-            actRelay.Source = null;
-            Dirty(uid, actRelay);
-
-            var alertRelay = EnsureComp<AlertsDisplayRelayComponent>(uid);
-            alertRelay.Source = null;
-            Dirty(uid, alertRelay);
-
-            if (TryComp<InventoryDisplayRelayComponent>(uid, out var invRelay2))
-            {
-                invRelay2.Source = null;
-                invRelay2.InteractAsSource = false;
-                Dirty(uid, invRelay2);
-            }
+            _alerts.ClearAlert(pilot.Value, component.BatteryAlert);
+            _alerts.ClearAlert(pilot.Value, component.NoBatteryAlert);
+            _alerts.ClearAlert(pilot.Value, component.HealthAlert);
+            _alerts.ClearAlert(pilot.Value, component.BrokenAlert);
 
             _actionBlocker.UpdateCanMove(pilot.Value);
         }
@@ -469,10 +430,14 @@ public sealed partial class MechSystem : SharedMechSystem
 
     private void UpdateBatteryAlert(Entity<MechComponent> ent)
     {
+        var pilot = ent.Comp.PilotSlot.ContainedEntity;
+        if (pilot == null)
+            return;
+
         if (!_powerCell.TryGetBatteryFromSlot(ent, out var batt))
         {
-            _alerts.ClearAlert(ent.Owner, ent.Comp.BatteryAlert);
-            _alerts.ShowAlert(ent.Owner, ent.Comp.NoBatteryAlert);
+            _alerts.ClearAlert(pilot.Value, ent.Comp.BatteryAlert);
+            _alerts.ShowAlert(pilot.Value, ent.Comp.NoBatteryAlert);
             return;
         }
 
@@ -484,27 +449,31 @@ public sealed partial class MechSystem : SharedMechSystem
         if (chargePercent == 0 && batt.CurrentCharge > 0)
             chargePercent = 1;
 
-        _alerts.ClearAlert(ent.Owner, ent.Comp.NoBatteryAlert);
-        _alerts.ShowAlert(ent.Owner, ent.Comp.BatteryAlert, chargePercent);
+        _alerts.ClearAlert(pilot.Value, ent.Comp.NoBatteryAlert);
+        _alerts.ShowAlert(pilot.Value, ent.Comp.BatteryAlert, chargePercent);
     }
 
     private void UpdateHealthAlert(Entity<MechComponent> ent)
     {
+        var pilot = ent.Comp.PilotSlot.ContainedEntity;
+        if (pilot == null)
+            return;
+
         if (ent.Comp.Broken)
         {
             // Mech is broken
-            _alerts.ClearAlert(ent.Owner, ent.Comp.HealthAlert);
-            _alerts.ShowAlert(ent.Owner, ent.Comp.BrokenAlert);
+            _alerts.ClearAlert(pilot.Value, ent.Comp.HealthAlert);
+            _alerts.ShowAlert(pilot.Value, ent.Comp.BrokenAlert);
         }
         else
         {
             // Mech is healthy, show health percentage
-            _alerts.ClearAlert(ent.Owner, ent.Comp.BrokenAlert);
+            _alerts.ClearAlert(pilot.Value, ent.Comp.BrokenAlert);
 
             var integrity = ent.Comp.Integrity.Float();
             var maxIntegrity = ent.Comp.MaxIntegrity.Float();
             var healthPercent = (short)MathF.Round((1f - integrity / maxIntegrity) * 4f);
-            _alerts.ShowAlert(ent.Owner, ent.Comp.HealthAlert, healthPercent);
+            _alerts.ShowAlert(pilot.Value, ent.Comp.HealthAlert, healthPercent);
         }
     }
 

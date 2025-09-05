@@ -81,10 +81,8 @@
   save: false
   abstract: true
   components:
-  - type: Alerts
   - type: MobMover
   - type: Mech
-  - type: InventorySlots
     entrySuccessSound: /Audio/Effects/nominal.ogg
     brokenSound: /Audio/Effects/critdestr.ogg
   - type: ItemTogglePointLight
@@ -129,21 +127,6 @@
   - type: MovementSpeedModifier
     baseWalkSpeed: 1
     baseSprintSpeed: 2
-  - type: CombatMode
-  - type: Hands
-    hands:
-      mech-hand:
-        location: Middle
-    sortedHands:
-    - mech-hand
-  - type: ComplexInteraction
-  - type: InteractionPopup
-  - type: Actions
-  - type: ActionGrant
-    actions:
-    - ActionMechCycleEquipment
-    - ActionMechOpenUI
-    - ActionMechEject
   - type: Tag
     tags:
     - DoorBumpOpener

@@ -87,10 +87,13 @@ public abstract partial class SharedMechSystem : EntitySystem
         SubscribeLocalEvent<MechEquipmentComponent, ActivatableUIOpenAttemptEvent>(OnMechEquipmentUiOpenAttempt);
         SubscribeLocalEvent<MechComponent, UseHeldBypassAttemptEvent>(OnUseHeldBypass);
 
-        SubscribeLocalEvent<MechComponent, GetUsedEntityEvent>(OnGetUsedEntityOnMech);
-        SubscribeLocalEvent<MechComponent, AccessibleOverrideEvent>(OnMechAccessible);
-        SubscribeLocalEvent<MechComponent, GetMeleeWeaponEvent>(OnMechGetMeleeWeapon);
-        SubscribeLocalEvent<MechComponent, GetActiveWeaponEvent>(OnMechGetActiveWeapon);
+        SubscribeLocalEvent<MechPilotComponent, CanAttackFromContainerEvent>(OnCanAttackFromContainer);
+        SubscribeLocalEvent<MechPilotComponent, GetMeleeWeaponEvent>(OnGetMeleeWeapon);
+        SubscribeLocalEvent<MechPilotComponent, GetActiveWeaponEvent>(OnGetActiveWeapon);
+        SubscribeLocalEvent<MechPilotComponent, GetUsedEntityEvent>(OnPilotGetUsedEntity);
+        SubscribeLocalEvent<MechPilotComponent, AccessibleOverrideEvent>(OnPilotAccessible);
+        SubscribeLocalEvent<MechPilotComponent, GetShootingEntityEvent>(OnGetShootingEntity);
+        SubscribeLocalEvent<MechPilotComponent, GetProjectileShooterEvent>(OnGetProjectileShooter);
 
         InitializeRelay();
     }
@@ -204,6 +207,11 @@ public abstract partial class SharedMechSystem : EntitySystem
         }
 
         ManageVirtualItems(pilot, mech, create: true);
+
+        _actions.AddAction(pilot, ref component.MechCycleActionEntity, component.MechCycleAction, mech);
+        _actions.AddAction(pilot, ref component.MechUiActionEntity, component.MechUiAction, mech);
+        _actions.AddAction(pilot, ref component.MechEjectActionEntity, component.MechEjectAction, mech);
+        GrantMechProvidedActions(pilot, mech);
     }
 
     private void RemoveUser(EntityUid mech, EntityUid pilot)
@@ -211,6 +219,8 @@ public abstract partial class SharedMechSystem : EntitySystem
         RemComp<MechPilotComponent>(pilot);
 
         ManageVirtualItems(pilot, mech, create: false);
+
+        _actions.RemoveProvidedActions(pilot, mech);
     }
 
     /// <summary>
@@ -514,6 +524,27 @@ public abstract partial class SharedMechSystem : EntitySystem
         return true;
     }
 
+    /// <summary>
+    /// Grants actions from the mech's action container to the pilot, excluding any actions already attached to the mech itself.
+    /// </summary>
+    private void GrantMechProvidedActions(EntityUid pilot, EntityUid mech)
+    {
+        if (!TryComp<ActionsContainerComponent>(mech, out var container))
+            return;
+
+        foreach (var actionId in container.Container.ContainedEntities)
+        {
+            if (_actions.GetAction(actionId) is not { } ent)
+                continue;
+
+            // Skip actions already attached to the mech.
+            if (ent.Comp.AttachedEntity == mech)
+                continue;
+
+            _actions.AddActionDirect(pilot, (ent, ent));
+        }
+    }
+
     private void UpdateAppearance(EntityUid uid, MechComponent? component = null,
         AppearanceComponent? appearance = null)
     {
@@ -649,6 +680,7 @@ public abstract partial class SharedMechSystem : EntitySystem
         }
     }
 
+    #region Mech Equipment
     /// <summary>
     /// Returns whether the given mech equipment can be used from hands.
     /// </summary>
@@ -687,24 +719,8 @@ public abstract partial class SharedMechSystem : EntitySystem
         if (!ent.Comp.BlockUseOutsideMech)
             return;
 
-        var equipment = ent.Owner;
-        var owner = ent.Comp.EquipmentOwner;
-
         // If the equipment is not inside a mech, block using in hands.
-        if (owner == null)
-        {
-            args.Cancel();
-            return;
-        }
-
-        // If the equipment is inside a mech, only allow use when it is the currently selected equipment.
-        if (!TryComp<MechComponent>(owner.Value, out var mechComp))
-        {
-            args.Cancel();
-            return;
-        }
-
-        if (mechComp.CurrentSelectedEquipment != equipment)
+        if (ent.Comp.EquipmentOwner == null)
             args.Cancel();
     }
 
@@ -724,40 +740,87 @@ public abstract partial class SharedMechSystem : EntitySystem
         if (HasComp<MechEquipmentComponent>(held.Value))
             args.Bypass = true;
     }
+    #endregion
 
-    private void OnMechAccessible(EntityUid uid, MechComponent component, ref AccessibleOverrideEvent args)
+    #region Mech Pilot
+    private void OnCanAttackFromContainer(EntityUid uid, MechPilotComponent component, CanAttackFromContainerEvent args)
     {
-        args.Handled = true;
-        args.Accessible = true;
+        args.CanAttack = true;
     }
 
-    private void OnGetUsedEntityOnMech(EntityUid uid, MechComponent component, ref GetUsedEntityEvent args)
-    {
-        if (component.CurrentSelectedEquipment != null)
-            args.Used = component.CurrentSelectedEquipment;
-    }
-
-    private void OnMechGetMeleeWeapon(EntityUid uid, MechComponent component, GetMeleeWeaponEvent args)
+    private void OnGetMeleeWeapon(EntityUid uid, MechPilotComponent component, GetMeleeWeaponEvent args)
     {
         if (args.Handled)
             return;
 
+        if (!HasComp<HandsComponent>(uid))
+        {
+            args.Handled = true;
+            return;
+        }
+
+        if (!TryComp<MechComponent>(component.Mech, out var mech))
+            return;
+
         // Use the currently selected equipment if available, otherwise the mech itself
-        var weapon = component.CurrentSelectedEquipment ?? uid;
+        var weapon = mech.CurrentSelectedEquipment ?? component.Mech;
         args.Weapon = weapon;
         args.Handled = true;
     }
 
-    private void OnMechGetActiveWeapon(EntityUid uid, MechComponent component, ref GetActiveWeaponEvent args)
+    private void OnGetActiveWeapon(EntityUid uid, MechPilotComponent component, ref GetActiveWeaponEvent args)
     {
         if (args.Handled)
             return;
 
+        if (!TryComp<MechComponent>(component.Mech, out var mech))
+            return;
+
         // Use the currently selected equipment if available, otherwise the mech itself
-        var weapon = component.CurrentSelectedEquipment ?? uid;
+        var weapon = mech.CurrentSelectedEquipment ?? component.Mech;
         args.Weapon = weapon;
         args.Handled = true;
     }
+
+    private void OnPilotGetUsedEntity(EntityUid uid, MechPilotComponent pilot, ref GetUsedEntityEvent args)
+    {
+        // Map pilot interactions to the currently selected equipment on their mech
+        if (!TryComp<MechComponent>(pilot.Mech, out var mech))
+            return;
+
+        if (!Vehicle.HasOperator(pilot.Mech))
+            return;
+
+        if (mech.CurrentSelectedEquipment != null)
+            args.Used = mech.CurrentSelectedEquipment;
+    }
+
+    private void OnPilotAccessible(EntityUid uid, MechPilotComponent pilot, ref AccessibleOverrideEvent args)
+    {
+        args.Handled = true;
+        args.Accessible = _interaction.IsAccessible(pilot.Mech, args.Target);
+    }
+
+    private void OnGetShootingEntity(EntityUid uid, MechPilotComponent component, ref GetShootingEntityEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        // Use the mech entity for shooting coordinates and physics instead of the pilot
+        args.ShootingEntity = component.Mech;
+        args.Handled = true;
+    }
+
+    private void OnGetProjectileShooter(EntityUid uid, MechPilotComponent component, ref GetProjectileShooterEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        // Use the mech entity as the shooter for projectiles to prevent self-damage
+        args.ProjectileShooter = component.Mech;
+        args.Handled = true;
+    }
+    #endregion
 }
 
 /// <summary>
