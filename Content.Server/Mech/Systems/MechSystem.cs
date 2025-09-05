@@ -42,6 +42,9 @@ using Content.Shared.Containers.ItemSlots;
 using System.Numerics;
 using Content.Shared.Hands;
 using Content.Shared.Hands.Components;
+using Content.Server.Mind;
+using Content.Shared.Actions.Components;
+using Content.Shared.Inventory.Components;
 
 namespace Content.Server.Mech.Systems;
 
@@ -61,6 +64,7 @@ public sealed partial class MechSystem : SharedMechSystem
     [Dependency] private readonly ConstructionSystem _construction = default!;
     [Dependency] private readonly ItemSlotsSystem _itemSlots = default!;
     [Dependency] private readonly UserInterfaceSystem _ui = default!;
+    [Dependency] private readonly MindSystem _mind = default!;
 
     private static readonly ProtoId<ToolQualityPrototype> PryingQuality = "Prying";
 
@@ -214,6 +218,10 @@ public sealed partial class MechSystem : SharedMechSystem
             // Unlock battery slot when unoccupied
             if (TryComp<ItemSlotsComponent>(uid, out var slots))
                 _itemSlots.SetLock(uid, component.BatterySlotId, false, slots);
+
+            // Clear any mirrored pilot alerts from the mech and restore mech alerts
+            UpdateBatteryAlert((uid, component));
+            UpdateHealthAlert((uid, component));
         }
         else if (args.Container == component.EquipmentContainer)
         {
@@ -305,6 +313,31 @@ public sealed partial class MechSystem : SharedMechSystem
         UpdateUserInterface(uid, component);
         UpdateBatteryAlert((uid, component));
         UpdateHealthAlert((uid, component));
+
+        // Ensure HUD carrier components exist on mech before attaching (so client Link handlers fire)
+        var mechActs = EnsureComp<ActionsComponent>(uid);
+        Dirty(uid, mechActs);
+
+        // Possess: attach the pilot's session to the mech entity via Mind.Visit
+        if (_mind.TryGetMind(args.User, out var mindId, out var mind))
+            _mind.Visit(mindId, uid, mind);
+
+        // Relay pilot HUD to mech-attached session: actions and alerts
+        var actRelay = EnsureComp<ActionsDisplayRelayComponent>(uid);
+        actRelay.Source = args.User;
+        actRelay.InteractAsSource = true;
+        Dirty(uid, actRelay);
+
+        var alertRelay = EnsureComp<AlertsDisplayRelayComponent>(uid);
+        alertRelay.Source = args.User;
+        alertRelay.InteractAsSource = true;
+        Dirty(uid, alertRelay);
+
+        // Relay pilot inventory to mech HUD
+        var invRelay = EnsureComp<InventoryDisplayRelayComponent>(uid);
+        invRelay.Source = args.User;
+        invRelay.InteractAsSource = true;
+        Dirty(uid, invRelay);
     }
 
     private void OnMechExit(EntityUid uid, MechComponent component, MechExitEvent args)
@@ -314,6 +347,10 @@ public sealed partial class MechSystem : SharedMechSystem
 
         var pilot = Vehicle.GetOperatorOrNull(uid);
 
+        // Unvisit: return the session to its owned entity before ejecting
+        if (pilot.HasValue && _mind.TryGetMind(pilot.Value, out var mindId, out var mind))
+            _mind.UnVisit(mindId, mind);
+
         TryEject(uid, component);
 
         args.Handled = true;
@@ -322,7 +359,21 @@ public sealed partial class MechSystem : SharedMechSystem
 
         if (pilot.HasValue)
         {
-            ClearMirroredAlertsFromPilot((uid, component), pilot.Value);
+            var actRelay = EnsureComp<ActionsDisplayRelayComponent>(uid);
+            actRelay.Source = null;
+            Dirty(uid, actRelay);
+
+            var alertRelay = EnsureComp<AlertsDisplayRelayComponent>(uid);
+            alertRelay.Source = null;
+            Dirty(uid, alertRelay);
+
+            if (TryComp<InventoryDisplayRelayComponent>(uid, out var invRelay2))
+            {
+                invRelay2.Source = null;
+                invRelay2.InteractAsSource = false;
+                Dirty(uid, invRelay2);
+            }
+
             _actionBlocker.UpdateCanMove(pilot.Value);
         }
     }
@@ -422,7 +473,6 @@ public sealed partial class MechSystem : SharedMechSystem
         {
             _alerts.ClearAlert(ent.Owner, ent.Comp.BatteryAlert);
             _alerts.ShowAlert(ent.Owner, ent.Comp.NoBatteryAlert);
-            MirrorAlertsToPilot(ent);
             return;
         }
 
@@ -436,7 +486,6 @@ public sealed partial class MechSystem : SharedMechSystem
 
         _alerts.ClearAlert(ent.Owner, ent.Comp.NoBatteryAlert);
         _alerts.ShowAlert(ent.Owner, ent.Comp.BatteryAlert, chargePercent);
-        MirrorAlertsToPilot(ent);
     }
 
     private void UpdateHealthAlert(Entity<MechComponent> ent)
@@ -456,48 +505,6 @@ public sealed partial class MechSystem : SharedMechSystem
             var maxIntegrity = ent.Comp.MaxIntegrity.Float();
             var healthPercent = (short)MathF.Round((1f - integrity / maxIntegrity) * 4f);
             _alerts.ShowAlert(ent.Owner, ent.Comp.HealthAlert, healthPercent);
-        }
-
-        MirrorAlertsToPilot(ent);
-    }
-
-    /// <summary>
-    /// Mirrors the current mech alerts to the pilot: copies alert states from the mech and applies on the pilot.
-    /// TODO: move to AlertsSystem for reuse by other systems
-    /// </summary>
-    private void MirrorAlertsToPilot(Entity<MechComponent> ent)
-    {
-        var pilot = ent.Comp.PilotSlot.ContainedEntity;
-        if (pilot == null)
-            return;
-
-        var mechAlerts = _alerts.GetActiveAlerts(ent.Owner);
-        if (mechAlerts == null)
-            return;
-
-        var pilotAlerts = _alerts.GetActiveAlerts(pilot.Value);
-
-        // Apply all mech alerts to the pilot with the same severities & cooldowns
-        foreach (var kvp in mechAlerts)
-        {
-            var state = kvp.Value;
-            _alerts.ShowAlert(pilot.Value, state.Type, state.Severity, state.Cooldown, state.AutoRemove, state.ShowCooldown);
-        }
-    }
-
-    /// <summary>
-    /// Clears from the pilot only the alert types that currently exist on the mech.
-    /// TODO: move to AlertsSystem for reuse by other systems
-    /// </summary>
-    private void ClearMirroredAlertsFromPilot(Entity<MechComponent> ent, EntityUid pilot)
-    {
-        var mechAlerts = _alerts.GetActiveAlerts(ent.Owner);
-        if (mechAlerts == null)
-            return;
-
-        foreach (var state in mechAlerts.Values)
-        {
-            _alerts.ClearAlert(pilot, state.Type);
         }
     }
 

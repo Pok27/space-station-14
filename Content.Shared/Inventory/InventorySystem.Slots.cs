@@ -121,9 +121,19 @@ public partial class InventorySystem : EntitySystem
         if (args.SenderSession.AttachedEntity is not { Valid: true } uid)
             return;
 
-        if (TryGetSlotEntity(uid, ev.Slot, out var entityUid) && TryComp<StorageComponent>(entityUid, out var storageComponent))
+        var storageOpener = uid;
+        var inventoryOwner = uid;
+
+        // Relay: if this user is displaying another entity's inventory with InteractAsSource, act as that entity
+        if (TryComp<Components.InventoryDisplayRelayComponent>(uid, out var relay) && relay.InteractAsSource && relay.Source is { } src)
         {
-            _storageSystem.OpenStorageUI(entityUid.Value, uid, storageComponent, false);
+            inventoryOwner = src;
+            storageOpener = uid;
+        }
+
+        if (TryGetSlotEntity(inventoryOwner, ev.Slot, out var entityUid) && TryComp<StorageComponent>(entityUid, out var storageComponent))
+        {
+            _storageSystem.OpenStorageUI(entityUid.Value, storageOpener, storageComponent, false);
         }
     }
 

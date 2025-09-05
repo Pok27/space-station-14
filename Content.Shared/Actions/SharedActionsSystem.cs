@@ -100,7 +100,16 @@ public abstract class SharedActionsSystem : EntitySystem
 
     private void OnGetState(Entity<ActionsComponent> ent, ref ComponentGetState args)
     {
-        args.State = new ActionsComponentState(GetNetEntitySet(ent.Comp.Actions));
+        // Union of local actions and relayed source actions (if any) for display on the attached entity.
+        var netSet = GetNetEntitySet(ent.Comp.Actions);
+        if (TryComp<ActionsDisplayRelayComponent>(ent.Owner, out var relay) && relay.Source is { } src &&
+            _actionsQuery.TryComp(src, out var srcComp))
+        {
+            foreach (var net in GetNetEntitySet(srcComp.Actions))
+                netSet.Add(net);
+        }
+
+        args.State = new ActionsComponentState(netSet);
     }
 
     /// <summary>
@@ -273,8 +282,15 @@ public abstract class SharedActionsSystem : EntitySystem
 
         var name = Name(actionEnt, metaData);
 
-        // Does the user actually have the requested action?
-        if (!component.Actions.Contains(actionEnt))
+        // Does the user actually have the requested action? If not, allow relay-source membership.
+        var hasAction = component.Actions.Contains(actionEnt);
+        if (!hasAction && TryComp<ActionsDisplayRelayComponent>(user, out var relay) && relay.Source is { } src &&
+            _actionsQuery.TryComp(src, out var relayActions) && relayActions.Actions.Contains(actionEnt))
+        {
+            hasAction = true;
+        }
+
+        if (!hasAction)
         {
             _adminLogger.Add(LogType.Action,
                 $"{ToPrettyString(user):user} attempted to perform an action that they do not have: {name}.");
@@ -284,7 +300,6 @@ public abstract class SharedActionsSystem : EntitySystem
         if (GetAction(actionEnt) is not {} action)
             return;
 
-        DebugTools.Assert(action.Comp.AttachedEntity == user);
         if (!action.Comp.Enabled)
             return;
 
@@ -299,12 +314,20 @@ public abstract class SharedActionsSystem : EntitySystem
         if (attemptEv.Cancelled)
             return;
 
+        // Determine performer (user) for validation/usage.
+        var performer = user;
+        if (action.Comp.AttachedEntity is { } attached && action.Comp.AttachedEntity != user &&
+            TryComp<ActionsDisplayRelayComponent>(user, out var relayUser) && relayUser.Source == attached && relayUser.InteractAsSource)
+        {
+            performer = attached;
+        }
+
         // Validate request by checking action blockers and the like
-        var provider = action.Comp.Container ?? user;
+        var provider = action.Comp.Container ?? performer;
         var validateEv = new ActionValidateEvent()
         {
             Input = ev,
-            User = user,
+            User = performer,
             Provider = provider
         };
         RaiseLocalEvent(action, ref validateEv);
@@ -312,7 +335,11 @@ public abstract class SharedActionsSystem : EntitySystem
             return;
 
         // All checks passed. Perform the action!
-        PerformAction((user, component), action);
+        if (!_actionsQuery.TryComp(performer, out var performerActions))
+            return;
+
+        var playPredicted = performer == user;
+        PerformAction((performer, performerActions), action, null, playPredicted);
     }
 
     private void OnValidate(Entity<ActionComponent> ent, ref ActionValidateEvent args)

@@ -80,6 +80,10 @@ public abstract partial class InventorySystem
         if (eventArgs.SenderSession.AttachedEntity is not { Valid: true } actor)
             return;
 
+        // Relay: if this user is displaying another entity's inventory with InteractAsSource, act as that entity
+        if (TryComp<Components.InventoryDisplayRelayComponent>(actor, out var relay) && relay.InteractAsSource && relay.Source is { } src)
+            actor = src;
+
         if (!TryComp(actor, out InventoryComponent? inventory) || !TryComp<HandsComponent>(actor, out var hands))
             return;
 

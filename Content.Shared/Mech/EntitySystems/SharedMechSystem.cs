@@ -204,7 +204,6 @@ public abstract partial class SharedMechSystem : EntitySystem
         }
 
         ManageVirtualItems(pilot, mech, create: true);
-        GrantMechProvidedActions(pilot, mech);
     }
 
     private void RemoveUser(EntityUid mech, EntityUid pilot)
@@ -212,8 +211,6 @@ public abstract partial class SharedMechSystem : EntitySystem
         RemComp<MechPilotComponent>(pilot);
 
         ManageVirtualItems(pilot, mech, create: false);
-
-        _actions.RemoveProvidedActions(pilot, mech);
     }
 
     /// <summary>
@@ -515,22 +512,6 @@ public abstract partial class SharedMechSystem : EntitySystem
 
         _container.RemoveEntity(uid, operatorEnt.Value);
         return true;
-    }
-
-    /// <summary>
-    /// Grants actions from the mech's action container to the pilot.
-    /// </summary>
-    private void GrantMechProvidedActions(EntityUid pilot, EntityUid mech)
-    {
-        // Replicate actions declared on the mech via ActionGrant.
-        if (TryComp<ActionGrantComponent>(mech, out var grant))
-        {
-            foreach (var proto in grant.Actions)
-            {
-                EntityUid? actionEnt = null;
-                _actions.AddAction(pilot, ref actionEnt, proto, mech);
-            }
-        }
     }
 
     private void UpdateAppearance(EntityUid uid, MechComponent? component = null,
