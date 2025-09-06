@@ -118,7 +118,7 @@ public abstract class AlertsSystem : EntitySystem
 
             AfterShowAlert((euid, alertsComponent));
 
-            Dirty(euid, alertsComponent);
+            OnAlertsDirty(euid, alertsComponent);
         }
         else
         {
@@ -144,7 +144,7 @@ public abstract class AlertsSystem : EntitySystem
 
         AfterClearAlert((euid, alertsComponent));
 
-        Dirty(euid, alertsComponent);
+        OnAlertsDirty(euid, alertsComponent);
     }
 
     /// <summary>
@@ -167,7 +167,7 @@ public abstract class AlertsSystem : EntitySystem
 
             AfterClearAlert((euid, alertsComponent));
 
-            Dirty(euid, alertsComponent);
+            OnAlertsDirty(euid, alertsComponent);
         }
         else
         {
@@ -229,7 +229,7 @@ public abstract class AlertsSystem : EntitySystem
         }
 
         if (dirty)
-            Dirty(uid, comp);
+            OnAlertsDirty(uid, alertComp);
     }
 
     public override void Update(float frameTime)
@@ -264,7 +264,7 @@ public abstract class AlertsSystem : EntitySystem
             }
 
             if (dirtyComp)
-                Dirty(uid, alertComp);
+                OnAlertsDirty(uid, alertComp);
         }
     }
 
@@ -344,10 +344,7 @@ public abstract class AlertsSystem : EntitySystem
         }
     }
 
-    protected virtual void HandledAlert()
-    {
-
-    }
+    protected virtual void HandledAlert() { }
 
     public bool ActivateAlert(EntityUid user, AlertPrototype alert)
     {
@@ -362,8 +359,18 @@ public abstract class AlertsSystem : EntitySystem
         return clickEvent.Handled;
     }
 
-    private void OnPlayerAttached(EntityUid uid, AlertsComponent component, PlayerAttachedEvent args)
+    private void OnPlayerAttached(EntityUid uid, AlertsComponent component, PlayerAttachedEvent args) { }
+
+    private void OnAlertsDirty(EntityUid uid, AlertsComponent component)
     {
         Dirty(uid, component);
+
+        // Relay: dirty for all connected relays.
+        var query = EntityQueryEnumerator<AlertsDisplayRelayComponent, AlertsComponent>();
+        while (query.MoveNext(out var owner, out var relayComp, out var relayAlertsComp))
+        {
+            if (relayComp.Source == uid)
+                Dirty(owner, relayAlertsComp);
+        }
     }
 }
