@@ -2,6 +2,8 @@ using System.Linq;
 using Content.Shared.ActionBlocker;
 using Content.Shared.Access.Components;
 using Content.Shared.Actions;
+using Content.Shared.Alert;
+using Content.Shared.Actions.Components;
 using Content.Shared.Containers;
 using Content.Shared.Damage;
 using Content.Shared.Destructible;
@@ -25,7 +27,6 @@ using Content.Shared.Weapons.Melee.Events;
 using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Whitelist;
 using Content.Shared.Light.Components;
-using Content.Shared.Actions.Components;
 using Content.Shared.UserInterface;
 using Robust.Shared.Audio;
 using Robust.Shared.Containers;
@@ -207,20 +208,6 @@ public abstract partial class SharedMechSystem : EntitySystem
         }
 
         ManageVirtualItems(pilot, mech, create: true);
-
-        _actions.AddAction(pilot, ref component.MechCycleActionEntity, component.MechCycleAction, mech);
-        _actions.AddAction(pilot, ref component.MechUiActionEntity, component.MechUiAction, mech);
-        _actions.AddAction(pilot, ref component.MechEjectActionEntity, component.MechEjectAction, mech);
-        GrantMechProvidedActions(pilot, mech);
-    }
-
-    private void RemoveUser(EntityUid mech, EntityUid pilot)
-    {
-        RemComp<MechPilotComponent>(pilot);
-
-        ManageVirtualItems(pilot, mech, create: false);
-
-        _actions.RemoveProvidedActions(pilot, mech);
     }
 
     /// <summary>
@@ -364,6 +351,9 @@ public abstract partial class SharedMechSystem : EntitySystem
             return;
 
         var pilot = component.PilotSlot.ContainedEntity;
+
+        if (pilot.HasValue)
+            ManageVirtualItems(pilot.Value, uid, create: false);
 
         // In broken state, equipment, modules, and battery are ejected
         var equipment = new List<EntityUid>(component.EquipmentContainer.ContainedEntities);
@@ -524,27 +514,6 @@ public abstract partial class SharedMechSystem : EntitySystem
         return true;
     }
 
-    /// <summary>
-    /// Grants actions from the mech's action container to the pilot, excluding any actions already attached to the mech itself.
-    /// </summary>
-    private void GrantMechProvidedActions(EntityUid pilot, EntityUid mech)
-    {
-        if (!TryComp<ActionsContainerComponent>(mech, out var container))
-            return;
-
-        foreach (var actionId in container.Container.ContainedEntities)
-        {
-            if (_actions.GetAction(actionId) is not { } ent)
-                continue;
-
-            // Skip actions already attached to the mech.
-            if (ent.Comp.AttachedEntity == mech)
-                continue;
-
-            _actions.AddActionDirect(pilot, (ent, ent));
-        }
-    }
-
     private void UpdateAppearance(EntityUid uid, MechComponent? component = null,
         AppearanceComponent? appearance = null)
     {
@@ -584,12 +553,22 @@ public abstract partial class SharedMechSystem : EntitySystem
     {
         if (args.OldOperator is { } oldOperator)
         {
-            RemoveUser(ent, oldOperator);
+            RemComp<MechPilotComponent>(oldOperator);
+            RemComp<ActionsDisplayRelayComponent>(oldOperator);
+            RemComp<AlertsDisplayRelayComponent>(oldOperator);
+
+            ManageVirtualItems(oldOperator, ent, create: false);
+
+            if (TryComp<ActionsComponent>(oldOperator, out var pilotActions))
+                Dirty(oldOperator, pilotActions);
+            if (TryComp<AlertsComponent>(oldOperator, out var pilotAlerts))
+                Dirty(oldOperator, pilotAlerts);
         }
 
         if (args.NewOperator is { } newOperator)
         {
             SetupUser(ent, newOperator, ent);
+
             if (ent.Comp.EntrySuccessSound != null)
             {
                 var ev = new MechEntrySuccessSoundEvent(ent.Owner, ent.Comp.EntrySuccessSound);
