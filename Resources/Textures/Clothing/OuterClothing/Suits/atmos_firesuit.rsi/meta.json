@@ -1,27 +1,35 @@
 {
-  "version": 1,
-  "license": "CC-BY-SA-3.0",
-  "copyright": "Taken from tgstation https://github.com/tgstation/tgstation/blob/master/icons/mob/clothing/suit.dmi. Bump maps by notquitehadouken for SS14.",
-  "size": {
-    "x": 32,
-    "y": 32
-  },
-  "states": [
-    {
-      "name": "icon"
+    "version": 1,
+    "license": "CC-BY-SA-3.0",
+    "copyright": "Taken from tgstation https://github.com/tgstation/tgstation/blob/master/icons/mob/clothing/suit.dmi. equipped-OUTERCLOTHING-dog modified from equipped-OUTERCLOTHING by @Aisfae(facebook). Vox Sprite taken from https://github.com/ParadiseSS13/Paradise/blob/980bbb489d27baa168d30d044d573d017845015b/icons/mob/clothing/species/vox/suit.dmi modified by @areyouconfused(github). Bump maps by notquitehadouken (GitHub) for SS14.",
+    "size": {
+        "x": 32,
+        "y": 32
     },
-    {
-      "name": "equipped-OUTERCLOTHING",
-      "directions": 4,
-      "bump": "bump"
-    },
-    {
-      "name": "inhand-left",
-      "directions": 4
-    },
-    {
-      "name": "inhand-right",
-      "directions": 4
-    }
-  ]
+    "states": [
+        {
+            "name": "icon"
+        },
+        {
+            "name": "equipped-OUTERCLOTHING",
+            "directions": 4,
+            "bump": "bump"
+        },
+        {
+            "name": "equipped-OUTERCLOTHING-vox",
+            "directions": 4
+        },
+        {
+            "name": "equipped-OUTERCLOTHING-dog",
+            "directions": 4
+        },
+        {
+            "name": "inhand-left",
+            "directions": 4
+        },
+        {
+            "name": "inhand-right",
+            "directions": 4
+        }
+    ]
 }
