@@ -56,6 +56,9 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
     private EntityQuery<PhysicsComponent> _physicsQuery;
     private EntityQuery<ProjectileComponent> _projectileQuery;
 
+    private float _adminAlertExplosionMinIntensity;
+    private float _explosionPersistence;
+
     /// <summary>
     ///     "Tile-size" for space when there are no nearby grids to use as a reference.
     /// </summary>
@@ -76,6 +79,9 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
     public override void Initialize()
     {
         base.Initialize();
+
+        Subs.CVar(_cfg, CCVars.AdminAlertExplosionMinIntensity, f => _adminAlertExplosionMinIntensity = f, true);
+        Subs.CVar(_cfg, CCVars.ExplosionPersistence, f => _explosionPersistence = f, true);
 
         DebugTools.Assert(_prototypeManager.HasIndex(DefaultExplosionPrototypeId));
 
@@ -254,7 +260,7 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
         }
         else
         {
-            var alertMinExplosionIntensity = _cfg.GetCVar(CCVars.AdminAlertExplosionMinIntensity);
+            var alertMinExplosionIntensity = _adminAlertExplosionMinIntensity;
             var logImpact = (alertMinExplosionIntensity > -1 && totalIntensity >= alertMinExplosionIntensity)
                 ? LogImpact.Extreme
                 : LogImpact.High;

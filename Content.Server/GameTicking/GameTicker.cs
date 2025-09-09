@@ -73,7 +73,13 @@ namespace Content.Server.GameTicking
 
         private ISawmill _sawmill = default!;
 
+        private bool _adminDeadminOnJoin;
         private bool _randomizeCharacters;
+        private bool _roundEndPVSOverrides;
+        private bool _gameLobbyFallbackEnabled;
+        private string _gameLobbyFallbackPreset = default!;
+        private string _gameLobbyDefaultPreset = default!;
+        private string _adminLogsServerName = default!;
 
         public override void Initialize()
         {
@@ -86,6 +92,12 @@ namespace Content.Server.GameTicking
             _sawmillReplays = _logManager.GetSawmill("ticker.replays");
 
             Subs.CVar(_cfg, CCVars.ICRandomCharacters, e => _randomizeCharacters = e, true);
+            Subs.CVar(_cfg, CCVars.AdminDeadminOnJoin, b => _adminDeadminOnJoin = b, true);
+            Subs.CVar(_cfg, CCVars.RoundEndPVSOverrides, b => _roundEndPVSOverrides = b, true);
+            Subs.CVar(_cfg, CCVars.GameLobbyFallbackEnabled, b => _gameLobbyFallbackEnabled = b, true);
+            Subs.CVar(_cfg, CCVars.GameLobbyFallbackPreset, s => _gameLobbyFallbackPreset = s, true);
+            Subs.CVar(_cfg, CCVars.GameLobbyDefaultPreset, s => _gameLobbyDefaultPreset = s, true);
+            Subs.CVar(_cfg, CCVars.AdminLogsServerName, s => _adminLogsServerName = s, true);
 
             // Initialize the other parts of the game ticker.
             InitializeStatusShell();

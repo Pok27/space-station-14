@@ -21,6 +21,7 @@ public sealed partial class ShuttleSystem
 
         SubscribeLocalEvent<GridFillComponent, MapInitEvent>(OnGridFillMapInit);
 
+        Subs.CVar(_cfg, CCVars.GridFill, b => _gridFill = b, true);
         Subs.CVar(_cfg, CCVars.GridFill, OnGridFillChange);
     }
 
@@ -57,7 +58,7 @@ public sealed partial class ShuttleSystem
 
     private void CargoSpawn(EntityUid uid, StationCargoShuttleComponent component)
     {
-        if (!_cfg.GetCVar(CCVars.GridFill))
+        if (!_gridFill)
             return;
 
         var targetGrid = _station.GetLargestGrid(uid);
@@ -157,7 +158,7 @@ public sealed partial class ShuttleSystem
 
     private void GridSpawns(EntityUid uid, GridSpawnComponent component)
     {
-        if (!_cfg.GetCVar(CCVars.GridFill))
+        if (!_gridFill)
             return;
 
         var targetGrid = _station.GetLargestGrid(uid);
@@ -218,7 +219,7 @@ public sealed partial class ShuttleSystem
 
     private void OnGridFillMapInit(EntityUid uid, GridFillComponent component, MapInitEvent args)
     {
-        if (!_cfg.GetCVar(CCVars.GridFill))
+        if (!_gridFill)
             return;
 
         if (!TryComp<DockingComponent>(uid, out var dock) ||

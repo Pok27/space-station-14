@@ -10,9 +10,12 @@ public sealed class MobCollisionSystem : SharedMobCollisionSystem
 {
     private EntityQuery<ActorComponent> _actorQuery;
 
+    private bool _mobPushingEnabled;
+
     public override void Initialize()
     {
         base.Initialize();
+        Subs.CVar(CfgManager, CCVars.MovementMobPushing, b => _mobPushingEnabled = b, true);
         _actorQuery = GetEntityQuery<ActorComponent>();
         SubscribeLocalEvent<MobCollisionComponent, MobCollisionMessage>(OnServerMobCollision);
     }
@@ -24,7 +27,7 @@ public sealed class MobCollisionSystem : SharedMobCollisionSystem
 
     public override void Update(float frameTime)
     {
-        if (!CfgManager.GetCVar(CCVars.MovementMobPushing))
+        if (!_mobPushingEnabled)
             return;
 
         var query = EntityQueryEnumerator<MobCollisionComponent>();

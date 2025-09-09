@@ -99,7 +99,7 @@ public sealed partial class EmergencyShuttleSystem
     private void OnEmergencyOpenAttempt(EntityUid uid, EmergencyShuttleConsoleComponent component, ActivatableUIOpenAttemptEvent args)
     {
         // I'm hoping ActivatableUI checks it's open before allowing these messages.
-        if (!_configManager.GetCVar(CCVars.EmergencyEarlyLaunchAllowed))
+        if (!_emergencyEarlyLaunchAllowed)
         {
             args.Cancel();
             _popup.PopupEntity(Loc.GetString("emergency-shuttle-console-no-early-launches"), uid, args.User);

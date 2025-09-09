@@ -54,11 +54,15 @@ public sealed partial class DungeonSystem : SharedDungeonSystem
     private readonly JobQueue _dungeonJobQueue = new(DungeonJobTime);
     private readonly Dictionary<DungeonJob.DungeonJob, CancellationTokenSource> _dungeonJobs = new();
 
+    private bool _procgenPreload;
+
     public static readonly ProtoId<ContentTileDefinition> FallbackTileId = "FloorSteel";
 
     public override void Initialize()
     {
         base.Initialize();
+
+        Subs.CVar(_configManager, CCVars.ProcgenPreload, b => _procgenPreload = b, true);
 
         _metaQuery = GetEntityQuery<MetaDataComponent>();
         _xformQuery = GetEntityQuery<TransformComponent>();
@@ -95,7 +99,7 @@ public sealed partial class DungeonSystem : SharedDungeonSystem
             QueueDel(uid);
         }
 
-        if (!_configManager.GetCVar(CCVars.ProcgenPreload))
+        if (!_procgenPreload)
             return;
 
         // Force all templates to be setup.
@@ -138,7 +142,7 @@ public sealed partial class DungeonSystem : SharedDungeonSystem
             }
         }
 
-        if (!_configManager.GetCVar(CCVars.ProcgenPreload))
+        if (!_procgenPreload)
             return;
 
         foreach (var proto in rooms.Modified.Values)

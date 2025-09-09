@@ -38,9 +38,13 @@ public sealed class PlayTimeTrackingSystem : EntitySystem
     [Dependency] private readonly SharedRoleSystem _roles = default!;
     [Dependency] private readonly PlayTimeTrackingManager _tracking = default!;
 
+    private bool _gameRoleTimers;
+
     public override void Initialize()
     {
         base.Initialize();
+
+        Subs.CVar(_cfg, CCVars.GameRoleTimers, b => _gameRoleTimers = b, true);
 
         _tracking.CalcTrackers += CalcTrackers;
 
@@ -190,7 +194,7 @@ public sealed class PlayTimeTrackingSystem : EntitySystem
     public bool IsAllowed(ICommonSession player, string role)
     {
         if (!_prototypes.TryIndex<JobPrototype>(role, out var job) ||
-            !_cfg.GetCVar(CCVars.GameRoleTimers))
+            !_gameRoleTimers)
             return true;
 
         if (!_tracking.TryGetTrackerTimes(player, out var playTimes))
@@ -205,7 +209,7 @@ public sealed class PlayTimeTrackingSystem : EntitySystem
     public HashSet<ProtoId<JobPrototype>> GetDisallowedJobs(ICommonSession player)
     {
         var roles = new HashSet<ProtoId<JobPrototype>>();
-        if (!_cfg.GetCVar(CCVars.GameRoleTimers))
+        if (!_gameRoleTimers)
             return roles;
 
         if (!_tracking.TryGetTrackerTimes(player, out var playTimes))
@@ -225,7 +229,7 @@ public sealed class PlayTimeTrackingSystem : EntitySystem
 
     public void RemoveDisallowedJobs(NetUserId userId, List<ProtoId<JobPrototype>> jobs)
     {
-        if (!_cfg.GetCVar(CCVars.GameRoleTimers))
+        if (!_gameRoleTimers)
             return;
 
         var player = _playerManager.GetSessionById(userId);

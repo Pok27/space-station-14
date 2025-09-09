@@ -38,6 +38,8 @@ public sealed partial class InstrumentSystem : SharedInstrumentSystem
     [Dependency] private readonly ExamineSystemShared _examineSystem = default!;
     [Dependency] private readonly IAdminLogManager _admingLogSystem = default!;
 
+    private int _midiMaxChannelNameLength;
+
     private const float MaxInstrumentBandRange = 10f;
 
     // Band Requests are queued and delayed both to avoid metagaming and to prevent spamming it, since it's expensive.
@@ -50,6 +52,7 @@ public sealed partial class InstrumentSystem : SharedInstrumentSystem
         base.Initialize();
 
         InitializeCVars();
+        Subs.CVar(_cfg, CCVars.MidiMaxChannelNameLength, i => _midiMaxChannelNameLength = i, true);
 
         SubscribeNetworkEvent<InstrumentMidiEventEvent>(OnMidiEventRx);
         SubscribeNetworkEvent<InstrumentStartMidiEvent>(OnMidiStart);
@@ -162,7 +165,7 @@ public sealed partial class InstrumentSystem : SharedInstrumentSystem
             // Remove any control characters that may be part of the midi file so they don't end up in the admin logs.
             t?.SanitizeFields();
             // Truncate any track names too long.
-            t?.TruncateFields(_cfg.GetCVar(CCVars.MidiMaxChannelNameLength));
+            t?.TruncateFields(_midiMaxChannelNameLength);
         }
 
         var tracksString = string.Join("\n",

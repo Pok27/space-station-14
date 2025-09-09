@@ -54,6 +54,8 @@ namespace Content.Server.Medical.BiomassReclaimer
         [Dependency] private readonly SharedMindSystem _minds = default!;
         [Dependency] private readonly InventorySystem _inventory = default!;
 
+        private bool _biomassEasyMode;
+
         public static readonly ProtoId<MaterialPrototype> BiomassPrototype = "Biomass";
 
         public override void Update(float frameTime)
@@ -100,6 +102,9 @@ namespace Content.Server.Medical.BiomassReclaimer
         public override void Initialize()
         {
             base.Initialize();
+
+            Subs.CVar(_configManager, CCVars.BiomassEasyMode, b => _biomassEasyMode = b, true);
+
             SubscribeLocalEvent<ActiveBiomassReclaimerComponent, ComponentInit>(OnInit);
             SubscribeLocalEvent<ActiveBiomassReclaimerComponent, ComponentShutdown>(OnShutdown);
             SubscribeLocalEvent<ActiveBiomassReclaimerComponent, UnanchorAttemptEvent>(OnUnanchorAttempt);
@@ -252,7 +257,7 @@ namespace Content.Server.Medical.BiomassReclaimer
                 return false;
 
             // Reject souled bodies in easy mode.
-            if (_configManager.GetCVar(CCVars.BiomassEasyMode) &&
+            if (_biomassEasyMode &&
                 HasComp<HumanoidAppearanceComponent>(dragged) &&
                 _minds.TryGetMind(dragged, out _, out var mind))
             {

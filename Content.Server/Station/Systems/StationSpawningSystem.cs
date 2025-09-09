@@ -43,6 +43,14 @@ public sealed class StationSpawningSystem : SharedStationSpawningSystem
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly MindSystem _mindSystem = default!;
 
+    private bool _flavorTextEnabled;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        Subs.CVar(_configurationManager, CCVars.FlavorText, b => _flavorTextEnabled = b, true);
+    }
+
     /// <summary>
     /// Attempts to spawn a player character onto the given station.
     /// </summary>
@@ -136,7 +144,7 @@ public sealed class StationSpawningSystem : SharedStationSpawningSystem
             _humanoidSystem.LoadProfile(entity.Value, profile);
             _metaSystem.SetEntityName(entity.Value, profile.Name);
 
-            if (profile.FlavorText != "" && _configurationManager.GetCVar(CCVars.FlavorText))
+            if (profile.FlavorText != "" && _flavorTextEnabled)
             {
                 AddComp<DetailExaminableComponent>(entity.Value).Content = profile.FlavorText;
             }

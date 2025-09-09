@@ -68,6 +68,8 @@ namespace Content.Server.Ghost
         [Dependency] private readonly TagSystem _tag = default!;
         [Dependency] private readonly NameModifierSystem _nameMod = default!;
 
+        private bool _ghostKillCrit;
+
         private EntityQuery<GhostComponent> _ghostQuery;
         private EntityQuery<PhysicsComponent> _physicsQuery;
 
@@ -77,6 +79,8 @@ namespace Content.Server.Ghost
         public override void Initialize()
         {
             base.Initialize();
+
+            Subs.CVar(_configurationManager, CCVars.GhostKillCrit, b => _ghostKillCrit = b, true);
 
             _ghostQuery = GetEntityQuery<GhostComponent>();
             _physicsQuery = GetEntityQuery<PhysicsComponent>();
@@ -564,7 +568,7 @@ namespace Content.Server.Ghost
             //   (If the mob survives, that's a bug. Ghosting is kept regardless.)
             var canReturn = canReturnGlobal && _mind.IsCharacterDeadPhysically(mind);
 
-            if (_configurationManager.GetCVar(CCVars.GhostKillCrit) &&
+            if (_ghostKillCrit &&
                 canReturnGlobal &&
                 TryComp(playerEntity, out MobStateComponent? mobState))
             {

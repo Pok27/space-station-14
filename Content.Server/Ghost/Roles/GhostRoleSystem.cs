@@ -53,6 +53,7 @@ public sealed class GhostRoleSystem : EntitySystem
 
     private uint _nextRoleIdentifier;
     private bool _needsUpdateGhostRoleCount = true;
+    private bool _ghostQuickLottery;
 
     private readonly Dictionary<uint, Entity<GhostRoleComponent>> _ghostRoles = new();
     private readonly Dictionary<uint, Entity<GhostRoleRaffleComponent>> _ghostRoleRaffles = new();
@@ -66,6 +67,8 @@ public sealed class GhostRoleSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
+
+        Subs.CVar(_cfg, CCVars.GhostQuickLottery, b => _ghostQuickLottery = b, true);
 
         SubscribeLocalEvent<RoundRestartCleanupEvent>(Reset);
         SubscribeLocalEvent<PlayerAttachedEvent>(OnPlayerAttached);
@@ -362,7 +365,7 @@ public sealed class GhostRoleSystem : EntitySystem
 
         var raffle = ent.Comp;
         raffle.Identifier = ghostRole.Identifier;
-        var countdown = _cfg.GetCVar(CCVars.GhostQuickLottery)? 1 : settings.InitialDuration;
+        var countdown = _ghostQuickLottery ? 1 : settings.InitialDuration;
         raffle.Countdown = TimeSpan.FromSeconds(countdown);
         raffle.CumulativeTime = TimeSpan.FromSeconds(settings.InitialDuration);
         // we copy these settings into the component because they would be cumbersome to access otherwise

@@ -140,7 +140,7 @@ public sealed partial class ExplosionSystem
             if (_activeExplosion.FinishedProcessing)
             {
                 var comp = EnsureComp<TimedDespawnComponent>(_activeExplosion.VisualEnt);
-                comp.Lifetime = _cfg.GetCVar(CCVars.ExplosionPersistence);
+                comp.Lifetime = _explosionPersistence;
                 _appearance.SetData(_activeExplosion.VisualEnt, ExplosionAppearanceData.Progress, int.MaxValue);
                 _activeExplosion = null;
             }

@@ -69,6 +69,9 @@ public sealed partial class ShuttleSystem : SharedShuttleSystem
     private EntityQuery<PhysicsComponent> _physicsQuery;
     private EntityQuery<TransformComponent> _xformQuery;
 
+    private float _hideSplitGridsUnder;
+    private bool _gridFill;
+
     public override void Initialize()
     {
         base.Initialize();

@@ -10,6 +10,8 @@ public sealed partial class ShuttleSystem
 {
     private void InitializeIFF()
     {
+        Subs.CVar(_cfg, CCVars.HideSplitGridsUnder, f => _hideSplitGridsUnder = f, true);
+
         SubscribeLocalEvent<IFFConsoleComponent, AnchorStateChangedEvent>(OnIFFConsoleAnchor);
         SubscribeLocalEvent<IFFConsoleComponent, IFFShowIFFMessage>(OnIFFShow);
         SubscribeLocalEvent<IFFConsoleComponent, IFFShowVesselMessage>(OnIFFShowVessel);
@@ -18,7 +20,7 @@ public sealed partial class ShuttleSystem
 
     private void OnGridSplit(ref GridSplitEvent ev)
     {
-        var splitMass = _cfg.GetCVar(CCVars.HideSplitGridsUnder);
+        var splitMass = _hideSplitGridsUnder;
 
         if (splitMass < 0)
             return;

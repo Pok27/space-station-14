@@ -74,14 +74,24 @@ public sealed partial class EmergencyShuttleSystem : EntitySystem
     private const float ShuttleSpawnBuffer = 1f;
 
     private bool _emergencyShuttleEnabled;
+    private float _roundRestartTime;
+    private float _emergencyShuttleDockTime;
+    private bool _emergencyEarlyLaunchAllowed;
+    private float _dockTimeMultiplierOtherDock;
+    private float _dockTimeMultiplierNoDock;
 
     private static readonly ProtoId<TagPrototype> DockTag = "DockEmergency";
 
     public override void Initialize()
     {
-        _emergencyShuttleEnabled = _configManager.GetCVar(CCVars.EmergencyShuttleEnabled);
         // Don't immediately invoke as roundstart will just handle it.
+        Subs.CVar(_configManager, CCVars.EmergencyShuttleEnabled, b => _emergencyShuttleEnabled = b, true);
+        Subs.CVar(_configManager, CCVars.RoundRestartTime, f => _roundRestartTime = f, true);
+        Subs.CVar(_configManager, CCVars.EmergencyShuttleDockTime, f => _emergencyShuttleDockTime = f, true);
         Subs.CVar(_configManager, CCVars.EmergencyShuttleEnabled, SetEmergencyShuttleEnabled);
+        Subs.CVar(_configManager, CCVars.EmergencyEarlyLaunchAllowed, b => _emergencyEarlyLaunchAllowed = b, true);
+        Subs.CVar(_configManager, CCVars.EmergencyShuttleDockTimeMultiplierOtherDock, f => _dockTimeMultiplierOtherDock = f, true);
+        Subs.CVar(_configManager, CCVars.EmergencyShuttleDockTimeMultiplierNoDock, f => _dockTimeMultiplierNoDock = f, true);
 
         SubscribeLocalEvent<RoundStartingEvent>(OnRoundStart);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundCleanup);
@@ -229,7 +239,7 @@ public sealed partial class EmergencyShuttleSystem : EntitySystem
     /// </summary>
     private void OnEmergencyFTLComplete(EntityUid uid, EmergencyShuttleComponent component, ref FTLCompletedEvent args)
     {
-        var countdownTime = TimeSpan.FromSeconds(_configManager.GetCVar(CCVars.RoundRestartTime));
+        var countdownTime = TimeSpan.FromSeconds(_roundRestartTime);
         var shuttle = args.Entity;
         if (TryComp<DeviceNetworkComponent>(shuttle, out var net))
         {
@@ -440,7 +450,7 @@ public sealed partial class EmergencyShuttleSystem : EntitySystem
             return;
         }
 
-        _consoleAccumulator = _configManager.GetCVar(CCVars.EmergencyShuttleDockTime);
+        _consoleAccumulator = _emergencyShuttleDockTime;
         EmergencyShuttleArrived = true;
 
         var query = AllEntityQuery<StationEmergencyShuttleComponent>();
@@ -459,10 +469,8 @@ public sealed partial class EmergencyShuttleSystem : EntitySystem
         var worstResult = dockResults.Max(x => x.ResultType);
         var multiplier = worstResult switch
         {
-            ShuttleDockResultType.OtherDock => _configManager.GetCVar(
-                CCVars.EmergencyShuttleDockTimeMultiplierOtherDock),
-            ShuttleDockResultType.NoDock => _configManager.GetCVar(
-                CCVars.EmergencyShuttleDockTimeMultiplierNoDock),
+            ShuttleDockResultType.OtherDock => _dockTimeMultiplierOtherDock,
+            ShuttleDockResultType.NoDock => _dockTimeMultiplierNoDock,
             // GoodLuck doesn't get a multiplier.
             // Quite frankly at that point the round is probably so fucked that you'd rather it be over ASAP.
             _ => 1,

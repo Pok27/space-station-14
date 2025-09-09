@@ -21,8 +21,12 @@ public sealed partial class ParticleAcceleratorSystem
     [Dependency] private readonly IAdminManager _adminManager = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
 
+    private ParticleAcceleratorPowerState _alertMinPowerState;
+
     private void InitializeControlBoxSystem()
     {
+        Subs.CVar(_cfg, CCVars.AdminAlertParticleAcceleratorMinPowerState, i => _alertMinPowerState = (ParticleAcceleratorPowerState) i, true);
+
         SubscribeLocalEvent<ParticleAcceleratorControlBoxComponent, PowerChangedEvent>(OnControlBoxPowerChange);
         SubscribeLocalEvent<ParticleAcceleratorControlBoxComponent, ParticleAcceleratorSetEnableMessage>(OnUISetEnableMessage);
         SubscribeLocalEvent<ParticleAcceleratorControlBoxComponent, ParticleAcceleratorSetPowerStateMessage>(OnUISetPowerMessage);
@@ -176,8 +180,7 @@ public sealed partial class ParticleAcceleratorSystem
             _adminLogger.Add(LogType.Action, impact, $"{ToPrettyString(player):player} has set the strength of {ToPrettyString(uid)} to {strength}");
 
 
-            var alertMinPowerState = (ParticleAcceleratorPowerState)_cfg.GetCVar(CCVars.AdminAlertParticleAcceleratorMinPowerState);
-            if (strength >= alertMinPowerState)
+            if (strength >= _alertMinPowerState)
             {
                 var pos = Transform(uid);
                 if (_gameTiming.CurTime > comp.EffectCooldown)

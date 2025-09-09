@@ -35,8 +35,14 @@ public sealed class CrewManifestSystem : EntitySystem
 
     private readonly Dictionary<EntityUid, Dictionary<ICommonSession, CrewManifestEui>> _openEuis = new();
 
+    private bool _crewManifestWithoutEntity;
+    private bool _crewManifestUnsecure;
+
     public override void Initialize()
     {
+        Subs.CVar(_configManager, CCVars.CrewManifestWithoutEntity, b => _crewManifestWithoutEntity = b, true);
+        Subs.CVar(_configManager, CCVars.CrewManifestUnsecure, b => _crewManifestUnsecure = b, true);
+
         SubscribeLocalEvent<AfterGeneralRecordCreatedEvent>(AfterGeneralRecordCreated);
         SubscribeLocalEvent<RecordModifiedEvent>(OnRecordModified);
         SubscribeLocalEvent<RecordRemovedEvent>(OnRecordRemoved);
@@ -64,7 +70,7 @@ public sealed class CrewManifestSystem : EntitySystem
     private void OnRequestCrewManifest(RequestCrewManifestMessage message, EntitySessionEventArgs args)
     {
         if (args.SenderSession is not { } sessionCast
-            || !_configManager.GetCVar(CCVars.CrewManifestWithoutEntity))
+            || !_crewManifestWithoutEntity)
         {
             return;
         }
@@ -145,7 +151,7 @@ public sealed class CrewManifestSystem : EntitySystem
             return;
         }
 
-        if (!_configManager.GetCVar(CCVars.CrewManifestUnsecure) && component.Unsecure)
+        if (!_crewManifestUnsecure && component.Unsecure)
         {
             return;
         }

@@ -36,6 +36,8 @@ public sealed class GatewayGeneratorSystem : EntitySystem
     [Dependency] private readonly SharedSalvageSystem _salvage = default!;
     [Dependency] private readonly TileSystem _tile = default!;
 
+    private bool _gatewayEnabled;
+
     private static readonly ProtoId<LocalizedDatasetPrototype> PlanetNames = "NamesBorer";
     private static readonly ProtoId<BiomeTemplatePrototype> BiomeTemplate = "Continental";
     private static readonly ProtoId<DungeonConfigPrototype> DungeonConfig = "Experiment";
@@ -60,6 +62,9 @@ public sealed class GatewayGeneratorSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
+
+        Subs.CVar(_cfgManager, CCVars.GatewayGeneratorEnabled, b => _gatewayEnabled = b, true);
+
         SubscribeLocalEvent<GatewayGeneratorComponent, MapInitEvent>(OnGeneratorMapInit);
         SubscribeLocalEvent<GatewayGeneratorComponent, ComponentShutdown>(OnGeneratorShutdown);
         SubscribeLocalEvent<GatewayGeneratorDestinationComponent, AttemptGatewayOpenEvent>(OnGeneratorAttemptOpen);
@@ -79,7 +84,7 @@ public sealed class GatewayGeneratorSystem : EntitySystem
 
     private void OnGeneratorMapInit(EntityUid uid, GatewayGeneratorComponent generator, MapInitEvent args)
     {
-        if (!_cfgManager.GetCVar(CCVars.GatewayGeneratorEnabled))
+        if (!_gatewayEnabled)
             return;
 
         generator.NextUnlock = TimeSpan.FromMinutes(5);

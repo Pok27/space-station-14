@@ -28,9 +28,14 @@ namespace Content.Server.Tabletop
         [Dependency] private readonly PopupSystem _popupSystem = default!;
         [Dependency] private readonly IConfigurationManager _cfg = default!;
 
+        private bool _gameTabletopPlace;
+
         public override void Initialize()
         {
             base.Initialize();
+
+            Subs.CVar(_cfg, CCVars.GameTabletopPlace, b => _gameTabletopPlace = b, true);
+
             SubscribeNetworkEvent<TabletopStopPlayingEvent>(OnStopPlaying);
             SubscribeLocalEvent<TabletopGameComponent, ActivateInWorldEvent>(OnTabletopActivate);
             SubscribeLocalEvent<TabletopGameComponent, ComponentShutdown>(OnGameShutdown);
@@ -77,7 +82,7 @@ namespace Content.Server.Tabletop
 
         private void OnInteractUsing(EntityUid uid, TabletopGameComponent component, InteractUsingEvent args)
         {
-            if (!_cfg.GetCVar(CCVars.GameTabletopPlace))
+            if (!_gameTabletopPlace)
                 return;
 
             if (!TryComp(args.User, out HandsComponent? hands))

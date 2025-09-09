@@ -17,9 +17,13 @@ public sealed class KillPersonConditionSystem : EntitySystem
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly TargetObjectiveSystem _target = default!;
 
+    private bool _emergencyShuttleEnabled;
+
     public override void Initialize()
     {
         base.Initialize();
+
+        Subs.CVar(_config, CCVars.EmergencyShuttleEnabled, b => _emergencyShuttleEnabled = b, true);
 
         SubscribeLocalEvent<KillPersonConditionComponent, ObjectiveGetProgressEvent>(OnGetProgress);
     }
@@ -40,7 +44,7 @@ public sealed class KillPersonConditionSystem : EntitySystem
 
         var targetDead = _mind.IsCharacterDeadIc(mind);
         var targetMarooned = !_emergencyShuttle.IsTargetEscaping(mind.OwnedEntity.Value) || _mind.IsCharacterUnrevivableIc(mind);
-        if (!_config.GetCVar(CCVars.EmergencyShuttleEnabled) && requireMaroon)
+        if (!_emergencyShuttleEnabled && requireMaroon)
         {
             requireDead = true;
             requireMaroon = false;

@@ -42,6 +42,11 @@ namespace Content.Server.RoundEnd
         [Dependency] private readonly SharedAudioSystem _audio = default!;
         [Dependency] private readonly StationSystem _stationSystem = default!;
 
+        private float _emergencyShuttleDockTime;
+        private float _roundRestartTime;
+        private int _emergencyShuttleAutoCallTime;
+        private int _emergencyShuttleAutoCallExtensionTime;
+
         public TimeSpan DefaultCooldownDuration { get; set; } = TimeSpan.FromSeconds(30);
 
         /// <summary>
@@ -62,6 +67,10 @@ namespace Content.Server.RoundEnd
         public override void Initialize()
         {
             base.Initialize();
+            Subs.CVar(_cfg, CCVars.EmergencyShuttleDockTime, f => _emergencyShuttleDockTime = f, true);
+            Subs.CVar(_cfg, CCVars.RoundRestartTime, f => _roundRestartTime = f, true);
+            Subs.CVar(_cfg, CCVars.EmergencyShuttleAutoCallTime, i => _emergencyShuttleAutoCallTime = i, true);
+            Subs.CVar(_cfg, CCVars.EmergencyShuttleAutoCallExtensionTime, i => _emergencyShuttleAutoCallExtensionTime = i, true);
             SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => Reset());
             SetAutoCallTime();
         }
@@ -207,7 +216,7 @@ namespace Content.Server.RoundEnd
                     [ShuttleTimerMasks.SourceMap] = GetCentcomm(),
                     [ShuttleTimerMasks.DestMap] = GetStation(),
                     [ShuttleTimerMasks.ShuttleTime] = countdownTime,
-                    [ShuttleTimerMasks.SourceTime] = countdownTime + TimeSpan.FromSeconds(_shuttle.TransitTime + _cfg.GetCVar(CCVars.EmergencyShuttleDockTime)),
+                    [ShuttleTimerMasks.SourceTime] = countdownTime + TimeSpan.FromSeconds(_shuttle.TransitTime + _emergencyShuttleDockTime),
                     [ShuttleTimerMasks.DestTime] = countdownTime,
                 };
                 _deviceNetworkSystem.QueuePacket(shuttle.Value, null, payload, net.TransmitFrequency);
@@ -270,7 +279,7 @@ namespace Content.Server.RoundEnd
             _countdownTokenSource?.Cancel();
             _countdownTokenSource = new();
 
-            countdownTime ??= TimeSpan.FromSeconds(_cfg.GetCVar(CCVars.RoundRestartTime));
+            countdownTime ??= TimeSpan.FromSeconds(_roundRestartTime);
             int time;
             string unitsLocString;
             if (countdownTime.Value.TotalSeconds < 60)
@@ -351,8 +360,8 @@ namespace Content.Server.RoundEnd
         public override void Update(float frameTime)
         {
             // Check if we should auto-call.
-            int mins = _autoCalledBefore ? _cfg.GetCVar(CCVars.EmergencyShuttleAutoCallExtensionTime)
-                                        : _cfg.GetCVar(CCVars.EmergencyShuttleAutoCallTime);
+            int mins = _autoCalledBefore ? _emergencyShuttleAutoCallExtensionTime
+                                        : _emergencyShuttleAutoCallTime;
             if (mins != 0 && _gameTiming.CurTime - AutoCallStartTime > TimeSpan.FromMinutes(mins))
             {
                 if (!_shuttle.EmergencyShuttleArrived && ExpectedCountdownEnd is null)

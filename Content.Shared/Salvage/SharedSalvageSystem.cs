@@ -20,6 +20,13 @@ public abstract partial class SharedSalvageSystem : EntitySystem
     [Dependency] protected readonly IConfigurationManager CfgManager = default!;
     [Dependency] private readonly IPrototypeManager _proto = default!;
 
+    private float _salvageExpeditionDuration;
+
+    public override void Initialize()
+    {
+        Subs.CVar(CfgManager, CCVars.SalvageExpeditionDuration, f => _salvageExpeditionDuration = f, true);
+    }
+
     /// <summary>
     /// Main loot table for salvage expeditions.
     /// </summary>
@@ -68,7 +75,7 @@ public abstract partial class SharedSalvageSystem : EntitySystem
             mods.Add(Loc.GetString(light.Description));
         }
 
-        var duration = TimeSpan.FromSeconds(CfgManager.GetCVar(CCVars.SalvageExpeditionDuration));
+        var duration = TimeSpan.FromSeconds(_salvageExpeditionDuration);
 
         return new SalvageMission(seed, dungeon.ID, faction.ID, biome.ID, air.ID, temp.Temperature, light.Color, duration, mods);
     }

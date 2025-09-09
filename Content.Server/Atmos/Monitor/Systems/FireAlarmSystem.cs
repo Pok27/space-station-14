@@ -20,8 +20,12 @@ public sealed class FireAlarmSystem : EntitySystem
     [Dependency] private readonly AccessReaderSystem _access = default!;
     [Dependency] private readonly IConfigurationManager _configManager = default!;
 
+    private bool _fireAlarmAllAccess;
+
     public override void Initialize()
     {
+        Subs.CVar(_configManager, CCVars.FireAlarmAllAccess, b => _fireAlarmAllAccess = b, true);
+
         SubscribeLocalEvent<FireAlarmComponent, InteractHandEvent>(OnInteractHand);
         SubscribeLocalEvent<FireAlarmComponent, DeviceListUpdateEvent>(OnDeviceListSync);
         SubscribeLocalEvent<FireAlarmComponent, GotEmaggedEvent>(OnEmagged);
@@ -49,7 +53,7 @@ public sealed class FireAlarmSystem : EntitySystem
         if (!_interactionSystem.InRangeUnobstructed(args.User, args.Target))
             return;
 
-        if (!_configManager.GetCVar(CCVars.FireAlarmAllAccess) && !_access.IsAllowed(args.User, args.Target))
+        if (!_fireAlarmAllAccess && !_access.IsAllowed(args.User, args.Target))
             return;
 
         if (this.IsPowered(uid, EntityManager))

@@ -23,8 +23,12 @@ public sealed partial class AnomalySystem
     [Dependency] private readonly SharedMapSystem _mapSystem = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
 
+    private float _anomalyGridBoundsScale;
+
     private void InitializeGenerator()
     {
+        Subs.CVar(_configuration, CCVars.AnomalyGenerationGridBoundsScale, f => _anomalyGridBoundsScale = f, true);
+
         SubscribeLocalEvent<AnomalyGeneratorComponent, BoundUIOpenedEvent>(OnGeneratorBUIOpened);
         SubscribeLocalEvent<AnomalyGeneratorComponent, MaterialAmountChangedEvent>(OnGeneratorMaterialAmountChanged);
         SubscribeLocalEvent<AnomalyGeneratorComponent, AnomalyGeneratorGenerateButtonPressedEvent>(OnGenerateButtonPressed);
@@ -89,7 +93,7 @@ public sealed partial class AnomalySystem
         var xform = Transform(grid);
 
         var targetCoords = xform.Coordinates;
-        var gridBounds = gridComp.LocalAABB.Scale(_configuration.GetCVar(CCVars.AnomalyGenerationGridBoundsScale));
+        var gridBounds = gridComp.LocalAABB.Scale(_anomalyGridBoundsScale);
 
         for (var i = 0; i < 25; i++)
         {

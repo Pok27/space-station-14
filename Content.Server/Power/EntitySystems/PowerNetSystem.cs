@@ -34,6 +34,7 @@ namespace Content.Server.Power.EntitySystems
         private EntityQuery<BatteryComponent> _batteryQuery;
 
         private BatteryRampPegSolver _solver = new();
+        private bool _debugPow3rDisableParallel;
 
         public override void Initialize()
         {
@@ -43,7 +44,8 @@ namespace Content.Server.Power.EntitySystems
             _batteryQuery = GetEntityQuery<BatteryComponent>();
 
             UpdatesAfter.Add(typeof(NodeGroupSystem));
-            _solver = new(_cfg.GetCVar(CCVars.DebugPow3rDisableParallel));
+            Subs.CVar(_cfg, CCVars.DebugPow3rDisableParallel, b => _debugPow3rDisableParallel = b, true);
+            _solver = new(_debugPow3rDisableParallel);
 
             SubscribeLocalEvent<ApcPowerReceiverComponent, MapInitEvent>(ApcPowerReceiverMapInit);
             SubscribeLocalEvent<ApcPowerReceiverComponent, ComponentInit>(ApcPowerReceiverInit);
@@ -72,6 +74,7 @@ namespace Content.Server.Power.EntitySystems
 
         private void DebugPow3rDisableParallelChanged(bool val)
         {
+            _debugPow3rDisableParallel = val;
             _solver = new(val);
         }
 

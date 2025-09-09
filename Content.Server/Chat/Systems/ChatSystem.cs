@@ -64,6 +64,8 @@ public sealed partial class ChatSystem : SharedChatSystem
     private bool _deadLoocEnabled;
     private bool _critLoocEnabled;
     private readonly bool _adminLoocEnabled = true;
+    private bool _chatPunctuation;
+    private bool _oocEnableDuringRound;
 
     public override void Initialize()
     {
@@ -72,6 +74,8 @@ public sealed partial class ChatSystem : SharedChatSystem
         Subs.CVar(_configurationManager, CCVars.LoocEnabled, OnLoocEnabledChanged, true);
         Subs.CVar(_configurationManager, CCVars.DeadLoocEnabled, OnDeadLoocEnabledChanged, true);
         Subs.CVar(_configurationManager, CCVars.CritLoocEnabled, OnCritLoocEnabledChanged, true);
+        Subs.CVar(_configurationManager, CCVars.ChatPunctuation, b => _chatPunctuation = b, true);
+        Subs.CVar(_configurationManager, CCVars.OocEnableDuringRound, b => _oocEnableDuringRound = b, true);
 
         SubscribeLocalEvent<GameRunLevelChangedEvent>(OnGameChange);
     }
@@ -109,12 +113,12 @@ public sealed partial class ChatSystem : SharedChatSystem
         switch (ev.New)
         {
             case GameRunLevel.InRound:
-                if (!_configurationManager.GetCVar(CCVars.OocEnableDuringRound))
+                if (!_oocEnableDuringRound)
                     _configurationManager.SetCVar(CCVars.OocEnabled, false);
                 break;
             case GameRunLevel.PostRound:
             case GameRunLevel.PreRoundLobby:
-                if (!_configurationManager.GetCVar(CCVars.OocEnableDuringRound))
+                if (!_oocEnableDuringRound)
                     _configurationManager.SetCVar(CCVars.OocEnabled, true);
                 break;
         }
@@ -210,7 +214,7 @@ public sealed partial class ChatSystem : SharedChatSystem
         }
 
         bool shouldCapitalize = (desiredType != InGameICChatType.Emote);
-        bool shouldPunctuate = _configurationManager.GetCVar(CCVars.ChatPunctuation);
+        bool shouldPunctuate = _chatPunctuation;
         // Capitalizing the word I only happens in English, so we check language here
         bool shouldCapitalizeTheWordI = (!CultureInfo.CurrentCulture.IsNeutralCulture && CultureInfo.CurrentCulture.Parent.Name == "en")
             || (CultureInfo.CurrentCulture.IsNeutralCulture && CultureInfo.CurrentCulture.Name == "en");

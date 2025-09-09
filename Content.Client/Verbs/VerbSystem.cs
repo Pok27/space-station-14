@@ -51,12 +51,7 @@ namespace Content.Client.Verbs
             base.Initialize();
 
             SubscribeNetworkEvent<VerbsResponseEvent>(HandleVerbResponse);
-            Subs.CVar(_cfg, CCVars.GameEntityMenuLookup, OnLookupChanged, true);
-        }
-
-        private void OnLookupChanged(float val)
-        {
-            _lookupSize = val;
+            Subs.CVar(_cfg, CCVars.GameEntityMenuLookup, v => _lookupSize = v, true);
         }
 
         /// <summary>

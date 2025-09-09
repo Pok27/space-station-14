@@ -13,9 +13,17 @@ public sealed class MobCollisionSystem : SharedMobCollisionSystem
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly IPlayerManager _player = default!;
 
+    private bool _mobPushingEnabled;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        Subs.CVar(CfgManager, CCVars.MovementMobPushing, b => _mobPushingEnabled = b, true);
+    }
+
     public override void Update(float frameTime)
     {
-        if (!CfgManager.GetCVar(CCVars.MovementMobPushing))
+        if (!_mobPushingEnabled)
             return;
 
         if (_timing.IsFirstTimePredicted)

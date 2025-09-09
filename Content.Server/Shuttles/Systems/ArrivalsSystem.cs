@@ -66,6 +66,11 @@ public sealed class ArrivalsSystem : EntitySystem
     private EntityQuery<ArrivalsBlacklistComponent> _blacklistQuery;
     private EntityQuery<MobStateComponent> _mobQuery;
 
+    private bool _arrivalsReturns;
+    private float _arrivalsCooldown;
+    private string _arrivalsMap = default!;
+    private bool _arrivalsPlanet;
+
     /// <summary>
     /// If enabled then spawns players on an alternate map so they can take a shuttle to the station.
     /// </summary>
@@ -110,8 +115,12 @@ public sealed class ArrivalsSystem : EntitySystem
         _mobQuery = GetEntityQuery<MobStateComponent>();
 
         // Don't invoke immediately as it will get set in the natural course of things.
-        Enabled = _cfgManager.GetCVar(CCVars.ArrivalsShuttles);
-        ArrivalsGodmode = _cfgManager.GetCVar(CCVars.GodmodeArrivals);
+        Subs.CVar(_cfgManager, CCVars.ArrivalsShuttles, b => Enabled = b, true);
+        Subs.CVar(_cfgManager, CCVars.GodmodeArrivals, b => ArrivalsGodmode = b, true);
+        Subs.CVar(_cfgManager, CCVars.ArrivalsReturns, b => _arrivalsReturns = b, true);
+        Subs.CVar(_cfgManager, CCVars.ArrivalsCooldown, f => _arrivalsCooldown = f, true);
+        Subs.CVar(_cfgManager, CCVars.ArrivalsMap, s => _arrivalsMap = s, true);
+        Subs.CVar(_cfgManager, CCVars.ArrivalsPlanet, b => _arrivalsPlanet = b, true);
 
         _cfgManager.OnValueChanged(CCVars.ArrivalsShuttles, SetArrivals);
         _cfgManager.OnValueChanged(CCVars.GodmodeArrivals, b => ArrivalsGodmode = b);
@@ -164,7 +173,7 @@ public sealed class ArrivalsSystem : EntitySystem
                 _cfgManager.SetCVar(CCVars.ArrivalsShuttles, false);
                 break;
             case "returns":
-                var existing = _cfgManager.GetCVar(CCVars.ArrivalsReturns);
+                var existing = _arrivalsReturns;
                 _cfgManager.SetCVar(CCVars.ArrivalsReturns, !existing);
                 shell.WriteLine(Loc.GetString("cmd-arrivals-returns", ("value", !existing)));
                 break;
@@ -219,7 +228,7 @@ public sealed class ArrivalsSystem : EntitySystem
 
             // unfortunate levels of spaghetti due to roundstart arrivals ftl behavior
             EntityUid? sourceMap;
-            var arrivalsDelay = _cfgManager.GetCVar(CCVars.ArrivalsCooldown);
+            var arrivalsDelay = _arrivalsCooldown;
 
             if (component.FirstRun)
             {
@@ -245,7 +254,7 @@ public sealed class ArrivalsSystem : EntitySystem
             return;
 
         // Any mob then yeet them off the shuttle.
-        if (!_cfgManager.GetCVar(CCVars.ArrivalsReturns) && args.FromMapUid != null)
+        if (!_arrivalsReturns && args.FromMapUid != null)
             DumpChildren(shuttleUid, ref args);
 
         var pendingQuery = AllEntityQuery<PendingClockInComponent, TransformComponent>();
@@ -493,10 +502,10 @@ public sealed class ArrivalsSystem : EntitySystem
                     // The ArrivalsCooldown includes the trip there, so we only need to add the time taken for
                     // the trip back.
                     comp.NextArrivalsTime = _timing.CurTime + TimeSpan.FromSeconds(
-                        _cfgManager.GetCVar(CCVars.ArrivalsCooldown) + tripTime);
+                        _arrivalsCooldown + tripTime);
                 }
 
-                comp.NextTransfer += TimeSpan.FromSeconds(_cfgManager.GetCVar(CCVars.ArrivalsCooldown));
+                comp.NextTransfer += TimeSpan.FromSeconds(_arrivalsCooldown);
             }
         }
     }
@@ -512,7 +521,7 @@ public sealed class ArrivalsSystem : EntitySystem
 
     private void SetupArrivalsStation()
     {
-        var path = new ResPath(_cfgManager.GetCVar(CCVars.ArrivalsMap));
+        var path = new ResPath(_arrivalsMap);
         _mapSystem.CreateMap(out var mapId, runMapInit: false);
         var mapUid = _mapSystem.GetMap(mapId);
 
@@ -526,7 +535,7 @@ public sealed class ArrivalsSystem : EntitySystem
         EnsureComp<PreventPilotComponent>(grid.Value);
 
         // Setup planet arrivals if relevant
-        if (_cfgManager.GetCVar(CCVars.ArrivalsPlanet))
+        if (_arrivalsPlanet)
         {
             var template = _random.Pick(_arrivalsBiomeOptions);
             _biomes.EnsurePlanet(mapUid, _protoManager.Index(template));
@@ -606,7 +615,7 @@ public sealed class ArrivalsSystem : EntitySystem
             arrivalsComp.Station = uid;
             EnsureComp<ProtectedGridComponent>(uid);
             _shuttles.FTLToDock(component.Shuttle, shuttleComp, arrivals, hyperspaceTime: RoundStartFTLDuration);
-            arrivalsComp.NextTransfer = _timing.CurTime + TimeSpan.FromSeconds(_cfgManager.GetCVar(CCVars.ArrivalsCooldown));
+            arrivalsComp.NextTransfer = _timing.CurTime + TimeSpan.FromSeconds(_arrivalsCooldown);
         }
 
         // Don't start the arrivals shuttle immediately docked so power has a time to stabilise?

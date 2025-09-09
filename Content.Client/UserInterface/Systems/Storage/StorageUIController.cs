@@ -65,31 +65,12 @@ public sealed class StorageUIController : UIController, IOnSystemChanged<Storage
     {
         base.Initialize();
 
-        _configuration.OnValueChanged(CCVars.StaticStorageUI, OnStaticStorageChanged, true);
-        _configuration.OnValueChanged(CCVars.OpaqueStorageWindow, OnOpaqueWindowChanged, true);
-        _configuration.OnValueChanged(CCVars.StorageWindowTitle, OnStorageWindowTitle, true);
-        _configuration.OnValueChanged(CCVars.StorageLimit, OnStorageLimitChanged, true);
+        _configuration.OnValueChanged(CCVars.StaticStorageUI, b => StaticStorageUIEnabled = b, true);
+        _configuration.OnValueChanged(CCVars.OpaqueStorageWindow, b => OpaqueStorageWindow = b, true);
+        _configuration.OnValueChanged(CCVars.StorageWindowTitle, b => WindowTitle = b, true);
+        _configuration.OnValueChanged(CCVars.StorageLimit, i => _openStorageLimit = i, true);
     }
 
-    private void OnStorageLimitChanged(int obj)
-    {
-        _openStorageLimit = obj;
-    }
-
-    private void OnStorageWindowTitle(bool obj)
-    {
-        WindowTitle = obj;
-    }
-
-    private void OnOpaqueWindowChanged(bool obj)
-    {
-        OpaqueStorageWindow = obj;
-    }
-
-    private void OnStaticStorageChanged(bool obj)
-    {
-        StaticStorageUIEnabled = obj;
-    }
 
     public StorageWindow CreateStorageWindow(StorageBoundUserInterface sBui)
     {

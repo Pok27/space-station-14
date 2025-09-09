@@ -33,6 +33,8 @@ public sealed class MappingSystem : EntitySystem
     private Dictionary<EntityUid, (TimeSpan next, string fileName)> _currentlyAutosaving = new();
 
     private bool _autosaveEnabled;
+    private string _autosaveDirectory = string.Empty;
+    private float _autosaveInterval;
 
     public override void Initialize()
     {
@@ -44,6 +46,8 @@ public sealed class MappingSystem : EntitySystem
             ToggleAutosaveCommand);
 
         Subs.CVar(_cfg, CCVars.AutosaveEnabled, SetAutosaveEnabled, true);
+        Subs.CVar(_cfg, CCVars.AutosaveDirectory, s => _autosaveDirectory = s, true);
+        Subs.CVar(_cfg, CCVars.AutosaveInterval, f => _autosaveInterval = f, true);
     }
 
     private void SetAutosaveEnabled(bool b)
@@ -73,7 +77,7 @@ public sealed class MappingSystem : EntitySystem
             }
 
             _currentlyAutosaving[uid] = (CalculateNextTime(), name);
-            var saveDir = Path.Combine(_cfg.GetCVar(CCVars.AutosaveDirectory), name).Replace(Path.DirectorySeparatorChar, '/');
+            var saveDir = Path.Combine(_autosaveDirectory, name).Replace(Path.DirectorySeparatorChar, '/');
             _resMan.UserData.CreateDir(new ResPath(saveDir).ToRootedPath());
 
             var path = new ResPath(Path.Combine(saveDir, $"{DateTime.Now:yyyy-M-dd_HH.mm.ss}-AUTO.yml"));
@@ -88,7 +92,7 @@ public sealed class MappingSystem : EntitySystem
 
     private TimeSpan CalculateNextTime()
     {
-        return _timing.RealTime + TimeSpan.FromSeconds(_cfg.GetCVar(CCVars.AutosaveInterval));
+        return _timing.RealTime + TimeSpan.FromSeconds(_autosaveInterval);
     }
 
     private double ReadableTimeLeft(EntityUid uid)

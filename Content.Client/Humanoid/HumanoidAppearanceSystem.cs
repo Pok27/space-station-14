@@ -20,13 +20,17 @@ public sealed class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
     [Dependency] private readonly DisplacementMapSystem _displacement = default!;
     [Dependency] private readonly SpriteSystem _sprite = default!;
 
+    private bool _clientCensorNudity;
+    private bool _serverCensorNudity;
+
     public override void Initialize()
     {
         base.Initialize();
 
+        Subs.CVar(_configurationManager, CCVars.AccessibilityClientCensorNudity, b => _clientCensorNudity = b, true);
+        Subs.CVar(_configurationManager, CCVars.AccessibilityServerCensorNudity, b => _serverCensorNudity = b, true);
+
         SubscribeLocalEvent<HumanoidAppearanceComponent, AfterAutoHandleStateEvent>(OnHandleState);
-        Subs.CVar(_configurationManager, CCVars.AccessibilityClientCensorNudity, OnCvarChanged, true);
-        Subs.CVar(_configurationManager, CCVars.AccessibilityServerCensorNudity, OnCvarChanged, true);
     }
 
     private void OnHandleState(EntityUid uid, HumanoidAppearanceComponent component, ref AfterAutoHandleStateEvent args)
@@ -236,8 +240,7 @@ public sealed class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
         // Really, markings should probably be a separate component altogether.
         ClearAllMarkings(entity);
 
-        var censorNudity = _configurationManager.GetCVar(CCVars.AccessibilityClientCensorNudity) ||
-                           _configurationManager.GetCVar(CCVars.AccessibilityServerCensorNudity);
+        var censorNudity = _clientCensorNudity || _serverCensorNudity;
         // The reason we're splitting this up is in case the character already has undergarment equipped in that slot.
         var applyUndergarmentTop = censorNudity;
         var applyUndergarmentBottom = censorNudity;
