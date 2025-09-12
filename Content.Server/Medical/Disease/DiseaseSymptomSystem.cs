@@ -13,6 +13,7 @@ using Robust.Server.Audio;
 using Robust.Shared.Audio;
 using Robust.Shared.Map;
 using Robust.Shared.Timing;
+using Content.Shared.Humanoid;
 
 namespace Content.Server.Medical.Disease;
 
@@ -59,6 +60,10 @@ public sealed class DiseaseSymptomSystem : EntitySystem
                     DoFever(ent, fever);
                     break;
 
+                case SymptomJitter jitter:
+                    DoJitter(ent, jitter);
+                    break;
+
                 default:
                     break;
             }
@@ -66,6 +71,7 @@ public sealed class DiseaseSymptomSystem : EntitySystem
         // Apply configurable effects for any symptom. If not configured in YAML, these are no-ops.
         ApplyAirborne(symptom, ent, disease);
         ApplyCloud(symptom, ent, disease);
+        LeaveResidue(symptom, ent, disease);
     }
 
     /// <summary>
@@ -80,13 +86,7 @@ public sealed class DiseaseSymptomSystem : EntitySystem
         var variation = exhale.SoundVariation;
         PlayGenderedSound(ent, CoughMale, CoughFemale, volume, variation);
 
-        var jitterSeconds = exhale.JitterSeconds;
-        var jitterAmplitude = exhale.JitterAmplitude;
-        var jitterFrequency = exhale.JitterFrequency;
-        _jitter.DoJitter(ent, TimeSpan.FromSeconds(jitterSeconds), false, jitterAmplitude, jitterFrequency);
-
-        var residue = exhale.ResidueIntensity;
-        LeaveResidue(ent, residue);
+        _jitter.DoJitter(ent, TimeSpan.FromSeconds(2), refresh: false, amplitude: 6f, frequency: 3f, forceValueChange: false);
     }
 
     /// <summary>
@@ -107,6 +107,14 @@ public sealed class DiseaseSymptomSystem : EntitySystem
         _stutter.DoStutter(ent, TimeSpan.FromSeconds(8), refresh: false);
     }
 
+    private void DoJitter(Entity<DiseaseCarrierComponent> ent, SymptomJitter jitter)
+    {
+        var jitterSeconds = jitter.JitterSeconds;
+        var jitterAmplitude = jitter.JitterAmplitude;
+        var jitterFrequency = jitter.JitterFrequency;
+        _jitter.DoJitter(ent, TimeSpan.FromSeconds(jitterSeconds), false, jitterAmplitude, jitterFrequency);
+    }
+
     /// <summary>
     /// Plays a gendered sound collection; currently defaults to male collection.
     /// </summary>
@@ -118,15 +126,21 @@ public sealed class DiseaseSymptomSystem : EntitySystem
     /// <summary>
     /// Leaves residue on the ground containing current carrier diseases.
     /// </summary>
-    private void LeaveResidue(Entity<DiseaseCarrierComponent> ent, float intensity)
+    private void LeaveResidue(DiseaseSymptomPrototype symptom, Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease)
     {
+        var cfg = symptom.LeaveResidue;
+        if (!cfg.Enabled)
+            return;
+
         var coords = Transform(ent).Coordinates;
         var residue = EntityManager.SpawnEntity("DiseaseResidueTile", coords);
         var comp = EnsureComp<DiseaseResidueComponent>(residue);
+
         comp.Diseases.Clear();
         foreach (var (id, _) in ent.Comp.ActiveDiseases)
             comp.Diseases.Add(id);
-        comp.Intensity = Math.Clamp(intensity, 0.1f, 1f);
+
+        comp.Intensity = Math.Clamp(cfg.ResidueIntensity, 0.1f, 1f);
     }
 
     /// <summary>
@@ -135,8 +149,9 @@ public sealed class DiseaseSymptomSystem : EntitySystem
     private void ApplyCloud(DiseaseSymptomPrototype symptom, Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease)
     {
         var cfg = symptom.Cloud;
-        if (cfg == null)
+        if (!cfg.Enabled)
             return;
+
         SpawnCloud(ent, disease, cfg.Range, cfg.LifetimeSeconds, cfg.TickIntervalSeconds, cfg.InfectChance);
     }
 
@@ -146,8 +161,9 @@ public sealed class DiseaseSymptomSystem : EntitySystem
     private void ApplyAirborne(DiseaseSymptomPrototype symptom, Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease)
     {
         var cfg = symptom.Airborne;
-        if (cfg == null)
+        if (!cfg.Enabled)
             return;
+
         SpreadAirborne(ent, disease, cfg.Range, cfg.BaseChance);
     }
 
@@ -173,7 +189,7 @@ public sealed class DiseaseSymptomSystem : EntitySystem
     /// </summary>
     private void SpreadAirborne(Entity<DiseaseCarrierComponent> source, DiseasePrototype disease, float range, float baseChance)
     {
-        if (!disease.SpreadFlags.HasFlag(DiseaseSpreadFlags.Airborne))
+        if (!_disease.HasSpreadFlag(disease, DiseaseSpreadFlags.Airborne))
             return;
 
         var mapPos = _transformSystem.GetMapCoordinates(source);
@@ -193,7 +209,7 @@ public sealed class DiseaseSymptomSystem : EntitySystem
             if (!_interaction.InRangeUnobstructed(source.Owner, other, range))
                 continue;
 
-            var chance = AdjustChanceForPPE(other, baseChance);
+            var chance = AdjustChanceForPPE(other, baseChance, disease);
             _disease.TryInfectWithChance(other, disease.ID, chance, 1);
         }
     }
@@ -201,10 +217,13 @@ public sealed class DiseaseSymptomSystem : EntitySystem
     /// <summary>
     /// Applies simple PPE modifiers (mask/head slots) to airborne infection chance.
     /// </summary>
-    private float AdjustChanceForPPE(EntityUid target, float baseChance)
+    private float AdjustChanceForPPE(EntityUid target, float baseChance, DiseasePrototype? disease = null)
     {
         var chance = baseChance;
-        if (_inventory.TryGetSlotEntity(target, "mask", out var maskUid) && TryComp<MaskComponent>(maskUid, out var mask))
+        // Respect disease-level override for ignoring mask PPE
+        var considerMask = disease == null || !disease.IgnoreMaskPPE;
+
+        if (considerMask && _inventory.TryGetSlotEntity(target, "mask", out var maskUid) && TryComp<MaskComponent>(maskUid, out var mask))
         {
             if (!mask.IsToggled)
                 chance *= 0.5f;

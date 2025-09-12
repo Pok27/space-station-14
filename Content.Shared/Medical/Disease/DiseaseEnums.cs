@@ -13,9 +13,8 @@ public enum DiseaseSeverity
 }
 
 /// <summary>
-/// Bitflags describing disease transmission vectors.
+/// Enumeration describing disease transmission vectors.
 /// </summary>
-[Flags]
 public enum DiseaseSpreadFlags
 {
     None = 0,

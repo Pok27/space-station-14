@@ -2,7 +2,8 @@
   id: Flu
   name: Common Flu
   stageSpeed: 0.8
-  spreadFlags: Airborne
+  spreadFlags: [Airborne]
+  ignoreMaskPPE: false
   severity: Minor
   stages:
   - stage: 1
@@ -20,7 +21,8 @@
   id: FoodPoisoning
   name: Food Poisoning
   stageSpeed: 1.2
-  spreadFlags: None
+  spreadFlags: []
+  ignoreMaskPPE: true
   severity: Moderate
   stages:
   - stage: 1

@@ -2,14 +2,6 @@
   id: Cough
   name: Coughing
   triggerProb: 0.07
-  cloud:
-    range: 1.2
-    infectChance: 0.08
-    tickInterval: 1.0
-    lifetime: 6.0
-  airborne:
-    range: 1.5
-    baseChance: 0.25
   behaviors:
   - !type:SymptomExhale
 
@@ -37,5 +29,11 @@
   id: Vomit
   name: Vomiting
   triggerProb: 0.03
+  cloud:
+    enabled: false
+  airborne:
+    enabled: false
+  leaveResidue:
+    enabled: false
   behaviors:
   - !type:SymptomVomit

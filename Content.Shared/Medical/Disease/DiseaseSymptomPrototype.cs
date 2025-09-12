@@ -35,18 +35,22 @@ public sealed partial class DiseaseSymptomPrototype : IPrototype
     public ProtoId<StatusEffectPrototype>? StatusEffect { get; private set; }
 
     /// <summary>
-    /// Optional per-symptom cloud-emitter configuration.
-    /// When present, a cloud will be spawned using these parameters when the symptom triggers.
+    /// Configuration for cloud.
     /// </summary>
     [DataField]
-    public SymptomCloud? Cloud { get; private set; }
+    public SymptomCloud Cloud { get; private set; } = new();
 
     /// <summary>
-    /// Optional per-symptom airborne spread configuration.
-    /// When present, nearby entities can be infected using these parameters (if the disease allows airborne spread).
+    /// Configuration for airborne spread.
     /// </summary>
     [DataField]
-    public SymptomAirborne? Airborne { get; private set; }
+    public SymptomAirborne Airborne { get; private set; } = new();
+
+    /// <summary>
+    /// Configuration for leaving residue.
+    /// </summary>
+    [DataField]
+    public SymptomLeaveResidue LeaveResidue { get; private set; } = new();
 }
 
 /// <summary>
@@ -55,6 +59,12 @@ public sealed partial class DiseaseSymptomPrototype : IPrototype
 [DataDefinition]
 public sealed partial class SymptomCloud
 {
+    /// <summary>
+    ///
+    /// </summary>
+    [DataField]
+    public bool Enabled { get; private set; } = true;
+
     /// <summary>
     /// Cloud infection radius in world units.
     /// </summary>
@@ -87,6 +97,12 @@ public sealed partial class SymptomCloud
 public sealed partial class SymptomAirborne
 {
     /// <summary>
+    ///
+    /// </summary>
+    [DataField]
+    public bool Enabled { get; private set; } = true;
+
+    /// <summary>
     /// Airborne infection radius in world units.
     /// </summary>
     [DataField]
@@ -97,4 +113,20 @@ public sealed partial class SymptomAirborne
     /// </summary>
     [DataField]
     public float BaseChance { get; private set; } = 0.25f;
+}
+
+[DataDefinition]
+public sealed partial class SymptomLeaveResidue
+{
+    /// <summary>
+    ///
+    /// </summary>
+    [DataField]
+    public bool Enabled { get; private set; } = true;
+
+    /// <summary>
+    ///
+    /// </summary>
+    [DataField]
+    public float ResidueIntensity { get; private set; } = 0.5f;
 }

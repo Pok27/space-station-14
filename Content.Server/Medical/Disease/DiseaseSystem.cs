@@ -58,7 +58,9 @@ public sealed class DiseaseSystem : EntitySystem
             foreach (var (id, _) in userCarrier!.ActiveDiseases)
             {
                 // small chance on contact, with central eligibility
-                TryInfectWithChance(other, id, 0.15f);
+                var proto = _prototypes.Index<DiseasePrototype>(id);
+                if (HasSpreadFlag(proto, DiseaseSpreadFlags.Contact))
+                    TryInfectWithChance(other, id, 0.15f);
             }
         }
 
@@ -66,7 +68,9 @@ public sealed class DiseaseSystem : EntitySystem
         {
             foreach (var (id, _) in target.Comp.ActiveDiseases)
             {
-                TryInfectWithChance(user, id, 0.15f);
+                var proto = _prototypes.Index<DiseasePrototype>(id);
+                if (HasSpreadFlag(proto, DiseaseSpreadFlags.Contact))
+                    TryInfectWithChance(user, id, 0.15f);
             }
         }
     }
@@ -233,5 +237,21 @@ public sealed class DiseaseSystem : EntitySystem
 
         carrier.NextTick = _timing.CurTime + TickDelay;
         return true;
+    }
+
+    /// <summary>
+    /// Helper to check whether a disease prototype defines a given spread vector.
+    /// Centralizes access for the new list-based `SpreadFlags` on prototypes.
+    /// </summary>
+    public bool HasSpreadFlag(DiseasePrototype proto, DiseaseSpreadFlags flag)
+    {
+        if (proto == null)
+            return false;
+
+        // If prototype uses the new list form
+        if (proto.SpreadFlags != null && proto.SpreadFlags.Count > 0)
+            return proto.SpreadFlags.Contains(flag);
+
+        return false;
     }
 }

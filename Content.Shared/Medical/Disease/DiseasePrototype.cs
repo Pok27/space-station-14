@@ -32,10 +32,17 @@ public sealed partial class DiseasePrototype : IPrototype
     public List<DiseaseStage> Stages { get; private set; } = new();
 
     /// <summary>
-    /// Spread vectors for this disease.
+    /// Spread vectors for this disease. Use a list so multiple vectors can be selected in prototypes.
+    /// Example YAML: spreadFlags: [Airborne, Contact]
     /// </summary>
     [DataField]
-    public DiseaseSpreadFlags SpreadFlags { get; private set; } = DiseaseSpreadFlags.None;
+    public List<DiseaseSpreadFlags> SpreadFlags { get; private set; } = new();
+
+    /// <summary>
+    /// If true, masks (mask slot PPE) will not reduce airborne infection chance for this disease.
+    /// </summary>
+    [DataField]
+    public bool IgnoreMaskPPE { get; private set; } = false;
 
     /// <summary>
     /// Severity band for administrative/UX use.

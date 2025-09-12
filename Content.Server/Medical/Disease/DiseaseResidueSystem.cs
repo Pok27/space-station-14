@@ -3,6 +3,7 @@ using Content.Shared.Interaction.Events;
 using Content.Shared.Medical.Disease;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Map;
 using Robust.Shared.Timing;
 
@@ -17,7 +18,7 @@ public sealed class DiseaseResidueSystem : EntitySystem
     [Dependency] private readonly EntityLookupSystem _lookup = default!;
     [Dependency] private readonly SharedTransformSystem _xform = default!;
     [Dependency] private readonly DiseaseSystem _disease = default!;
-
+    [Dependency] private readonly IPrototypeManager _prototypes = default!;
 
     public override void Initialize()
     {
@@ -62,7 +63,9 @@ public sealed class DiseaseResidueSystem : EntitySystem
                     continue;
                 foreach (var id in residue.Diseases)
                 {
-                    _disease.TryInfectWithChance(ent, id, chance, 1);
+                    var proto = _prototypes.Index<DiseasePrototype>(id);
+                    if (_disease.HasSpreadFlag(proto, DiseaseSpreadFlags.Contact))
+                        _disease.TryInfectWithChance(ent, id, chance, 1);
                 }
             }
         }

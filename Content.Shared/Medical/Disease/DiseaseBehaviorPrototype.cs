@@ -4,7 +4,7 @@ namespace Content.Shared.Medical.Disease;
 /// Base class for symptom behavior configurations.
 /// </summary>
 [DataDefinition]
-public partial class SymptomBehavior
+public abstract partial class SymptomBehavior
 {
 }
 
@@ -28,7 +28,21 @@ public sealed partial class SymptomExhale : SymptomBehavior
     /// </summary>
     [DataField]
     public float SoundVariation { get; private set; } = 0.1f;
+}
 
+[DataDefinition]
+public sealed partial class SymptomVomit : SymptomBehavior
+{
+}
+
+[DataDefinition]
+public sealed partial class SymptomFever : SymptomBehavior
+{
+}
+
+[DataDefinition]
+public sealed partial class SymptomJitter : SymptomBehavior
+{
     /// <summary>
     /// Jitter duration in seconds.
     /// </summary>
@@ -46,20 +60,4 @@ public sealed partial class SymptomExhale : SymptomBehavior
     /// </summary>
     [DataField]
     public float JitterFrequency { get; private set; } = 3.0f;
-
-    /// <summary>
-    /// Residue intensity left after the behavior.
-    /// </summary>
-    [DataField]
-    public float ResidueIntensity { get; private set; } = 0.5f;
-}
-
-[DataDefinition]
-public sealed partial class SymptomVomit : SymptomBehavior
-{
-}
-
-[DataDefinition]
-public sealed partial class SymptomFever : SymptomBehavior
-{
 }
