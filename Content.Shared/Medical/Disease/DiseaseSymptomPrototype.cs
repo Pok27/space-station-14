@@ -17,16 +17,10 @@ public sealed partial class DiseaseSymptomPrototype : IPrototype
     public string Name { get; private set; } = string.Empty;
 
     /// <summary>
-    /// Minimum stage this symptom begins to be eligible.
+    /// Behavior variants configured by name. Each entry has a type name and inline parameters.
     /// </summary>
     [DataField]
-    public int MinStage { get; private set; } = 1;
-
-    /// <summary>
-    /// Which built-in behavior should be used by the server system.
-    /// </summary>
-    [DataField]
-    public SymptomBehavior Behavior { get; private set; } = SymptomBehavior.None;
+    public List<SymptomBehavior> Behaviors { get; private set; } = new();
 
     /// <summary>
     /// Probability per tick to trigger behavior when eligible (0-1).
@@ -45,21 +39,21 @@ public sealed partial class DiseaseSymptomPrototype : IPrototype
     /// When present, a cloud will be spawned using these parameters when the symptom triggers.
     /// </summary>
     [DataField]
-    public SymptomCloudConfig? Cloud { get; private set; }
+    public SymptomCloud? Cloud { get; private set; }
 
     /// <summary>
     /// Optional per-symptom airborne spread configuration.
     /// When present, nearby entities can be infected using these parameters (if the disease allows airborne spread).
     /// </summary>
     [DataField]
-    public SymptomAirborneConfig? Airborne { get; private set; }
+    public SymptomAirborne? Airborne { get; private set; }
 }
 
 /// <summary>
 /// Configuration for spawning a transient disease cloud when a symptom triggers.
 /// </summary>
 [DataDefinition]
-public sealed partial class SymptomCloudConfig
+public sealed partial class SymptomCloud
 {
     /// <summary>
     /// Cloud infection radius in world units.
@@ -90,7 +84,7 @@ public sealed partial class SymptomCloudConfig
 /// Configuration for symptom-driven airborne spread.
 /// </summary>
 [DataDefinition]
-public sealed partial class SymptomAirborneConfig
+public sealed partial class SymptomAirborne
 {
     /// <summary>
     /// Airborne infection radius in world units.

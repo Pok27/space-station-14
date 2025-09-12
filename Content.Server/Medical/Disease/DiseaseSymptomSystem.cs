@@ -43,70 +43,76 @@ public sealed class DiseaseSymptomSystem : EntitySystem
     /// </summary>
     public void TriggerSymptom(Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease, DiseaseSymptomPrototype symptom)
     {
-        switch (symptom.Behavior)
+        foreach (var variant in symptom.Behaviors)
         {
-            case SymptomBehavior.Cough:
-                DoCough(ent);
-                break;
+            switch (variant)
+            {
+                case SymptomExhale exhale:
+                    DoExhale(ent, exhale);
+                    break;
 
-            case SymptomBehavior.Sneeze:
-                DoSneeze(ent);
-                break;
+                case SymptomVomit vomit:
+                    DoVomit(ent, vomit);
+                    break;
 
-            case SymptomBehavior.Vomit:
-                _vomit.Vomit(ent, force: true);
-                _jitter.DoJitter(ent, TimeSpan.FromSeconds(3), refresh: false, amplitude: 8f, frequency: 3.5f, forceValueChange: false);
-                break;
+                case SymptomFever fever:
+                    DoFever(ent, fever);
+                    break;
 
-            case SymptomBehavior.Fever:
-                _popup.PopupEntity(Loc.GetString("disease-fever"), ent, PopupType.Medium);
-                _stutter.DoStutter(ent, TimeSpan.FromSeconds(8), refresh: false);
-                break;
+                default:
+                    break;
+            }
         }
-
         // Apply configurable effects for any symptom. If not configured in YAML, these are no-ops.
         ApplyAirborne(symptom, ent, disease);
         ApplyCloud(symptom, ent, disease);
     }
 
     /// <summary>
-    /// Applies symptom-configured cloud spawning if configured.
+    /// Unified exhale action (cough or sneeze): popup, sound, jitter, residue.
     /// </summary>
-    private void ApplyCloud(DiseaseSymptomPrototype symptom, Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease)
+    private void DoExhale(Entity<DiseaseCarrierComponent> ent, SymptomExhale exhale)
     {
-        if (symptom.Cloud == null)
-            return;
+        var key = exhale.PopupText;
+        _popup.PopupEntity(Loc.GetString(key), ent, PopupType.Small);
 
-        var cfg = symptom.Cloud;
-        SpawnCloud(ent, disease, cfg.Range, cfg.LifetimeSeconds, cfg.TickIntervalSeconds, cfg.InfectChance);
+        var volume = exhale.SoundVolume;
+        var variation = exhale.SoundVariation;
+        PlayGenderedSound(ent, CoughMale, CoughFemale, volume, variation);
+
+        var jitterSeconds = exhale.JitterSeconds;
+        var jitterAmplitude = exhale.JitterAmplitude;
+        var jitterFrequency = exhale.JitterFrequency;
+        _jitter.DoJitter(ent, TimeSpan.FromSeconds(jitterSeconds), false, jitterAmplitude, jitterFrequency);
+
+        var residue = exhale.ResidueIntensity;
+        LeaveResidue(ent, residue);
     }
 
     /// <summary>
-    /// Applies symptom-configured airborne spread if configured and disease supports airborne spread.
+    /// Vomit behavior with configurable parameters.
     /// </summary>
-    private void ApplyAirborne(DiseaseSymptomPrototype symptom, Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease)
+    private void DoVomit(Entity<DiseaseCarrierComponent> ent, SymptomVomit vomit)
     {
-        if (symptom.Airborne == null)
-            return;
-
-        SpreadAirborne(ent, disease, symptom.Airborne.Range, symptom.Airborne.BaseChance);
+        _vomit.Vomit(ent, force: true);
+        _jitter.DoJitter(ent, TimeSpan.FromSeconds(3), refresh: false, amplitude: 8f, frequency: 3.5f, forceValueChange: false);
     }
 
     /// <summary>
-    /// Spawns a transient disease cloud with specified parameters at the carrier's position.
+    /// Fever behavior with configurable parameters.
     /// </summary>
-    private void SpawnCloud(Entity<DiseaseCarrierComponent> src, DiseasePrototype disease, float range, float lifetime, float tick, float chance)
+    private void DoFever(Entity<DiseaseCarrierComponent> ent, SymptomFever fever)
     {
-        var uid = EntityManager.SpawnEntity("DiseaseCloudEffect", Transform(src).Coordinates);
-        var cloud = EnsureComp<DiseaseCloudComponent>(uid);
-        cloud.Diseases.Clear();
-        cloud.Diseases.Add(disease.ID);
-        cloud.Range = range;
-        cloud.InfectChance = chance;
-        cloud.TickInterval = TimeSpan.FromSeconds(tick);
-        cloud.Lifetime = TimeSpan.FromSeconds(lifetime);
-        cloud.NextTick = _timing.CurTime + cloud.TickInterval;
-        cloud.Expiry = _timing.CurTime + cloud.Lifetime;
+        _popup.PopupEntity(Loc.GetString("disease-fever"), ent, PopupType.Medium);
+        _stutter.DoStutter(ent, TimeSpan.FromSeconds(8), refresh: false);
+    }
+
+    /// <summary>
+    /// Plays a gendered sound collection; currently defaults to male collection.
+    /// </summary>
+    private void PlayGenderedSound(EntityUid uid, SoundSpecifier male, SoundSpecifier female, float volume, float variation)
+    {
+        _audio.PlayPvs(male, uid, AudioParams.Default.WithVolume(volume).WithVariation(variation));
     }
 
     /// <summary>
@@ -124,33 +130,42 @@ public sealed class DiseaseSymptomSystem : EntitySystem
     }
 
     /// <summary>
-    /// Coughs: popup, sound, brief jitter, slowdown, and residue.
+    /// Applies symptom-configured cloud spawning if configured.
     /// </summary>
-    private void DoCough(Entity<DiseaseCarrierComponent> ent)
+    private void ApplyCloud(DiseaseSymptomPrototype symptom, Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease)
     {
-        _popup.PopupEntity(Loc.GetString("disease-cough"), ent, PopupType.Small);
-        PlayGenderedSound(ent, CoughMale, CoughFemale, -2f, 0.1f);
-        _jitter.DoJitter(ent, TimeSpan.FromSeconds(2), refresh: false, amplitude: 6f, frequency: 3.0f);
-        LeaveResidue(ent, 0.5f);
+        var cfg = symptom.Cloud;
+        if (cfg == null)
+            return;
+        SpawnCloud(ent, disease, cfg.Range, cfg.LifetimeSeconds, cfg.TickIntervalSeconds, cfg.InfectChance);
     }
 
     /// <summary>
-    /// Sneezes: popup, sound, mild jitter, and residue.
+    /// Applies symptom-configured airborne spread if configured and disease supports airborne spread.
     /// </summary>
-    private void DoSneeze(Entity<DiseaseCarrierComponent> ent)
+    private void ApplyAirborne(DiseaseSymptomPrototype symptom, Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease)
     {
-        _popup.PopupEntity(Loc.GetString("disease-sneeze"), ent, PopupType.Small);
-        PlayGenderedSound(ent, SneezeMale, SneezeFemale, -2f, 0.1f);
-        _jitter.DoJitter(ent, TimeSpan.FromSeconds(1.2f), refresh: false, amplitude: 4f, frequency: 2.5f);
-        LeaveResidue(ent, 0.8f);
+        var cfg = symptom.Airborne;
+        if (cfg == null)
+            return;
+        SpreadAirborne(ent, disease, cfg.Range, cfg.BaseChance);
     }
 
     /// <summary>
-    /// Plays a gendered sound collection; currently defaults to male collection.
+    /// Spawns a transient disease cloud with specified parameters at the carrier's position.
     /// </summary>
-    private void PlayGenderedSound(EntityUid uid, SoundSpecifier male, SoundSpecifier female, float volume, float variation)
+    private void SpawnCloud(Entity<DiseaseCarrierComponent> src, DiseasePrototype disease, float range, float lifetime, float tick, float chance)
     {
-        _audio.PlayPvs(male, uid, AudioParams.Default.WithVolume(volume).WithVariation(variation));
+        var uid = EntityManager.SpawnEntity("DiseaseCloudEffect", Transform(src).Coordinates);
+        var cloud = EnsureComp<DiseaseCloudComponent>(uid);
+        cloud.Diseases.Clear();
+        cloud.Diseases.Add(disease.ID);
+        cloud.Range = range;
+        cloud.InfectChance = chance;
+        cloud.TickInterval = TimeSpan.FromSeconds(tick);
+        cloud.Lifetime = TimeSpan.FromSeconds(lifetime);
+        cloud.NextTick = _timing.CurTime + cloud.TickInterval;
+        cloud.Expiry = _timing.CurTime + cloud.Lifetime;
     }
 
     /// <summary>

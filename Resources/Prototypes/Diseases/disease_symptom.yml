@@ -1,8 +1,6 @@
 - type: diseaseSymptom
   id: Cough
   name: Coughing
-  minStage: 1
-  behavior: Cough
   triggerProb: 0.07
   cloud:
     range: 1.2
@@ -12,12 +10,12 @@
   airborne:
     range: 1.5
     baseChance: 0.25
+  behaviors:
+  - !type:SymptomExhale
 
 - type: diseaseSymptom
   id: Sneeze
   name: Sneezing
-  minStage: 2
-  behavior: Sneeze
   triggerProb: 0.05
   cloud:
     range: 2.0
@@ -27,10 +25,17 @@
   airborne:
     range: 3.0
     baseChance: 0.35
+  behaviors:
+  - !type:SymptomExhale
+    popupText: disease-sneeze
+    jitterSeconds: 1.2
+    jitterAmplitude: 4.0
+    jitterFrequency: 2.5
+    residueIntensity: 0.8
 
 - type: diseaseSymptom
   id: Vomit
   name: Vomiting
-  minStage: 2
-  behavior: Vomit
   triggerProb: 0.03
+  behaviors:
+  - !type:SymptomVomit

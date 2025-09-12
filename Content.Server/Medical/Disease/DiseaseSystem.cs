@@ -104,12 +104,19 @@ public sealed class DiseaseSystem : EntitySystem
 
         var query = EntityQueryEnumerator<DiseaseCarrierComponent>();
         var now = _timing.CurTime;
+        var carriersToProcess = new List<(EntityUid uid, DiseaseCarrierComponent carrier)>();
+
         while (query.MoveNext(out var uid, out var carrier))
         {
             if (carrier.NextTick > now)
                 continue;
 
             carrier.NextTick = now + TickDelay;
+            carriersToProcess.Add((uid, carrier));
+        }
+
+        foreach (var (uid, carrier) in carriersToProcess)
+        {
             ProcessCarrier((uid, carrier));
         }
     }
@@ -133,31 +140,38 @@ public sealed class DiseaseSystem : EntitySystem
                 continue;
             }
 
-            // Progression: scale advance chance strictly according to StageSpeed and time between ticks
+            // Progression: scale advance chance strictly according to StageSpeed and time between ticks.
+            // Cap by number of defined stages (or at least 1 if not configured).
             var newStage = stage;
             var perTickAdvance = Math.Clamp(disease.StageSpeed * 0.02f, 0f, 1f);
+            var maxStage = Math.Max(1, disease.Stages.Count);
             if (_random.Prob(perTickAdvance))
-                newStage = Math.Min(stage + 1, disease.MaxStages);
+                newStage = Math.Min(stage + 1, maxStage);
 
             if (newStage != stage)
                 ent.Comp.ActiveDiseases[diseaseId] = newStage;
 
-            // Trigger symptoms eligible at this stage
-            foreach (var symptomId in disease.Symptoms)
+            // Trigger symptoms configured for this stage
+            if (disease.Stages.Count > 0)
             {
-                if (!_prototypes.TryIndex<DiseaseSymptomPrototype>(symptomId, out var symptom))
-                    continue;
+                var stageCfg = disease.Stages.FirstOrDefault(s => s.Stage == newStage);
+                if (stageCfg != null)
+                {
+                    foreach (var symptomId in stageCfg.Symptoms)
+                    {
+                        if (!_prototypes.TryIndex<DiseaseSymptomPrototype>(symptomId, out var symptom))
+                            continue;
 
-                if (newStage < symptom.MinStage)
-                    continue;
+                        var prob = symptom.TriggerProbability;
+                        if (prob <= 0f)
+                            continue;
 
-                if (symptom.TriggerProbability <= 0f)
-                    continue;
+                        if (!_random.Prob(prob))
+                            continue;
 
-                if (!_random.Prob(symptom.TriggerProbability))
-                    continue;
-
-                _symptoms.TriggerSymptom(ent, disease, symptom);
+                        _symptoms.TriggerSymptom(ent, disease, symptom);
+                    }
+                }
             }
 
         }

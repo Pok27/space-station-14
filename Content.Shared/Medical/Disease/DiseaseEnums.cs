@@ -24,15 +24,3 @@ public enum DiseaseSpreadFlags
     Blood = 1 << 2,
     Special = 1 << 3,
 }
-
-/// <summary>
-/// Built-in symptom behavior identifiers.
-/// </summary>
-public enum SymptomBehavior
-{
-    None,
-    Cough,
-    Sneeze,
-    Vomit,
-    Fever,
-}

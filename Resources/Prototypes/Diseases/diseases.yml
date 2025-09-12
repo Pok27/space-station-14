@@ -1,24 +1,30 @@
 - type: disease
   id: Flu
   name: Common Flu
-  stealth: 0.2
-  resistance: 0.2
   stageSpeed: 0.8
-  maxStages: 4
   spreadFlags: Airborne
   severity: Minor
-  symptoms:
-  - Cough
-  - Sneeze
+  stages:
+  - stage: 1
+    stealth: 0.2
+    resistance: 0.2
+    symptoms:
+    - Cough
+  - stage: 2
+    stealth: 0.25
+    resistance: 0.25
+    symptoms:
+    - Sneeze
 
 - type: disease
   id: FoodPoisoning
   name: Food Poisoning
-  stealth: 0.4
-  resistance: 0.4
   stageSpeed: 1.2
-  maxStages: 3
   spreadFlags: None
   severity: Moderate
-  symptoms:
-  - Vomit
+  stages:
+  - stage: 1
+    stealth: 0.4
+    resistance: 0.4
+    symptoms:
+    - Vomit
