@@ -16,7 +16,6 @@ namespace Content.Server.Medical.Disease;
 
 /// <summary>
 /// Server system that progresses diseases, triggers symptom behaviors, and handles spread/immunity.
-/// Inspired by Paradise virology but adapted for SS14 ECS.
 /// </summary>
 public sealed class DiseaseSystem : EntitySystem
 {
@@ -200,13 +199,6 @@ public sealed class DiseaseSystem : EntitySystem
         if (!TryComp<MobStateComponent>(uid, out var mobState) || mobState.CurrentState == MobState.Dead)
             return false;
 
-        if (TryComp<DiseaseCarrierComponent>(uid, out var existingCarrier) && existingCarrier.Immunity.TryGetValue(diseaseId, out var immunityStrength))
-        {
-            // roll against immunity strength: immunityStrength of 1.0 blocks infection always, 0.0 never.
-            if (_random.Prob(immunityStrength))
-                return false;
-        }
-
         return true;
     }
 
@@ -215,11 +207,18 @@ public sealed class DiseaseSystem : EntitySystem
     /// </summary>
     public bool TryInfectWithChance(EntityUid uid, string diseaseId, float probability, int startStage = 1)
     {
+        if (!CanBeInfected(uid, diseaseId))
+            return false;
+
         if (!_random.Prob(probability))
             return false;
 
-        if (!CanBeInfected(uid, diseaseId))
-            return false;
+        if (TryComp<DiseaseCarrierComponent>(uid, out var carrier) && carrier.Immunity.TryGetValue(diseaseId, out var immunityStrength))
+        {
+            // roll against immunity strength: immunityStrength of 1.0 blocks infection always, 0.0 never.
+            if (_random.Prob(immunityStrength))
+                return false;
+        }
 
         return Infect(uid, diseaseId, startStage);
     }
@@ -232,17 +231,8 @@ public sealed class DiseaseSystem : EntitySystem
         if (!_prototypes.HasIndex<DiseasePrototype>(diseaseId))
             return false;
 
-        // Only living mobs can be infected (Alive or Critical). Prevents items/service entities from being carriers.
-        if (!TryComp<MobStateComponent>(uid, out var mobState) || mobState.CurrentState == MobState.Dead)
+        if (!TryComp<DiseaseCarrierComponent>(uid, out var carrier))
             return false;
-
-        if (TryComp<DiseaseCarrierComponent>(uid, out var existing) && existing.Immunity.TryGetValue(diseaseId, out var immunityStrength))
-        {
-            if (_random.Prob(immunityStrength))
-                return false;
-        }
-
-        var carrier = EnsureComp<DiseaseCarrierComponent>(uid);
 
         if (!carrier.ActiveDiseases.ContainsKey(diseaseId))
             carrier.ActiveDiseases[diseaseId] = startStage;

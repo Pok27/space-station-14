@@ -45,9 +45,6 @@ public sealed class DiseaseCloudSystem : EntitySystem
             var ents = _lookup.GetEntitiesInRange(mapPos, cloud.Range, LookupFlags.Dynamic | LookupFlags.Sundries);
             foreach (var ent in ents)
             {
-                // Only living, non-immune mobs are eligible
-                if (!TryComp<MobStateComponent>(ent, out var mobState) || mobState.CurrentState == MobState.Dead)
-                    continue;
                 foreach (var diseaseId in cloud.Diseases)
                     _disease.TryInfectWithChance(ent, diseaseId, cloud.InfectChance, 1);
             }

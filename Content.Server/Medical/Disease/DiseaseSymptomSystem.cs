@@ -209,7 +209,7 @@ public sealed class DiseaseSymptomSystem : EntitySystem
                 continue;
 
             var chance = AdjustChanceForPPE(other, baseChance, disease);
-            _disease.TryInfectWithChance(other, disease.ID, chance, 1);
+            _disease.TryInfectWithChance(other, disease.ID, chance);
         }
     }
 

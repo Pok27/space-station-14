@@ -51,6 +51,21 @@ public sealed partial class DiseaseSymptomPrototype : IPrototype
     /// </summary>
     [DataField]
     public SymptomLeaveResidue LeaveResidue { get; private set; } = new();
+
+    /// <summary>
+    /// How long (seconds) a successful symptom-level cure should suppress this symptom.
+    /// If zero, symptom-level cures do not suppress.
+    /// </summary>
+    [DataField]
+    public float CureDuration { get; private set; } = 0f;
+
+    /// <summary>
+    /// Optional cure steps specific to this symptom. These will be attempted by the
+    /// server cure system and, if succeeded, will suppress the symptom for
+    /// <see cref="CureDuration"/> instead of curing the underlying disease.
+    /// </summary>
+    [DataField]
+    public List<CureStep> CureSteps { get; private set; } = new();
 }
 
 /// <summary>

@@ -31,4 +31,11 @@ public sealed partial class DiseaseCarrierComponent : Component
     /// </summary>
     [DataField, AutoNetworkedField]
     public Dictionary<string, float> Immunity = new();
+
+    /// <summary>
+    /// Map of symptom prototype IDs to a suppression end time. Used to temporarily
+    /// suppress (treat) symptoms without curing the underlying disease.
+    /// </summary>
+    [DataField, AutoNetworkedField]
+    public Dictionary<string, TimeSpan> SuppressedSymptoms = new();
 }

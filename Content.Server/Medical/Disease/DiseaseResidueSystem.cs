@@ -58,14 +58,11 @@ public sealed class DiseaseResidueSystem : EntitySystem
             var ents = _lookup.GetEntitiesInRange(mapPos, residue.Range, LookupFlags.Dynamic);
             foreach (var ent in ents)
             {
-                // Only living & eligible
-                if (!TryComp<MobStateComponent>(ent, out var mobState) || mobState.CurrentState == MobState.Dead)
-                    continue;
                 foreach (var id in residue.Diseases)
                 {
                     var proto = _prototypes.Index<DiseasePrototype>(id);
                     if (_disease.HasSpreadFlag(proto, DiseaseSpreadFlags.Contact))
-                        _disease.TryInfectWithChance(ent, id, chance, 1);
+                        _disease.TryInfectWithChance(ent, id, chance);
                 }
             }
         }
@@ -79,7 +76,7 @@ public sealed class DiseaseResidueSystem : EntitySystem
         {
             foreach (var id in residue.Diseases)
             {
-                _disease.TryInfectWithChance(args.Other, id, chance, 1);
+                _disease.TryInfectWithChance(args.Other, id, chance);
             }
 
             residue.Intensity = MathF.Max(0f, residue.Intensity - 0.1f);

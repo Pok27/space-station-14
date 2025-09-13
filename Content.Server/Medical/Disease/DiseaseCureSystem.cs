@@ -9,6 +9,8 @@ using Content.Shared.Chemistry.Components;
 using Content.Shared.FixedPoint;
 using Content.Server.Popups;
 using Content.Shared.Popups;
+using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 using Robust.Shared.Localization;
 
 namespace Content.Server.Medical.Disease;
@@ -17,6 +19,8 @@ public sealed class DiseaseCureSystem : EntitySystem
 {
     [Dependency] private readonly SharedSolutionContainerSystem _solutionSystem = default!;
     [Dependency] private readonly PopupSystem _popup = default!;
+    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
+    [Dependency] private readonly IGameTiming _timing = default!;
 
     /// <summary>
     /// Attempts to apply cure steps for a disease on the provided carrier.
@@ -29,11 +33,13 @@ public sealed class DiseaseCureSystem : EntitySystem
         if (!ent.Comp.ActiveDiseases.TryGetValue(disease.ID, out var stageNum))
             return;
 
-        // Prefer stage-level cure steps when available
         var stageCfg = disease.Stages.FirstOrDefault(s => s.Stage == stageNum);
-        List<CureStep> applicable = new();
+        if (stageCfg == null)
+            return;
 
-        if (stageCfg != null && stageCfg.CureSteps != null && stageCfg.CureSteps.Count > 0)
+        // Prefer stage-level cure steps when available
+        List<CureStep> applicable = new();
+        if (stageCfg.CureSteps != null && stageCfg.CureSteps.Count > 0)
             applicable = stageCfg.CureSteps;
         else
             applicable = disease.CureSteps;
@@ -52,21 +58,62 @@ public sealed class DiseaseCureSystem : EntitySystem
             }
 
             if (succeeded)
-                ApplyPostCureImmunity(ent.Comp, disease);
+                ApplyCureDisease(ent.Comp, disease, ent.Owner);
+        }
+
+        // Also attempt symptom-level cure steps defined on the symptom prototypes for this stage.
+        foreach (var symptomId in stageCfg.Symptoms)
+        {
+            if (!_prototypeManager.TryIndex<DiseaseSymptomPrototype>(symptomId, out var symptomProto))
+                continue;
+
+            // If symptom is currently suppressed (recently treated), skip any further treatment
+            if (ent.Comp.SuppressedSymptoms.TryGetValue(symptomId, out var suppressUntil) && suppressUntil > _timing.CurTime)
+                continue;
+
+            if (symptomProto.CureSteps == null || symptomProto.CureSteps.Count == 0)
+                continue;
+
+            foreach (var step in symptomProto.CureSteps)
+            {
+                var succeeded = false;
+                switch (step)
+                {
+                    case CureReagent reagent:
+                        succeeded = DoCureReagent(ent, reagent, disease);
+                        break;
+                    default:
+                        break;
+                }
+
+                if (succeeded)
+                    ApplyCureSymptom(ent.Comp, disease, ent.Owner, symptomId);
+            }
         }
     }
 
-    /// <summary>
-    /// Applies a reagent cure step to the carrier for the given disease.
-    /// </summary>
-    private bool DoCureReagent(Entity<DiseaseCarrierComponent> ent, CureReagent reagentStep, DiseasePrototype disease)
+    private void ApplyCureDisease(DiseaseCarrierComponent comp, DiseasePrototype disease, EntityUid owner)
     {
-        if (!TryConsumeReagentFromEntity(ent.Owner, reagentStep.ReagentId, reagentStep.Quantity))
-            return false;
+        if (!comp.ActiveDiseases.ContainsKey(disease.ID))
+            return;
 
-        ent.Comp.ActiveDiseases.Remove(disease.ID);
-        _popup.PopupEntity(Loc.GetString("disease-cured", ("disease", disease.Name)), ent.Owner, PopupType.Medium);
-        return true;
+        comp.ActiveDiseases.Remove(disease.ID);
+        _popup.PopupEntity(Loc.GetString("disease-cured", ("disease", disease.Name)), owner, PopupType.Medium);
+
+        ApplyPostCureImmunity(comp, disease);
+    }
+
+    private void ApplyCureSymptom(DiseaseCarrierComponent comp, DiseasePrototype disease, EntityUid owner, string symptomId)
+    {
+        if (!_prototypeManager.TryIndex<DiseaseSymptomPrototype>(symptomId, out var symptomProto))
+            return;
+
+        var duration = symptomProto.CureDuration;
+        if (duration <= 0f)
+            return;
+
+        comp.SuppressedSymptoms[symptomId] = _timing.CurTime + TimeSpan.FromSeconds(duration);
+        _popup.PopupEntity(Loc.GetString("disease-symptom-treated", ("symptom", symptomProto.Name)), owner, PopupType.Medium);
     }
 
     private void ApplyPostCureImmunity(DiseaseCarrierComponent comp, DiseasePrototype disease)
@@ -77,6 +124,17 @@ public sealed class DiseaseCureSystem : EntitySystem
             comp.Immunity[disease.ID] = MathF.Max(existing, strength);
         else
             comp.Immunity[disease.ID] = strength;
+    }
+
+    /// <summary>
+    /// Applies a reagent cure step to the carrier for the given disease.
+    /// </summary>
+    private bool DoCureReagent(Entity<DiseaseCarrierComponent> ent, CureReagent reagentStep, DiseasePrototype disease)
+    {
+        if (!TryConsumeReagentFromEntity(ent.Owner, reagentStep.ReagentId, reagentStep.Quantity))
+            return false;
+
+        return true;
     }
 
     private bool TryConsumeReagentFromEntity(EntityUid uid, string reagentId, FixedPoint2 quantity)
