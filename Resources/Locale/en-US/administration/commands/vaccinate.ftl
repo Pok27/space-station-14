@@ -1,5 +1,7 @@
-cmd-vaccinate-desc = Adds immunity for a disease to your entity.
-cmd-vaccinate-help = Usage: vaccinate <diseaseId>
-cmd-vaccinate-ok = Immunity added for { $disease }.
-cmd-vaccinate-no-entity = No attached entity.
+cmd-vaccinate-desc = Grants immunity for a disease to a target entity.
+cmd-vaccinate-help = Usage: vaccinate <target> <diseaseId>
+cmd-vaccinate-need-target = Specify target entity id.
+cmd-vaccinate-bad-target = Failed to parse target: { $value }.
+cmd-vaccinate-fail = Failed to grant immunity. Invalid disease, or invalid target.
+cmd-vaccinate-ok = Granted immunity to { $target } for { $disease }.
 cmd-vaccinate-need-id = Specify diseaseId.

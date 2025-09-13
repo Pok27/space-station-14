@@ -32,6 +32,21 @@ public sealed partial class DiseasePrototype : IPrototype
     public List<DiseaseStage> Stages { get; private set; } = new();
 
     /// <summary>
+    /// Optional list of cure steps for the disease. Mirrors the `behaviors` pattern used by symptoms:
+    /// a typed list where each entry can be a variant like `CureReagent`.
+    /// </summary>
+    [DataField]
+    public List<CureStep> CureSteps { get; private set; } = new();
+
+    /// <summary>
+    /// Default immunity strength granted after curing this disease (0-1).
+    /// When a carrier is cured, this value is written into the carrier's immunity map unless
+    /// the disease stage-specific cure step overrides it.
+    /// </summary>
+    [DataField]
+    public float PostCureImmunityStrength { get; private set; } = 0.8f;
+
+    /// <summary>
     /// Spread vectors for this disease. Use a list so multiple vectors can be selected in prototypes.
     /// Example YAML: spreadFlags: [Airborne, Contact]
     /// </summary>
@@ -81,4 +96,10 @@ public sealed partial class DiseaseStage
     /// </summary>
     [DataField]
     public List<ProtoId<DiseaseSymptomPrototype>> Symptoms { get; private set; } = new();
+
+    /// <summary>
+    /// Optional list of cure steps specific to this stage. If present it overrides the disease-level `CureSteps` for this stage.
+    /// </summary>
+    [DataField]
+    public List<CureStep> CureSteps { get; private set; } = new();
 }

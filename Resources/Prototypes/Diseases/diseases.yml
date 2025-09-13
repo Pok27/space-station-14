@@ -30,3 +30,20 @@
     resistance: 0.4
     symptoms:
     - Vomit
+
+# TEST
+- type: disease
+  id: AntitoxinTestDisease
+  name: Antitoxin Test
+  stageSpeed: 1.0
+  spreadFlags: []
+  severity: Minor
+  cureSteps:
+  - !type:CureReagent
+    reagentId: Nutriment
+    quantity: 5
+  stages:
+  - stage: 1
+    stealth: 0.2
+    resistance: 0.2
+    symptoms: []

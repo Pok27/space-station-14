@@ -26,8 +26,9 @@ public sealed partial class DiseaseCarrierComponent : Component
     public TimeSpan NextTick;
 
     /// <summary>
-    /// Prototype IDs the entity is immune to (e.g. via vaccine or recovered).
+    /// Prototype IDs the entity is immune to and their immunity strength (0-1).
+    /// Value represents the probability to block infection attempts for that disease.
     /// </summary>
     [DataField, AutoNetworkedField]
-    public HashSet<string> Immunity = new();
+    public Dictionary<string, float> Immunity = new();
 }

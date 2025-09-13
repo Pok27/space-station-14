@@ -13,7 +13,6 @@ using Robust.Server.Audio;
 using Robust.Shared.Audio;
 using Robust.Shared.Map;
 using Robust.Shared.Timing;
-using Content.Shared.Humanoid;
 
 namespace Content.Server.Medical.Disease;
 

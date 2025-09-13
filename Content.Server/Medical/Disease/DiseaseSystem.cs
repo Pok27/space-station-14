@@ -6,6 +6,8 @@ using Content.Shared.Medical.Disease;
 using Content.Shared.Interaction;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
+using Content.Server.Popups;
+using Content.Shared.Popups;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
@@ -22,6 +24,7 @@ public sealed class DiseaseSystem : EntitySystem
     [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly DiseaseSymptomSystem _symptoms = default!;
+    [Dependency] private readonly DiseaseCureSystem _cure = default!;
     private static readonly TimeSpan TickDelay = TimeSpan.FromSeconds(2);
 
     public override void Initialize()
@@ -178,6 +181,8 @@ public sealed class DiseaseSystem : EntitySystem
                 }
             }
 
+            // Attempt passive cure steps for this disease.
+            _cure.TriggerCureSteps(ent, disease);
         }
 
         foreach (var id in toRemove)
@@ -195,8 +200,12 @@ public sealed class DiseaseSystem : EntitySystem
         if (!TryComp<MobStateComponent>(uid, out var mobState) || mobState.CurrentState == MobState.Dead)
             return false;
 
-        if (TryComp<DiseaseCarrierComponent>(uid, out var existingCarrier) && existingCarrier.Immunity.Contains(diseaseId))
-            return false;
+        if (TryComp<DiseaseCarrierComponent>(uid, out var existingCarrier) && existingCarrier.Immunity.TryGetValue(diseaseId, out var immunityStrength))
+        {
+            // roll against immunity strength: immunityStrength of 1.0 blocks infection always, 0.0 never.
+            if (_random.Prob(immunityStrength))
+                return false;
+        }
 
         return true;
     }
@@ -227,8 +236,11 @@ public sealed class DiseaseSystem : EntitySystem
         if (!TryComp<MobStateComponent>(uid, out var mobState) || mobState.CurrentState == MobState.Dead)
             return false;
 
-        if (TryComp<DiseaseCarrierComponent>(uid, out var existing) && existing.Immunity.Contains(diseaseId))
-            return false;
+        if (TryComp<DiseaseCarrierComponent>(uid, out var existing) && existing.Immunity.TryGetValue(diseaseId, out var immunityStrength))
+        {
+            if (_random.Prob(immunityStrength))
+                return false;
+        }
 
         var carrier = EnsureComp<DiseaseCarrierComponent>(uid);
 
