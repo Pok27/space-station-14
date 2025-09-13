@@ -60,10 +60,25 @@ public sealed partial class DiseasePrototype : IPrototype
     public bool IgnoreMaskPPE { get; private set; } = false;
 
     /// <summary>
-    /// Severity band for administrative/UX use.
+    /// Base per-contact infection probability for this disease (0-1). Used when two entities make contact
+    /// (e.g. AfterInteractUsing/contact interactions). Centralized here to avoid magic numbers in systems.
     /// </summary>
     [DataField]
-    public DiseaseSeverity Severity { get; private set; } = DiseaseSeverity.Minor;
+    public float ContactInfect { get; private set; } = 0.15f;
+
+    /// <summary>
+    /// Amount of residue intensity deposited when a carrier with this disease contacts a surface.
+    /// Expressed as [0..1] fraction added to per-disease residue intensity.
+    /// </summary>
+    [DataField]
+    public float ContactDeposit { get; private set; } = 0.2f;
+
+    /// <summary>
+    /// Base per-target airborne infection probability (0-1) before PPE adjustments.
+    /// This value is used both for direct airborne spread and for transient clouds spawned by symptoms.
+    /// </summary>
+    [DataField]
+    public float AirborneInfect { get; private set; } = 0.25f;
 }
 
 /// <summary>
@@ -83,12 +98,6 @@ public sealed partial class DiseaseStage
     /// </summary>
     [DataField]
     public float? Stealth { get; private set; }
-
-    /// <summary>
-    /// Optional resistance value for this stage. Higher = harder to cure.
-    /// </summary>
-    [DataField]
-    public float? Resistance { get; private set; }
 
     /// <summary>
     /// Symptoms that can trigger during this stage. Order matters for deterministic iteration.

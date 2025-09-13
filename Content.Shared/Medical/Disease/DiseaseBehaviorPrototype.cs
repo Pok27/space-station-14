@@ -3,7 +3,6 @@ namespace Content.Shared.Medical.Disease;
 /// <summary>
 /// Base class for symptom behavior configurations.
 /// </summary>
-[DataDefinition]
 public abstract partial class SymptomBehavior
 {
 }

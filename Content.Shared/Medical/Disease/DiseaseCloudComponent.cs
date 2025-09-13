@@ -23,12 +23,6 @@ public sealed partial class DiseaseCloudComponent : Component
     public float Range = 1.5f;
 
     /// <summary>
-    /// Per-target infection probability each tick (0-1).
-    /// </summary>
-    [DataField]
-    public float InfectChance = 0.1f;
-
-    /// <summary>
     /// How often the cloud attempts infections.
     /// </summary>
     [DataField]

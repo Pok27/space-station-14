@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Content.Shared.Interaction.Events;
 using Content.Shared.Medical.Disease;
 using Content.Shared.Mobs;
@@ -36,9 +37,22 @@ public sealed class DiseaseResidueSystem : EntitySystem
         var query = EntityQueryEnumerator<DiseaseResidueComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var residue, out var xform))
         {
-            // Decay
-            residue.Intensity -= residue.DecayPerSecond * (float) frameTime;
-            if (residue.Intensity <= 0f)
+            // Decay per-disease intensities
+            var decay = residue.DecayPerSecond * (float) frameTime;
+            var toRemoveAfterDecay = new List<string>();
+            foreach (var kv in residue.Diseases.ToArray())
+            {
+                var newVal = kv.Value - decay;
+                if (newVal <= 0f)
+                    toRemoveAfterDecay.Add(kv.Key);
+                else
+                    residue.Diseases[kv.Key] = newVal;
+            }
+
+            foreach (var k in toRemoveAfterDecay)
+                residue.Diseases.Remove(k);
+
+            if (residue.Diseases.Count == 0)
             {
                 RemComp<DiseaseResidueComponent>(uid);
                 continue;
@@ -54,15 +68,21 @@ public sealed class DiseaseResidueSystem : EntitySystem
             if (mapPos.MapId == MapId.Nullspace)
                 continue;
 
-            var chance = Math.Clamp(residue.InfectChanceBase * residue.Intensity, 0f, 1f);
             var ents = _lookup.GetEntitiesInRange(mapPos, residue.Range, LookupFlags.Dynamic);
             foreach (var ent in ents)
             {
-                foreach (var id in residue.Diseases)
+                foreach (var kv in residue.Diseases.ToArray())
                 {
-                    var proto = _prototypes.Index<DiseasePrototype>(id);
-                    if (_disease.HasSpreadFlag(proto, DiseaseSpreadFlags.Contact))
-                        _disease.TryInfectWithChance(ent, id, chance);
+                    var id = kv.Key;
+                    var intensity = kv.Value;
+                    if (!_prototypes.TryIndex<DiseasePrototype>(id, out var proto))
+                        continue;
+
+                    if (!_disease.HasSpreadFlag(proto, DiseaseSpreadFlags.Contact))
+                        continue;
+
+                    var chance = Math.Clamp(proto.ContactInfect * intensity, 0f, 1f);
+                    _disease.TryInfectWithChance(ent, id, chance);
                 }
             }
         }
@@ -70,16 +90,30 @@ public sealed class DiseaseResidueSystem : EntitySystem
 
     private void OnResidueContact(EntityUid uid, DiseaseResidueComponent residue, ContactInteractionEvent args)
     {
-        var chance = Math.Clamp(residue.InfectChanceBase * residue.Intensity, 0f, 1f);
         // Only living mobs that pass central check can be infected by contact
         if (TryComp<MobStateComponent>(args.Other, out var mobState) && mobState.CurrentState != MobState.Dead)
         {
-            foreach (var id in residue.Diseases)
+            var toRemove = new List<string>();
+            foreach (var kv in residue.Diseases.ToArray())
             {
+                var id = kv.Key;
+                var intensity = kv.Value;
+                if (!_prototypes.TryIndex<DiseasePrototype>(id, out var proto))
+                    continue;
+
+                var chance = Math.Clamp(proto.ContactInfect * intensity, 0f, 1f);
                 _disease.TryInfectWithChance(args.Other, id, chance);
+
+                // reduce intensity after contact
+                var newVal = intensity - residue.ContactReduction;
+                if (newVal <= 0f)
+                    toRemove.Add(id);
+                else
+                    residue.Diseases[id] = newVal;
             }
 
-            residue.Intensity = MathF.Max(0f, residue.Intensity - 0.1f);
+            foreach (var k in toRemove)
+                residue.Diseases.Remove(k);
         }
     }
 
@@ -88,13 +122,17 @@ public sealed class DiseaseResidueSystem : EntitySystem
         if (carrier.ActiveDiseases.Count == 0)
             return;
 
-        // Only deposit residue onto non-living is fine; but if we want to mirror SS13, leaving residue on anything is allowed.
         var residue = EnsureComp<DiseaseResidueComponent>(args.Other);
         foreach (var (id, _) in carrier.ActiveDiseases)
         {
-            if (!residue.Diseases.Contains(id))
-                residue.Diseases.Add(id);
+            if (!_prototypes.TryIndex<DiseasePrototype>(id, out var proto))
+                continue;
+
+            var deposit = proto.ContactDeposit;
+            if (residue.Diseases.TryGetValue(id, out var cur))
+                residue.Diseases[id] = MathF.Min(1f, cur + deposit);
+            else
+                residue.Diseases[id] = MathF.Min(1f, deposit);
         }
-        residue.Intensity = MathF.Min(1f, residue.Intensity + 0.2f);
     }
 }

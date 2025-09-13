@@ -62,7 +62,7 @@ public sealed class DiseaseSystem : EntitySystem
                 // small chance on contact, with central eligibility
                 var proto = _prototypes.Index<DiseasePrototype>(id);
                 if (HasSpreadFlag(proto, DiseaseSpreadFlags.Contact))
-                    TryInfectWithChance(other, id, 0.15f);
+                    TryInfectWithChance(other, id, proto.ContactInfect);
             }
         }
 
@@ -72,7 +72,7 @@ public sealed class DiseaseSystem : EntitySystem
             {
                 var proto = _prototypes.Index<DiseasePrototype>(id);
                 if (HasSpreadFlag(proto, DiseaseSpreadFlags.Contact))
-                    TryInfectWithChance(user, id, 0.15f);
+                    TryInfectWithChance(user, id, proto.ContactInfect);
             }
         }
     }

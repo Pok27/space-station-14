@@ -18,6 +18,7 @@ public sealed class DiseaseCloudSystem : EntitySystem
     [Dependency] private readonly EntityLookupSystem _lookup = default!;
     [Dependency] private readonly SharedTransformSystem _xform = default!;
     [Dependency] private readonly DiseaseSystem _disease = default!;
+    [Dependency] private readonly Robust.Shared.Prototypes.IPrototypeManager _prototypes = default!;
 
     public override void Update(float frameTime)
     {
@@ -46,7 +47,10 @@ public sealed class DiseaseCloudSystem : EntitySystem
             foreach (var ent in ents)
             {
                 foreach (var diseaseId in cloud.Diseases)
-                    _disease.TryInfectWithChance(ent, diseaseId, cloud.InfectChance, 1);
+                {
+                    if (_prototypes.TryIndex<DiseasePrototype>(diseaseId, out var proto))
+                        _disease.TryInfectWithChance(ent, diseaseId, proto.AirborneInfect, 1);
+                }
             }
         }
     }

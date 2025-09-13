@@ -3,16 +3,6 @@ using System;
 namespace Content.Shared.Medical.Disease;
 
 /// <summary>
-/// Severity band for diseases. Rough guidance for effects and medical response.
-/// </summary>
-public enum DiseaseSeverity
-{
-    Minor,
-    Moderate,
-    Severe,
-}
-
-/// <summary>
 /// Enumeration describing disease transmission vectors.
 /// </summary>
 public enum DiseaseSpreadFlags

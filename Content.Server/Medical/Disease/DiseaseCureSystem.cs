@@ -27,9 +27,6 @@ public sealed class DiseaseCureSystem : EntitySystem
     /// </summary>
     public void TriggerCureSteps(Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease)
     {
-        if (ent == null)
-            return;
-
         if (!ent.Comp.ActiveDiseases.TryGetValue(disease.ID, out var stageNum))
             return;
 

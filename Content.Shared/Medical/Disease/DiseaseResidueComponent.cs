@@ -11,16 +11,10 @@ namespace Content.Shared.Medical.Disease;
 public sealed partial class DiseaseResidueComponent : Component
 {
 	/// <summary>
-	/// Disease prototype IDs present in this residue.
+	/// Per-disease intensity map for this residue. Each disease ID maps to its current intensity [0..1].
 	/// </summary>
 	[DataField, ViewVariables(VVAccess.ReadWrite)]
-	public List<string> Diseases = new();
-
-	/// <summary>
-	/// Current intensity in [0..1]. Multiplies infection chance.
-	/// </summary>
-	[DataField, ViewVariables(VVAccess.ReadWrite)]
-	public float Intensity = 1f;
+	public Dictionary<string, float> Diseases = new();
 
 	/// <summary>
 	/// Intensity decay per second.
@@ -29,10 +23,10 @@ public sealed partial class DiseaseResidueComponent : Component
 	public float DecayPerSecond = 0.05f;
 
 	/// <summary>
-	/// Base infect chance per tick, scaled by <see cref="Intensity"/>.
+	/// Amount to reduce per-disease intensity after a contact interaction.
 	/// </summary>
 	[DataField]
-	public float InfectChanceBase = 0.06f;
+	public float ContactReduction = 0.1f;
 
 	/// <summary>
 	/// Affect radius (world units) for proximity infection.

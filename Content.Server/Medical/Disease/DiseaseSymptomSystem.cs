@@ -136,10 +136,9 @@ public sealed class DiseaseSymptomSystem : EntitySystem
         var comp = EnsureComp<DiseaseResidueComponent>(residue);
 
         comp.Diseases.Clear();
+        var intensity = Math.Clamp(cfg.ResidueIntensity, 0.1f, 1f);
         foreach (var (id, _) in ent.Comp.ActiveDiseases)
-            comp.Diseases.Add(id);
-
-        comp.Intensity = Math.Clamp(cfg.ResidueIntensity, 0.1f, 1f);
+            comp.Diseases[id] = intensity;
     }
 
     /// <summary>
@@ -151,7 +150,7 @@ public sealed class DiseaseSymptomSystem : EntitySystem
         if (!cfg.Enabled)
             return;
 
-        SpawnCloud(ent, disease, cfg.Range, cfg.LifetimeSeconds, cfg.TickIntervalSeconds, cfg.InfectChance);
+        SpawnCloud(ent, disease, cfg.Range, cfg.LifetimeSeconds, cfg.TickIntervalSeconds, disease.AirborneInfect);
     }
 
     /// <summary>
@@ -163,7 +162,7 @@ public sealed class DiseaseSymptomSystem : EntitySystem
         if (!cfg.Enabled)
             return;
 
-        SpreadAirborne(ent, disease, cfg.Range, cfg.BaseChance);
+        SpreadAirborne(ent, disease, cfg.Range, disease.AirborneInfect);
     }
 
     /// <summary>
@@ -176,7 +175,6 @@ public sealed class DiseaseSymptomSystem : EntitySystem
         cloud.Diseases.Clear();
         cloud.Diseases.Add(disease.ID);
         cloud.Range = range;
-        cloud.InfectChance = chance;
         cloud.TickInterval = TimeSpan.FromSeconds(tick);
         cloud.Lifetime = TimeSpan.FromSeconds(lifetime);
         cloud.NextTick = _timing.CurTime + cloud.TickInterval;

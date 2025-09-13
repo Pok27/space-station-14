@@ -3,17 +3,16 @@
   name: Common Flu
   stageSpeed: 0.8
   spreadFlags: [Airborne]
+  ContactInfect: 0.15
+  AirborneInfect: 0.25
   ignoreMaskPPE: false
-  severity: Minor
   stages:
   - stage: 1
     stealth: 0.2
-    resistance: 0.2
     symptoms:
     - Cough
   - stage: 2
     stealth: 0.25
-    resistance: 0.25
     symptoms:
     - Sneeze
 
@@ -23,11 +22,9 @@
   stageSpeed: 1.2
   spreadFlags: []
   ignoreMaskPPE: true
-  severity: Moderate
   stages:
   - stage: 1
     stealth: 0.4
-    resistance: 0.4
     symptoms:
     - Vomit
 
@@ -37,7 +34,6 @@
   name: Antitoxin Test
   stageSpeed: 1.0
   spreadFlags: []
-  severity: Minor
   cureSteps:
   - !type:CureReagent
     reagentId: Nutriment
@@ -45,5 +41,4 @@
   stages:
   - stage: 1
     stealth: 0.2
-    resistance: 0.2
     symptoms: []

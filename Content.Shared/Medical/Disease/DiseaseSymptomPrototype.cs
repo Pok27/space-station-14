@@ -87,12 +87,6 @@ public sealed partial class SymptomCloud
     public float Range { get; private set; } = 1.5f;
 
     /// <summary>
-    /// Per-target infection probability each tick (0-1).
-    /// </summary>
-    [DataField]
-    public float InfectChance { get; private set; } = 0.1f;
-
-    /// <summary>
     /// Tick period in seconds for the cloud infection attempts.
     /// </summary>
     [DataField("tickInterval")]

@@ -5,7 +5,6 @@ namespace Content.Shared.Medical.Disease;
 /// Base class for cure step variants. Mirrors symptom behavior style so prototypes can
 /// list cure steps inline as typed entries.
 /// </summary>
-[DataDefinition]
 public abstract partial class CureStep
 {
 }

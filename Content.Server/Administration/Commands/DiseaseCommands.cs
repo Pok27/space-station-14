@@ -20,7 +20,6 @@ public sealed class InfectCommand : LocalizedEntityCommands
 	public override string Help => Loc.GetString("cmd-infect-help");
 
 	[Dependency] private readonly IEntitySystemManager _sysMan = default!;
-	[Dependency] private readonly IEntityManager _entMan = default!;
 
 	public override void Execute(IConsoleShell shell, string argStr, string[] args)
 	{
