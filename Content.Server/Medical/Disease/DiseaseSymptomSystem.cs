@@ -112,14 +112,13 @@ public sealed class DiseaseSymptomSystem : EntitySystem
     /// </summary>
     private void DoExhale(Entity<DiseaseCarrierComponent> ent, SymptomExhale exhale)
     {
-        var key = exhale.PopupText;
-        _popup.PopupEntity(Loc.GetString(key), ent, PopupType.Small);
-
+        var sound = exhale.Sound;
         var volume = exhale.SoundVolume;
         var variation = exhale.SoundVariation;
-        PlayGenderedSound(ent, CoughMale, CoughFemale, volume, variation);
+        _audio.PlayPvs(sound, ent.Owner, AudioParams.Default.WithVolume(volume).WithVariation(variation));
 
-        _jitter.DoJitter(ent, TimeSpan.FromSeconds(2), refresh: false, amplitude: 6f, frequency: 3f, forceValueChange: false);
+        if (!string.IsNullOrEmpty(exhale.PopupText))
+            _popup.PopupEntity(Loc.GetString(exhale.PopupText), ent, PopupType.Small);
     }
 
     /// <summary>
@@ -128,7 +127,6 @@ public sealed class DiseaseSymptomSystem : EntitySystem
     private void DoVomit(Entity<DiseaseCarrierComponent> ent, SymptomVomit vomit)
     {
         _vomit.Vomit(ent, force: true);
-        _jitter.DoJitter(ent, TimeSpan.FromSeconds(3), refresh: false, amplitude: 8f, frequency: 3.5f, forceValueChange: false);
     }
 
     /// <summary>
@@ -161,8 +159,6 @@ public sealed class DiseaseSymptomSystem : EntitySystem
         var heatCap = _temperature.GetHeatCapacity(ent.Owner);
         var heat = degrees * heatCap;
         _temperature.ChangeHeat(ent.Owner, heat, ignoreHeatResistance: true, temperature);
-
-        _popup.PopupEntity(Loc.GetString("disease-temperature-change"), ent, PopupType.Small);
     }
 
     private void DoNarcolepsy(Entity<DiseaseCarrierComponent> ent, SymptomNarcolepsy narco)
@@ -200,14 +196,6 @@ public sealed class DiseaseSymptomSystem : EntitySystem
             return;
 
         _popup.PopupEntity(text, ent, sense.PopupType);
-    }
-
-    /// <summary>
-    /// Plays a gendered sound collection; currently defaults to male collection.
-    /// </summary>
-    private void PlayGenderedSound(EntityUid uid, SoundSpecifier male, SoundSpecifier female, float volume, float variation)
-    {
-        _audio.PlayPvs(male, uid, AudioParams.Default.WithVolume(volume).WithVariation(variation));
     }
 
     /// <summary>

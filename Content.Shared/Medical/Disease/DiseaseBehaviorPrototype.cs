@@ -3,6 +3,7 @@ using Content.Shared.Damage;
 using Content.Shared.Dataset;
 using Robust.Shared.Prototypes;
 using Content.Shared.Popups;
+using Robust.Shared.Audio;
 
 namespace Content.Shared.Medical.Disease;
 
@@ -20,7 +21,7 @@ public sealed partial class SymptomExhale : SymptomBehavior
     /// Localization key for popup text.
     /// </summary>
     [DataField]
-    public string PopupText { get; private set; } = "disease-cough";
+    public string? PopupText { get; private set; }
 
     /// <summary>
     /// Sound volume for behavior SFX.
@@ -33,6 +34,13 @@ public sealed partial class SymptomExhale : SymptomBehavior
     /// </summary>
     [DataField]
     public float SoundVariation { get; private set; } = 0.1f;
+
+    /// <summary>
+    /// Optional override for the sound to play when exhaling.
+    /// If not provided, defaults to gendered cough sounds.
+    /// </summary>
+    [DataField]
+    public SoundSpecifier? Sound { get; private set; }
 }
 
 [DataDefinition]

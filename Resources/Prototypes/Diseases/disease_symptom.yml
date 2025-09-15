@@ -3,6 +3,9 @@
   triggerProbability: 0.75
   behaviors:
   - !type:SymptomExhale
+    popupText: disease-cough
+    sound:
+      collection: MaleSneezes
 
 - type: diseaseSymptom
   id: SymptomVomit
