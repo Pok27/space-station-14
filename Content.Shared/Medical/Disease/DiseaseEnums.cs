@@ -13,3 +13,22 @@ public enum DiseaseSpreadFlags
     Blood = 1 << 2,
     Special = 1 << 3,
 }
+
+/// <summary>
+/// Enumeration describing disease stealth behavior flags.
+/// TODO:
+/// - None: default behavior
+/// - Hidden: do not show in HUD
+/// - VeryHidden: hide from HUD, diagnoser, and health analyzer
+/// - HiddenTreatment: hide treatment steps in diagnoser
+/// - HiddenStage: hide stage in diagnoser and health analyzer
+/// </summary>
+[Flags]
+public enum DiseaseStealthFlags
+{
+    None = 0,
+    Hidden = 1 << 0,
+    VeryHidden = 1 << 1,
+    HiddenTreatment = 1 << 2,
+    HiddenStage = 1 << 3,
+}

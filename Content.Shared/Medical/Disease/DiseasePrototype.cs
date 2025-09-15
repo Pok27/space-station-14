@@ -20,6 +20,13 @@ public sealed partial class DiseasePrototype : IPrototype
     public string Name { get; private set; } = string.Empty;
 
     /// <summary>
+    /// If true, this disease is considered beneficial for HUD purposes.
+    /// Beneficial diseases show a buff icon on med HUD instead of an illness icon.
+    /// </summary>
+    [DataField]
+    public bool IsBeneficial { get; private set; } = false;
+
+    /// <summary>
     /// Progression rate factor (stages per minute baseline).
     /// </summary>
     [DataField]
@@ -44,7 +51,7 @@ public sealed partial class DiseasePrototype : IPrototype
     /// the disease stage-specific cure step overrides it.
     /// </summary>
     [DataField]
-    public float PostCureImmunityStrength { get; private set; } = 0.8f;
+    public float PostCureImmunity { get; private set; } = 0.8f;
 
     /// <summary>
     /// Spread vectors for this disease. Use a list so multiple vectors can be selected in prototypes.
@@ -94,10 +101,11 @@ public sealed partial class DiseaseStage
     public int Stage { get; private set; } = 1;
 
     /// <summary>
-    /// Optional stealth value for this stage. Higher = harder to detect.
+    /// Optional stealth flags for this stage. Controls visibility in HUD/diagnoser/analyzers.
+    /// TODO: does not work <see cref="DiseaseStealthFlags"/>
     /// </summary>
     [DataField]
-    public float? Stealth { get; private set; }
+    public DiseaseStealthFlags Stealth { get; private set; } = DiseaseStealthFlags.None;
 
     /// <summary>
     /// Symptoms that can trigger during this stage. Order matters for deterministic iteration.

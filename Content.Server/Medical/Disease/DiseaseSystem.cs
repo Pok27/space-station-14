@@ -137,6 +137,7 @@ public sealed class DiseaseSystem : EntitySystem
             return;
 
         var toRemove = new ValueList<string>();
+        var dirty = false;
 
         foreach (var (diseaseId, stage) in ent.Comp.ActiveDiseases.ToArray())
         {
@@ -155,7 +156,10 @@ public sealed class DiseaseSystem : EntitySystem
                 newStage = Math.Min(stage + 1, maxStage);
 
             if (newStage != stage)
+            {
                 ent.Comp.ActiveDiseases[diseaseId] = newStage;
+                dirty = true;
+            }
 
             // Trigger symptoms configured for this stage
             if (disease.Stages.Count > 0)
@@ -185,7 +189,13 @@ public sealed class DiseaseSystem : EntitySystem
         }
 
         foreach (var id in toRemove)
+        {
             ent.Comp.ActiveDiseases.Remove(id);
+            dirty = true;
+        }
+
+        if (dirty)
+            Dirty(ent);
     }
 
     /// <summary>
@@ -243,6 +253,7 @@ public sealed class DiseaseSystem : EntitySystem
         carrier.SleepAccumulation[diseaseId] = 0f;
 
         carrier.NextTick = _timing.CurTime + TickDelay;
+        Dirty(uid, carrier);
         return true;
     }
 

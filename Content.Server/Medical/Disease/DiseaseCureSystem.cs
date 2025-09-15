@@ -113,7 +113,7 @@ public sealed class DiseaseCureSystem : EntitySystem
 
     private void ApplyPostCureImmunity(DiseaseCarrierComponent comp, DiseasePrototype disease)
     {
-        var strength = disease.PostCureImmunityStrength;
+        var strength = disease.PostCureImmunity;
 
         if (comp.Immunity.TryGetValue(disease.ID, out var existing))
             comp.Immunity[disease.ID] = MathF.Max(existing, strength);
