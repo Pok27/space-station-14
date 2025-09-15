@@ -18,6 +18,7 @@
     - id: MouseMigration
     - id: PowerGridCheck
     - id: RandomSentience
+    - id: RandomDisease
     - id: SlimesSpawn
     - id: SolarFlare
     - id: SnakeSpawn
@@ -694,6 +695,25 @@
     weight: 10
   - type: RandomSpawnRule
     prototype: RandomSatchelSpawner
+
+- type: entity
+  id: RandomDisease
+  parent: BaseStationEventShortDelay
+  components:
+  - type: StationEvent
+    weight: 5
+    minimumPlayers: 15
+    reoccurrenceDelay: 20
+  - type: RandomDiseaseRule
+    disease:
+    - DiseaseExhaleDemo
+    - DiseaseVomitDemo
+    - DiseaseJitterDemo
+    - DiseaseTemperatureDemo
+    - DiseaseNarcolepsyDemo
+    - DiseaseShoutDemo
+    minInfections: 2
+    maxInfections: 5
 
 - type: entity
   parent: BaseGameRule
