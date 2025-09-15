@@ -11,8 +11,20 @@ using Content.Shared.Popups;
 using Content.Shared.Speech.EntitySystems;
 using Robust.Server.Audio;
 using Robust.Shared.Audio;
+using Content.Server.Temperature.Systems;
+using Content.Server.Temperature.Components;
+using Content.Shared.StatusEffectNew;
+using Content.Shared.Bed.Sleep;
+using Robust.Shared.Random;
 using Robust.Shared.Map;
 using Robust.Shared.Timing;
+using Content.Shared.Damage;
+using Content.Server.Chat.Systems;
+using Content.Shared.Chat;
+using Robust.Shared.Prototypes;
+using Content.Shared.Timing;
+using Content.Server.Speech.Components;
+using Content.Shared.Dataset;
 
 namespace Content.Server.Medical.Disease;
 
@@ -25,13 +37,19 @@ public sealed class DiseaseSymptomSystem : EntitySystem
     [Dependency] private readonly AudioSystem _audio = default!;
     [Dependency] private readonly VomitSystem _vomit = default!;
     [Dependency] private readonly SharedJitteringSystem _jitter = default!;
-    [Dependency] private readonly SharedStutteringSystem _stutter = default!;
     [Dependency] private readonly InventorySystem _inventory = default!;
     [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
     [Dependency] private readonly SharedInteractionSystem _interaction = default!;
     [Dependency] private readonly EntityLookupSystem _lookup = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly DiseaseSystem _disease = default!;
+    [Dependency] private readonly TemperatureSystem _temperature = default!;
+    [Dependency] private readonly StatusEffectsSystem _status = default!;
+    [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private readonly DamageableSystem _damageable = default!;
+    [Dependency] private readonly ChatSystem _chat = default!;
+    [Dependency] private readonly UseDelaySystem _useDelay = default!;
+    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
 
     private static readonly SoundSpecifier CoughMale = new SoundCollectionSpecifier("MaleCoughs");
     private static readonly SoundSpecifier CoughFemale = new SoundCollectionSpecifier("FemaleCoughs");
@@ -55,12 +73,28 @@ public sealed class DiseaseSymptomSystem : EntitySystem
                     DoVomit(ent, vomit);
                     break;
 
-                case SymptomFever fever:
-                    DoFever(ent, fever);
+                case SymptomTemperature temp:
+                    DoTemperature(ent, temp);
+                    break;
+
+                case SymptomNarcolepsy narco:
+                    DoNarcolepsy(ent, narco);
                     break;
 
                 case SymptomJitter jitter:
                     DoJitter(ent, jitter);
+                    break;
+
+                case SymptomDamage dmg:
+                    DoDamage(ent, dmg);
+                    break;
+
+                case SymptomShout shout:
+                    DoShout(ent, shout);
+                    break;
+
+                case SymptomSensation sense:
+                    DoSensation(ent, sense);
                     break;
 
                 default:
@@ -98,20 +132,74 @@ public sealed class DiseaseSymptomSystem : EntitySystem
     }
 
     /// <summary>
-    /// Fever behavior with configurable parameters.
+    /// Jitter behavior with configurable parameters.
     /// </summary>
-    private void DoFever(Entity<DiseaseCarrierComponent> ent, SymptomFever fever)
-    {
-        _popup.PopupEntity(Loc.GetString("disease-fever"), ent, PopupType.Medium);
-        _stutter.DoStutter(ent, TimeSpan.FromSeconds(8), refresh: false);
-    }
-
     private void DoJitter(Entity<DiseaseCarrierComponent> ent, SymptomJitter jitter)
     {
         var jitterSeconds = jitter.JitterSeconds;
         var jitterAmplitude = jitter.JitterAmplitude;
         var jitterFrequency = jitter.JitterFrequency;
         _jitter.DoJitter(ent, TimeSpan.FromSeconds(jitterSeconds), false, jitterAmplitude, jitterFrequency);
+    }
+
+    private void DoTemperature(Entity<DiseaseCarrierComponent> ent, SymptomTemperature temp)
+    {
+        // Attempt to change entity temperature gradually towards the target by applying heat.
+        // Convert degrees/sec to Joules via TemperatureSystem.GetHeatCapacity and ChangeHeat requires heat (J).
+        if (!TryComp<TemperatureComponent>(ent.Owner, out var temperature))
+            return;
+
+        var target = temp.TargetTemperature;
+        var current = temperature.CurrentTemperature;
+        if (Math.Abs(current - target) < 0.01f)
+            return;
+
+        // degrees per tick
+        var degrees = Math.Sign(target - current) * Math.Min(Math.Abs(target - current), temp.DegreesPerSecond);
+
+        // heat energy = degrees * heatCapacity
+        var heatCap = _temperature.GetHeatCapacity(ent.Owner);
+        var heat = degrees * heatCap;
+        _temperature.ChangeHeat(ent.Owner, heat, ignoreHeatResistance: true, temperature);
+
+        _popup.PopupEntity(Loc.GetString("disease-temperature-change"), ent, PopupType.Small);
+    }
+
+    private void DoNarcolepsy(Entity<DiseaseCarrierComponent> ent, SymptomNarcolepsy narco)
+    {
+        // Chance to force sleep using the sleeping system's TrySleeping and add forced sleeping status effect
+        if (!_random.Prob(narco.SleepChance))
+            return;
+
+        // Apply forced sleeping status effect entity-side via StatusEffectsSystem
+        var dur = TimeSpan.FromSeconds(narco.SleepDurationSeconds);
+        _status.TryAddStatusEffectDuration(ent.Owner, SleepingSystem.StatusEffectForcedSleeping, dur);
+    }
+
+    private void DoDamage(Entity<DiseaseCarrierComponent> ent, SymptomDamage dmg)
+    {
+        if (dmg.Damage == null || dmg.Damage.Empty)
+            return;
+
+        _damageable.TryChangeDamage(ent.Owner, new DamageSpecifier(dmg.Damage));
+    }
+
+    private void DoShout(Entity<DiseaseCarrierComponent> ent, SymptomShout shout)
+    {
+        if (!_prototypeManager.Resolve(shout.Pack, out var pack))
+            return;
+
+        var message = Loc.GetString(_random.Pick(pack.Values));
+        _chat.TrySendInGameICMessage(ent.Owner, message, InGameICChatType.Speak, shout.HideChat);
+    }
+
+    private void DoSensation(Entity<DiseaseCarrierComponent> ent, SymptomSensation sense)
+    {
+        var text = Loc.GetString(sense.Popup);
+        if (string.IsNullOrEmpty(text))
+            return;
+
+        _popup.PopupEntity(text, ent, sense.PopupType);
     }
 
     /// <summary>

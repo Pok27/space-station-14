@@ -12,6 +12,8 @@ using Content.Shared.Popups;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 using Robust.Shared.Localization;
+using Robust.Shared.Random;
+using Content.Server.Temperature.Components;
 
 namespace Content.Server.Medical.Disease;
 
@@ -21,6 +23,7 @@ public sealed class DiseaseCureSystem : EntitySystem
     [Dependency] private readonly PopupSystem _popup = default!;
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private readonly IRobustRandom _random = default!;
 
     /// <summary>
     /// Attempts to apply cure steps for a disease on the provided carrier.
@@ -35,26 +38,13 @@ public sealed class DiseaseCureSystem : EntitySystem
             return;
 
         // Prefer stage-level cure steps when available
-        List<CureStep> applicable = new();
-        if (stageCfg.CureSteps != null && stageCfg.CureSteps.Count > 0)
-            applicable = stageCfg.CureSteps;
-        else
-            applicable = disease.CureSteps;
+        var applicable = (stageCfg.CureSteps != null && stageCfg.CureSteps.Count > 0)
+            ? stageCfg.CureSteps
+            : disease.CureSteps;
 
         foreach (var step in applicable)
         {
-            var succeeded = false;
-            switch (step)
-            {
-                case CureReagent reagent:
-                    succeeded = DoCureReagent(ent, reagent, disease);
-                    break;
-
-                default:
-                    break;
-            }
-
-            if (succeeded)
+            if (ExecuteCureStep(ent, step, disease))
                 ApplyCureDisease(ent.Comp, disease, ent.Owner);
         }
 
@@ -73,19 +63,30 @@ public sealed class DiseaseCureSystem : EntitySystem
 
             foreach (var step in symptomProto.CureSteps)
             {
-                var succeeded = false;
-                switch (step)
-                {
-                    case CureReagent reagent:
-                        succeeded = DoCureReagent(ent, reagent, disease);
-                        break;
-                    default:
-                        break;
-                }
-
-                if (succeeded)
+                if (ExecuteCureStep(ent, step, disease))
                     ApplyCureSymptom(ent.Comp, disease, ent.Owner, symptomId);
             }
+        }
+    }
+
+    private bool ExecuteCureStep(Entity<DiseaseCarrierComponent> ent, CureStep step, DiseasePrototype disease)
+    {
+        switch (step)
+        {
+            case CureReagent reagent:
+                return DoCureReagent(ent, reagent, disease);
+
+            case CureSleep sleep:
+                return DoCureSleep(ent, sleep, disease);
+
+            case CureTemperature temp:
+                return DoCureTemperature(ent, temp, disease);
+
+            case CureTime time:
+                return DoCureTime(ent, time, disease);
+
+            default:
+                return false;
         }
     }
 
@@ -95,8 +96,6 @@ public sealed class DiseaseCureSystem : EntitySystem
             return;
 
         comp.ActiveDiseases.Remove(disease.ID);
-        _popup.PopupEntity(Loc.GetString("disease-cured", ("disease", disease.Name)), owner, PopupType.Medium);
-
         ApplyPostCureImmunity(comp, disease);
     }
 
@@ -110,7 +109,6 @@ public sealed class DiseaseCureSystem : EntitySystem
             return;
 
         comp.SuppressedSymptoms[symptomId] = _timing.CurTime + TimeSpan.FromSeconds(duration);
-        _popup.PopupEntity(Loc.GetString("disease-symptom-treated", ("symptom", symptomProto.Name)), owner, PopupType.Medium);
     }
 
     private void ApplyPostCureImmunity(DiseaseCarrierComponent comp, DiseasePrototype disease)
@@ -128,34 +126,79 @@ public sealed class DiseaseCureSystem : EntitySystem
     /// </summary>
     private bool DoCureReagent(Entity<DiseaseCarrierComponent> ent, CureReagent reagentStep, DiseasePrototype disease)
     {
-        if (!TryConsumeReagentFromEntity(ent.Owner, reagentStep.ReagentId, reagentStep.Quantity))
+        var reagent = _solutionSystem.TryRemoveReagentFromEntity(ent.Owner, reagentStep.ReagentId, reagentStep.Quantity);
+        if (!reagent)
             return false;
 
         return true;
     }
 
-    private bool TryConsumeReagentFromEntity(EntityUid uid, string reagentId, FixedPoint2 quantity)
+    private bool DoCureSleep(Entity<DiseaseCarrierComponent> ent, CureSleep sleepStep, DiseasePrototype disease)
     {
-        if (!TryComp<SolutionContainerManagerComponent>(uid, out var manager))
+        if (sleepStep.RequiredSleepSeconds <= 0f)
             return false;
 
-        var availableTotal = _solutionSystem.GetTotalPrototypeQuantity(uid, reagentId);
-        if (availableTotal < quantity)
+        var accumulated = ent.Comp.SleepAccumulation.TryGetValue(disease.ID, out var acc) ? acc : 0f;
+        if (accumulated < sleepStep.RequiredSleepSeconds)
             return false;
 
-        var remaining = quantity;
-        foreach (var (name, solEnt) in _solutionSystem.EnumerateSolutions((uid, manager), includeSelf: true))
+        ent.Comp.SleepAccumulation[disease.ID] = 0f;
+        return true;
+    }
+
+    private bool DoCureTemperature(Entity<DiseaseCarrierComponent> ent, CureTemperature tempStep, DiseasePrototype disease)
+    {
+        if (tempStep.RequiredSeconds <= 0f)
+            return false;
+
+        // We need entity temperature component to track consecutive time in range.
+        if (!TryComp<TemperatureComponent>(ent.Owner, out var temperature))
+            return false;
+
+        var now = _timing.CurTime;
+        if (temperature.CurrentTemperature < tempStep.MinTemperature || temperature.CurrentTemperature > tempStep.MaxTemperature)
         {
-            var availableInSol = solEnt.Comp.Solution.GetTotalPrototypeQuantity(reagentId);
-            var toRemove = FixedPoint2.Min(remaining, availableInSol);
-            if (toRemove <= FixedPoint2.New(0))
-                continue;
-            var removed = _solutionSystem.RemoveReagent(solEnt, reagentId, toRemove);
-            remaining -= removed;
-            if (remaining <= FixedPoint2.New(0))
-                break;
+            ent.Comp.CureTimers.Remove(disease.ID);
+            return false;
         }
 
-        return remaining <= FixedPoint2.New(0);
+        var timers = ent.Comp.CureTimers;
+        if (!timers.TryGetValue(disease.ID, out var end))
+        {
+            timers[disease.ID] = now + TimeSpan.FromSeconds(tempStep.RequiredSeconds);
+            return false;
+        }
+
+        if (end > now)
+            return false;
+
+        if (_random.Prob(tempStep.CureChance))
+        {
+            timers.Remove(disease.ID);
+            return true;
+        }
+
+        timers[disease.ID] = now + TimeSpan.FromSeconds(tempStep.RequiredSeconds);
+        return false;
+    }
+
+    private bool DoCureTime(Entity<DiseaseCarrierComponent> ent, CureTime timeStep, DiseasePrototype disease)
+    {
+        if (timeStep.RequiredSeconds <= 0f)
+            return false;
+
+        if (!ent.Comp.InfectionStart.TryGetValue(disease.ID, out var start))
+            return false;
+
+        var now = _timing.CurTime;
+        if ((now - start).TotalSeconds < timeStep.RequiredSeconds)
+            return false;
+
+        // Roll chance to cure. If fails, restart timer from now.
+        if (_random.Prob(timeStep.CureChance))
+            return true;
+
+        ent.Comp.InfectionStart[disease.ID] = now;
+        return false;
     }
 }

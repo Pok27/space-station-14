@@ -1,33 +1,53 @@
 - type: diseaseSymptom
-  id: Cough
-  name: Coughing
-  triggerProb: 0.07
+  id: SymptomExhale
+  triggerProbability: 0.75
   behaviors:
   - !type:SymptomExhale
 
 - type: diseaseSymptom
-  id: Sneeze
-  name: Sneezing
-  triggerProb: 0.05
-  cloud:
-    range: 2.0
-    tickInterval: 0.8
-    lifetime: 8.0
-  airborne:
-    range: 3.0
-  behaviors:
-  - !type:SymptomExhale
-    popupText: disease-sneeze
-
-- type: diseaseSymptom
-  id: Vomit
-  name: Vomiting
-  triggerProb: 0.03
-  cloud:
-    enabled: false
-  airborne:
-    enabled: false
-  leaveResidue:
-    enabled: false
+  id: SymptomVomit
+  triggerProbability: 0.75
   behaviors:
   - !type:SymptomVomit
+
+- type: diseaseSymptom
+  id: SymptomJitter
+  triggerProbability: 0.75
+  behaviors:
+  - !type:SymptomJitter
+
+- type: diseaseSymptom
+  id: SymptomTemperature
+  triggerProbability: 0.75
+  behaviors:
+  - !type:SymptomTemperature
+
+- type: diseaseSymptom
+  id: SymptomNarcolepsy
+  triggerProbability: 0.75
+  behaviors:
+  - !type:SymptomNarcolepsy
+
+- type: diseaseSymptom
+  id: SymptomDamage
+  triggerProbability: 0.75
+  behaviors:
+  - !type:SymptomDamage
+    damage:
+      types:
+        Blunt: 100
+
+- type: diseaseSymptom
+  id: SymptomShout
+  triggerProbability: 0.75
+  behaviors:
+  - !type:SymptomShout
+    pack: Verbs
+
+- type: diseaseSymptom
+  id: SymptomSensation
+  triggerProbability: 0.75
+  behaviors:
+  - !type:SymptomSensation
+    popup: disease-sensation-demo
+

@@ -237,6 +237,11 @@ public sealed class DiseaseSystem : EntitySystem
         if (!carrier.ActiveDiseases.ContainsKey(diseaseId))
             carrier.ActiveDiseases[diseaseId] = startStage;
 
+        // Initialize server-side cure state for this disease.
+        carrier.InfectionStart[diseaseId] = _timing.CurTime;
+        carrier.CureTimers.Remove(diseaseId);
+        carrier.SleepAccumulation[diseaseId] = 0f;
+
         carrier.NextTick = _timing.CurTime + TickDelay;
         return true;
     }

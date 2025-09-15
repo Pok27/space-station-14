@@ -1,44 +1,71 @@
 - type: disease
-  id: Flu
-  name: Common Flu
-  stageSpeed: 0.8
+  id: DiseaseExhaleDemo
+  name: Exhale Demo
   spreadFlags: [Airborne]
-  ContactInfect: 0.15
-  AirborneInfect: 0.25
-  ignoreMaskPPE: false
   stages:
   - stage: 1
-    stealth: 0.2
     symptoms:
-    - Cough
-  - stage: 2
-    stealth: 0.25
-    symptoms:
-    - Sneeze
+    - SymptomExhale
 
 - type: disease
-  id: FoodPoisoning
-  name: Food Poisoning
-  stageSpeed: 1.2
-  spreadFlags: []
-  ignoreMaskPPE: true
+  id: DiseaseVomitDemo
+  name: Vomit Demo
+  spreadFlags: [Airborne]
   stages:
   - stage: 1
-    stealth: 0.4
     symptoms:
-    - Vomit
+    - SymptomVomit
 
-# TEST
 - type: disease
-  id: AntitoxinTestDisease
-  name: Antitoxin Test
-  stageSpeed: 1.0
-  spreadFlags: []
-  cureSteps:
-  - !type:CureReagent
-    reagentId: Nutriment
-    quantity: 5
+  id: DiseaseJitterDemo
+  name: Jitter Demo
+  spreadFlags: [Airborne]
   stages:
   - stage: 1
-    stealth: 0.2
-    symptoms: []
+    symptoms:
+    - SymptomJitter
+
+- type: disease
+  id: DiseaseTemperatureDemo
+  name: Temperature Demo
+  spreadFlags: [Airborne]
+  stages:
+  - stage: 1
+    symptoms:
+    - SymptomTemperature
+
+- type: disease
+  id: DiseaseNarcolepsyDemo
+  name: Narcolepsy Demo
+  spreadFlags: [Airborne]
+  stages:
+  - stage: 1
+    symptoms:
+    - SymptomNarcolepsy
+
+- type: disease
+  id: DiseaseDamageDemo
+  name: Damage Demo
+  spreadFlags: [Airborne]
+  stages:
+  - stage: 1
+    symptoms:
+    - SymptomDamage
+
+- type: disease
+  id: DiseaseShoutDemo
+  name: Shout Demo
+  spreadFlags: [Airborne]
+  stages:
+  - stage: 1
+    symptoms:
+    - SymptomShout
+
+- type: disease
+  id: DiseaseSensationDemo
+  name: Sensation Demo
+  spreadFlags: [Airborne]
+  stages:
+  - stage: 1
+    symptoms:
+    - SymptomSensation

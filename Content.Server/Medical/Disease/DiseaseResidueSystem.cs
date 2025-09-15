@@ -4,6 +4,7 @@ using Content.Shared.Interaction.Events;
 using Content.Shared.Medical.Disease;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
+using Robust.Shared.Collections;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Map;
 using Robust.Shared.Timing;
@@ -39,7 +40,7 @@ public sealed class DiseaseResidueSystem : EntitySystem
         {
             // Decay per-disease intensities
             var decay = residue.DecayPerSecond * (float) frameTime;
-            var toRemoveAfterDecay = new List<string>();
+            var toRemoveAfterDecay = new ValueList<string>();
             foreach (var kv in residue.Diseases.ToArray())
             {
                 var newVal = kv.Value - decay;
@@ -75,14 +76,7 @@ public sealed class DiseaseResidueSystem : EntitySystem
                 {
                     var id = kv.Key;
                     var intensity = kv.Value;
-                    if (!_prototypes.TryIndex<DiseasePrototype>(id, out var proto))
-                        continue;
-
-                    if (!_disease.HasSpreadFlag(proto, DiseaseSpreadFlags.Contact))
-                        continue;
-
-                    var chance = Math.Clamp(proto.ContactInfect * intensity, 0f, 1f);
-                    _disease.TryInfectWithChance(ent, id, chance);
+                    InfectByContactChance(ent, id, intensity);
                 }
             }
         }
@@ -93,16 +87,12 @@ public sealed class DiseaseResidueSystem : EntitySystem
         // Only living mobs that pass central check can be infected by contact
         if (TryComp<MobStateComponent>(args.Other, out var mobState) && mobState.CurrentState != MobState.Dead)
         {
-            var toRemove = new List<string>();
+            var toRemove = new ValueList<string>();
             foreach (var kv in residue.Diseases.ToArray())
             {
                 var id = kv.Key;
                 var intensity = kv.Value;
-                if (!_prototypes.TryIndex<DiseasePrototype>(id, out var proto))
-                    continue;
-
-                var chance = Math.Clamp(proto.ContactInfect * intensity, 0f, 1f);
-                _disease.TryInfectWithChance(args.Other, id, chance);
+                InfectByContactChance(args.Other, id, intensity);
 
                 // reduce intensity after contact
                 var newVal = intensity - residue.ContactReduction;
@@ -134,5 +124,17 @@ public sealed class DiseaseResidueSystem : EntitySystem
             else
                 residue.Diseases[id] = MathF.Min(1f, deposit);
         }
+    }
+
+    private void InfectByContactChance(EntityUid target, string diseaseId, float intensity)
+    {
+        if (!_prototypes.TryIndex<DiseasePrototype>(diseaseId, out var proto))
+            return;
+
+        if (!_disease.HasSpreadFlag(proto, DiseaseSpreadFlags.Contact))
+            return;
+
+        var chance = Math.Clamp(proto.ContactInfect * intensity, 0f, 1f);
+        _disease.TryInfectWithChance(target, diseaseId, chance);
     }
 }

@@ -26,7 +26,7 @@ public sealed partial class DiseaseSymptomPrototype : IPrototype
     /// Probability per tick to trigger behavior when eligible (0-1).
     /// </summary>
     [DataField("triggerProb")]
-    public float TriggerProbability { get; private set; } = 0f;
+    public float TriggerProbability { get; private set; } = 0.25f;
 
     /// <summary>
     /// Optional status effect to apply on trigger (e.g. jitter, slowed).

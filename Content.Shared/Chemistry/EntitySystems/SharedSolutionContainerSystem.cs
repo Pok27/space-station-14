@@ -557,6 +557,43 @@ public abstract partial class SharedSolutionContainerSystem : EntitySystem
     }
 
     /// <summary>
+    ///     Attempts to remove a specified quantity of a reagent prototype from all solutions on an entity.
+    ///     Returns false if the entity does not have enough total quantity across its solutions.
+    /// </summary>
+    /// <param name="owner">The entity owning solutions.</param>
+    /// <param name="prototype">Reagent prototype id to remove.</param>
+    /// <param name="quantity">Total amount to remove across solutions.</param>
+    /// <returns>True if fully removed; otherwise false.</returns>
+    public bool TryRemoveReagentFromEntity(EntityUid owner, string prototype, FixedPoint2 quantity)
+    {
+        if (!TryComp(owner, out SolutionContainerManagerComponent? manager))
+            return false;
+
+        var availableTotal = GetTotalPrototypeQuantity(owner, prototype);
+        if (availableTotal < quantity)
+            return false;
+
+        var remaining = quantity;
+        foreach (var (_, soln) in EnumerateSolutions((owner, manager), includeSelf: true))
+        {
+            var availableInSol = soln.Comp.Solution.GetTotalPrototypeQuantity(prototype);
+            if (availableInSol <= FixedPoint2.Zero)
+                continue;
+
+            var toRemove = FixedPoint2.Min(remaining, availableInSol);
+            if (toRemove <= FixedPoint2.Zero)
+                continue;
+
+            var removed = RemoveReagent(soln, prototype, toRemove);
+            remaining -= removed;
+            if (remaining <= FixedPoint2.Zero)
+                break;
+        }
+
+        return remaining <= FixedPoint2.Zero;
+    }
+
+    /// <summary>
     ///     Moves some quantity of a solution from one solution to another.
     /// </summary>
     /// <param name="sourceUid">entity holding the source solution</param>
