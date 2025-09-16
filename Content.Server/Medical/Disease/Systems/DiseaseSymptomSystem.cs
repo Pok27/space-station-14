@@ -120,6 +120,10 @@ public sealed partial class DiseaseSymptomSystem : EntitySystem
         if (!cfg.Enabled)
             return;
 
+        // Only spawn cloud if disease can spread via air.
+        if (!disease.HasSpreadFlag(DiseaseSpreadFlags.Airborne))
+            return;
+
         SpawnCloud(ent, disease, cfg.Range, cfg.LifetimeSeconds, cfg.TickIntervalSeconds, disease.AirborneInfect);
     }
 
@@ -138,6 +142,4 @@ public sealed partial class DiseaseSymptomSystem : EntitySystem
         cloud.NextTick = _timing.CurTime + cloud.TickInterval;
         cloud.Expiry = _timing.CurTime + cloud.Lifetime;
     }
-
-
 }

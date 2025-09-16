@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Content.Shared.Interaction;
 using Content.Shared.Interaction.Events;
 using Content.Shared.Medical.Disease;
 using Content.Shared.Mobs;
@@ -22,6 +23,8 @@ public sealed class DiseaseResidueSystem : EntitySystem
     [Dependency] private readonly DiseaseSystem _disease = default!;
     [Dependency] private readonly IPrototypeManager _prototypes = default!;
 
+    private static readonly TimeSpan CarrierTickDelay = TimeSpan.FromSeconds(2);
+
     /// <inheritdoc/>
     public override void Initialize()
     {
@@ -29,6 +32,12 @@ public sealed class DiseaseResidueSystem : EntitySystem
 
         SubscribeLocalEvent<DiseaseResidueComponent, ContactInteractionEvent>(OnResidueContact);
         SubscribeLocalEvent<DiseaseCarrierComponent, ContactInteractionEvent>(OnCarrierContact);
+
+        SubscribeLocalEvent<DiseaseCarrierComponent, ComponentStartup>(OnCarrierStartup);
+        SubscribeLocalEvent<DiseaseCarrierComponent, ComponentShutdown>(OnCarrierShutdown);
+
+        SubscribeLocalEvent<DiseaseCarrierComponent, EntityUnpausedEvent>(OnUnpaused);
+        SubscribeLocalEvent<DiseaseCarrierComponent, AfterInteractUsingEvent>(OnAfterInteractUsing);
     }
 
     public override void Update(float frameTime)
@@ -83,6 +92,72 @@ public sealed class DiseaseResidueSystem : EntitySystem
         }
     }
 
+    /// <summary>
+    /// Handles contact spread when a user uses an item on a diseased target (or vice versa).
+    /// Moved from DiseaseSystem.
+    /// </summary>
+    private void OnAfterInteractUsing(Entity<DiseaseCarrierComponent> target, ref AfterInteractUsingEvent args)
+    {
+        if (!args.CanReach || args.User == args.Target)
+            return;
+
+        var user = args.User;
+        var other = target.Owner;
+
+        var userHas = TryComp<DiseaseCarrierComponent>(user, out var userCarrier) && userCarrier.ActiveDiseases.Count > 0;
+        var targetHas = target.Comp.ActiveDiseases.Count > 0;
+
+        if (!userHas && !targetHas)
+            return;
+
+        if (userHas)
+        {
+            foreach (var (id, _) in userCarrier!.ActiveDiseases)
+            {
+                var proto = _prototypes.Index<DiseasePrototype>(id);
+                if (proto.HasSpreadFlag(DiseaseSpreadFlags.Contact))
+                    _disease.TryInfectWithChance(other, id, proto.ContactInfect);
+            }
+        }
+
+        if (targetHas)
+        {
+            foreach (var (id, _) in target.Comp.ActiveDiseases)
+            {
+                var proto = _prototypes.Index<DiseasePrototype>(id);
+                if (proto.HasSpreadFlag(DiseaseSpreadFlags.Contact))
+                    _disease.TryInfectWithChance(user, id, proto.ContactInfect);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Schedules the next processing tick for a carrier if needed.
+    /// </summary>
+    private void EnsureTick(Entity<DiseaseCarrierComponent> ent)
+    {
+        if (ent.Comp.NextTick <= _timing.CurTime)
+            ent.Comp.NextTick = _timing.CurTime + CarrierTickDelay;
+    }
+
+    private void OnCarrierStartup(Entity<DiseaseCarrierComponent> ent, ref ComponentStartup args)
+    {
+        EnsureTick(ent);
+    }
+
+    private void OnCarrierShutdown(Entity<DiseaseCarrierComponent> ent, ref ComponentShutdown args)
+    {
+        // no-op
+    }
+
+    private void OnUnpaused(Entity<DiseaseCarrierComponent> ent, ref EntityUnpausedEvent args)
+    {
+        EnsureTick(ent);
+    }
+
+    /// <summary>
+    /// Attempts contact-based infection and reduces residue intensity per contact.
+    /// </summary>
     private void OnResidueContact(EntityUid uid, DiseaseResidueComponent residue, ContactInteractionEvent args)
     {
         // Only living mobs that pass central check can be infected by contact
@@ -108,6 +183,9 @@ public sealed class DiseaseResidueSystem : EntitySystem
         }
     }
 
+    /// <summary>
+    /// Deposits per-disease residue intensity onto contacted entity/tile.
+    /// </summary>
     private void OnCarrierContact(EntityUid uid, DiseaseCarrierComponent carrier, ContactInteractionEvent args)
     {
         if (carrier.ActiveDiseases.Count == 0)
@@ -127,12 +205,15 @@ public sealed class DiseaseResidueSystem : EntitySystem
         }
     }
 
+    /// <summary>
+    /// Tries to infect a target via contact, scaling chance by residue intensity and disease ContactInfect.
+    /// </summary>
     private void InfectByContactChance(EntityUid target, string diseaseId, float intensity)
     {
         if (!_prototypes.TryIndex<DiseasePrototype>(diseaseId, out var proto))
             return;
 
-        if (!_disease.HasSpreadFlag(proto, DiseaseSpreadFlags.Contact))
+        if (!proto.HasSpreadFlag(DiseaseSpreadFlags.Contact))
             return;
 
         var chance = Math.Clamp(proto.ContactInfect * intensity, 0f, 1f);

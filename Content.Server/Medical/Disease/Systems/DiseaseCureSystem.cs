@@ -86,7 +86,7 @@ public sealed partial class DiseaseCureSystem : EntitySystem
     }
 
     /// <summary>
-    /// Removes the disease from the carrier, applies immunity and delegates cleanup to symptom hooks.
+    /// Removes the disease, applies post-cure immunity, and triggers symptom cleanup hooks.
     /// </summary>
     private void ApplyCureDisease(Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease)
     {
@@ -100,7 +100,7 @@ public sealed partial class DiseaseCureSystem : EntitySystem
     }
 
     /// <summary>
-    /// Suppresses a specific symptom for the configured duration and notifies symptom hooks.
+    /// Suppresses the given symptom for its configured duration and notifies hooks.
     /// </summary>
     private void ApplyCureSymptom(Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease, string symptomId)
     {
@@ -116,6 +116,9 @@ public sealed partial class DiseaseCureSystem : EntitySystem
         _symptoms.OnSymptomCured(ent, disease, symptomId);
     }
 
+    /// <summary>
+    /// Writes or raises the immunity strength for the cured disease on the carrier.
+    /// </summary>
     private void ApplyPostCureImmunity(DiseaseCarrierComponent comp, DiseasePrototype disease)
     {
         var strength = disease.PostCureImmunity;

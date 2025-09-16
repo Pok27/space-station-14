@@ -30,7 +30,10 @@ public sealed class DiseaseSwabSystem : EntitySystem
 
 	private const float SwabDelaySeconds = 2f;
 
-	private void OnAfterInteract(EntityUid uid, DiseaseSampleComponent swab, AfterInteractEvent args)
+    /// <summary>
+    /// Starts a timed swab action on a living mob when the swab is used.
+    /// </summary>
+    private void OnAfterInteract(EntityUid uid, DiseaseSampleComponent swab, AfterInteractEvent args)
 	{
 		if (args.Handled || !args.CanReach || args.Target is not EntityUid target)
 			return;
@@ -53,7 +56,10 @@ public sealed class DiseaseSwabSystem : EntitySystem
 		});
 	}
 
-	private void OnDoAfter(EntityUid uid, DiseaseSampleComponent swab, DiseaseSwabDoAfterEvent args)
+    /// <summary>
+    /// On do-after completion: records the target's active diseases and basic identity info into the swab.
+    /// </summary>
+    private void OnDoAfter(EntityUid uid, DiseaseSampleComponent swab, DiseaseSwabDoAfterEvent args)
 	{
 		if (args.Cancelled || args.Handled)
 			return;
