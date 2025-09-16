@@ -4,8 +4,6 @@
   id: SymptomCough
   name: Cough
   triggerProb: 0.35
-  airborne:
-    enabled: true
   cloud:
     enabled: true
   leaveResidue:
@@ -18,8 +16,6 @@
   id: SymptomSneeze
   name: Sneeze
   triggerProb: 0.3
-  airborne:
-    enabled: true
   cloud:
     enabled: true
   leaveResidue:

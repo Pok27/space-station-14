@@ -11,6 +11,10 @@ using Content.Shared.Popups;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
+using Robust.Shared.Map;
+using Content.Shared.Inventory;
+using Content.Shared.Clothing.Components;
+using Content.Server.Body.Systems;
 
 namespace Content.Server.Medical.Disease;
 
@@ -25,6 +29,11 @@ public sealed class DiseaseSystem : EntitySystem
     [Dependency] private readonly DiseaseSymptomSystem _symptoms = default!;
     [Dependency] private readonly DiseaseCureSystem _cure = default!;
     [Dependency] private readonly PopupSystem _popup = default!;
+    [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
+    [Dependency] private readonly SharedInteractionSystem _interaction = default!;
+    [Dependency] private readonly EntityLookupSystem _lookup = default!;
+    [Dependency] private readonly InventorySystem _inventory = default!;
+    [Dependency] private readonly RespiratorSystem _respirator = default!;
     private static readonly TimeSpan TickDelay = TimeSpan.FromSeconds(2);
 
     /// <inheritdoc/>
@@ -152,7 +161,7 @@ public sealed class DiseaseSystem : EntitySystem
             // Progression: scale advance chance strictly according to StageSpeed and time between ticks.
             // Cap by number of defined stages (or at least 1 if not configured).
             var newStage = stage;
-            var perTickAdvance = Math.Clamp(disease.StageSpeed * 0.02f, 0f, 1f);
+            var perTickAdvance = Math.Clamp(disease.StageSpeed * 0.01f, 0f, 1f);
             var maxStage = Math.Max(1, disease.Stages.Count);
             if (_random.Prob(perTickAdvance))
                 newStage = Math.Min(stage + 1, maxStage);
@@ -195,6 +204,10 @@ public sealed class DiseaseSystem : EntitySystem
 
             // Attempt passive cure steps for this disease.
             _cure.TriggerCureSteps(ent, disease);
+
+            // Attempt airborne spread once per tick per disease if applicable.
+            if (HasSpreadFlag(disease, DiseaseSpreadFlags.Airborne) && _random.Prob(disease.AirborneTickChance))
+                SpreadAirborne(ent, disease, disease.AirborneRange, disease.AirborneInfect);
         }
 
         foreach (var id in toRemove)
@@ -205,6 +218,51 @@ public sealed class DiseaseSystem : EntitySystem
 
         if (dirty)
             Dirty(ent);
+    }
+
+    /// <summary>
+    /// Tries to infect nearby entities through air, honoring obstructions and PPE.
+    /// </summary>
+    private void SpreadAirborne(Entity<DiseaseCarrierComponent> source, DiseasePrototype disease, float range, float baseChance)
+    {
+
+        var mapPos = _transformSystem.GetMapCoordinates(source);
+        if (mapPos.MapId == MapId.Nullspace)
+            return;
+
+        var ents = _lookup.GetEntitiesInRange(mapPos, range, LookupFlags.Dynamic | LookupFlags.Sundries);
+        foreach (var other in ents)
+        {
+            if (other == source.Owner)
+                continue;
+
+            if (!TryComp<MobStateComponent>(other, out var mobState) || mobState.CurrentState == MobState.Dead)
+                continue;
+
+            if (!_interaction.InRangeUnobstructed(source.Owner, other, range))
+                continue;
+
+            // Only infect if the target is actually breathing.
+            if (!_respirator.IsBreathing((other, null)))
+                continue;
+
+            var chance = AdjustChanceForPPE(other, baseChance, disease);
+            TryInfectWithChance(other, disease.ID, chance);
+        }
+    }
+
+    /// <summary>
+    /// Applies simple PPE modifiers (mask slots) to airborne infection chance.
+    /// </summary>
+    private float AdjustChanceForPPE(EntityUid target, float baseChance, DiseasePrototype disease)
+    {
+        if (!disease.IgnoreMaskPPE && _inventory.TryGetSlotEntity(target, "mask", out var maskUid) && TryComp<MaskComponent>(maskUid, out var mask))
+        {
+            if (!mask.IsToggled)
+                baseChance *= 0.5f;
+        }
+
+        return MathF.Max(0f, MathF.Min(1f, baseChance));
     }
 
     /// <summary>

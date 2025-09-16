@@ -41,12 +41,6 @@ public sealed partial class DiseaseSymptomPrototype : IPrototype
     public SymptomCloud Cloud { get; private set; } = new();
 
     /// <summary>
-    /// Configuration for airborne spread.
-    /// </summary>
-    [DataField]
-    public SymptomAirborne Airborne { get; private set; } = new();
-
-    /// <summary>
     /// Configuration for leaving residue.
     /// </summary>
     [DataField]
@@ -67,9 +61,6 @@ public sealed partial class DiseaseSymptomPrototype : IPrototype
     public List<CureStep> CureSteps { get; private set; } = new();
 }
 
-/// <summary>
-/// Configuration for spawning a transient disease cloud when a symptom triggers.
-/// </summary>
 [DataDefinition]
 public sealed partial class SymptomCloud
 {
@@ -97,32 +88,6 @@ public sealed partial class SymptomCloud
     [DataField("lifetime")]
     public float LifetimeSeconds { get; private set; } = 8.0f;
 }
-
-/// <summary>
-/// Configuration for symptom-driven airborne spread.
-/// </summary>
-[DataDefinition]
-public sealed partial class SymptomAirborne
-{
-    /// <summary>
-    ///
-    /// </summary>
-    [DataField]
-    public bool Enabled { get; private set; } = false;
-
-    /// <summary>
-    /// Airborne infection radius in world units.
-    /// </summary>
-    [DataField]
-    public float Range { get; private set; } = 1.5f;
-
-    /// <summary>
-    /// Base per-target infection probability (0-1) before PPE adjustments.
-    /// </summary>
-    [DataField]
-    public float BaseChance { get; private set; } = 0.15f;
-}
-
 [DataDefinition]
 public sealed partial class SymptomLeaveResidue
 {

@@ -14,6 +14,7 @@ public sealed partial class DiseaseCureSystem : EntitySystem
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private readonly DiseaseSymptomSystem _symptoms = default!;
 
     /// <inheritdoc/>
     /// <summary>
@@ -95,8 +96,7 @@ public sealed partial class DiseaseCureSystem : EntitySystem
         ent.Comp.ActiveDiseases.Remove(disease.ID);
         ApplyPostCureImmunity(ent.Comp, disease);
 
-        var symptoms = EntitySystem.Get<DiseaseSymptomSystem>();
-        symptoms.OnDiseaseCured(ent, disease);
+        _symptoms.OnDiseaseCured(ent, disease);
     }
 
     /// <summary>
@@ -113,8 +113,7 @@ public sealed partial class DiseaseCureSystem : EntitySystem
 
         ent.Comp.SuppressedSymptoms[symptomId] = _timing.CurTime + TimeSpan.FromSeconds(duration);
 
-        var symptoms = EntitySystem.Get<DiseaseSymptomSystem>();
-        symptoms.OnSymptomCured(ent, disease, symptomId);
+        _symptoms.OnSymptomCured(ent, disease, symptomId);
     }
 
     private void ApplyPostCureImmunity(DiseaseCarrierComponent comp, DiseasePrototype disease)

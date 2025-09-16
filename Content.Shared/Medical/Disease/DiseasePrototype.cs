@@ -84,6 +84,18 @@ public sealed partial class DiseasePrototype : IPrototype
     /// </summary>
     [DataField]
     public float AirborneInfect { get; private set; } = 0.2f;
+
+    /// <summary>
+    /// Airborne infection radius in world units, used when <see cref="SpreadFlags"/> contains Airborne.
+    /// </summary>
+    [DataField]
+    public float AirborneRange { get; private set; } = 1.5f;
+
+    /// <summary>
+    /// Per-tick chance (0-1) to attempt airborne spread from each carrier of this disease.
+    /// </summary>
+    [DataField]
+    public float AirborneTickChance { get; private set; } = 0.15f;
 }
 
 /// <summary>
