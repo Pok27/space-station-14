@@ -27,10 +27,10 @@ public sealed partial class DiseasePrototype : IPrototype
     public bool IsBeneficial { get; private set; } = false;
 
     /// <summary>
-    /// Progression rate factor (stages per minute baseline).
+    /// Progression rate factor (in minutes).
     /// </summary>
     [DataField]
-    public float StageSpeed { get; private set; } = 1f;
+    public float StageSpeed { get; private set; } = 0.8f;
 
     /// <summary>
     /// Stage configurations in ascending order (1-indexed semantics). Each stage can define stealth/resistance and symptom activations.
@@ -51,7 +51,7 @@ public sealed partial class DiseasePrototype : IPrototype
     /// the disease stage-specific cure step overrides it.
     /// </summary>
     [DataField]
-    public float PostCureImmunity { get; private set; } = 0.8f;
+    public float PostCureImmunity { get; private set; } = 0.7f;
 
     /// <summary>
     /// Spread vectors for this disease. Use a list so multiple vectors can be selected in prototypes.
@@ -68,24 +68,23 @@ public sealed partial class DiseasePrototype : IPrototype
 
     /// <summary>
     /// Base per-contact infection probability for this disease (0-1). Used when two entities make contact
-    /// (e.g. AfterInteractUsing/contact interactions). Centralized here to avoid magic numbers in systems.
     /// </summary>
     [DataField]
-    public float ContactInfect { get; private set; } = 0.15f;
+    public float ContactInfect { get; private set; } = 0.1f;
 
     /// <summary>
     /// Amount of residue intensity deposited when a carrier with this disease contacts a surface.
     /// Expressed as [0..1] fraction added to per-disease residue intensity.
     /// </summary>
     [DataField]
-    public float ContactDeposit { get; private set; } = 0.2f;
+    public float ContactDeposit { get; private set; } = 0.1f;
 
     /// <summary>
     /// Base per-target airborne infection probability (0-1) before PPE adjustments.
     /// This value is used both for direct airborne spread and for transient clouds spawned by symptoms.
     /// </summary>
     [DataField]
-    public float AirborneInfect { get; private set; } = 0.25f;
+    public float AirborneInfect { get; private set; } = 0.2f;
 }
 
 /// <summary>
@@ -113,6 +112,21 @@ public sealed partial class DiseaseStage
     /// </summary>
     [DataField]
     public List<ProtoId<DiseaseSymptomPrototype>> Symptoms { get; private set; } = new();
+
+    /// <summary>
+    /// Optional list of localized message keys to show as "sensations" to the carrier while at this stage.
+    /// A single entry is randomly picked on each eligible tick, controlled by <see cref="SensationProbability"/>.
+    /// YAML field name: Sensation
+    /// </summary>
+    [DataField]
+    public List<string> Sensation { get; private set; } = new();
+
+    /// <summary>
+    /// Per-tick probability (0-1) to show a random sensation popup from <see cref="Sensation"/>.
+    /// YAML field name: sensationProb
+    /// </summary>
+    [DataField]
+    public float SensationProbability { get; private set; } = 0.05f;
 
     /// <summary>
     /// Optional list of cure steps specific to this stage. If present it overrides the disease-level `CureSteps` for this stage.

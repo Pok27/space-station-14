@@ -65,8 +65,8 @@ public sealed class DiseaseSymptomSystem : EntitySystem
         {
             switch (variant)
             {
-                case SymptomExhale exhale:
-                    DoExhale(ent, exhale);
+                case SymptomEmote emote:
+                    DoEmote(ent, emote);
                     break;
 
                 case SymptomVomit vomit:
@@ -97,6 +97,18 @@ public sealed class DiseaseSymptomSystem : EntitySystem
                     DoSensation(ent, sense);
                     break;
 
+                case SymptomTransitionDisease trans:
+                    DoTransitionDisease(ent, disease, trans);
+                    break;
+
+                case SymptomGenericStatusEffect se:
+                    DoGenericStatusEffect(ent, se);
+                    break;
+
+                case SymptomAddComponent addc:
+                    DoAddComponent(ent, addc);
+                    break;
+
                 default:
                     break;
             }
@@ -108,17 +120,17 @@ public sealed class DiseaseSymptomSystem : EntitySystem
     }
 
     /// <summary>
-    /// Unified exhale action (cough or sneeze): popup, sound, jitter, residue.
+    /// Unified emote action (cough or sneeze): popup, sound, jitter, residue.
     /// </summary>
-    private void DoExhale(Entity<DiseaseCarrierComponent> ent, SymptomExhale exhale)
+    private void DoEmote(Entity<DiseaseCarrierComponent> ent, SymptomEmote emote)
     {
-        var sound = exhale.Sound;
-        var volume = exhale.SoundVolume;
-        var variation = exhale.SoundVariation;
+        var sound = emote.Sound;
+        var volume = emote.SoundVolume;
+        var variation = emote.SoundVariation;
         _audio.PlayPvs(sound, ent.Owner, AudioParams.Default.WithVolume(volume).WithVariation(variation));
 
-        if (!string.IsNullOrEmpty(exhale.PopupText))
-            _popup.PopupEntity(Loc.GetString(exhale.PopupText), ent, PopupType.Small);
+        if (!string.IsNullOrEmpty(emote.PopupText))
+            _popup.PopupEntity(Loc.GetString(emote.PopupText), ent, PopupType.Small);
     }
 
     /// <summary>
@@ -143,7 +155,7 @@ public sealed class DiseaseSymptomSystem : EntitySystem
     private void DoTemperature(Entity<DiseaseCarrierComponent> ent, SymptomTemperature temp)
     {
         // Attempt to change entity temperature gradually towards the target by applying heat.
-        // Convert degrees/sec to Joules via TemperatureSystem.GetHeatCapacity and ChangeHeat requires heat (J).
+        // Convert a step in Kelvin to Joules via TemperatureSystem.GetHeatCapacity and ChangeHeat requires heat (J).
         if (!TryComp<TemperatureComponent>(ent.Owner, out var temperature))
             return;
 
@@ -152,8 +164,8 @@ public sealed class DiseaseSymptomSystem : EntitySystem
         if (Math.Abs(current - target) < 0.01f)
             return;
 
-        // degrees per tick
-        var degrees = Math.Sign(target - current) * Math.Min(Math.Abs(target - current), temp.DegreesPerSecond);
+        // apply a bounded step each trigger
+        var degrees = Math.Sign(target - current) * Math.Min(Math.Abs(target - current), temp.StepTemperature);
 
         // heat energy = degrees * heatCapacity
         var heatCap = _temperature.GetHeatCapacity(ent.Owner);
@@ -196,6 +208,67 @@ public sealed class DiseaseSymptomSystem : EntitySystem
             return;
 
         _popup.PopupEntity(text, ent, sense.PopupType);
+    }
+
+    private void DoGenericStatusEffect(Entity<DiseaseCarrierComponent> ent, SymptomGenericStatusEffect se)
+    {
+        if (string.IsNullOrWhiteSpace(se.Key))
+            return;
+
+        // Use legacy status effect system API
+        // Add/remove/set time depending on Type
+        var time = TimeSpan.FromSeconds(Math.Max(0.01f, se.TimeSeconds));
+        var status = EntityManager.System<Content.Shared.StatusEffect.StatusEffectsSystem>();
+
+        switch (se.Type)
+        {
+            case StatusEffectApplyType.Add:
+                if (!string.IsNullOrEmpty(se.Component))
+                    status.TryAddStatusEffect(ent.Owner, se.Key, time, se.Refresh, se.Component);
+                else
+                    status.TryAddStatusEffect(ent.Owner, se.Key, time, se.Refresh);
+                break;
+
+            case StatusEffectApplyType.Remove:
+                status.TryRemoveTime(ent.Owner, se.Key, time);
+                break;
+
+            case StatusEffectApplyType.Set:
+                status.TrySetTime(ent.Owner, se.Key, time);
+                break;
+        }
+    }
+
+    private void DoAddComponent(Entity<DiseaseCarrierComponent> ent, SymptomAddComponent add)
+    {
+        if (string.IsNullOrWhiteSpace(add.Component))
+            return;
+
+        if (!EntityManager.ComponentFactory.TryGetRegistration(add.Component, out var reg))
+            return;
+
+        if (!EntityManager.HasComponent(ent.Owner, reg.Type))
+        {
+            var comp = (Component) EntityManager.ComponentFactory.GetComponent(add.Component);
+            AddComp(ent.Owner, comp);
+        }
+    }
+
+    /// <summary>
+    /// Replace current disease with another disease prototype.
+    /// </summary>
+    private void DoTransitionDisease(Entity<DiseaseCarrierComponent> ent, DiseasePrototype current, SymptomTransitionDisease trans)
+    {
+        if (string.IsNullOrWhiteSpace(trans.Disease) || trans.Disease == current.ID)
+            return;
+
+        // Remove current disease if present.
+        if (ent.Comp.ActiveDiseases.ContainsKey(current.ID))
+            ent.Comp.ActiveDiseases.Remove(current.ID);
+
+        // Infect with the new disease starting at provided stage.
+        // Use the centralized DiseaseSystem to ensure proper initialization.
+        _disease.Infect(ent.Owner, trans.Disease, Math.Max(1, trans.StartStage));
     }
 
     /// <summary>

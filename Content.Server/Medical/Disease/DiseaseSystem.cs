@@ -24,6 +24,7 @@ public sealed class DiseaseSystem : EntitySystem
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly DiseaseSymptomSystem _symptoms = default!;
     [Dependency] private readonly DiseaseCureSystem _cure = default!;
+    [Dependency] private readonly PopupSystem _popup = default!;
     private static readonly TimeSpan TickDelay = TimeSpan.FromSeconds(2);
 
     public override void Initialize()
@@ -167,6 +168,13 @@ public sealed class DiseaseSystem : EntitySystem
                 var stageCfg = disease.Stages.FirstOrDefault(s => s.Stage == newStage);
                 if (stageCfg != null)
                 {
+                    // Stage sensations: optional lightweight popups
+                    if (stageCfg.Sensation.Count > 0 && _random.Prob(stageCfg.SensationProbability))
+                    {
+                        var key = _random.Pick(stageCfg.Sensation);
+                        _popup.PopupEntity(Loc.GetString(key), Filter.Entities(ent), PopupType.Small);
+                    }
+
                     foreach (var symptomId in stageCfg.Symptoms)
                     {
                         if (!_prototypes.TryIndex<DiseaseSymptomPrototype>(symptomId, out var symptom))

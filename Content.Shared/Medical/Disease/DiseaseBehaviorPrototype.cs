@@ -4,6 +4,7 @@ using Content.Shared.Dataset;
 using Robust.Shared.Prototypes;
 using Content.Shared.Popups;
 using Robust.Shared.Audio;
+using Robust.Shared.GameObjects;
 
 namespace Content.Shared.Medical.Disease;
 
@@ -15,7 +16,7 @@ public abstract partial class SymptomBehavior
 }
 
 [DataDefinition]
-public sealed partial class SymptomExhale : SymptomBehavior
+public sealed partial class SymptomEmote : SymptomBehavior
 {
     /// <summary>
     /// Localization key for popup text.
@@ -74,17 +75,17 @@ public sealed partial class SymptomJitter : SymptomBehavior
 public sealed partial class SymptomTemperature : SymptomBehavior
 {
     /// <summary>
-    /// Target temperature (Celsius) the symptom will try to move the entity towards.
+    /// Target temperature (Kelvin) the symptom will try to move the entity towards.
     /// </summary>
     [DataField]
-    public float TargetTemperature { get; private set; } = 37.0f;
+    public float TargetTemperature { get; private set; } = 310.15f;
 
     /// <summary>
-    /// How many degrees per second we attempt to move the entity's body temperature towards the target.
-    /// Note: the implementation converts this into thermal energy using the entity heat capacity.
+    /// Temperature change step (Kelvin per symptom trigger).
+    /// The implementation converts the delta into thermal energy using entity heat capacity.
     /// </summary>
     [DataField]
-    public float DegreesPerSecond { get; private set; } = 0.5f;
+    public float StepTemperature { get; private set; } = 0.5f;
 }
 
 [DataDefinition]
@@ -95,13 +96,13 @@ public sealed partial class SymptomNarcolepsy : SymptomBehavior
     /// The probability is checked in the symptom trigger flow in addition to disease triggerProb.
     /// </summary>
     [DataField]
-    public float SleepChance { get; private set; } = 0.5f;
+    public float SleepChance { get; private set; } = 0.6f;
 
     /// <summary>
     /// How long (seconds) the forced sleep should last when applied.
     /// </summary>
     [DataField("sleepDuration")]
-    public float SleepDurationSeconds { get; private set; } = 5.0f;
+    public float SleepDurationSeconds { get; private set; } = 6.0f;
 }
 
 /// <summary>
@@ -126,7 +127,6 @@ public sealed partial class SymptomShout : SymptomBehavior
 {
     /// <summary>
     /// Optional dataset of localized lines to shout. A random entry will be selected.
-    /// If not provided, falls back to a simple "!".
     /// </summary>
     [DataField]
     public ProtoId<LocalizedDatasetPrototype>? Pack { get; private set; }
@@ -155,4 +155,81 @@ public sealed partial class SymptomSensation : SymptomBehavior
     /// </summary>
     [DataField]
     public PopupType PopupType { get; private set; } = PopupType.Small;
+}
+
+/// <summary>
+/// Applies or edits a status effect on the carrier using the legacy string-key StatusEffects system.
+/// Use with keys defined in status_effects.yml. Optional component name attaches a component while effect lasts.
+/// </summary>
+[DataDefinition]
+public sealed partial class SymptomGenericStatusEffect : SymptomBehavior
+{
+    /// <summary>
+    /// Status effect key.
+    /// </summary>
+    [DataField(required: true)]
+    public string Key { get; private set; } = string.Empty;
+
+    /// <summary>
+    /// Optional component to ensure on target when effect is applied.
+    /// </summary>
+    [DataField]
+    public string Component { get; private set; } = string.Empty;
+
+    /// <summary>
+    /// Seconds to add/remove/set on the effect cooldown. Clamped minimally above 0 when used.
+    /// </summary>
+    [DataField]
+    public float TimeSeconds { get; private set; } = 1.0f;
+
+    /// <summary>
+    /// If true, refresh effect time instead of accumulating when adding.
+    /// </summary>
+    [DataField]
+    public bool Refresh { get; private set; } = false;
+
+    /// <summary>
+    /// Operation type: Add, Remove (subtract time), or Set (replace remaining time).
+    /// </summary>
+    [DataField]
+    public StatusEffectApplyType Type { get; private set; } = StatusEffectApplyType.Add;
+}
+
+public enum StatusEffectApplyType
+{
+    Add,
+    Remove,
+    Set
+}
+
+/// <summary>
+/// Adds a component to the carrier if missing.
+/// </summary>
+[DataDefinition]
+public sealed partial class SymptomAddComponent : SymptomBehavior
+{
+    /// <summary>
+    /// Component registration name to add to the carrier.
+    /// </summary>
+    [DataField(required: true)]
+    public string Component { get; private set; } = string.Empty;
+}
+
+/// <summary>
+/// Transitions the current disease to another disease prototype when triggered.
+/// </summary>
+[DataDefinition]
+public sealed partial class SymptomTransitionDisease : SymptomBehavior
+{
+    /// <summary>
+    /// Target disease prototype ID to transition into.
+    /// </summary>
+    [DataField(required: true)]
+    public string Disease { get; private set; } = string.Empty;
+
+    /// <summary>
+    /// Optional stage to start the new disease from.
+    /// </summary>
+    [DataField]
+    public int StartStage { get; private set; } = 1;
 }

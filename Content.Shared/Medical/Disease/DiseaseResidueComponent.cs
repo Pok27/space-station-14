@@ -20,19 +20,19 @@ public sealed partial class DiseaseResidueComponent : Component
 	/// Intensity decay per second.
 	/// </summary>
 	[DataField]
-	public float DecayPerSecond = 0.05f;
+	public float DecayPerSecond = 0.08f;
 
 	/// <summary>
 	/// Amount to reduce per-disease intensity after a contact interaction.
 	/// </summary>
 	[DataField]
-	public float ContactReduction = 0.1f;
+	public float ContactReduction = 0.15f;
 
 	/// <summary>
 	/// Affect radius (world units) for proximity infection.
 	/// </summary>
 	[DataField]
-	public float Range = 0.6f;
+	public float Range = 0.5f;
 
 	/// <summary>
 	/// How often proximity infection attempts occur.

@@ -1,71 +1,190 @@
 - type: disease
-  id: DiseaseExhaleDemo
-  name: Exhale Demo
+  id: DiseaseCold
+  name: Cold
   spreadFlags: [Airborne]
+  stageSpeed: 0.7
   stages:
   - stage: 1
+    # no-op
+  - stage: 2
+    sensation:
+    - disease-sensation-throat-sore
+    - disease-sensation-throat-mucus
     symptoms:
-    - SymptomExhale
+    - SymptomCough
+    - SymptomSneeze
+  - stage: 3
+    sensation:
+    - disease-sensation-throat-sore
+    - disease-sensation-throat-mucus
+    symptoms:
+    - SymptomCough
+    - SymptomSneeze
+    - SymptomTransitionFlu
+
 
 - type: disease
-  id: DiseaseVomitDemo
-  name: Vomit Demo
+  id: DiseaseSpaceFlu
+  name: Space Flu
   spreadFlags: [Airborne]
+  stageSpeed: 0.6
+  airborneInfect: 0.25
   stages:
   - stage: 1
+    # no-op
+  - stage: 2
+    sensation:
+    - disease-sensation-muscles-ache
+    - disease-sensation-stomach-hurt
     symptoms:
-    - SymptomVomit
+    - SymptomCough
+    - SymptomSneeze
+    - SymptomToxinLight
+  - stage: 3
+    sensation:
+    - disease-sensation-muscles-ache
+    - disease-sensation-stomach-hurt
+    symptoms:
+    - SymptomCough
+    - SymptomSneeze
+    - SymptomToxinLight
+
 
 - type: disease
-  id: DiseaseJitterDemo
-  name: Jitter Demo
-  spreadFlags: [Airborne]
+  id: DiseaseFakeGBS
+  name: GBS
+  spreadFlags: [Contact]
+  contactInfect: 0.05
+  contactDeposit: 0.05
+  ignoreMaskPPE: true
   stages:
   - stage: 1
+  # no-op
+  - stage: 2
     symptoms:
-    - SymptomJitter
+    - SymptomSneeze
+    - SymptomToxin
+  - stage: 3
+    sensation:
+    - disease-sensation-very-weak
+    symptoms:
+    - SymptomCough
+    - SymptomGasp
+  - stage: 4
+    symptoms:
+    - SymptomCough
+  - stage: 5
+    symptoms:
+    - SymptomCough
+
 
 - type: disease
-  id: DiseaseTemperatureDemo
-  name: Temperature Demo
-  spreadFlags: [Airborne]
+  id: DiseaseGBS
+  name: GBS
+  spreadFlags: [Contact]
+  contactInfect: 0.05
+  contactDeposit: 0.05
+  ignoreMaskPPE: true
   stages:
   - stage: 1
+  # no-op
+  - stage: 2
     symptoms:
-    - SymptomTemperature
+    - SymptomSneeze
+    - SymptomToxin
+  - stage: 3
+    sensation:
+    - disease-sensation-very-weak
+    symptoms:
+    - SymptomCough
+    - SymptomGasp
+  - stage: 4
+    symptoms:
+    - SymptomCough
+  - stage: 5
+    sensation:
+    - disease-sensation-gib-itself
+    symptoms:
+    - SymptomCough
+    - SymptomGib
+
 
 - type: disease
-  id: DiseaseNarcolepsyDemo
-  name: Narcolepsy Demo
-  spreadFlags: [Airborne]
+  id: DiseaseFoodPoisoning
+  name: Food Poisoning
+  spreadFlags: []
   stages:
   - stage: 1
+    sensation:
+    - disease-sensation-queasy
+    - disease-sensation-stomach-weird
+  - stage: 2
+    sensation:
+    - disease-sensation-stomach-ache
+    - disease-sensation-nausea
+  - stage: 3
+    sensation:
+    - disease-sensation-stomach-hurt
+    - disease-sensation-sick
+    symptoms:
+    - SymptomVomiting
+
+
+- type: disease
+  id: DiseaseNarcolepsySyndrome
+  name: Narcolepsy Syndrome
+  spreadFlags: [Airborne, Contact]
+  stageSpeed: 0.9
+  airborneInfect: 0.05
+  contactInfect: 0.05
+  stages:
+  - stage: 1
+  # no-op
+  - stage: 2
+    sensation:
+    - disease-sensation-sleepy
+  - stage: 3
+    sensation:
+    - disease-sensation-sleepy-2
+    - disease-sensation-sleepy-3
     symptoms:
     - SymptomNarcolepsy
 
-- type: disease
-  id: DiseaseDamageDemo
-  name: Damage Demo
-  spreadFlags: [Airborne]
-  stages:
-  - stage: 1
-    symptoms:
-    - SymptomDamage
 
 - type: disease
-  id: DiseaseShoutDemo
-  name: Shout Demo
-  spreadFlags: [Airborne]
+  id: DiseaseHonkSyndrome
+  name: Honk Syndrome
+  spreadFlags: [Airborne, Contact]
+  airborneInfect: 0.15
+  cureSteps:
+  - !type:CureReagent
+    reagentId: BananaHonk
+    quantity: 5
   stages:
   - stage: 1
+    # no-op
+  - stage: 2
+    sensation:
+    - disease-sensation-clown
     symptoms:
-    - SymptomShout
+    - SymptomHonkShout
+    - SymptomJitters
+  - stage: 3
+    symptoms:
+    - SymptomStutter
+    - SymptomTransformClown
 
 - type: disease
-  id: DiseaseSensationDemo
-  name: Sensation Demo
-  spreadFlags: [Airborne]
+  id: DiseaseMonkeySyndrome
+  name: Monkey Syndrome
+  spreadFlags: [Airborne, Contact]
+  airborneInfect: 0.15
   stages:
   - stage: 1
+    # no-op
+  - stage: 2
+    sensation:
+    - disease-sensation-clown
+  - stage: 3
     symptoms:
-    - SymptomSensation
+    - SymptomMonkeyShout

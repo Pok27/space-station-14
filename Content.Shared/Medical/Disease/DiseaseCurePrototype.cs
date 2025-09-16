@@ -55,7 +55,7 @@ public sealed partial class CureTemperature : CureStep
     /// How many consecutive seconds the temperature must remain inside the range to trigger cure.
     /// </summary>
     [DataField]
-    public float RequiredSeconds { get; private set; } = 10f;
+    public float RequiredSeconds { get; private set; } = 15f;
 
     /// <summary>
     /// Chance to cure when the required period is reached (0-1).
@@ -72,7 +72,7 @@ public sealed partial class CureTime : CureStep
     /// How many seconds must pass since infection for this cure step to become eligible.
     /// </summary>
     [DataField]
-    public float RequiredSeconds { get; private set; } = 60f;
+    public float RequiredSeconds { get; private set; } = 90.0f;
 
     /// <summary>
     /// Chance to cure when the required time is reached (0-1). If roll fails, timer restarts.

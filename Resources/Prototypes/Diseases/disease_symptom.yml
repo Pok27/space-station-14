@@ -1,56 +1,143 @@
+# Exhale
+
 - type: diseaseSymptom
-  id: SymptomExhale
-  triggerProbability: 0.75
+  id: SymptomCough
+  name: Cough
+  triggerProb: 0.35
+  airborne:
+    enabled: true
+  cloud:
+    enabled: true
+  leaveResidue:
+    enabled: true
   behaviors:
-  - !type:SymptomExhale
-    popupText: disease-cough
+  - !type:SymptomEmote
+    popupText: chat-emote-msg-cough
+    sound:
+      collection: MaleCoughs
+
+- type: diseaseSymptom
+  id: SymptomSneeze
+  name: Sneeze
+  triggerProb: 0.3
+  airborne:
+    enabled: true
+  cloud:
+    enabled: true
+  leaveResidue:
+    enabled: true
+    residueIntensity: 0.15
+  behaviors:
+  - !type:SymptomEmote
+    popupText: chat-emote-msg-sneeze
     sound:
       collection: MaleSneezes
 
 - type: diseaseSymptom
-  id: SymptomVomit
-  triggerProbability: 0.75
+  id: SymptomGasp
+  name: Gasp
   behaviors:
-  - !type:SymptomVomit
+  - !type:SymptomEmote
+    popupText: chat-emote-name-gasp
+    sound:
+      collection: MaleGasp
+
+# Shout
 
 - type: diseaseSymptom
-  id: SymptomJitter
-  triggerProbability: 0.75
+  id: SymptomHonkShout
+  name: Honk Shouts
+  triggerProb: 0.35
   behaviors:
-  - !type:SymptomJitter
+  - !type:SymptomShout
+    pack: DiseaseHonkShouts
 
 - type: diseaseSymptom
-  id: SymptomTemperature
-  triggerProbability: 0.75
+  id: SymptomMonkeyShout
+  name: Monkey Shouts
+  triggerProb: 0.35
   behaviors:
-  - !type:SymptomTemperature
+  - !type:SymptomShout
+    pack: DiseaseMonkeyShouts
+
+# Damage
 
 - type: diseaseSymptom
-  id: SymptomNarcolepsy
-  triggerProbability: 0.75
-  behaviors:
-  - !type:SymptomNarcolepsy
-
-- type: diseaseSymptom
-  id: SymptomDamage
-  triggerProbability: 0.75
+  id: SymptomToxin
+  name: Toxin
+  triggerProb: 0.2
   behaviors:
   - !type:SymptomDamage
     damage:
       types:
-        Blunt: 100
+        Poison: 5
 
 - type: diseaseSymptom
-  id: SymptomShout
-  triggerProbability: 0.75
+  id: SymptomToxinLight
+  name: Light toxin
   behaviors:
-  - !type:SymptomShout
-    pack: Verbs
+  - !type:SymptomDamage
+    damage:
+      types:
+        Poison: 1
 
 - type: diseaseSymptom
-  id: SymptomSensation
-  triggerProbability: 0.75
+  id: SymptomGib
+  name: Rip from the inside
   behaviors:
-  - !type:SymptomSensation
-    popup: disease-sensation-demo
+  - !type:SymptomDamage
+    damage:
+      types:
+        Blunt: 9999
 
+# Others
+
+- type: diseaseSymptom
+  id: SymptomTransitionToFlu
+  name: Transition to Space Flu
+  triggerProb: 0.2
+  behaviors:
+  - !type:SymptomTransitionDisease
+    disease: DiseaseSpaceFlu
+
+- type: diseaseSymptom
+  id: SymptomFever
+  name: Fever
+  behaviors:
+  - !type:SymptomTemperature
+
+- type: diseaseSymptom
+  id: SymptomVomiting
+  name: Vomiting
+  triggerProb: 0.45
+  behaviors:
+  - !type:SymptomVomit
+  - !type:SymptomJitter
+
+- type: diseaseSymptom
+  id: SymptomNarcolepsy
+  name: Narcolepsy
+  behaviors:
+  - !type:SymptomNarcolepsy
+
+- type: diseaseSymptom
+  id: SymptomJitters
+  name: Jitters
+  triggerProb: 0.35
+  behaviors:
+  - !type:SymptomJitter
+
+- type: diseaseSymptom
+  id: SymptomStutter
+  name: Stutter
+  behaviors:
+  - !type:SymptomGenericStatusEffect
+    key: Stutter
+    component: StutteringAccent
+
+- type: diseaseSymptom
+  id: SymptomTransformClown
+  name: Transformation into a clown
+  behaviors:
+  - !type:SymptomAddComponent
+    component: Cluwne

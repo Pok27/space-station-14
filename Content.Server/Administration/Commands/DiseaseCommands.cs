@@ -6,6 +6,7 @@ using Robust.Shared.Console;
 using Robust.Shared.IoC;
 using Robust.Shared.Prototypes;
 using Robust.Shared.GameObjects;
+using System.Globalization;
 
 namespace Content.Server.Administration.Commands;
 
@@ -103,8 +104,19 @@ public sealed class VaccinateCommand : LocalizedEntityCommands
 		if (!_entMan.TryGetComponent(targetUid, out DiseaseCarrierComponent? comp))
 			comp = _entMan.AddComponent<DiseaseCarrierComponent>(targetUid);
 
-		// Vaccinate with full immunity (1.0) when using console command.
-		comp.Immunity[diseaseId] = 1.0f;
+		// Optional immunity strength as 3rd argument (0..1).
+		var immunity = 1.0f;
+		if (args.Length >= 3)
+		{
+			if (!float.TryParse(args[2], NumberStyles.Float, CultureInfo.InvariantCulture, out immunity))
+			{
+				shell.WriteError(Loc.GetString("cmd-vaccinate-bad-immunity", ("value", args[2])));
+				return;
+			}
+			immunity = Math.Clamp(immunity, 0f, 1f);
+		}
+
+		comp.Immunity[diseaseId] = immunity;
 		comp.ActiveDiseases.Remove(diseaseId);
 		shell.WriteLine(Loc.GetString("cmd-vaccinate-ok", ("target", targetUid.ToString()), ("disease", diseaseId)));
 	}

@@ -78,7 +78,7 @@ public sealed partial class SymptomCloud
     ///
     /// </summary>
     [DataField]
-    public bool Enabled { get; private set; } = true;
+    public bool Enabled { get; private set; } = false;
 
     /// <summary>
     /// Cloud infection radius in world units.
@@ -109,7 +109,7 @@ public sealed partial class SymptomAirborne
     ///
     /// </summary>
     [DataField]
-    public bool Enabled { get; private set; } = true;
+    public bool Enabled { get; private set; } = false;
 
     /// <summary>
     /// Airborne infection radius in world units.
@@ -121,7 +121,7 @@ public sealed partial class SymptomAirborne
     /// Base per-target infection probability (0-1) before PPE adjustments.
     /// </summary>
     [DataField]
-    public float BaseChance { get; private set; } = 0.25f;
+    public float BaseChance { get; private set; } = 0.15f;
 }
 
 [DataDefinition]
@@ -131,11 +131,11 @@ public sealed partial class SymptomLeaveResidue
     ///
     /// </summary>
     [DataField]
-    public bool Enabled { get; private set; } = true;
+    public bool Enabled { get; private set; } = false;
 
     /// <summary>
     ///
     /// </summary>
     [DataField]
-    public float ResidueIntensity { get; private set; } = 0.5f;
+    public float ResidueIntensity { get; private set; } = 0.1f;
 }
