@@ -47,7 +47,12 @@ public sealed class InfectCommand : LocalizedEntityCommands
 		var disease = _sysMan.GetEntitySystem<DiseaseSystem>();
 		var targetUid = parsedUid.Value;
 		var diseaseId = args[1];
-        var stage = 1;
+
+		// Optional stage as 3rd argument.
+		var stage = 1;
+		if (args.Length >= 3 && int.TryParse(args[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedStage))
+			stage = Math.Max(1, parsedStage);
+
 		if (!disease.Infect(targetUid, diseaseId, stage))
 		{
 			shell.WriteError(Loc.GetString("cmd-infect-fail"));

@@ -22,6 +22,7 @@ public sealed class DiseaseResidueSystem : EntitySystem
     [Dependency] private readonly DiseaseSystem _disease = default!;
     [Dependency] private readonly IPrototypeManager _prototypes = default!;
 
+    /// <inheritdoc/>
     public override void Initialize()
     {
         base.Initialize();

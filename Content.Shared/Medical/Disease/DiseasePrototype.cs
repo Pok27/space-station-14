@@ -39,8 +39,7 @@ public sealed partial class DiseasePrototype : IPrototype
     public List<DiseaseStage> Stages { get; private set; } = new();
 
     /// <summary>
-    /// Optional list of cure steps for the disease. Mirrors the `behaviors` pattern used by symptoms:
-    /// a typed list where each entry can be a variant like `CureReagent`.
+    /// Optional list of cure steps for the disease. Each entry is a specific cure action (e.g., reagent, time).
     /// </summary>
     [DataField]
     public List<CureStep> CureSteps { get; private set; } = new();
@@ -129,8 +128,22 @@ public sealed partial class DiseaseStage
     public float SensationProbability { get; private set; } = 0.05f;
 
     /// <summary>
-    /// Optional list of cure steps specific to this stage. If present it overrides the disease-level `CureSteps` for this stage.
+    /// Optional list of cure steps specific to this stage. Overrides disease-level <see cref="CureSteps"/> for this stage.
     /// </summary>
     [DataField]
     public List<CureStep> CureSteps { get; private set; } = new();
+}
+
+/// <summary>
+/// Base class for symptom behavior.
+/// </summary>
+public abstract partial class SymptomBehavior
+{
+}
+
+/// <summary>
+/// Base class for cure step variants.
+/// </summary>
+public abstract partial class CureStep
+{
 }

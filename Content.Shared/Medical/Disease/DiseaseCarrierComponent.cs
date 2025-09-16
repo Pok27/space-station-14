@@ -59,4 +59,12 @@ public sealed partial class DiseaseCarrierComponent : Component
     /// </summary>
     [DataField]
     public Dictionary<string, float> SleepAccumulation = new();
+
+    /// <summary>
+    /// Server-side: track components that were added by a disease so that cures can roll them back safely.
+    /// Key: disease prototype ID, Value: set of component registration names added by that disease.
+    /// Not networked.
+    /// </summary>
+    [DataField]
+    public Dictionary<string, HashSet<string>> AddedComponents = new();
 }

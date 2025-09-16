@@ -12,9 +12,7 @@
     enabled: true
   behaviors:
   - !type:SymptomEmote
-    popupText: chat-emote-msg-cough
-    sound:
-      collection: MaleCoughs
+    emoteId: Cough
 
 - type: diseaseSymptom
   id: SymptomSneeze
@@ -29,18 +27,14 @@
     residueIntensity: 0.15
   behaviors:
   - !type:SymptomEmote
-    popupText: chat-emote-msg-sneeze
-    sound:
-      collection: MaleSneezes
+    emoteId: Sneeze
 
 - type: diseaseSymptom
   id: SymptomGasp
   name: Gasp
   behaviors:
   - !type:SymptomEmote
-    popupText: chat-emote-name-gasp
-    sound:
-      collection: MaleGasp
+    emoteId: Gasp
 
 # Shout
 
@@ -126,14 +120,6 @@
   triggerProb: 0.35
   behaviors:
   - !type:SymptomJitter
-
-- type: diseaseSymptom
-  id: SymptomStutter
-  name: Stutter
-  behaviors:
-  - !type:SymptomGenericStatusEffect
-    key: Stutter
-    component: StutteringAccent
 
 - type: diseaseSymptom
   id: SymptomTransformClown

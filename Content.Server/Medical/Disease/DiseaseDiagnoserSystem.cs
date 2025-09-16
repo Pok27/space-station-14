@@ -18,6 +18,7 @@ public sealed class DiseaseDiagnoserSystem : EntitySystem
     [Dependency] private readonly PopupSystem _popup = default!;
     [Dependency] private readonly PaperSystem _paper = default!;
 
+    /// <inheritdoc/>
     public override void Initialize()
     {
         base.Initialize();

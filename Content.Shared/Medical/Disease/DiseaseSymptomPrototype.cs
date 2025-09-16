@@ -17,7 +17,7 @@ public sealed partial class DiseaseSymptomPrototype : IPrototype
     public string Name { get; private set; } = string.Empty;
 
     /// <summary>
-    /// Behavior variants configured by name. Each entry has a type name and inline parameters.
+    /// Behavior variants configured by name. Each entry is a symptom effect with its own parameters.
     /// </summary>
     [DataField]
     public List<SymptomBehavior> Behaviors { get; private set; } = new();
@@ -60,9 +60,8 @@ public sealed partial class DiseaseSymptomPrototype : IPrototype
     public float CureDuration { get; private set; } = 0f;
 
     /// <summary>
-    /// Optional cure steps specific to this symptom. These will be attempted by the
-    /// server cure system and, if succeeded, will suppress the symptom for
-    /// <see cref="CureDuration"/> instead of curing the underlying disease.
+    /// Optional cure steps specific to this symptom. These are attempted by the cure system and, on success,
+    /// suppress this symptom for <see cref="CureDuration"/> instead of curing the disease.
     /// </summary>
     [DataField]
     public List<CureStep> CureSteps { get; private set; } = new();

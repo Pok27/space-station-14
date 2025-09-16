@@ -20,6 +20,7 @@ public sealed class DiseaseSwabSystem : EntitySystem
 	[Dependency] private readonly PopupSystem _popup = default!;
 	[Dependency] private readonly IPrototypeManager _prototypes = default!;
 
+    /// <inheritdoc/>
 	public override void Initialize()
 	{
 		base.Initialize();

@@ -27,6 +27,7 @@ public sealed class DiseaseSystem : EntitySystem
     [Dependency] private readonly PopupSystem _popup = default!;
     private static readonly TimeSpan TickDelay = TimeSpan.FromSeconds(2);
 
+    /// <inheritdoc/>
     public override void Initialize()
     {
         base.Initialize();
@@ -172,7 +173,7 @@ public sealed class DiseaseSystem : EntitySystem
                     if (stageCfg.Sensation.Count > 0 && _random.Prob(stageCfg.SensationProbability))
                     {
                         var key = _random.Pick(stageCfg.Sensation);
-                        _popup.PopupEntity(Loc.GetString(key), Filter.Entities(ent), PopupType.Small);
+                        _popup.PopupEntity(Loc.GetString(key), ent, ent.Owner, PopupType.Small);
                     }
 
                     foreach (var symptomId in stageCfg.Symptoms)

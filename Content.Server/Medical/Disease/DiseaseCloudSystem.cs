@@ -20,6 +20,7 @@ public sealed class DiseaseCloudSystem : EntitySystem
     [Dependency] private readonly DiseaseSystem _disease = default!;
     [Dependency] private readonly Robust.Shared.Prototypes.IPrototypeManager _prototypes = default!;
 
+    /// <inheritdoc/>
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
