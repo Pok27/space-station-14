@@ -3,6 +3,16 @@ using Content.Shared.Medical.Disease;
 
 namespace Content.Server.Medical.Disease;
 
+[DataDefinition]
+public sealed partial class SymptomAddComponent : SymptomBehavior
+{
+    /// <summary>
+    /// Component registration name to add to the carrier.
+    /// </summary>
+    [DataField(required: true)]
+    public string Component { get; private set; } = string.Empty;
+}
+
 public sealed partial class DiseaseSymptomSystem
 {
     private void DoAddComponent(Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease, SymptomAddComponent add)
@@ -50,3 +60,5 @@ public sealed partial class DiseaseSymptomSystem
         // Intentionally left blank; specific symptom variants can add behavior here later if needed.
     }
 }
+
+

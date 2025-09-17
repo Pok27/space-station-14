@@ -2,6 +2,11 @@ using Content.Shared.Medical.Disease;
 
 namespace Content.Server.Medical.Disease;
 
+[DataDefinition]
+public sealed partial class SymptomVomit : SymptomBehavior
+{
+}
+
 public sealed partial class DiseaseSymptomSystem
 {
     /// <summary>
@@ -12,3 +17,5 @@ public sealed partial class DiseaseSymptomSystem
         _vomit.Vomit(ent, force: true);
     }
 }
+
+

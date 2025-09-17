@@ -1,6 +1,23 @@
+using Content.Shared.Popups;
 using Content.Shared.Medical.Disease;
 
 namespace Content.Server.Medical.Disease;
+
+[DataDefinition]
+public sealed partial class SymptomSensation : SymptomBehavior
+{
+    /// <summary>
+    /// Localization key for the popup text.
+    /// </summary>
+    [DataField]
+    public string Popup { get; private set; } = string.Empty;
+
+    /// <summary>
+    /// Popup visual style.
+    /// </summary>
+    [DataField]
+    public PopupType PopupType { get; private set; } = PopupType.Small;
+}
 
 public sealed partial class DiseaseSymptomSystem
 {
@@ -16,3 +33,5 @@ public sealed partial class DiseaseSymptomSystem
         _popup.PopupEntity(text, ent, sense.PopupType);
     }
 }
+
+

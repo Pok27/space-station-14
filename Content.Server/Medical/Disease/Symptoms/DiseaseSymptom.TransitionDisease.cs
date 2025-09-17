@@ -2,6 +2,22 @@ using Content.Shared.Medical.Disease;
 
 namespace Content.Server.Medical.Disease;
 
+[DataDefinition]
+public sealed partial class SymptomTransitionDisease : SymptomBehavior
+{
+    /// <summary>
+    /// Target disease prototype ID to apply.
+    /// </summary>
+    [DataField(required: true)]
+    public string Disease { get; private set; } = string.Empty;
+
+    /// <summary>
+    /// Starting stage for the new disease.
+    /// </summary>
+    [DataField]
+    public int StartStage { get; private set; } = 1;
+}
+
 public sealed partial class DiseaseSymptomSystem
 {
     /// <summary>
@@ -18,3 +34,5 @@ public sealed partial class DiseaseSymptomSystem
         _disease.Infect(ent.Owner, trans.Disease, Math.Max(1, trans.StartStage));
     }
 }
+
+
