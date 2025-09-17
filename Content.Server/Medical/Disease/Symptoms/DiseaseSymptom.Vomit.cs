@@ -17,5 +17,3 @@ public sealed partial class DiseaseSymptomSystem
         _vomit.Vomit(ent, force: true);
     }
 }
-
-

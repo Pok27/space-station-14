@@ -34,5 +34,3 @@ public sealed partial class DiseaseSymptomSystem
         _disease.Infect(ent.Owner, trans.Disease, Math.Max(1, trans.StartStage));
     }
 }
-
-

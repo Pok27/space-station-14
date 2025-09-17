@@ -39,5 +39,3 @@ public sealed partial class DiseaseSymptomSystem
         _jitter.DoJitter(ent, TimeSpan.FromSeconds(jitterSeconds), false, jitterAmplitude, jitterFrequency);
     }
 }
-
-

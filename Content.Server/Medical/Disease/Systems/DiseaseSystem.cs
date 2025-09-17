@@ -28,6 +28,32 @@ public sealed partial class DiseaseSystem : EntitySystem
 
     /// <inheritdoc/>
     /// <summary>
+    /// Processes carriers on their scheduled ticks.
+    /// </summary>
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        var query = EntityQueryEnumerator<DiseaseCarrierComponent>();
+        var now = _timing.CurTime;
+        var carriersToProcess = new List<(EntityUid uid, DiseaseCarrierComponent carrier)>();
+
+        while (query.MoveNext(out var uid, out var carrier))
+        {
+            if (carrier.NextTick > now)
+                continue;
+
+            carrier.NextTick = now + TickDelay;
+            carriersToProcess.Add((uid, carrier));
+        }
+
+        foreach (var (uid, carrier) in carriersToProcess)
+        {
+            ProcessCarrier((uid, carrier));
+        }
+    }
+
+    /// <summary>
     /// Advances disease stages and triggers symptom behaviors when eligible.
     /// Removes invalid diseases.
     /// </summary>
@@ -153,11 +179,6 @@ public sealed partial class DiseaseSystem : EntitySystem
 
         if (!carrier.ActiveDiseases.ContainsKey(diseaseId))
             carrier.ActiveDiseases[diseaseId] = startStage;
-
-        // Initialize server-side cure state for this disease.
-        carrier.InfectionStart[diseaseId] = _timing.CurTime;
-        carrier.CureTimers.Remove(diseaseId);
-        carrier.SleepAccumulation[diseaseId] = 0f;
 
         carrier.NextTick = _timing.CurTime + TickDelay;
         Dirty(uid, carrier);

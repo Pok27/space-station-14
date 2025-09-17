@@ -41,5 +41,3 @@ public sealed partial class DiseaseSymptomSystem
         _temperature.ChangeHeat(ent.Owner, heat, ignoreHeatResistance: true, temperature);
     }
 }
-
-

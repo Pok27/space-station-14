@@ -40,27 +40,6 @@ public sealed partial class DiseaseCarrierComponent : Component
     public Dictionary<string, TimeSpan> SuppressedSymptoms = new();
 
     /// <summary>
-    /// Server-side: timestamp when a disease was (last) applied to this carrier.
-    /// Used for time-based cures. Not networked.
-    /// </summary>
-    [DataField]
-    public Dictionary<string, TimeSpan> InfectionStart = new();
-
-    /// <summary>
-    /// Server-side: generic per-disease timers for cure checks (e.g., temperature windows).
-    /// Keys are disease prototype IDs. Not networked.
-    /// </summary>
-    [DataField]
-    public Dictionary<string, TimeSpan> CureTimers = new();
-
-    /// <summary>
-    /// Server-side: accumulated sleep seconds per disease for sleep-based cures.
-    /// Not networked.
-    /// </summary>
-    [DataField]
-    public Dictionary<string, float> SleepAccumulation = new();
-
-    /// <summary>
     /// Server-side: track components that were added by a disease so that cures can roll them back safely.
     /// Key: disease prototype ID, Value: set of component registration names added by that disease.
     /// Not networked.

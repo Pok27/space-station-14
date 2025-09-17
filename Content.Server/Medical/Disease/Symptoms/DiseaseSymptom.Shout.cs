@@ -37,5 +37,3 @@ public sealed partial class DiseaseSymptomSystem
         _chat.TrySendInGameICMessage(ent.Owner, message, InGameICChatType.Speak, shout.HideChat);
     }
 }
-
-

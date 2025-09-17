@@ -25,5 +25,3 @@ public sealed partial class DiseaseSymptomSystem
             _chat.TryEmoteWithChat(ent.Owner, emoteProto, ignoreActionBlocker: true);
     }
 }
-
-

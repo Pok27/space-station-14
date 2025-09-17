@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using Content.Shared.Medical.Disease;
-using Content.Shared.Chemistry.EntitySystems;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 using Robust.Shared.Random;
@@ -10,7 +9,6 @@ namespace Content.Server.Medical.Disease;
 
 public sealed partial class DiseaseCureSystem : EntitySystem
 {
-    [Dependency] private readonly SharedSolutionContainerSystem _solutionSystem = default!;
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
@@ -27,8 +25,8 @@ public sealed partial class DiseaseCureSystem : EntitySystem
             case CureReagent reagent:
                 return DoCureReagent(ent, reagent, disease);
 
-            case CureSleep sleep:
-                return DoCureSleep(ent, sleep, disease);
+            case CureBedrest bedrest:
+                return DoCureBedrest(ent, bedrest, disease);
 
             case CureTemperature temp:
                 return DoCureTemperature(ent, temp, disease);

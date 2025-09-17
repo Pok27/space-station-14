@@ -33,5 +33,3 @@ public sealed partial class DiseaseSymptomSystem
         _popup.PopupEntity(text, ent, sense.PopupType);
     }
 }
-
-

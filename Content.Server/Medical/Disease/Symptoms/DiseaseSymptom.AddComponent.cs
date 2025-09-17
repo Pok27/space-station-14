@@ -60,5 +60,3 @@ public sealed partial class DiseaseSymptomSystem
         // Intentionally left blank; specific symptom variants can add behavior here later if needed.
     }
 }
-
-

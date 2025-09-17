@@ -35,5 +35,3 @@ public sealed partial class DiseaseSymptomSystem
         _status.TryAddStatusEffectDuration(ent.Owner, SleepingSystem.StatusEffectForcedSleeping, dur);
     }
 }
-
-

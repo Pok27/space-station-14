@@ -26,5 +26,3 @@ public sealed partial class DiseaseSymptomSystem
         _damageable.TryChangeDamage(ent.Owner, new DamageSpecifier(dmg.Damage));
     }
 }
-
-

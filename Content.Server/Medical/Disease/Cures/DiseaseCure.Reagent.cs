@@ -1,5 +1,6 @@
 using Content.Shared.FixedPoint;
 using Content.Shared.Medical.Disease;
+using Content.Shared.Body.Components;
 
 namespace Content.Server.Medical.Disease;
 
@@ -22,16 +23,21 @@ public sealed partial class CureReagent : CureStep
 public sealed partial class DiseaseCureSystem
 {
     /// <summary>
-    /// Consumes the specified reagent from the carrier's solutions to cure the disease.
+    /// Cures the disease if the bloodstream chemical solution contains enough of the reagent.
+    /// Does not consume the reagent.
     /// </summary>
-    private bool DoCureReagent(Entity<DiseaseCarrierComponent> ent, CureReagent reagentStep, DiseasePrototype disease)
+    private bool DoCureReagent(Entity<DiseaseCarrierComponent> ent, CureReagent сure, DiseasePrototype disease)
     {
-        var reagent = _solutionSystem.TryRemoveReagentFromEntity(ent.Owner, reagentStep.ReagentId, reagentStep.Quantity);
-        if (!reagent)
+        if (!TryComp<BloodstreamComponent>(ent.Owner, out var bloodstream))
             return false;
 
-        return true;
+        var quant = FixedPoint2.Zero;
+        if (bloodstream.ChemicalSolution != null)
+        {
+            var chem = bloodstream.ChemicalSolution.Value;
+            quant = chem.Comp.Solution.GetTotalPrototypeQuantity(сure.ReagentId);
+        }
+
+        return quant >= сure.Quantity;
     }
 }
-
-

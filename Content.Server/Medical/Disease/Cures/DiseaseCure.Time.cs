@@ -25,24 +25,23 @@ public sealed partial class DiseaseCureSystem
     /// <summary>
     /// Cures the disease after the infection has lasted a configured duration.
     /// </summary>
-    private bool DoCureTime(Entity<DiseaseCarrierComponent> ent, CureTime timeStep, DiseasePrototype disease)
+    private bool DoCureTime(Entity<DiseaseCarrierComponent> ent, CureTime cure, DiseasePrototype disease)
     {
-        if (timeStep.RequiredSeconds <= 0f)
+        if (cure.RequiredSeconds <= 0f)
             return false;
 
-        if (!ent.Comp.InfectionStart.TryGetValue(disease.ID, out var start))
+        var state = GetState(ent.Owner, disease.ID, cure);
+        state.Ticker++;
+        if (state.Ticker < cure.RequiredSeconds)
             return false;
 
-        var now = _timing.CurTime;
-        if ((now - start).TotalSeconds < timeStep.RequiredSeconds)
-            return false;
-
-        if (_random.Prob(timeStep.CureChance))
+        if (_random.Prob(cure.CureChance))
+        {
+            state.Ticker = 0;
             return true;
+        }
 
-        ent.Comp.InfectionStart[disease.ID] = now;
+        state.Ticker = 0;
         return false;
     }
 }
-
-
