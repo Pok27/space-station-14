@@ -12,7 +12,6 @@ public sealed partial class DiseaseCureSystem : EntitySystem
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly DiseaseSymptomSystem _symptoms = default!;
 
     /// <inheritdoc/>
     /// <summary>

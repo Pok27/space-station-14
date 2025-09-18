@@ -41,7 +41,7 @@ public sealed partial class DiseasePrototype : IPrototype
     /// <summary>
     /// Optional list of cure steps for the disease. Each entry is a specific cure action (e.g., reagent, time).
     /// </summary>
-    [DataField]
+    [DataField(serverOnly: true)]
     public List<CureStep> CureSteps { get; private set; } = new();
 
     /// <summary>
@@ -142,20 +142,6 @@ public sealed partial class DiseaseStage
     /// <summary>
     /// Optional list of cure steps specific to this stage. Overrides disease-level <see cref="CureSteps"/> for this stage.
     /// </summary>
-    [DataField]
+    [DataField(serverOnly: true)]
     public List<CureStep> CureSteps { get; private set; } = new();
-}
-
-/// <summary>
-/// Base class for cure step variants.
-/// </summary>
-public abstract partial class CureStep
-{
-    /// <summary>
-    /// Returns one or more localized lines describing this cure step for diagnoser reports.
-    /// </summary>
-    public virtual IEnumerable<string> BuildDiagnoserLines(IPrototypeManager prototypes)
-    {
-        yield break;
-    }
 }

@@ -4,6 +4,7 @@ namespace Content.Shared.Medical.Disease;
 
 /// <summary>
 /// Enumeration describing disease transmission vectors.
+/// TODO: only the Contact works and Airborne.
 /// </summary>
 public enum DiseaseSpreadFlags
 {

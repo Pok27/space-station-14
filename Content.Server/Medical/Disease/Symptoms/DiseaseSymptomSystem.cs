@@ -90,9 +90,6 @@ public sealed partial class DiseaseSymptomSystem : EntitySystem
     }
 
     /// <summary>
-    /// Leaves residue on the ground containing current carrier diseases.
-    /// </summary>
-    /// <summary>
     /// Leaves a ground residue entity carrying active diseases for potential contact spread.
     /// </summary>
     private void LeaveResidue(DiseaseSymptomPrototype symptom, Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease)
@@ -121,7 +118,7 @@ public sealed partial class DiseaseSymptomSystem : EntitySystem
             return;
 
         // Only spawn cloud if disease can spread via air.
-        if (!disease.HasSpreadFlag(DiseaseSpreadFlags.Airborne))
+        if (!disease.SpreadFlags.Contains(DiseaseSpreadFlags.Airborne))
             return;
 
         SpawnCloud(ent, disease, cfg.Range, cfg.LifetimeSeconds, cfg.TickIntervalSeconds, disease.AirborneInfect);

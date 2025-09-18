@@ -50,7 +50,7 @@ public sealed class AirborneDiseaseSystem : EntitySystem
             if (!_prototypes.TryIndex<DiseasePrototype>(diseaseId, out var disease))
                 continue;
 
-            if (!disease.HasSpreadFlag(DiseaseSpreadFlags.Airborne))
+            if (!disease.SpreadFlags.Contains(DiseaseSpreadFlags.Airborne))
                 continue;
 
             var range = disease.AirborneRange;

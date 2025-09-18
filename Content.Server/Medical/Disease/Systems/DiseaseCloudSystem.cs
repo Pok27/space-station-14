@@ -52,7 +52,7 @@ public sealed class DiseaseCloudSystem : EntitySystem
                     if (_prototypes.TryIndex<DiseasePrototype>(diseaseId, out var proto))
                     {
                         // Clouds represent transient airborne spread; gate by Airborne flag.
-                        if (!proto.HasSpreadFlag(DiseaseSpreadFlags.Airborne))
+                        if (!proto.SpreadFlags.Contains(DiseaseSpreadFlags.Airborne))
                             continue;
 
                         _disease.TryInfectWithChance(ent, diseaseId, proto.AirborneInfect, 1);

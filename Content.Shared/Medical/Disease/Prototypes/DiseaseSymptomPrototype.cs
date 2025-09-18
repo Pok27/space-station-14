@@ -19,7 +19,7 @@ public sealed partial class DiseaseSymptomPrototype : IPrototype
     /// <summary>
     /// Behavior variants configured by name. Each entry is a symptom effect with its own parameters.
     /// </summary>
-    [DataField]
+    [DataField(serverOnly: true)]
     public List<SymptomBehavior> Behaviors { get; private set; } = new();
 
     /// <summary>
@@ -57,16 +57,13 @@ public sealed partial class DiseaseSymptomPrototype : IPrototype
     /// Optional cure steps specific to this symptom. These are attempted by the cure system and, on success,
     /// suppress this symptom for <see cref="CureDuration"/> instead of curing the disease.
     /// </summary>
-    [DataField]
+    [DataField(serverOnly: true)]
     public List<CureStep> CureSteps { get; private set; } = new();
 }
 
 [DataDefinition]
 public sealed partial class SymptomCloud
 {
-    /// <summary>
-    ///
-    /// </summary>
     [DataField]
     public bool Enabled { get; private set; } = false;
 
@@ -88,17 +85,15 @@ public sealed partial class SymptomCloud
     [DataField("lifetime")]
     public float LifetimeSeconds { get; private set; } = 8.0f;
 }
+
 [DataDefinition]
 public sealed partial class SymptomLeaveResidue
 {
-    /// <summary>
-    ///
-    /// </summary>
     [DataField]
     public bool Enabled { get; private set; } = false;
 
     /// <summary>
-    ///
+    /// Intensity of the residue.
     /// </summary>
     [DataField]
     public float ResidueIntensity { get; private set; } = 0.1f;

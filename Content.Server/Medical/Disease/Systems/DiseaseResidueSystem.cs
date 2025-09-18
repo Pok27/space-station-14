@@ -115,7 +115,7 @@ public sealed class DiseaseResidueSystem : EntitySystem
             foreach (var (id, _) in userCarrier!.ActiveDiseases)
             {
                 var proto = _prototypes.Index<DiseasePrototype>(id);
-                if (proto.HasSpreadFlag(DiseaseSpreadFlags.Contact))
+                if (proto.SpreadFlags.Contains(DiseaseSpreadFlags.Contact))
                     _disease.TryInfectWithChance(other, id, proto.ContactInfect);
             }
         }
@@ -125,7 +125,7 @@ public sealed class DiseaseResidueSystem : EntitySystem
             foreach (var (id, _) in target.Comp.ActiveDiseases)
             {
                 var proto = _prototypes.Index<DiseasePrototype>(id);
-                if (proto.HasSpreadFlag(DiseaseSpreadFlags.Contact))
+                if (proto.SpreadFlags.Contains(DiseaseSpreadFlags.Contact))
                     _disease.TryInfectWithChance(user, id, proto.ContactInfect);
             }
         }
@@ -213,7 +213,7 @@ public sealed class DiseaseResidueSystem : EntitySystem
         if (!_prototypes.TryIndex<DiseasePrototype>(diseaseId, out var proto))
             return;
 
-        if (!proto.HasSpreadFlag(DiseaseSpreadFlags.Contact))
+        if (!proto.SpreadFlags.Contains(DiseaseSpreadFlags.Contact))
             return;
 
         var chance = Math.Clamp(proto.ContactInfect * intensity, 0f, 1f);
