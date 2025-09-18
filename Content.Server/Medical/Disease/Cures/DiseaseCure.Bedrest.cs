@@ -3,6 +3,7 @@ using Content.Shared.Bed.Components;
 using Content.Shared.Bed.Sleep;
 using Content.Shared.Buckle.Components;
 using Content.Shared.Medical.Disease;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server.Medical.Disease;
 
@@ -61,6 +62,20 @@ public sealed partial class DiseaseCureSystem
 
         state.Ticker = 0;
         return true;
+    }
+}
+
+public sealed partial class CureBedrest
+{
+    public override IEnumerable<string> BuildDiagnoserLines(IPrototypeManager prototypes)
+    {
+        // Round seconds to int for display
+        var time = (int) MathF.Ceiling(RequiredSeconds);
+        var sleepMult = SleepMultiplier;
+
+        // Calculate equivalent sleeping time if multiplier > 1
+        var sleepSeconds = (int) MathF.Ceiling(RequiredSeconds / MathF.Max(1f, sleepMult));
+        yield return Loc.GetString("diagnoser-cure-bedrest", ("time", time), ("sleep", sleepSeconds));
     }
 }
 

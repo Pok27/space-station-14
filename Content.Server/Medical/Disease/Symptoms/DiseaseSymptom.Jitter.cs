@@ -29,7 +29,7 @@ public sealed partial class SymptomJitter : SymptomBehavior
 public sealed partial class DiseaseSymptomSystem
 {
     /// <summary>
-    /// Applies screen jitter to the carrier for a brief period.
+    /// Applies jitter to the carrier for a brief period.
     /// </summary>
     private void DoJitter(Entity<DiseaseCarrierComponent> ent, SymptomJitter jitter)
     {

@@ -36,7 +36,7 @@ public sealed class DiseaseDiagnoserSystem : EntitySystem
         // Reject if no sample material present
         if (!sample.HasSample)
         {
-            _popup.PopupEntity(Loc.GetString("disease-diagnoser-empty-swab-popup"), uid, args.User);
+            _popup.PopupEntity(Loc.GetString("diagnoser-disease-empty-swab-popup"), uid, args.User);
             args.Handled = true;
             return;
         }
@@ -60,22 +60,22 @@ public sealed class DiseaseDiagnoserSystem : EntitySystem
         sample.SubjectDNA = null;
         sample.HasSample = false;
 
-        _popup.PopupEntity(Loc.GetString("disease-diagnoser-printed-popup"), uid, args.User);
+        _popup.PopupEntity(Loc.GetString("diagnoser-disease-printed-popup"), uid, args.User);
     }
 
     private string BuildReportContent(DiseaseSampleComponent sample)
     {
         var headerParts = new List<string>();
         if (!string.IsNullOrWhiteSpace(sample.SubjectName))
-            headerParts.Add(Loc.GetString("disease-diagnoser-report-subject", ("name", sample.SubjectName!)));
+            headerParts.Add(Loc.GetString("diagnoser-disease-report-subject", ("name", sample.SubjectName!)));
         if (!string.IsNullOrWhiteSpace(sample.SubjectDNA))
-            headerParts.Add(Loc.GetString("disease-diagnoser-report-dna", ("dna", sample.SubjectDNA!)));
+            headerParts.Add(Loc.GetString("diagnoser-disease-report-subject-dna", ("dna", sample.SubjectDNA!)));
 
         var header = string.Join("\n", headerParts);
 
         if (sample.Diseases.Count == 0)
         {
-            var healthy = Loc.GetString("disease-diagnoser-report-healthy");
+            var healthy = Loc.GetString("diagnoser-disease-report-none");
             return string.IsNullOrEmpty(header) ? healthy : $"{header}\n{healthy}";
         }
 
@@ -87,7 +87,40 @@ public sealed class DiseaseDiagnoserSystem : EntitySystem
                 name = string.IsNullOrWhiteSpace(proto.Name) ? id : proto.Name;
 
             var stage = sample.Stages.TryGetValue(id, out var s) ? s : 1;
-            lines.Add(Loc.GetString("disease-diagnoser-report-line", ("name", name), ("stage", stage)));
+            lines.Add(Loc.GetString("diagnoser-disease-report-name", ("name", name), ("stage", stage)));
+
+            // Append cure lines if available on disease or its current stage
+            if (_prototypes.TryIndex<DiseasePrototype>(id, out var proto2))
+            {
+                DiseaseStage? stageCfg = null;
+                foreach (var stCfg in proto2.Stages)
+                {
+                    if (stCfg.Stage == stage)
+                    {
+                        stageCfg = stCfg;
+                        break;
+                    }
+                }
+                var cureSteps = (stageCfg != null && stageCfg.CureSteps.Count > 0)
+                    ? stageCfg.CureSteps
+                    : proto2.CureSteps;
+
+                if (cureSteps.Count == 0)
+                {
+                    lines.Add(Loc.GetString("diagnoser-no-cures"));
+                }
+                else
+                {
+                    lines.Add(Loc.GetString("diagnoser-cure-has"));
+                    foreach (var step in cureSteps)
+                    {
+                        foreach (var cureLine in step.BuildDiagnoserLines(_prototypes))
+                        {
+                            lines.Add("- " + cureLine);
+                        }
+                    }
+                }
+            }
         }
 
         var body = string.Join("\n", lines);

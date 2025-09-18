@@ -27,7 +27,7 @@ public sealed partial class DiseasePrototype : IPrototype
     public bool IsBeneficial { get; private set; } = false;
 
     /// <summary>
-    /// Progression rate factor (in minutes).
+    /// Speed of progression through disease stages per second (multiplied by 0.1).
     /// </summary>
     [DataField]
     public float StageSpeed { get; private set; } = 0.8f;
@@ -147,15 +147,15 @@ public sealed partial class DiseaseStage
 }
 
 /// <summary>
-/// Base class for symptom behavior.
-/// </summary>
-public abstract partial class SymptomBehavior
-{
-}
-
-/// <summary>
 /// Base class for cure step variants.
 /// </summary>
 public abstract partial class CureStep
 {
+    /// <summary>
+    /// Returns one or more localized lines describing this cure step for diagnoser reports.
+    /// </summary>
+    public virtual IEnumerable<string> BuildDiagnoserLines(IPrototypeManager prototypes)
+    {
+        yield break;
+    }
 }

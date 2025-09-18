@@ -6,7 +6,7 @@ namespace Content.Server.Medical.Disease;
 /// <summary>
 /// Runtime per-step state stored in the system.
 /// </summary>
-public sealed partial class DiseaseCureSystem : EntitySystem
+public sealed partial class DiseaseCureSystem
 {
     private sealed class CureState
     {

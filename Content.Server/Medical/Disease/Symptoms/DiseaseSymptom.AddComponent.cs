@@ -15,6 +15,9 @@ public sealed partial class SymptomAddComponent : SymptomBehavior
 
 public sealed partial class DiseaseSymptomSystem
 {
+    /// <summary>
+    /// Adds a permanent component to the carrier.
+    /// </summary>
     private void DoAddComponent(Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease, SymptomAddComponent add)
     {
         if (string.IsNullOrWhiteSpace(add.Component))
@@ -35,28 +38,5 @@ public sealed partial class DiseaseSymptomSystem
             ent.Comp.AddedComponents[disease.ID] = set;
         }
         set.Add(add.Component);
-    }
-
-    public void OnDiseaseCured(Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease)
-    {
-        if (!ent.Comp.AddedComponents.TryGetValue(disease.ID, out var comps))
-            return;
-
-        foreach (var regName in comps)
-        {
-            if (EntityManager.ComponentFactory.TryGetRegistration(regName, out var reg))
-            {
-                if (EntityManager.HasComponent(ent.Owner, reg.Type))
-                    RemComp(ent.Owner, reg.Type);
-            }
-        }
-
-        comps.Clear();
-        ent.Comp.AddedComponents.Remove(disease.ID);
-    }
-
-    public void OnSymptomCured(Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease, string symptomId)
-    {
-        // Intentionally left blank; specific symptom variants can add behavior here later if needed.
     }
 }

@@ -1,6 +1,7 @@
 using System;
-using Robust.Shared.Random;
 using Content.Shared.Medical.Disease;
+using Robust.Shared.Random;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server.Medical.Disease;
 
@@ -43,5 +44,14 @@ public sealed partial class DiseaseCureSystem
 
         state.Ticker = 0;
         return false;
+    }
+}
+
+public sealed partial class CureTime
+{
+    public override IEnumerable<string> BuildDiagnoserLines(IPrototypeManager prototypes)
+    {
+        var time = (int) MathF.Ceiling(RequiredSeconds);
+        yield return Loc.GetString("diagnoser-cure-time", ("time", time));
     }
 }

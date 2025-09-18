@@ -52,7 +52,7 @@ public sealed partial class DiseaseCureSystem : EntitySystem
             return;
 
         // Prefer stage-level cure steps when available
-        var applicable = (stageCfg.CureSteps != null && stageCfg.CureSteps.Count > 0)
+        var applicable = stageCfg.CureSteps.Count > 0
             ? stageCfg.CureSteps
             : disease.CureSteps;
 
@@ -72,7 +72,7 @@ public sealed partial class DiseaseCureSystem : EntitySystem
             if (ent.Comp.SuppressedSymptoms.TryGetValue(symptomId, out var suppressUntil) && suppressUntil > _timing.CurTime)
                 continue;
 
-            if (symptomProto.CureSteps == null || symptomProto.CureSteps.Count == 0)
+            if (symptomProto.CureSteps.Count == 0)
                 continue;
 
             foreach (var step in symptomProto.CureSteps)
@@ -93,8 +93,6 @@ public sealed partial class DiseaseCureSystem : EntitySystem
 
         ent.Comp.ActiveDiseases.Remove(disease.ID);
         ApplyPostCureImmunity(ent.Comp, disease);
-
-        _symptoms.OnDiseaseCured(ent, disease);
     }
 
     /// <summary>
@@ -110,8 +108,6 @@ public sealed partial class DiseaseCureSystem : EntitySystem
             return;
 
         ent.Comp.SuppressedSymptoms[symptomId] = _timing.CurTime + TimeSpan.FromSeconds(duration);
-
-        _symptoms.OnSymptomCured(ent, disease, symptomId);
     }
 
     /// <summary>

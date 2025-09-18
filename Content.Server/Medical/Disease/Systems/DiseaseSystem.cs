@@ -105,6 +105,10 @@ public sealed partial class DiseaseSystem : EntitySystem
                         if (!_prototypes.TryIndex<DiseaseSymptomPrototype>(symptomId, out var symptom))
                             continue;
 
+                        // Skip if this symptom is currently suppressed by a symptom-level cure.
+                        if (ent.Comp.SuppressedSymptoms.TryGetValue(symptomId, out var until) && until > _timing.CurTime)
+                            continue;
+
                         var prob = symptom.TriggerProbability;
                         if (prob <= 0f)
                             continue;

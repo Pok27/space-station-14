@@ -103,3 +103,10 @@ public sealed partial class SymptomLeaveResidue
     [DataField]
     public float ResidueIntensity { get; private set; } = 0.1f;
 }
+
+/// <summary>
+/// Base class for symptom behavior.
+/// </summary>
+public abstract partial class SymptomBehavior
+{
+}

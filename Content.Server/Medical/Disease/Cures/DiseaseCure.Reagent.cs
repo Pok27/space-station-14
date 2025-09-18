@@ -1,6 +1,8 @@
 using Content.Shared.FixedPoint;
 using Content.Shared.Medical.Disease;
 using Content.Shared.Body.Components;
+using Content.Shared.Chemistry.Reagent;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server.Medical.Disease;
 
@@ -26,7 +28,7 @@ public sealed partial class DiseaseCureSystem
     /// Cures the disease if the bloodstream chemical solution contains enough of the reagent.
     /// Does not consume the reagent.
     /// </summary>
-    private bool DoCureReagent(Entity<DiseaseCarrierComponent> ent, CureReagent сure, DiseasePrototype disease)
+    private bool DoCureReagent(Entity<DiseaseCarrierComponent> ent, CureReagent cure, DiseasePrototype disease)
     {
         if (!TryComp<BloodstreamComponent>(ent.Owner, out var bloodstream))
             return false;
@@ -35,9 +37,23 @@ public sealed partial class DiseaseCureSystem
         if (bloodstream.ChemicalSolution != null)
         {
             var chem = bloodstream.ChemicalSolution.Value;
-            quant = chem.Comp.Solution.GetTotalPrototypeQuantity(сure.ReagentId);
+            quant = chem.Comp.Solution.GetTotalPrototypeQuantity(cure.ReagentId);
         }
 
-        return quant >= сure.Quantity;
+        return quant >= cure.Quantity;
+    }
+}
+
+public sealed partial class CureReagent
+{
+    public override IEnumerable<string> BuildDiagnoserLines(IPrototypeManager prototypes)
+    {
+        var reagentName = ReagentId;
+        if (prototypes.TryIndex<ReagentPrototype>(ReagentId, out var reagentProto))
+            reagentName = reagentProto.LocalizedName;
+
+        // Use FixedPoint2.ToString for locale-safe quantity
+        var unitsText = Quantity.ToString();
+        yield return Loc.GetString("diagnoser-cure-reagent", ("units", unitsText), ("reagent", reagentName));
     }
 }
