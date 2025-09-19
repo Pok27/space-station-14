@@ -18,19 +18,25 @@ public sealed partial class SymptomTransitionDisease : SymptomBehavior
     public int StartStage { get; private set; } = 1;
 }
 
-public sealed partial class DiseaseSymptomSystem
+public sealed partial class SymptomTransitionDisease
 {
+    [Dependency] private readonly IEntityManager _entityManager = default!;
+    [Dependency] private readonly DiseaseSystem _diseaseSystem = default!;
+
     /// <summary>
     /// Replaces the current disease with another disease prototype, starting at a given stage.
     /// </summary>
-    private void DoTransitionDisease(Entity<DiseaseCarrierComponent> ent, DiseasePrototype current, SymptomTransitionDisease trans)
+    public override void OnSymptom(EntityUid uid, DiseasePrototype current)
     {
-        if (string.IsNullOrWhiteSpace(trans.Disease) || trans.Disease == current.ID)
+        if (string.IsNullOrWhiteSpace(Disease) || Disease == current.ID)
             return;
 
-        if (ent.Comp.ActiveDiseases.ContainsKey(current.ID))
-            ent.Comp.ActiveDiseases.Remove(current.ID);
+        if (_entityManager.TryGetComponent(uid, out DiseaseCarrierComponent? carrier) &&
+            carrier.ActiveDiseases.ContainsKey(current.ID))
+        {
+            carrier.ActiveDiseases.Remove(current.ID);
+        }
 
-        _disease.Infect(ent.Owner, trans.Disease, Math.Max(1, trans.StartStage));
+        _diseaseSystem.Infect(uid, Disease, Math.Max(1, StartStage));
     }
 }

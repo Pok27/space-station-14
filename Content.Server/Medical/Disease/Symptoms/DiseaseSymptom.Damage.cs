@@ -13,16 +13,18 @@ public sealed partial class SymptomDamage : SymptomBehavior
     public DamageSpecifier Damage { get; private set; } = new();
 }
 
-public sealed partial class DiseaseSymptomSystem
+public sealed partial class SymptomDamage
 {
+    [Dependency] private readonly DamageableSystem _damageable = default!;
+
     /// <summary>
     /// Applies configured damage to the carrier.
     /// </summary>
-    private void DoDamage(Entity<DiseaseCarrierComponent> ent, SymptomDamage dmg)
+    public override void OnSymptom(EntityUid uid, DiseasePrototype disease)
     {
-        if (dmg.Damage == null || dmg.Damage.Empty)
+        if (Damage == null || Damage.Empty)
             return;
 
-        _damageable.TryChangeDamage(ent.Owner, new DamageSpecifier(dmg.Damage));
+        _damageable.TryChangeDamage(uid, new DamageSpecifier(Damage));
     }
 }

@@ -21,22 +21,25 @@ public sealed partial class CureWait : CureStep
     public float CureChance { get; private set; } = 1.0f;
 }
 
-public sealed partial class DiseaseCureSystem
+public sealed partial class CureWait
 {
+    [Dependency] private readonly DiseaseCureSystem _cureSystem = default!;
+    [Dependency] private readonly IRobustRandom _random = default!;
+
     /// <summary>
     /// Cures the disease after the infection has lasted a configured duration.
     /// </summary>
-    private bool DoCureWait(Entity<DiseaseCarrierComponent> ent, CureWait cure, DiseasePrototype disease)
+    public override bool OnCure(EntityUid uid, DiseasePrototype disease)
     {
-        if (cure.RequiredSeconds <= 0f)
+        if (RequiredSeconds <= 0f)
             return false;
 
-        var state = GetState(ent.Owner, disease.ID, cure);
+        var state = _cureSystem.GetState(uid, disease.ID, this);
         state.Ticker++;
-        if (state.Ticker < cure.RequiredSeconds)
+        if (state.Ticker < RequiredSeconds)
             return false;
 
-        if (_random.Prob(cure.CureChance))
+        if (_random.Prob(CureChance))
         {
             state.Ticker = 0;
             return true;
@@ -45,10 +48,7 @@ public sealed partial class DiseaseCureSystem
         state.Ticker = 0;
         return false;
     }
-}
 
-public sealed partial class CureWait
-{
     public override IEnumerable<string> BuildDiagnoserLines(IPrototypeManager prototypes)
     {
         var time = (int) MathF.Ceiling(RequiredSeconds);

@@ -2,10 +2,10 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using Content.Shared.Medical.Disease;
-using Content.Shared.Chemistry.EntitySystems;
+using Robust.Shared.GameObjects;
+using Robust.Shared.IoC;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
-using Robust.Shared.Random;
 
 namespace Content.Server.Medical.Disease;
 
@@ -13,32 +13,16 @@ public sealed partial class DiseaseCureSystem : EntitySystem
 {
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly SharedSolutionContainerSystem _solutions = default!;
 
     /// <inheritdoc/>
     /// <summary>
-    /// Dispatches a configured cure step to the corresponding handler.
+    /// Executes a configured cure step via its polymorphic OnCure.
     /// </summary>
     private bool ExecuteCureStep(Entity<DiseaseCarrierComponent> ent, CureStep step, DiseasePrototype disease)
     {
-        switch (step)
-        {
-            case CureReagent reagent:
-                return DoCureReagent(ent, reagent, disease);
-
-            case CureBedrest bedrest:
-                return DoCureBedrest(ent, bedrest, disease);
-
-            case CureTemperature temp:
-                return DoCureTemperature(ent, temp, disease);
-
-            case CureWait wait:
-                return DoCureWait(ent, wait, disease);
-
-            default:
-                return false;
-        }
+        var deps = IoCManager.Resolve<IEntitySystemManager>().DependencyCollection;
+        deps.InjectDependencies(step, oneOff: true);
+        return step.OnCure(ent.Owner, disease);
     }
 
     /// <summary>
@@ -159,7 +143,7 @@ public sealed partial class DiseaseCureSystem : EntitySystem
     /// <summary>
     /// Runtime per-step state stored in the system.
     /// </summary>
-    private sealed class CureState
+    internal sealed class CureState
     {
         public float Ticker;
     }
@@ -167,9 +151,9 @@ public sealed partial class DiseaseCureSystem : EntitySystem
     private readonly Dictionary<(EntityUid, string, CureStep), CureState> _cureStates = new();
 
     /// <summary>
-    /// Retrieves the runtime state for the given (entity, disease, step), creating it if missing.
+    /// Retrieves the runtime state for the given (entity, disease, cure), creating it if missing.
     /// </summary>
-    private CureState GetState(EntityUid uid, string diseaseId, CureStep step)
+    internal CureState GetState(EntityUid uid, string diseaseId, CureStep step)
     {
         var key = (uid, diseaseId, step);
         if (!_cureStates.TryGetValue(key, out var state))

@@ -27,33 +27,32 @@ public sealed partial class CureTemperature : CureStep
     public int RequiredSeconds { get; private set; } = 15;
 }
 
-public sealed partial class DiseaseCureSystem
+public sealed partial class CureTemperature
 {
+    [Dependency] private readonly IEntityManager _entityManager = default!;
+    [Dependency] private readonly DiseaseCureSystem _cureSystem = default!;
+
     /// <summary>
     /// Cures the disease after spending consecutive time within a temperature range.
     /// </summary>
-    private bool DoCureTemperature(Entity<DiseaseCarrierComponent> ent, CureTemperature cure, DiseasePrototype disease)
+    public override bool OnCure(EntityUid uid, DiseasePrototype disease)
     {
-        if (cure.RequiredSeconds <= 0f)
+        if (RequiredSeconds <= 0f)
             return false;
 
-        if (!TryComp<TemperatureComponent>(ent.Owner, out var temperature))
+        if (!_entityManager.TryGetComponent(uid, out TemperatureComponent? temperature))
             return false;
 
-        var state = GetState(ent.Owner, disease.ID, cure);
-        if (temperature.CurrentTemperature < cure.MinTemperature || temperature.CurrentTemperature > cure.MaxTemperature)
+        var state = _cureSystem.GetState(uid, disease.ID, this);
+        if (temperature.CurrentTemperature < MinTemperature || temperature.CurrentTemperature > MaxTemperature)
         {
             state.Ticker = 0;
             return false;
         }
 
         state.Ticker++;
-        return state.Ticker >= cure.RequiredSeconds;
+        return state.Ticker >= RequiredSeconds;
     }
-}
-
-public sealed partial class CureTemperature
-{
     public override IEnumerable<string> BuildDiagnoserLines(IPrototypeManager prototypes)
     {
         var min = MinTemperature;

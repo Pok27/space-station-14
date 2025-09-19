@@ -7,13 +7,15 @@ public sealed partial class SymptomVomit : SymptomBehavior
 {
 }
 
-public sealed partial class DiseaseSymptomSystem
+public sealed partial class SymptomVomit
 {
+    [Dependency] private readonly VomitSystem _vomitSystem = default!;
+
     /// <summary>
     /// Forces the carrier to vomit. Used by food poisoning and similar symptoms.
     /// </summary>
-    private void DoVomit(Entity<DiseaseCarrierComponent> ent, SymptomVomit vomit)
+    public override void OnSymptom(EntityUid uid, DiseasePrototype disease)
     {
-        _vomit.Vomit(ent, force: true);
+        _vomitSystem.Vomit(uid, force: true);
     }
 }

@@ -106,8 +106,14 @@ public sealed partial class SymptomLeaveResidue
 public abstract partial class SymptomBehavior
 {
     /// <summary>
+    /// Called when the symptom is triggered on the carrier.
+    /// </summary>
+    public virtual void OnSymptom(EntityUid uid, DiseasePrototype disease)
+    {
+    }
+
+    /// <summary>
     /// Called when the parent disease is fully cured on the carrier.
-    /// Default implementation is a no-op. Override in server behaviors as needed.
     /// </summary>
     public virtual void OnDiseaseCured(EntityUid uid, DiseasePrototype disease)
     {
@@ -115,7 +121,6 @@ public abstract partial class SymptomBehavior
 
     /// <summary>
     /// Called when this symptom is cured/suppressed on the carrier.
-    /// Default implementation is a no-op. Override in server behaviors as needed.
     /// </summary>
     public virtual void OnSymptomCured(EntityUid uid, DiseasePrototype disease, string symptomId)
     {

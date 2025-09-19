@@ -4,6 +4,7 @@ using Content.Shared.Medical.Disease;
 using Content.Shared.Body.Components;
 using Content.Shared.Chemistry.Reagent;
 using Content.Shared.Chemistry.Components;
+using Content.Shared.Chemistry.EntitySystems;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server.Medical.Disease;
@@ -24,28 +25,27 @@ public sealed partial class CureReagent : CureStep
     public FixedPoint2 Quantity { get; private set; } = FixedPoint2.New(1);
 }
 
-public sealed partial class DiseaseCureSystem
+public sealed partial class CureReagent
 {
+    [Dependency] private readonly IEntityManager _entityManager = default!;
+    [Dependency] private readonly SharedSolutionContainerSystem _solutions = default!;
+
     /// <summary>
     /// Cures the disease if the bloodstream chemical solution contains enough of the reagent.
     /// Does not consume the reagent.
     /// </summary>
-    private bool DoCureReagent(Entity<DiseaseCarrierComponent> ent, CureReagent cure, DiseasePrototype disease)
+    public override bool OnCure(EntityUid uid, DiseasePrototype disease)
     {
-        if (!TryComp<BloodstreamComponent>(ent.Owner, out var bloodstream))
+        if (!_entityManager.TryGetComponent(uid, out BloodstreamComponent? bloodstream))
             return false;
 
-        // Resolve the chemicals solution reliably (cache may be null).
-        if (!_solutions.ResolveSolution(ent.Owner, bloodstream.ChemicalSolutionName, ref bloodstream.ChemicalSolution, out var chemSolution))
+        if (!_solutions.ResolveSolution(uid, bloodstream.ChemicalSolutionName, ref bloodstream.ChemicalSolution, out var chemSolution))
             return false;
 
-        var quant = chemSolution.GetTotalPrototypeQuantity(cure.ReagentId);
-        return quant >= cure.Quantity;
+        var quant = chemSolution.GetTotalPrototypeQuantity(ReagentId);
+        return quant >= Quantity;
     }
-}
 
-public sealed partial class CureReagent
-{
     public override IEnumerable<string> BuildDiagnoserLines(IPrototypeManager prototypes)
     {
         var reagentName = ReagentId;

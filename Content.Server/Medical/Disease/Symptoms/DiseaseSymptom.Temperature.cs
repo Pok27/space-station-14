@@ -1,6 +1,7 @@
 using System;
 using Content.Server.Temperature.Components;
 using Content.Shared.Medical.Disease;
+using Content.Server.Temperature.Systems;
 
 namespace Content.Server.Medical.Disease;
 
@@ -20,24 +21,27 @@ public sealed partial class SymptomTemperature : SymptomBehavior
     public float StepTemperature { get; private set; } = 0.5f;
 }
 
-public sealed partial class DiseaseSymptomSystem
+public sealed partial class SymptomTemperature
 {
+    [Dependency] private readonly IEntityManager _entityManager = default!;
+    [Dependency] private readonly TemperatureSystem _temperatureSystem = default!;
+
     /// <summary>
     /// Adjusts the carrier's body temperature towards a target in small heat steps.
     /// </summary>
-    private void DoTemperature(Entity<DiseaseCarrierComponent> ent, SymptomTemperature temp)
+    public override void OnSymptom(EntityUid uid, DiseasePrototype disease)
     {
-        if (!TryComp<TemperatureComponent>(ent.Owner, out var temperature))
+        if (!_entityManager.TryGetComponent(uid, out TemperatureComponent? temperature))
             return;
 
-        var target = temp.TargetTemperature;
+        var target = TargetTemperature;
         var current = temperature.CurrentTemperature;
         if (Math.Abs(current - target) < 0.01f)
             return;
 
-        var degrees = Math.Sign(target - current) * Math.Min(Math.Abs(target - current), temp.StepTemperature);
-        var heatCap = _temperature.GetHeatCapacity(ent.Owner);
+        var degrees = Math.Sign(target - current) * Math.Min(Math.Abs(target - current), StepTemperature);
+        var heatCap = _temperatureSystem.GetHeatCapacity(uid);
         var heat = degrees * heatCap;
-        _temperature.ChangeHeat(ent.Owner, heat, ignoreHeatResistance: true, temperature);
+        _temperatureSystem.ChangeHeat(uid, heat, ignoreHeatResistance: true, temperature);
     }
 }

@@ -1,4 +1,3 @@
-using Robust.Shared.GameObjects;
 using Content.Shared.Medical.Disease;
 
 namespace Content.Server.Medical.Disease;
@@ -13,40 +12,41 @@ public sealed partial class SymptomAddComponent : SymptomBehavior
     public string Component { get; private set; } = string.Empty;
 }
 
-public sealed partial class DiseaseSymptomSystem
+public sealed partial class SymptomAddComponent
 {
+    [Dependency] private readonly IEntityManager _entityManager = default!;
+
     /// <summary>
     /// Adds a permanent component to the carrier.
     /// </summary>
-    private void DoAddComponent(Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease, SymptomAddComponent add)
+    public override void OnSymptom(EntityUid uid, DiseasePrototype disease)
     {
-        if (string.IsNullOrWhiteSpace(add.Component))
+        if (string.IsNullOrWhiteSpace(Component))
             return;
 
-        if (!EntityManager.ComponentFactory.TryGetRegistration(add.Component, out var reg))
+        if (!_entityManager.ComponentFactory.TryGetRegistration(Component, out var reg))
             return;
 
-        if (EntityManager.HasComponent(ent.Owner, reg.Type))
+        if (_entityManager.HasComponent(uid, reg.Type))
             return;
 
-        var comp = (Component) EntityManager.ComponentFactory.GetComponent(add.Component);
-        AddComp(ent.Owner, comp);
+        var comp = (Component) _entityManager.ComponentFactory.GetComponent(Component);
+        _entityManager.AddComponent(uid, comp);
 
-        if (!ent.Comp.AddedComponents.TryGetValue(disease.ID, out var set))
+        if (!_entityManager.TryGetComponent(uid, out DiseaseCarrierComponent? carrier))
+            return;
+
+        if (!carrier.AddedComponents.TryGetValue(disease.ID, out var set))
         {
             set = new HashSet<string>();
-            ent.Comp.AddedComponents[disease.ID] = set;
+            carrier.AddedComponents[disease.ID] = set;
         }
-        set.Add(add.Component);
+        set.Add(Component);
     }
-}
 
-public sealed partial class SymptomAddComponent : SymptomBehavior
-{
     public override void OnDiseaseCured(EntityUid uid, DiseasePrototype disease)
     {
-        var entMan = IoCManager.Resolve<IEntityManager>();
-        if (!entMan.TryGetComponent(uid, out DiseaseCarrierComponent? carrier))
+        if (!_entityManager.TryGetComponent(uid, out DiseaseCarrierComponent? carrier))
             return;
 
         if (!carrier.AddedComponents.TryGetValue(disease.ID, out var comps))
@@ -54,8 +54,8 @@ public sealed partial class SymptomAddComponent : SymptomBehavior
 
         foreach (var regName in comps)
         {
-            if (entMan.ComponentFactory.TryGetRegistration(regName, out var reg) && entMan.HasComponent(uid, reg.Type))
-                entMan.RemoveComponent(uid, reg.Type);
+            if (_entityManager.ComponentFactory.TryGetRegistration(regName, out var reg) && _entityManager.HasComponent(uid, reg.Type))
+                _entityManager.RemoveComponent(uid, reg.Type);
         }
 
         comps.Clear();

@@ -26,16 +26,16 @@ public sealed partial class SymptomJitter : SymptomBehavior
     public float JitterFrequency { get; private set; } = 3.0f;
 }
 
-public sealed partial class DiseaseSymptomSystem
+public sealed partial class SymptomJitter
 {
+    [Dependency] private readonly SharedJitteringSystem _jitterSystem = default!;
+
     /// <summary>
     /// Applies jitter to the carrier for a brief period.
     /// </summary>
-    private void DoJitter(Entity<DiseaseCarrierComponent> ent, SymptomJitter jitter)
+    public override void OnSymptom(EntityUid uid, DiseasePrototype disease)
     {
-        var jitterSeconds = jitter.JitterSeconds;
-        var jitterAmplitude = jitter.JitterAmplitude;
-        var jitterFrequency = jitter.JitterFrequency;
-        _jitter.DoJitter(ent, TimeSpan.FromSeconds(jitterSeconds), false, jitterAmplitude, jitterFrequency);
+        var dur = TimeSpan.FromSeconds(JitterSeconds);
+        _jitterSystem.DoJitter(uid, dur, false, JitterAmplitude, JitterFrequency);
     }
 }

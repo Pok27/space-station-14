@@ -1,6 +1,7 @@
 using Robust.Shared.Prototypes;
 using Content.Shared.Chat.Prototypes;
 using Content.Shared.Medical.Disease;
+using Content.Server.Chat.Systems;
 
 namespace Content.Server.Medical.Disease;
 
@@ -14,14 +15,18 @@ public sealed partial class SymptomEmote : SymptomBehavior
     public ProtoId<EmotePrototype>? EmoteId { get; private set; }
 }
 
-public sealed partial class DiseaseSymptomSystem
+public sealed partial class SymptomEmote
 {
+    [Dependency] private readonly ChatSystem _chat = default!;
+
     /// <summary>
     /// Triggers an emote on the carrier if the symptom specifies an emote prototype.
     /// </summary>
-    private void DoEmote(Entity<DiseaseCarrierComponent> ent, SymptomEmote emote)
+    public override void OnSymptom(EntityUid uid, DiseasePrototype disease)
     {
-        if (emote.EmoteId is { } emoteProto)
-            _chat.TryEmoteWithChat(ent.Owner, emoteProto, ignoreActionBlocker: true);
+        if (EmoteId is not { } emoteProto)
+            return;
+
+        _chat.TryEmoteWithChat(uid, emoteProto, ignoreActionBlocker: true);
     }
 }

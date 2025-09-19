@@ -1,5 +1,6 @@
 using Content.Shared.Popups;
 using Content.Shared.Medical.Disease;
+using Content.Server.Popups;
 
 namespace Content.Server.Medical.Disease;
 
@@ -19,17 +20,19 @@ public sealed partial class SymptomSensation : SymptomBehavior
     public PopupType PopupType { get; private set; } = PopupType.Small;
 }
 
-public sealed partial class DiseaseSymptomSystem
+public sealed partial class SymptomSensation
 {
+    [Dependency] private readonly PopupSystem _popup = default!;
+
     /// <summary>
     /// Shows a small popup to the carrier with the configured localization key.
     /// </summary>
-    private void DoSensation(Entity<DiseaseCarrierComponent> ent, SymptomSensation sense)
+    public override void OnSymptom(EntityUid uid, DiseasePrototype disease)
     {
-        var text = Loc.GetString(sense.Popup);
+        var text = Loc.GetString(Popup);
         if (string.IsNullOrEmpty(text))
             return;
 
-        _popup.PopupEntity(text, ent, sense.PopupType);
+        _popup.PopupEntity(text, uid, PopupType);
     }
 }

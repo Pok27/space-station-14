@@ -29,44 +29,43 @@ public sealed partial class CureBedrest : CureStep
     public float AwakeDecayPerSecond { get; private set; } = 2f;
 }
 
-public sealed partial class DiseaseCureSystem
+public sealed partial class CureBedrest
 {
+    [Dependency] private readonly IEntityManager _entityManager = default!;
+    [Dependency] private readonly DiseaseCureSystem _cureSystem = default!;
+
     /// <summary>
     /// Accumulates time while the entity is buckled to a bed.
     /// Sleeping multiplies accumulation. While not on bed, progress decays.
     /// </summary>
-    private bool DoCureBedrest(Entity<DiseaseCarrierComponent> ent, CureBedrest cure, DiseasePrototype disease)
+    public override bool OnCure(EntityUid uid, DiseasePrototype disease)
     {
-        if (cure.RequiredSeconds <= 0f)
+        if (RequiredSeconds <= 0f)
             return false;
 
         var onBed = false;
-        if (TryComp<BuckleComponent>(ent.Owner, out var buckle) && buckle.BuckledTo is { } strappedTo)
-            onBed = HasComp<HealOnBuckleComponent>(strappedTo);
+        if (_entityManager.TryGetComponent(uid, out BuckleComponent? buckle) && buckle.BuckledTo is { } strappedTo)
+            onBed = _entityManager.HasComponent<HealOnBuckleComponent>(strappedTo);
 
-        var state = GetState(ent.Owner, disease.ID, cure);
+        var state = _cureSystem.GetState(uid, disease.ID, this);
 
         if (onBed)
         {
-            var sleeping = HasComp<SleepingComponent>(ent.Owner);
-            var mult = sleeping ? MathF.Max(1f, cure.SleepMultiplier) : 1f;
+            var sleeping = _entityManager.HasComponent<SleepingComponent>(uid);
+            var mult = sleeping ? MathF.Max(1f, SleepMultiplier) : 1f;
             state.Ticker += mult;
         }
-        else if (cure.AwakeDecayPerSecond > 0f)
+        else if (AwakeDecayPerSecond > 0f)
         {
-            state.Ticker = MathF.Max(0f, state.Ticker - cure.AwakeDecayPerSecond);
+            state.Ticker = MathF.Max(0f, state.Ticker - AwakeDecayPerSecond);
         }
 
-        if (state.Ticker < cure.RequiredSeconds)
+        if (state.Ticker < RequiredSeconds)
             return false;
 
         state.Ticker = 0;
         return true;
     }
-}
-
-public sealed partial class CureBedrest
-{
     public override IEnumerable<string> BuildDiagnoserLines(IPrototypeManager prototypes)
     {
         // Round seconds to int for display
