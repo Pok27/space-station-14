@@ -171,6 +171,7 @@
     - SymptomJitters
   - stage: 3
     symptoms:
+    - SymptomHonkShout
     - SymptomStutter
     - SymptomTransformClown
 

@@ -1,7 +1,9 @@
+using Content.Server.Body.Components;
 using Content.Shared.FixedPoint;
 using Content.Shared.Medical.Disease;
 using Content.Shared.Body.Components;
 using Content.Shared.Chemistry.Reagent;
+using Content.Shared.Chemistry.Components;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server.Medical.Disease;
@@ -33,13 +35,11 @@ public sealed partial class DiseaseCureSystem
         if (!TryComp<BloodstreamComponent>(ent.Owner, out var bloodstream))
             return false;
 
-        var quant = FixedPoint2.Zero;
-        if (bloodstream.ChemicalSolution != null)
-        {
-            var chem = bloodstream.ChemicalSolution.Value;
-            quant = chem.Comp.Solution.GetTotalPrototypeQuantity(cure.ReagentId);
-        }
+        // Resolve the chemicals solution reliably (cache may be null).
+        if (!_solutions.ResolveSolution(ent.Owner, bloodstream.ChemicalSolutionName, ref bloodstream.ChemicalSolution, out var chemSolution))
+            return false;
 
+        var quant = chemSolution.GetTotalPrototypeQuantity(cure.ReagentId);
         return quant >= cure.Quantity;
     }
 }

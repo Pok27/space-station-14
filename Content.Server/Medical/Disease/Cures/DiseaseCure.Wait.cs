@@ -6,7 +6,7 @@ using Robust.Shared.Prototypes;
 namespace Content.Server.Medical.Disease;
 
 [DataDefinition]
-public sealed partial class CureTime : CureStep
+public sealed partial class CureWait : CureStep
 {
     /// <summary>
     /// Seconds since infection required before curing can occur.
@@ -26,7 +26,7 @@ public sealed partial class DiseaseCureSystem
     /// <summary>
     /// Cures the disease after the infection has lasted a configured duration.
     /// </summary>
-    private bool DoCureTime(Entity<DiseaseCarrierComponent> ent, CureTime cure, DiseasePrototype disease)
+    private bool DoCureWait(Entity<DiseaseCarrierComponent> ent, CureWait cure, DiseasePrototype disease)
     {
         if (cure.RequiredSeconds <= 0f)
             return false;
@@ -47,7 +47,7 @@ public sealed partial class DiseaseCureSystem
     }
 }
 
-public sealed partial class CureTime
+public sealed partial class CureWait
 {
     public override IEnumerable<string> BuildDiagnoserLines(IPrototypeManager prototypes)
     {

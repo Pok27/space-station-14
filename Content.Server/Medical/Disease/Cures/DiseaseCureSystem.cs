@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using Content.Shared.Medical.Disease;
+using Content.Shared.Chemistry.EntitySystems;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 using Robust.Shared.Random;
@@ -12,6 +14,7 @@ public sealed partial class DiseaseCureSystem : EntitySystem
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private readonly SharedSolutionContainerSystem _solutions = default!;
 
     /// <inheritdoc/>
     /// <summary>
@@ -30,8 +33,8 @@ public sealed partial class DiseaseCureSystem : EntitySystem
             case CureTemperature temp:
                 return DoCureTemperature(ent, temp, disease);
 
-            case CureTime time:
-                return DoCureTime(ent, time, disease);
+            case CureWait wait:
+                return DoCureWait(ent, wait, disease);
 
             default:
                 return false;
@@ -58,7 +61,7 @@ public sealed partial class DiseaseCureSystem : EntitySystem
         foreach (var step in applicable)
         {
             if (ExecuteCureStep(ent, step, disease))
-                ApplyCureDisease(ent, disease);
+                ApplyCureDisease(ent, disease, stageCfg.Symptoms);
         }
 
         // Also attempt symptom-level cure steps defined on the symptom prototypes for this stage.
@@ -85,19 +88,21 @@ public sealed partial class DiseaseCureSystem : EntitySystem
     /// <summary>
     /// Removes the disease, applies post-cure immunity, and triggers symptom cleanup hooks.
     /// </summary>
-    private void ApplyCureDisease(Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease)
+    public void ApplyCureDisease(Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease, IReadOnlyList<ProtoId<DiseaseSymptomPrototype>> stageSymptoms)
     {
         if (!ent.Comp.ActiveDiseases.ContainsKey(disease.ID))
             return;
 
         ent.Comp.ActiveDiseases.Remove(disease.ID);
         ApplyPostCureImmunity(ent.Comp, disease);
+
+        NotifyDiseaseCured(ent, disease, stageSymptoms);
     }
 
     /// <summary>
     /// Suppresses the given symptom for its configured duration and notifies hooks.
     /// </summary>
-    private void ApplyCureSymptom(Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease, string symptomId)
+    public void ApplyCureSymptom(Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease, string symptomId)
     {
         if (!_prototypeManager.TryIndex<DiseaseSymptomPrototype>(symptomId, out var symptomProto))
             return;
@@ -107,6 +112,8 @@ public sealed partial class DiseaseCureSystem : EntitySystem
             return;
 
         ent.Comp.SuppressedSymptoms[symptomId] = _timing.CurTime + TimeSpan.FromSeconds(duration);
+
+        NotifySymptomCured(ent, disease, symptomId);
     }
 
     /// <summary>
@@ -120,5 +127,56 @@ public sealed partial class DiseaseCureSystem : EntitySystem
             comp.Immunity[disease.ID] = MathF.Max(existing, strength);
         else
             comp.Immunity[disease.ID] = strength;
+    }
+
+    /// <summary>
+    /// Invokes <see cref="SymptomBehavior.OnDiseaseCured"/> on behaviors for the symptoms present on the cured stage only.
+    /// </summary>
+    private void NotifyDiseaseCured(Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease, IReadOnlyList<ProtoId<DiseaseSymptomPrototype>> stageSymptoms)
+    {
+        foreach (var symptomId in stageSymptoms)
+        {
+            if (!_prototypeManager.TryIndex<DiseaseSymptomPrototype>(symptomId, out var symptomProto))
+                continue;
+
+            foreach (var behavior in symptomProto.Behaviors)
+                behavior.OnDiseaseCured(ent.Owner, disease);
+        }
+    }
+
+    /// <summary>
+    /// Invokes <see cref="SymptomBehavior.OnSymptomCured"/> for the behaviors of the cured symptom.
+    /// </summary>
+    private void NotifySymptomCured(Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease, string symptomId)
+    {
+        if (!_prototypeManager.TryIndex<DiseaseSymptomPrototype>(symptomId, out var symptomProto))
+            return;
+
+        foreach (var behavior in symptomProto.Behaviors)
+            behavior.OnSymptomCured(ent.Owner, disease, symptomId);
+    }
+
+    /// <summary>
+    /// Runtime per-step state stored in the system.
+    /// </summary>
+    private sealed class CureState
+    {
+        public float Ticker;
+    }
+
+    private readonly Dictionary<(EntityUid, string, CureStep), CureState> _cureStates = new();
+
+    /// <summary>
+    /// Retrieves the runtime state for the given (entity, disease, step), creating it if missing.
+    /// </summary>
+    private CureState GetState(EntityUid uid, string diseaseId, CureStep step)
+    {
+        var key = (uid, diseaseId, step);
+        if (!_cureStates.TryGetValue(key, out var state))
+        {
+            state = new CureState();
+            _cureStates[key] = state;
+        }
+        return state;
     }
 }

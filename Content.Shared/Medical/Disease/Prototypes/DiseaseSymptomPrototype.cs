@@ -1,5 +1,6 @@
 using Content.Shared.StatusEffect;
 using Robust.Shared.Prototypes;
+using Robust.Shared.GameObjects;
 
 namespace Content.Shared.Medical.Disease;
 
@@ -104,4 +105,19 @@ public sealed partial class SymptomLeaveResidue
 /// </summary>
 public abstract partial class SymptomBehavior
 {
+    /// <summary>
+    /// Called when the parent disease is fully cured on the carrier.
+    /// Default implementation is a no-op. Override in server behaviors as needed.
+    /// </summary>
+    public virtual void OnDiseaseCured(EntityUid uid, DiseasePrototype disease)
+    {
+    }
+
+    /// <summary>
+    /// Called when this symptom is cured/suppressed on the carrier.
+    /// Default implementation is a no-op. Override in server behaviors as needed.
+    /// </summary>
+    public virtual void OnSymptomCured(EntityUid uid, DiseasePrototype disease, string symptomId)
+    {
+    }
 }

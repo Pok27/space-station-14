@@ -1,4 +1,5 @@
 using Content.Server.Administration;
+using Content.Server.Medical.Disease;
 using Content.Shared.Administration;
 using Content.Shared.Medical.Disease;
 using Robust.Shared.Console;
@@ -6,6 +7,7 @@ using Robust.Shared.IoC;
 using Robust.Shared.Prototypes;
 using Robust.Shared.GameObjects;
 using System.Globalization;
+using System.Linq;
 
 /// <summary>
 /// Grants immunity to a disease to your attached entity.
@@ -19,6 +21,7 @@ public sealed class VaccinateCommand : LocalizedEntityCommands
 
 	[Dependency] private readonly IEntityManager _entMan = default!;
     [Dependency] private readonly IPrototypeManager _proto = default!;
+    [Dependency] private readonly IEntitySystemManager _sysMan = default!;
 
 	public override void Execute(IConsoleShell shell, string argStr, string[] args)
 	{
@@ -53,20 +56,15 @@ public sealed class VaccinateCommand : LocalizedEntityCommands
 		if (!_entMan.TryGetComponent(targetUid, out DiseaseCarrierComponent? comp))
 			comp = _entMan.AddComponent<DiseaseCarrierComponent>(targetUid);
 
-		// Optional immunity strength as 3rd argument (0..1).
-		var immunity = 1.0f;
-		if (args.Length >= 3)
-		{
-			if (!float.TryParse(args[2], NumberStyles.Float, CultureInfo.InvariantCulture, out immunity))
-			{
-				shell.WriteError(Loc.GetString("cmd-vaccinate-bad-immunity", ("value", args[2])));
-				return;
-			}
-			immunity = Math.Clamp(immunity, 0f, 1f);
-		}
-
-		comp.Immunity[diseaseId] = immunity;
-		comp.ActiveDiseases.Remove(diseaseId);
+        var cureSystem = _sysMan.GetEntitySystem<DiseaseCureSystem>();
+        if (_proto.TryIndex(diseaseId, out DiseasePrototype? disease))
+        {
+            if (comp.ActiveDiseases.TryGetValue(diseaseId, out var stageNum))
+            {
+                var stageSymptoms = Array.Empty<ProtoId<DiseaseSymptomPrototype>>();
+                cureSystem.ApplyCureDisease((targetUid, comp), disease, stageSymptoms);
+            }
+        }
 		shell.WriteLine(Loc.GetString("cmd-vaccinate-ok", ("target", targetUid.ToString()), ("disease", diseaseId)));
 	}
 }

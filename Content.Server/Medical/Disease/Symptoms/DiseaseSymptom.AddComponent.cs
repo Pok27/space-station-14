@@ -40,3 +40,30 @@ public sealed partial class DiseaseSymptomSystem
         set.Add(add.Component);
     }
 }
+
+public sealed partial class SymptomAddComponent : SymptomBehavior
+{
+    public override void OnDiseaseCured(EntityUid uid, DiseasePrototype disease)
+    {
+        var entMan = IoCManager.Resolve<IEntityManager>();
+        if (!entMan.TryGetComponent(uid, out DiseaseCarrierComponent? carrier))
+            return;
+
+        if (!carrier.AddedComponents.TryGetValue(disease.ID, out var comps))
+            return;
+
+        foreach (var regName in comps)
+        {
+            if (entMan.ComponentFactory.TryGetRegistration(regName, out var reg) && entMan.HasComponent(uid, reg.Type))
+                entMan.RemoveComponent(uid, reg.Type);
+        }
+
+        comps.Clear();
+        carrier.AddedComponents.Remove(disease.ID);
+    }
+
+    public override void OnSymptomCured(EntityUid uid, DiseasePrototype disease, string symptomId)
+    {
+        OnDiseaseCured(uid, disease);
+    }
+}
