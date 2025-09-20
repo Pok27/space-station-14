@@ -7,19 +7,14 @@ using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Robust.Shared.Collections;
 using Robust.Shared.Prototypes;
-using Robust.Shared.Map;
-using Robust.Shared.Timing;
 
 namespace Content.Server.Medical.Disease;
 
 /// <summary>
-/// Decays disease residue on tiles/items and infects entities in proximity on tick.
+/// Decays disease residue on tiles/items and infects entities on direct contact.
 /// </summary>
 public sealed class DiseaseResidueSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly SharedTransformSystem _xform = default!;
     [Dependency] private readonly DiseaseSystem _disease = default!;
     [Dependency] private readonly IPrototypeManager _prototypes = default!;
 
@@ -44,9 +39,8 @@ public sealed class DiseaseResidueSystem : EntitySystem
     {
         base.Update(frameTime);
 
-        var now = _timing.CurTime;
-        var query = EntityQueryEnumerator<DiseaseResidueComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out var residue, out var xform))
+        var query = EntityQueryEnumerator<DiseaseResidueComponent>();
+        while (query.MoveNext(out var uid, out var residue))
         {
             // Decay per-disease intensities
             var decay = residue.DecayPerSecond * (float) frameTime;
@@ -67,27 +61,6 @@ public sealed class DiseaseResidueSystem : EntitySystem
             {
                 RemComp<DiseaseResidueComponent>(uid);
                 continue;
-            }
-
-            // Initialize tick scheduling if needed
-            if (residue.NextTick > now)
-                continue;
-
-            residue.NextTick = now + residue.TickInterval;
-
-            var mapPos = _xform.GetMapCoordinates(uid, xform);
-            if (mapPos.MapId == MapId.Nullspace)
-                continue;
-
-            var ents = _lookup.GetEntitiesInRange(mapPos, residue.Range, LookupFlags.Dynamic);
-            foreach (var ent in ents)
-            {
-                foreach (var kv in residue.Diseases.ToArray())
-                {
-                    var id = kv.Key;
-                    var intensity = kv.Value;
-                    InfectByContactChance(ent, id, intensity);
-                }
             }
         }
     }

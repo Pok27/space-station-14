@@ -1,19 +1,20 @@
 using System;
-using Content.Server.Body.Components;
 using Content.Server.Body.Systems;
 using Content.Shared.Clothing.Components;
 using Content.Shared.Interaction;
 using Content.Shared.Inventory;
 using Content.Shared.Medical.Disease;
-using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Random;
+using Robust.Shared.Timing;
 
 namespace Content.Server.Medical.Disease;
 
 /// <summary>
-/// Handles airborne disease spread by listening to breathing events.
+/// Handles airborne disease spread in a periodic.
+/// Also exposes a helper for symptom-driven airborne bursts.
 /// </summary>
 public sealed class AirborneDiseaseSystem : EntitySystem
 {
@@ -22,73 +23,106 @@ public sealed class AirborneDiseaseSystem : EntitySystem
     [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
     [Dependency] private readonly SharedInteractionSystem _interaction = default!;
     [Dependency] private readonly InventorySystem _inventory = default!;
-    [Dependency] private readonly RespiratorSystem _respirator = default!;
     [Dependency] private readonly DiseaseSystem _disease = default!;
+    [Dependency] private readonly InternalsSystem _internals = default!;
+    [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private readonly IGameTiming _timing = default!;
 
     /// <inheritdoc/>
-    public override void Initialize()
+    public override void Update(float frameTime)
     {
-        base.Initialize();
+        base.Update(frameTime);
 
-        SubscribeLocalEvent<RespiratorComponent, ExhaledGasEvent>(OnExhaledGas);
+        var now = _timing.CurTime;
+        var query = EntityQueryEnumerator<DiseaseCarrierComponent>();
+        while (query.MoveNext(out var uid, out var carrier))
+        {
+            if (carrier.ActiveDiseases.Count == 0)
+                continue;
+
+            // Piggyback on the disease tick cadence to avoid extra scheduling overhead.
+            if (carrier.NextTick > now)
+                continue;
+
+            foreach (var (diseaseId, _) in carrier.ActiveDiseases)
+            {
+                if (!_prototypes.TryIndex<DiseasePrototype>(diseaseId, out var disease))
+                    continue;
+
+                if (!disease.SpreadFlags.Contains(DiseaseSpreadFlags.Airborne))
+                    continue;
+
+                if (!_random.Prob(disease.AirborneTickChance))
+                    continue;
+
+                TryAirborneSpread(uid, disease);
+            }
+        }
     }
 
     /// <summary>
-    /// On exhale from a source, attempt airborne spread to nearby inhaling targets.
+    /// Performs a one-off airborne spread attempt from a source carrier using disease parameters.
     /// </summary>
-    private void OnExhaledGas(Entity<RespiratorComponent> source, ref ExhaledGasEvent args)
+    public void TryAirborneSpread(EntityUid source, DiseasePrototype disease, float? overrideRange = null, float chanceMultiplier = 1f)
     {
-        if (!TryComp<DiseaseCarrierComponent>(source, out var carrier) || carrier.ActiveDiseases.Count == 0)
+        if (Deleted(source))
             return;
 
         var mapPos = _transformSystem.GetMapCoordinates(source);
         if (mapPos.MapId == MapId.Nullspace)
             return;
 
-        foreach (var (diseaseId, _) in carrier.ActiveDiseases)
+        var range = overrideRange ?? disease.AirborneRange;
+        var targets = _lookup.GetEntitiesInRange(mapPos, range, LookupFlags.Dynamic | LookupFlags.Sundries);
+        foreach (var other in targets)
         {
-            if (!_prototypes.TryIndex<DiseasePrototype>(diseaseId, out var disease))
+            if (other == source)
                 continue;
 
-            if (!disease.SpreadFlags.Contains(DiseaseSpreadFlags.Airborne))
+            // Simple LOS/obstacle check, similar to atmospheric blocking behavior.
+            if (!_transformSystem.InRange(source, other, range)
+                || !EntityManager.TryGetComponent(source, out TransformComponent? srcXform)
+                || !EntityManager.TryGetComponent(other, out TransformComponent? _))
                 continue;
 
-            var range = disease.AirborneRange;
-            var targets = _lookup.GetEntitiesInRange(mapPos, range, LookupFlags.Dynamic | LookupFlags.Sundries);
-            foreach (var other in targets)
-            {
-                if (other == source.Owner)
-                    continue;
+            // Try to avoid through-walls spread.
+            if (!_interaction.InRangeUnobstructed(source, other, range))
+                continue;
 
-                if (!_interaction.InRangeUnobstructed(source.Owner, other, range))
-                    continue;
-
-                if (!TryComp<RespiratorComponent>(other, out var targetResp) || targetResp.Status != RespiratorStatus.Inhaling)
-                    continue;
-
-                // Ensure target is currently capable of breathing (not crit etc.).
-                if (!_respirator.IsBreathing((other, null)))
-                    continue;
-
-                var chance = AdjustChanceForPPE(other, disease.AirborneTickChance, disease);
-                _disease.TryInfectWithChance(other, diseaseId, chance);
-            }
+            var chance = Math.Clamp(disease.AirborneInfect * chanceMultiplier, 0f, 1f);
+            chance = AdjustChanceForProtection(other, chance, disease);
+            _disease.TryInfectWithChance(other, disease.ID, chance);
         }
     }
 
-
     /// <summary>
-    /// Applies simple PPE modifiers (mask slots) to airborne infection chance.
+    /// Coarse PPE/internals-based reduction.
     /// </summary>
-    private float AdjustChanceForPPE(EntityUid target, float baseChance, DiseasePrototype disease)
+    private float AdjustChanceForProtection(EntityUid target, float baseChance, DiseasePrototype disease)
     {
-        if (!disease.IgnoreMaskPPE && _inventory.TryGetSlotEntity(target, "mask", out var maskUid) && TryComp<MaskComponent>(maskUid, out var mask))
+        var chance = baseChance;
+
+        if (!disease.IgnoreMaskPPE)
         {
-            if (!mask.IsToggled)
-                baseChance *= 0.5f;
+            // Internals (active breathing gear) greatly reduces true airborne infection.
+            if (_internals.AreInternalsWorking(target))
+                chance *= DiseaseEffectiveness.Multipliers[DiseaseProtection.Internals];
+
+            // Mask: if properly worn (not toggled down), halve the chance.
+            if (_inventory.TryGetSlotEntity(target, "mask", out var maskUid)
+                && TryComp<MaskComponent>(maskUid, out var mask) && !mask.IsToggled)
+                chance *= DiseaseEffectiveness.Multipliers[DiseaseProtection.Mask];
+
+            // Head: any headgear provides modest protection.
+            if (_inventory.TryGetSlotEntity(target, "head", out _))
+                chance *= DiseaseEffectiveness.Multipliers[DiseaseProtection.Headgear];
+
+            // Eyes: any eyewear provides slight protection.
+            if (_inventory.TryGetSlotEntity(target, "eyes", out _))
+                chance *= DiseaseEffectiveness.Multipliers[DiseaseProtection.Eyewear];
         }
 
-        return MathF.Max(0f, MathF.Min(1f, baseChance));
+        return MathF.Max(0f, MathF.Min(1f, chance));
     }
 }
 

@@ -42,16 +42,10 @@ public sealed partial class DiseaseSymptomPrototype : IPrototype
     public bool OnlyWhenAlive { get; private set; } = false;
 
     /// <summary>
-    /// Configuration for cloud.
+    /// Configuration for symptom-driven airborne burst.
     /// </summary>
     [DataField]
-    public SymptomCloud Cloud { get; private set; } = new();
-
-    /// <summary>
-    /// Configuration for leaving residue.
-    /// </summary>
-    [DataField]
-    public SymptomLeaveResidue LeaveResidue { get; private set; } = new();
+    public SymptomAirborneBurst AirborneBurst { get; private set; } = new();
 
     /// <summary>
     /// How long (seconds) a successful symptom-level cure should suppress this symptom.
@@ -69,41 +63,19 @@ public sealed partial class DiseaseSymptomPrototype : IPrototype
 }
 
 [DataDefinition]
-public sealed partial class SymptomCloud
+public sealed partial class SymptomAirborneBurst
 {
-    [DataField]
-    public bool Enabled { get; private set; } = false;
-
     /// <summary>
-    /// Cloud infection radius in world units.
+    /// Multiplier to disease airborne range for this burst.
     /// </summary>
     [DataField]
-    public float Range { get; private set; } = 1.5f;
+    public float RangeMultiplier { get; private set; } = 1.0f;
 
     /// <summary>
-    /// Tick period in seconds for the cloud infection attempts.
-    /// </summary>
-    [DataField("tickInterval")]
-    public float TickIntervalSeconds { get; private set; } = 1.0f;
-
-    /// <summary>
-    /// Lifetime in seconds before the cloud expires.
-    /// </summary>
-    [DataField("lifetime")]
-    public float LifetimeSeconds { get; private set; } = 8.0f;
-}
-
-[DataDefinition]
-public sealed partial class SymptomLeaveResidue
-{
-    [DataField]
-    public bool Enabled { get; private set; } = false;
-
-    /// <summary>
-    /// Intensity of the residue.
+    /// Multiplier to disease airborne infection chance for this burst.
     /// </summary>
     [DataField]
-    public float ResidueIntensity { get; private set; } = 0.1f;
+    public float ChanceMultiplier { get; private set; } = 1.0f;
 }
 
 /// <summary>

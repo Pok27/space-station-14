@@ -4,10 +4,11 @@
   id: SymptomCough
   name: Cough
   onlyWhenAlive: true
-  cloud:
-    enabled: true
+  airborneBurst:
+    rangeMultiplier: 1.75
+    chanceMultiplier: 1.5
   leaveResidue:
-    enabled: true
+    enabled: false
   behaviors:
   - !type:SymptomEmote
     emoteId: Cough
@@ -16,11 +17,11 @@
   id: SymptomSneeze
   name: Sneeze
   onlyWhenAlive: true
-  cloud:
-    enabled: true
+  airborneBurst:
+    rangeMultiplier: 2.5
+    chanceMultiplier: 2
   leaveResidue:
-    enabled: true
-    residueIntensity: 0.15
+    enabled: false
   behaviors:
   - !type:SymptomEmote
     emoteId: Sneeze

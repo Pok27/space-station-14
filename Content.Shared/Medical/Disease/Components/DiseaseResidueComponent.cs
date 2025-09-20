@@ -27,22 +27,4 @@ public sealed partial class DiseaseResidueComponent : Component
 	/// </summary>
 	[DataField]
 	public float ContactReduction = 0.15f;
-
-	/// <summary>
-	/// Affect radius (world units) for proximity infection.
-	/// </summary>
-	[DataField]
-	public float Range = 0.5f;
-
-	/// <summary>
-	/// How often proximity infection attempts occur.
-	/// </summary>
-	[DataField]
-	public TimeSpan TickInterval = TimeSpan.FromSeconds(1);
-
-	/// <summary>
-	/// Next time to run a proximity infection tick.
-	/// </summary>
-	[DataField]
-	public TimeSpan NextTick;
 }

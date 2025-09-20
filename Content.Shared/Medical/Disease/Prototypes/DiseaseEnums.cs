@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Content.Shared.Medical.Disease;
 
@@ -32,4 +33,27 @@ public enum DiseaseStealthFlags
     VeryHidden = 1 << 1,
     HiddenTreatment = 1 << 2,
     HiddenStage = 1 << 3,
+}
+
+public enum DiseaseProtection
+{
+    Internals,
+    Mask,
+    Headgear,
+    Eyewear,
+}
+
+/// <summary>
+/// Global, code-level configuration for PPE/internals effectiveness used by airborne infection checks.
+/// This is intentionally not prototype data to keep balancing centralized and consistent.
+/// </summary>
+public static class DiseaseEffectiveness
+{
+    public static readonly Dictionary<DiseaseProtection, float> Multipliers = new()
+    {
+        { DiseaseProtection.Internals, 0.15f },
+        { DiseaseProtection.Mask, 0.5f },
+        { DiseaseProtection.Headgear, 0.75f },
+        { DiseaseProtection.Eyewear, 0.85f },
+    };
 }

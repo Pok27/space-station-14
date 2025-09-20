@@ -8,7 +8,6 @@ namespace Content.Shared.Medical.Disease;
 
 /// <summary>
 /// Networked component storing active diseases and immunity tokens.
-/// Server drives logic; client uses it for UI and visuals.
 /// </summary>
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class DiseaseCarrierComponent : Component

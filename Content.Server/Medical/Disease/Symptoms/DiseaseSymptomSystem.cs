@@ -5,6 +5,7 @@ using Robust.Shared.IoC;
 using Robust.Shared.Timing;
 using Robust.Shared.Random;
 using Content.Shared.Mobs.Systems;
+using Content.Server.Medical.Disease;
 
 namespace Content.Server.Medical.Disease;
 
@@ -47,59 +48,23 @@ public sealed partial class DiseaseSymptomSystem : EntitySystem
             }
         }
 
-        // Apply configurable effects for any symptom. If not configured in YAML, these are no-ops.
-        ApplyCloud(symptom, ent, disease);
-        LeaveResidue(symptom, ent, disease);
+        // Apply configurable symptom-driven airborne burst.
+        ApplyAirborneBurst(symptom, ent, disease);
     }
 
     /// <summary>
-    /// Leaves a ground residue entity carrying active diseases for potential contact spread.
+    /// Applies a single-shot airborne spread burst if configured.
     /// </summary>
-    private void LeaveResidue(DiseaseSymptomPrototype symptom, Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease)
+    private void ApplyAirborneBurst(DiseaseSymptomPrototype symptom, Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease)
     {
-        var cfg = symptom.LeaveResidue;
-        if (!cfg.Enabled)
-            return;
+        var cfg = symptom.AirborneBurst;
 
-        var coords = Transform(ent).Coordinates;
-        var residue = EntityManager.SpawnEntity("DiseaseResidueTile", coords);
-        var comp = EnsureComp<DiseaseResidueComponent>(residue);
-
-        comp.Diseases.Clear();
-        var intensity = Math.Clamp(cfg.ResidueIntensity, 0.1f, 1f);
-        foreach (var (id, _) in ent.Comp.ActiveDiseases)
-            comp.Diseases[id] = intensity;
-    }
-
-    /// <summary>
-    /// Applies symptom-configured cloud spawning if configured.
-    /// </summary>
-    private void ApplyCloud(DiseaseSymptomPrototype symptom, Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease)
-    {
-        var cfg = symptom.Cloud;
-        if (!cfg.Enabled)
-            return;
-
-        // Only spawn cloud if disease can spread via air.
         if (!disease.SpreadFlags.Contains(DiseaseSpreadFlags.Airborne))
             return;
 
-        SpawnCloud(ent, disease, cfg.Range, cfg.LifetimeSeconds, cfg.TickIntervalSeconds, disease.AirborneInfect);
-    }
-
-    /// <summary>
-    /// Spawns a transient disease cloud with specified parameters at the carrier's position.
-    /// </summary>
-    private void SpawnCloud(Entity<DiseaseCarrierComponent> src, DiseasePrototype disease, float range, float lifetime, float tick, float chance)
-    {
-        var uid = EntityManager.SpawnEntity("DiseaseCloudEffect", Transform(src).Coordinates);
-        var cloud = EnsureComp<DiseaseCloudComponent>(uid);
-        cloud.Diseases.Clear();
-        cloud.Diseases.Add(disease.ID);
-        cloud.Range = range;
-        cloud.TickInterval = TimeSpan.FromSeconds(tick);
-        cloud.Lifetime = TimeSpan.FromSeconds(lifetime);
-        cloud.NextTick = _timing.CurTime + cloud.TickInterval;
-        cloud.Expiry = _timing.CurTime + cloud.Lifetime;
+        var air = EntityManager.System<AirborneDiseaseSystem>();
+        var range = disease.AirborneRange * MathF.Max(0.1f, cfg.RangeMultiplier);
+        var mult = MathF.Max(0f, cfg.ChanceMultiplier);
+        air.TryAirborneSpread(ent.Owner, disease, overrideRange: range, chanceMultiplier: mult);
     }
 }
