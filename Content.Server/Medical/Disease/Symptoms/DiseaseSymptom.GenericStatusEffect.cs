@@ -32,7 +32,7 @@ public sealed partial class SymptomGenericStatusEffect : SymptomBehavior
     /// How to modify the status effect time: Add/Remove/Set.
     /// </summary>
     [DataField]
-    public StatusEffectMetabolismType Type { get; private set; } = StatusEffectMetabolismType.Add;
+    public StatusEffectSymptomType Type { get; private set; } = StatusEffectSymptomType.Add;
 }
 
 public sealed partial class SymptomGenericStatusEffect
@@ -48,20 +48,27 @@ public sealed partial class SymptomGenericStatusEffect
 
         switch (Type)
         {
-            case StatusEffectMetabolismType.Add:
+            case StatusEffectSymptomType.Add:
                 if (Refresh)
                     _status.TryUpdateStatusEffectDuration(uid, EffectProto, duration);
                 else
                     _status.TryAddStatusEffectDuration(uid, EffectProto, duration);
                 break;
 
-            case StatusEffectMetabolismType.Remove:
+            case StatusEffectSymptomType.Remove:
                 _status.TryAddTime(uid, EffectProto, -duration);
                 break;
 
-            case StatusEffectMetabolismType.Set:
+            case StatusEffectSymptomType.Set:
                 _status.TrySetStatusEffectDuration(uid, EffectProto, duration);
                 break;
         }
+    }
+
+    public enum StatusEffectSymptomType
+    {
+        Add,
+        Remove,
+        Set
     }
 }
