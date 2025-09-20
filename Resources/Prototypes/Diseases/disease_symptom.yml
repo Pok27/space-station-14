@@ -1,9 +1,9 @@
-# Exhale
+# Emote
 
 - type: diseaseSymptom
   id: SymptomCough
   name: Cough
-  triggerProb: 0.35
+  onlyWhenAlive: true
   cloud:
     enabled: true
   leaveResidue:
@@ -15,7 +15,7 @@
 - type: diseaseSymptom
   id: SymptomSneeze
   name: Sneeze
-  triggerProb: 0.3
+  onlyWhenAlive: true
   cloud:
     enabled: true
   leaveResidue:
@@ -28,16 +28,29 @@
 - type: diseaseSymptom
   id: SymptomGasp
   name: Gasp
+  onlyWhenAlive: true
   behaviors:
   - !type:SymptomEmote
     emoteId: Gasp
+
+- type: diseaseSymptom
+  id: SymptomEmoteCat
+  name: Meow
+  singleBehavior: true
+  onlyWhenAlive: true
+  behaviors:
+  - !type:SymptomEmote
+    emoteId: CatMeow
+  - !type:SymptomEmote
+    emoteId: CatHisses
 
 # Shout
 
 - type: diseaseSymptom
   id: SymptomHonkShout
   name: Honk Shouts
-  triggerProb: 0.35
+  triggerProb: 0.1
+  onlyWhenAlive: true
   behaviors:
   - !type:SymptomShout
     pack: DiseaseHonkShouts
@@ -45,7 +58,8 @@
 - type: diseaseSymptom
   id: SymptomMonkeyShout
   name: Monkey Shouts
-  triggerProb: 0.35
+  triggerProb: 0.1
+  onlyWhenAlive: true
   behaviors:
   - !type:SymptomShout
     pack: DiseaseMonkeyShouts
@@ -55,12 +69,11 @@
 - type: diseaseSymptom
   id: SymptomToxin
   name: Toxin
-  triggerProb: 0.2
   behaviors:
   - !type:SymptomDamage
     damage:
       types:
-        Poison: 5
+        Poison: 9
 
 - type: diseaseSymptom
   id: SymptomToxinLight
@@ -69,7 +82,7 @@
   - !type:SymptomDamage
     damage:
       types:
-        Poison: 1
+        Poison: 3
 
 - type: diseaseSymptom
   id: SymptomGib
@@ -80,12 +93,55 @@
       types:
         Blunt: 9999
 
+# Status Effects
+
+- type: diseaseSymptom
+  id: SymptomJitters
+  name: Jitters
+  triggerProb: 0.1
+  behaviors:
+  - !type:SymptomStatusEffect
+    effects:
+    - !type:Jitter
+      amplitude: 2
+      frequency: 6
+      time: 3
+
+# Add Components
+
+- type: diseaseSymptom
+  id: SymptomTransformClown
+  name: Transformation into a clown
+  triggerProb: 0.75
+  behaviors:
+  - !type:SymptomAddComponent
+    component: Cluwne
+
+- type: diseaseSymptom
+  id: SymptomOwOAccent
+  name: OwO Virus
+  triggerProb: 1
+  behaviors:
+  - !type:SymptomAddComponent
+    component: OwOAccent
+
+# Adjust Reagent
+
+- type: diseaseSymptom
+  id: SymptomSpeedBoost
+  name: Speed Boost
+  triggerProb: 0.5
+  behaviors:
+  - !type:SymptomAdjustReagent
+    reagent: Ephedrine
+    amount: 1
+
 # Others
 
 - type: diseaseSymptom
   id: SymptomTransitionToFlu
   name: Transition to Space Flu
-  triggerProb: 0.2
+  triggerProb: 0.75
   behaviors:
   - !type:SymptomTransitionDisease
     disease: DiseaseSpaceFlu
@@ -99,27 +155,11 @@
 - type: diseaseSymptom
   id: SymptomVomiting
   name: Vomiting
-  triggerProb: 0.45
   behaviors:
   - !type:SymptomVomit
-  - !type:SymptomJitter
 
 - type: diseaseSymptom
   id: SymptomNarcolepsy
   name: Narcolepsy
   behaviors:
   - !type:SymptomNarcolepsy
-
-- type: diseaseSymptom
-  id: SymptomJitters
-  name: Jitters
-  triggerProb: 0.35
-  behaviors:
-  - !type:SymptomJitter
-
-- type: diseaseSymptom
-  id: SymptomTransformClown
-  name: Transformation into a clown
-  behaviors:
-  - !type:SymptomAddComponent
-    component: Cluwne

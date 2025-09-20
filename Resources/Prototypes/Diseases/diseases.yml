@@ -2,7 +2,7 @@
   id: DiseaseCold
   name: Cold
   spreadFlags: [Airborne]
-  stageSpeed: 0.7
+  stageSpeed: 0.15
   stages:
   - stage: 1
     # no-op
@@ -27,7 +27,7 @@
   id: DiseaseSpaceFlu
   name: Space Flu
   spreadFlags: [Airborne]
-  stageSpeed: 0.6
+  stageSpeed: 0.1
   airborneInfect: 0.25
   stages:
   - stage: 1
@@ -133,10 +133,8 @@
 - type: disease
   id: DiseaseNarcolepsySyndrome
   name: Narcolepsy Syndrome
-  spreadFlags: [Airborne, Contact]
-  stageSpeed: 0.9
-  airborneInfect: 0.05
-  contactInfect: 0.05
+  spreadFlags: [Airborne]
+  stageSpeed: 0.15
   stages:
   - stage: 1
   # no-op
@@ -167,9 +165,10 @@
     sensation:
     - disease-sensation-clown
     symptoms:
-    - SymptomHonkShout
     - SymptomJitters
   - stage: 3
+    sensation:
+    - disease-sensation-clown
     symptoms:
     - SymptomHonkShout
     - SymptomStutter
@@ -189,3 +188,15 @@
   - stage: 3
     symptoms:
     - SymptomMonkeyShout
+
+- type: disease
+  id: OwOnavirus
+  name: OwOnavirus
+  spreadFlags: [Contact]
+  isBeneficial: true
+  stages:
+  - stage: 1
+    symptoms:
+    - SymptomOwOAccent
+    - SymptomEmoteCat
+    - SymptomSpeedBoost

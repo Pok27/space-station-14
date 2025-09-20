@@ -26,14 +26,20 @@ public sealed partial class DiseaseSymptomPrototype : IPrototype
     /// <summary>
     /// Probability per tick to trigger behavior when eligible (0-1).
     /// </summary>
-    [DataField("triggerProb")]
-    public float TriggerProbability { get; private set; } = 0.25f;
+    [DataField]
+    public float TriggerProb { get; private set; } = 0.05f;
 
     /// <summary>
-    /// Optional status effect to apply on trigger (e.g. jitter, slowed).
+    /// If true, only a single randomly selected behavior from <see cref="Behaviors"/> will run when the symptom triggers.
     /// </summary>
     [DataField]
-    public ProtoId<StatusEffectPrototype>? StatusEffect { get; private set; }
+    public bool SingleBehavior { get; private set; } = false;
+
+    /// <summary>
+    /// If true, this symptom will only trigger on living carriers. If the carrier is dead the symptom is skipped.
+    /// </summary>
+    [DataField]
+    public bool OnlyWhenAlive { get; private set; } = false;
 
     /// <summary>
     /// Configuration for cloud.

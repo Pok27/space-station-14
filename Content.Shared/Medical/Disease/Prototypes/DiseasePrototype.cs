@@ -27,10 +27,10 @@ public sealed partial class DiseasePrototype : IPrototype
     public bool IsBeneficial { get; private set; } = false;
 
     /// <summary>
-    /// Speed of progression through disease stages per second (multiplied by 0.1).
+    /// Speed of progression through disease stages per second.
     /// </summary>
     [DataField]
-    public float StageSpeed { get; private set; } = 0.8f;
+    public float StageSpeed { get; private set; } = 0.2f;
 
     /// <summary>
     /// Stage configurations in ascending order (1-indexed semantics). Each stage can define stealth/resistance and symptom activations.
@@ -54,7 +54,6 @@ public sealed partial class DiseasePrototype : IPrototype
 
     /// <summary>
     /// Spread vectors for this disease. Use a list so multiple vectors can be selected in prototypes.
-    /// Example YAML: spreadFlags: [Airborne, Contact]
     /// </summary>
     [DataField]
     public List<DiseaseSpreadFlags> SpreadFlags { get; private set; } = new();
@@ -126,18 +125,16 @@ public sealed partial class DiseaseStage
 
     /// <summary>
     /// Optional list of localized message keys to show as "sensations" to the carrier while at this stage.
-    /// A single entry is randomly picked on each eligible tick, controlled by <see cref="SensationProbability"/>.
-    /// YAML field name: Sensation
+    /// A single entry is randomly picked on each eligible tick, controlled by <see cref="SensationProb"/>.
     /// </summary>
     [DataField]
     public List<string> Sensation { get; private set; } = new();
 
     /// <summary>
     /// Per-tick probability (0-1) to show a random sensation popup from <see cref="Sensation"/>.
-    /// YAML field name: sensationProb
     /// </summary>
     [DataField]
-    public float SensationProbability { get; private set; } = 0.05f;
+    public float SensationProb { get; private set; } = 0.05f;
 
     /// <summary>
     /// Optional list of cure steps specific to this stage. Overrides disease-level <see cref="CureSteps"/> for this stage.

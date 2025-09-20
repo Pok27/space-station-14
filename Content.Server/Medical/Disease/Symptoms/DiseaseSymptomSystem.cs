@@ -3,6 +3,8 @@ using Content.Shared.Medical.Disease;
 using Robust.Shared.GameObjects;
 using Robust.Shared.IoC;
 using Robust.Shared.Timing;
+using Robust.Shared.Random;
+using Content.Shared.Mobs.Systems;
 
 namespace Content.Server.Medical.Disease;
 
@@ -12,6 +14,9 @@ namespace Content.Server.Medical.Disease;
 public sealed partial class DiseaseSymptomSystem : EntitySystem
 {
     [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private readonly IEntitySystemManager _entitySystemManager = default!;
+    [Dependency] private readonly MobStateSystem _mobState = default!;
 
     /// <inheritdoc/>
     /// <summary>
@@ -19,11 +24,27 @@ public sealed partial class DiseaseSymptomSystem : EntitySystem
     /// </summary>
     public void TriggerSymptom(Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease, DiseaseSymptomPrototype symptom)
     {
-        var deps = IoCManager.Resolve<IEntitySystemManager>().DependencyCollection;
-        foreach (var behavior in symptom.Behaviors)
+        // Skip this symptom when the carrier is dead.
+        if (symptom.OnlyWhenAlive && _mobState.IsDead(ent.Owner))
+            return;
+
+        var deps = _entitySystemManager.DependencyCollection;
+
+        if (symptom.SingleBehavior && symptom.Behaviors.Count > 0)
         {
+            // Run exactly one random behavior.
+            var idx = _random.Next(0, symptom.Behaviors.Count);
+            var behavior = symptom.Behaviors[idx];
             deps.InjectDependencies(behavior, oneOff: true);
             behavior.OnSymptom(ent.Owner, disease);
+        }
+        else
+        {
+            foreach (var behavior in symptom.Behaviors)
+            {
+                deps.InjectDependencies(behavior, oneOff: true);
+                behavior.OnSymptom(ent.Owner, disease);
+            }
         }
 
         // Apply configurable effects for any symptom. If not configured in YAML, these are no-ops.

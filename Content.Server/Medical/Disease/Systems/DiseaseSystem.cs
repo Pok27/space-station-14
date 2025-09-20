@@ -24,7 +24,8 @@ public sealed partial class DiseaseSystem : EntitySystem
     [Dependency] private readonly DiseaseSymptomSystem _symptoms = default!;
     [Dependency] private readonly DiseaseCureSystem _cure = default!;
     [Dependency] private readonly PopupSystem _popup = default!;
-    private static readonly TimeSpan TickDelay = TimeSpan.FromSeconds(2);
+
+    private static readonly TimeSpan TickDelay = TimeSpan.FromSeconds(1);
 
     /// <inheritdoc/>
     /// <summary>
@@ -74,9 +75,9 @@ public sealed partial class DiseaseSystem : EntitySystem
             }
 
             // Progression: scale advance chance strictly according to StageSpeed and time between ticks.
-            // Cap by number of defined stages (or at least 1 if not configured).
+            // Cap by number of defined stages.
             var newStage = stage;
-            var perTickAdvance = Math.Clamp(disease.StageSpeed * 0.01f, 0f, 1f);
+            var perTickAdvance = Math.Clamp(disease.StageSpeed, 0f, 1f);
             var maxStage = Math.Max(1, disease.Stages.Count);
             if (_random.Prob(perTickAdvance))
                 newStage = Math.Min(stage + 1, maxStage);
@@ -94,7 +95,7 @@ public sealed partial class DiseaseSystem : EntitySystem
                 if (stageCfg != null)
                 {
                     // Stage sensations: optional lightweight popups
-                    if (stageCfg.Sensation.Count > 0 && _random.Prob(stageCfg.SensationProbability))
+                    if (stageCfg.Sensation.Count > 0 && _random.Prob(stageCfg.SensationProb))
                     {
                         var key = _random.Pick(stageCfg.Sensation);
                         _popup.PopupEntity(Loc.GetString(key), ent, ent.Owner, PopupType.Small);
@@ -109,7 +110,7 @@ public sealed partial class DiseaseSystem : EntitySystem
                         if (ent.Comp.SuppressedSymptoms.TryGetValue(symptomId, out var until) && until > _timing.CurTime)
                             continue;
 
-                        var prob = symptom.TriggerProbability;
+                        var prob = symptom.TriggerProb;
                         if (prob <= 0f)
                             continue;
 
