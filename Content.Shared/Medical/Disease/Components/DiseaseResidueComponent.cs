@@ -18,6 +18,7 @@ public sealed partial class DiseaseResidueComponent : Component
 
 	/// <summary>
 	/// Intensity decay per second.
+    /// TODO: Must be removed in the future. The premises must be disinfected, not cleaned. (like it was in SS13)
 	/// </summary>
 	[DataField]
 	public float DecayPerSecond = 0.08f;

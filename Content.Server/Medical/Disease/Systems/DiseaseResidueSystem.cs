@@ -5,8 +5,11 @@ using Content.Shared.Interaction.Events;
 using Content.Shared.Medical.Disease;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
+using Content.Shared.Inventory;
+using Robust.Shared.Map;
 using Robust.Shared.Collections;
 using Robust.Shared.Prototypes;
+using Content.Shared.Weapons.Melee.Events;
 
 namespace Content.Server.Medical.Disease;
 
@@ -17,8 +20,10 @@ public sealed class DiseaseResidueSystem : EntitySystem
 {
     [Dependency] private readonly DiseaseSystem _disease = default!;
     [Dependency] private readonly IPrototypeManager _prototypes = default!;
-
-    private static readonly TimeSpan CarrierTickDelay = TimeSpan.FromSeconds(2);
+    [Dependency] private readonly EntityLookupSystem _lookup = default!;
+    [Dependency] private readonly SharedInteractionSystem _interaction = default!;
+    [Dependency] private readonly SharedTransformSystem _xform = default!;
+    [Dependency] private readonly InventorySystem _inventory = default!;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -27,11 +32,8 @@ public sealed class DiseaseResidueSystem : EntitySystem
 
         SubscribeLocalEvent<DiseaseResidueComponent, ContactInteractionEvent>(OnResidueContact);
         SubscribeLocalEvent<DiseaseCarrierComponent, ContactInteractionEvent>(OnCarrierContact);
+        SubscribeLocalEvent<DiseaseCarrierComponent, MeleeHitEvent>(OnMeleeHit);
 
-        SubscribeLocalEvent<DiseaseCarrierComponent, ComponentStartup>(OnCarrierStartup);
-        SubscribeLocalEvent<DiseaseCarrierComponent, ComponentShutdown>(OnCarrierShutdown);
-
-        SubscribeLocalEvent<DiseaseCarrierComponent, EntityUnpausedEvent>(OnUnpaused);
         SubscribeLocalEvent<DiseaseCarrierComponent, AfterInteractUsingEvent>(OnAfterInteractUsing);
     }
 
@@ -43,7 +45,7 @@ public sealed class DiseaseResidueSystem : EntitySystem
         while (query.MoveNext(out var uid, out var residue))
         {
             // Decay per-disease intensities
-            var decay = residue.DecayPerSecond * (float) frameTime;
+            var decay = residue.DecayPerSecond * (float)frameTime;
             var toRemoveAfterDecay = new ValueList<string>();
             foreach (var kv in residue.Diseases.ToArray())
             {
@@ -62,6 +64,14 @@ public sealed class DiseaseResidueSystem : EntitySystem
                 RemComp<DiseaseResidueComponent>(uid);
                 continue;
             }
+        }
+
+        // Adjacent contact spread around carriers each tick
+        var carriers = EntityQueryEnumerator<DiseaseCarrierComponent>();
+        while (carriers.MoveNext(out var cuid, out var carrier))
+        {
+            TryAdjacentContactSpread(cuid, carrier);
+            DepositFootResidue(cuid, carrier);
         }
     }
 
@@ -89,7 +99,7 @@ public sealed class DiseaseResidueSystem : EntitySystem
             {
                 var proto = _prototypes.Index<DiseasePrototype>(id);
                 if (proto.SpreadFlags.Contains(DiseaseSpreadFlags.Contact))
-                    _disease.TryInfectWithChance(other, id, proto.ContactInfect);
+                    InfectByContactChance(other, id, 1f);
             }
         }
 
@@ -99,33 +109,54 @@ public sealed class DiseaseResidueSystem : EntitySystem
             {
                 var proto = _prototypes.Index<DiseasePrototype>(id);
                 if (proto.SpreadFlags.Contains(DiseaseSpreadFlags.Contact))
-                    _disease.TryInfectWithChance(user, id, proto.ContactInfect);
+                    InfectByContactChance(user, id, 1f);
             }
         }
     }
 
     /// <summary>
-    /// Schedules the next processing tick for a carrier if needed.
+    /// Attempts infection on melee hit in both directions for contact-spread diseases.
     /// </summary>
-    private void EnsureTick(Entity<DiseaseCarrierComponent> ent)
+    private void OnMeleeHit(Entity<DiseaseCarrierComponent> attacker, ref MeleeHitEvent args)
     {
-        if (ent.Comp.NextTick <= _timing.CurTime)
-            ent.Comp.NextTick = _timing.CurTime + CarrierTickDelay;
-    }
+        if (attacker.Comp.ActiveDiseases.Count == 0 && args.HitEntities.Count == 0)
+            return;
 
-    private void OnCarrierStartup(Entity<DiseaseCarrierComponent> ent, ref ComponentStartup args)
-    {
-        EnsureTick(ent);
-    }
+        // Attacker -> Targets
+        if (attacker.Comp.ActiveDiseases.Count > 0)
+        {
+            foreach (var target in args.HitEntities)
+            {
+                foreach (var (id, _) in attacker.Comp.ActiveDiseases)
+                {
+                    if (!_prototypes.TryIndex<DiseasePrototype>(id, out var proto))
+                        continue;
 
-    private void OnCarrierShutdown(Entity<DiseaseCarrierComponent> ent, ref ComponentShutdown args)
-    {
-        // no-op
-    }
+                    if (!proto.SpreadFlags.Contains(DiseaseSpreadFlags.Contact))
+                        continue;
 
-    private void OnUnpaused(Entity<DiseaseCarrierComponent> ent, ref EntityUnpausedEvent args)
-    {
-        EnsureTick(ent);
+                    InfectByContactChance(target, id, 1f);
+                }
+            }
+        }
+
+        // Targets -> Attacker
+        foreach (var target in args.HitEntities)
+        {
+            if (!TryComp<DiseaseCarrierComponent>(target, out var tcar) || tcar.ActiveDiseases.Count == 0)
+                continue;
+
+            foreach (var (id, _) in tcar.ActiveDiseases)
+            {
+                if (!_prototypes.TryIndex<DiseasePrototype>(id, out var proto))
+                    continue;
+
+                if (!proto.SpreadFlags.Contains(DiseaseSpreadFlags.Contact))
+                    continue;
+
+                InfectByContactChance(attacker.Owner, id, 1f);
+            }
+        }
     }
 
     /// <summary>
@@ -133,27 +164,23 @@ public sealed class DiseaseResidueSystem : EntitySystem
     /// </summary>
     private void OnResidueContact(EntityUid uid, DiseaseResidueComponent residue, ContactInteractionEvent args)
     {
-        // Only living mobs that pass central check can be infected by contact
-        if (TryComp<MobStateComponent>(args.Other, out var mobState) && mobState.CurrentState != MobState.Dead)
+        var toRemove = new ValueList<string>();
+        foreach (var kv in residue.Diseases.ToArray())
         {
-            var toRemove = new ValueList<string>();
-            foreach (var kv in residue.Diseases.ToArray())
-            {
-                var id = kv.Key;
-                var intensity = kv.Value;
-                InfectByContactChance(args.Other, id, intensity);
+            var id = kv.Key;
+            var intensity = kv.Value;
+            InfectByContactChance(args.Other, id, intensity);
 
-                // reduce intensity after contact
-                var newVal = intensity - residue.ContactReduction;
-                if (newVal <= 0f)
-                    toRemove.Add(id);
-                else
-                    residue.Diseases[id] = newVal;
-            }
-
-            foreach (var k in toRemove)
-                residue.Diseases.Remove(k);
+            // reduce intensity after contact
+            var newVal = intensity - residue.ContactReduction;
+            if (newVal <= 0f)
+                toRemove.Add(id);
+            else
+                residue.Diseases[id] = newVal;
         }
+
+        foreach (var k in toRemove)
+            residue.Diseases.Remove(k);
     }
 
     /// <summary>
@@ -181,7 +208,7 @@ public sealed class DiseaseResidueSystem : EntitySystem
     /// <summary>
     /// Tries to infect a target via contact, scaling chance by residue intensity and disease ContactInfect.
     /// </summary>
-    private void InfectByContactChance(EntityUid target, string diseaseId, float intensity)
+    private void InfectByContactChance(EntityUid target, string diseaseId, float intensity = 1f)
     {
         if (!_prototypes.TryIndex<DiseasePrototype>(diseaseId, out var proto))
             return;
@@ -190,6 +217,103 @@ public sealed class DiseaseResidueSystem : EntitySystem
             return;
 
         var chance = Math.Clamp(proto.ContactInfect * intensity, 0f, 1f);
+        chance = AdjustContactForPPE(target, chance);
         _disease.TryInfectWithChance(target, diseaseId, chance);
+    }
+
+    /// <summary>
+    /// Adjacent contact spread within 1 tile if disease has Contact vector.
+    /// </summary>
+    private void TryAdjacentContactSpread(EntityUid source, DiseaseCarrierComponent carrier)
+    {
+        if (carrier.ActiveDiseases.Count == 0)
+            return;
+
+        var mapPos = _xform.GetMapCoordinates(source);
+        if (mapPos.MapId == MapId.Nullspace)
+            return;
+
+        // Checks the proposed tile in the carrier range.
+        var targets = _lookup.GetEntitiesInRange(mapPos, 1.0f, LookupFlags.Dynamic | LookupFlags.Sundries);
+        foreach (var other in targets)
+        {
+            if (other == source)
+                continue;
+
+            if (!_interaction.InRangeUnobstructed(source, other, 1.1f))
+                continue;
+
+            foreach (var (id, _) in carrier.ActiveDiseases)
+            {
+                if (!_prototypes.TryIndex<DiseasePrototype>(id, out var proto))
+                    continue;
+
+                if (!proto.SpreadFlags.Contains(DiseaseSpreadFlags.Contact))
+                    continue;
+
+                InfectByContactChance(other, id, 1f);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Leaves a small residue on the tile under the carrier to emulate footprints.
+    /// Shoes reduce the deposit amount.
+    /// </summary>
+    private void DepositFootResidue(EntityUid source, DiseaseCarrierComponent carrier)
+    {
+        if (carrier.ActiveDiseases.Count == 0)
+            return;
+
+        var coords = _xform.GetMapCoordinates(source);
+        if (coords.MapId == MapId.Nullspace)
+            return;
+
+        // Checks if there is already a residue tile in the carrier range.
+        EntityUid? residueEnt = null;
+        foreach (var ent in _lookup.GetEntitiesInRange(coords, 0.2f, LookupFlags.Sundries))
+        {
+            if (TryComp<DiseaseResidueComponent>(ent, out _))
+            {
+                residueEnt = ent;
+                break;
+            }
+        }
+
+        if (residueEnt is null)
+            residueEnt = EntityManager.SpawnEntity("DiseaseResidueTile", coords);
+
+        // Adds the residue to the tile.
+        var residue = EnsureComp<DiseaseResidueComponent>(residueEnt.Value);
+        foreach (var (id, _) in carrier.ActiveDiseases)
+        {
+            if (!_prototypes.TryIndex<DiseasePrototype>(id, out var proto))
+                continue;
+
+            // Adjusts the deposit amount based on clothing items.
+            var deposit = proto.ContactDeposit;
+            foreach (var (slot, mult) in DiseaseEffectiveness.FootResidueSlots)
+            {
+                if (_inventory.TryGetSlotEntity(source, slot, out _))
+                    deposit *= mult;
+            }
+
+            if (residue.Diseases.TryGetValue(id, out var cur))
+                residue.Diseases[id] = MathF.Min(1f, cur + deposit);
+            else
+                residue.Diseases[id] = MathF.Min(1f, deposit);
+        }
+    }
+
+    private float AdjustContactForPPE(EntityUid target, float baseChance)
+    {
+        var chance = baseChance;
+        foreach (var (slot, mult) in DiseaseEffectiveness.ContactSlots)
+        {
+            if (_inventory.TryGetSlotEntity(target, slot, out _))
+                chance *= mult;
+        }
+
+        return MathF.Max(0f, MathF.Min(1f, chance));
     }
 }

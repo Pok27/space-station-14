@@ -74,6 +74,10 @@ public sealed partial class DiseaseSystem : EntitySystem
                 continue;
             }
 
+            // Incubation: if still incubating, skip symptoms and spreading-level logic.
+            if (ent.Comp.IncubatingUntil.TryGetValue(diseaseId, out var until) && until > _timing.CurTime)
+                continue;
+
             // Progression: scale advance chance strictly according to StageSpeed and time between ticks.
             // Cap by number of defined stages.
             var newStage = stage;
@@ -107,7 +111,7 @@ public sealed partial class DiseaseSystem : EntitySystem
                             continue;
 
                         // Skip if this symptom is currently suppressed by a symptom-level cure.
-                        if (ent.Comp.SuppressedSymptoms.TryGetValue(symptomId, out var until) && until > _timing.CurTime)
+                        if (ent.Comp.SuppressedSymptoms.TryGetValue(symptomId, out var value) && value > _timing.CurTime)
                             continue;
 
                         var prob = symptom.TriggerProb;
@@ -183,7 +187,12 @@ public sealed partial class DiseaseSystem : EntitySystem
             return false;
 
         if (!carrier.ActiveDiseases.ContainsKey(diseaseId))
+        {
             carrier.ActiveDiseases[diseaseId] = startStage;
+            var proto = _prototypes.Index<DiseasePrototype>(diseaseId);
+            if (proto.IncubationSeconds > 0)
+                carrier.IncubatingUntil[diseaseId] = _timing.CurTime + TimeSpan.FromSeconds(proto.IncubationSeconds);
+        }
 
         carrier.NextTick = _timing.CurTime + TickDelay;
         Dirty(uid, carrier);

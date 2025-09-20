@@ -54,3 +54,12 @@
   - type: Sprite
     sprite: Objects/Specific/Medical/medipen.rsi
     state: salpen
+
+- type: entity
+  id: DiseaseResidueTile
+  name: residue
+  noSpawn: true
+  components:
+  - type: Transform
+    anchored: true
+  - type: DiseaseResidue

@@ -104,22 +104,23 @@ public sealed class AirborneDiseaseSystem : EntitySystem
 
         if (!disease.IgnoreMaskPPE)
         {
-            // Internals (active breathing gear) greatly reduces true airborne infection.
+            // Internals (active breathing gear).
             if (_internals.AreInternalsWorking(target))
-                chance *= DiseaseEffectiveness.Multipliers[DiseaseProtection.Internals];
+                chance *= DiseaseEffectiveness.InternalsMultiplier;
 
-            // Mask: if properly worn (not toggled down), halve the chance.
-            if (_inventory.TryGetSlotEntity(target, "mask", out var maskUid)
-                && TryComp<MaskComponent>(maskUid, out var mask) && !mask.IsToggled)
-                chance *= DiseaseEffectiveness.Multipliers[DiseaseProtection.Mask];
+            foreach (var (slot, mult) in DiseaseEffectiveness.AirborneSlots)
+            {
+                if (slot == "mask")
+                {
+                    if (_inventory.TryGetSlotEntity(target, slot, out var maskUid)
+                        && TryComp<MaskComponent>(maskUid, out var mask) && !mask.IsToggled)
+                        chance *= mult;
+                    continue;
+                }
 
-            // Head: any headgear provides modest protection.
-            if (_inventory.TryGetSlotEntity(target, "head", out _))
-                chance *= DiseaseEffectiveness.Multipliers[DiseaseProtection.Headgear];
-
-            // Eyes: any eyewear provides slight protection.
-            if (_inventory.TryGetSlotEntity(target, "eyes", out _))
-                chance *= DiseaseEffectiveness.Multipliers[DiseaseProtection.Eyewear];
+                if (_inventory.TryGetSlotEntity(target, slot, out _))
+                    chance *= mult;
+            }
         }
 
         return MathF.Max(0f, MathF.Min(1f, chance));

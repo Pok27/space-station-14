@@ -112,7 +112,7 @@
 - type: disease
   id: DiseaseFoodPoisoning
   name: Food Poisoning
-  spreadFlags: []
+  spreadFlags: [NonContagious]
   stages:
   - stage: 1
     sensation:

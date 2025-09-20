@@ -65,7 +65,7 @@ public sealed partial class DiseasePrototype : IPrototype
     public bool IgnoreMaskPPE { get; private set; } = false;
 
     /// <summary>
-    /// Base per-contact infection probability for this disease (0-1). Used when two entities make contact
+    /// Base per-contact infection probability for this disease (0-1). Used when two entities make contact.
     /// </summary>
     [DataField]
     public float ContactInfect { get; private set; } = 0.1f;
@@ -95,6 +95,12 @@ public sealed partial class DiseasePrototype : IPrototype
     /// </summary>
     [DataField]
     public float AirborneTickChance { get; private set; } = 0.15f;
+
+    /// <summary>
+    /// Optional incubation time in seconds before symptoms/spread begin after infection.
+    /// </summary>
+    [DataField]
+    public float IncubationSeconds { get; private set; } = 0f;
 }
 
 /// <summary>

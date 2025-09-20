@@ -19,6 +19,12 @@ public sealed partial class DiseaseCarrierComponent : Component
     public Dictionary<string, int> ActiveDiseases = new();
 
     /// <summary>
+    /// Optional incubation end times per disease (server authoritative). Before this time, disease won't spread or show symptoms.
+    /// </summary>
+    [DataField, AutoNetworkedField]
+    public Dictionary<string, TimeSpan> IncubatingUntil = new();
+
+    /// <summary>
     /// Time when the next disease processing tick occurs.
     /// </summary>
     [DataField(customTypeSerializer: typeof(TimeOffsetSerializer))]

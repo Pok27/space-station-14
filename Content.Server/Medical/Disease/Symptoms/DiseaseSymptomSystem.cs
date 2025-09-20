@@ -1,11 +1,10 @@
 using System;
 using Content.Shared.Medical.Disease;
-using Robust.Shared.GameObjects;
-using Robust.Shared.IoC;
-using Robust.Shared.Timing;
-using Robust.Shared.Random;
 using Content.Shared.Mobs.Systems;
 using Content.Server.Medical.Disease;
+using Robust.Shared.GameObjects;
+using Robust.Shared.IoC;
+using Robust.Shared.Random;
 
 namespace Content.Server.Medical.Disease;
 
@@ -14,7 +13,6 @@ namespace Content.Server.Medical.Disease;
 /// </summary>
 public sealed partial class DiseaseSymptomSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly IEntitySystemManager _entitySystemManager = default!;
     [Dependency] private readonly MobStateSystem _mobState = default!;

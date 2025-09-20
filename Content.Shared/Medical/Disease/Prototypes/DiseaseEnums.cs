@@ -9,7 +9,7 @@ namespace Content.Shared.Medical.Disease;
 /// </summary>
 public enum DiseaseSpreadFlags
 {
-    None = 0,
+    NonContagious = 0,
     Airborne = 1 << 0,
     Contact = 1 << 1,
     Blood = 1 << 2,
@@ -35,25 +35,34 @@ public enum DiseaseStealthFlags
     HiddenStage = 1 << 3,
 }
 
-public enum DiseaseProtection
-{
-    Internals,
-    Mask,
-    Headgear,
-    Eyewear,
-}
-
 /// <summary>
-/// Global, code-level configuration for PPE/internals effectiveness used by airborne infection checks.
-/// This is intentionally not prototype data to keep balancing centralized and consistent.
+/// Global configuration for PPE/internals effectiveness used by infection checks.
+/// Centralized here to avoid prototype-level duplication and keep balance consistent.
 /// </summary>
 public static class DiseaseEffectiveness
 {
-    public static readonly Dictionary<DiseaseProtection, float> Multipliers = new()
+    // Airborne protection
+    public const float InternalsMultiplier = 0.25f;
+
+    public static readonly (string Slot, float Multiplier)[] AirborneSlots = new[]
     {
-        { DiseaseProtection.Internals, 0.15f },
-        { DiseaseProtection.Mask, 0.5f },
-        { DiseaseProtection.Headgear, 0.75f },
-        { DiseaseProtection.Eyewear, 0.85f },
+        ("mask", 0.5f),
+        ("head", 0.75f),
+        ("eyes", 0.85f),
+    };
+
+    // Contact protection
+    public static readonly (string Slot, float Multiplier)[] ContactSlots = new[]
+    {
+        ("gloves", 0.5f),
+        ("shoes", 0.7f),
+        ("outerClothing", 0.8f),
+        ("uniform", 0.85f),
+    };
+
+    // Foot residue deposit modifiers
+    public static readonly (string Slot, float Multiplier)[] FootResidueSlots = new[]
+    {
+        ("shoes", 0.5f),
     };
 }
