@@ -61,14 +61,17 @@ public sealed partial class DiseaseCureSystem : EntitySystem
                 }
                 else
                 {
-                    ApplyCureDisease(ent, disease, stageCfg.Symptoms);
+                    // Build a simple list of ProtoId strings from the detailed symptom entries for notifier.
+                    var simpleSymptoms = stageCfg.Symptoms.Select(s => s.Symptom).ToList();
+                    ApplyCureDisease(ent, disease, simpleSymptoms);
                 }
             }
         }
 
         // Also attempt symptom-level cure steps defined on the symptom prototypes for this stage.
-        foreach (var symptomId in stageCfg.Symptoms)
+        foreach (var symptomEntry in stageCfg.Symptoms)
         {
+            var symptomId = symptomEntry.Symptom;
             if (!_prototypeManager.TryIndex<DiseaseSymptomPrototype>(symptomId, out var symptomProto))
                 continue;
 

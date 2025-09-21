@@ -27,7 +27,7 @@ public sealed partial class DiseaseSymptomPrototype : IPrototype
     /// Probability per tick to trigger behavior when eligible (0-1).
     /// </summary>
     [DataField]
-    public float TriggerProb { get; private set; } = 0.05f;
+    public float Probability { get; private set; } = 0.05f;
 
     /// <summary>
     /// If true, only a single randomly selected behavior from <see cref="Behaviors"/> will run when the symptom triggers.

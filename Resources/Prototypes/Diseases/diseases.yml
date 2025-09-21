@@ -16,8 +16,8 @@
     - disease-sensation-throat-sore
     - disease-sensation-throat-mucus
     symptoms:
-    - SymptomCough
-    - SymptomSneeze
+    - symptom: SymptomCough
+    - symptom: SymptomSneeze
     cureSteps:
     - !type:CureBedrest
       bedrestChance: 0.10
@@ -27,9 +27,9 @@
     - disease-sensation-throat-sore
     - disease-sensation-throat-mucus
     symptoms:
-    - SymptomCough
-    - SymptomSneeze
-    - SymptomTransitionFlu
+    - symptom: SymptomCough
+    - symptom: SymptomSneeze
+    - symptom: SymptomTransitionFlu
     cureSteps:
     - !type:CureBedrest
       bedrestChance: 0.05
@@ -52,17 +52,17 @@
     - disease-sensation-throat-sore
     - disease-sensation-stiff
     symptoms:
-    - SymptomCold9CoughS2
-    - SymptomCold9SneezeS2
-    - SymptomCold9FreezeS2
+    - symptom: SymptomCold9CoughS2
+    - symptom: SymptomCold9SneezeS2
+    - symptom: SymptomCold9FreezeS2
   - stage: 3
     sensation:
     - disease-sensation-throat-sore
     - disease-sensation-stiff
     symptoms:
-    - SymptomCold9CoughS3
-    - SymptomCold9SneezeS3
-    - SymptomCold9FreezeS3
+    - symptom: SymptomCold9CoughS3
+    - symptom: SymptomCold9SneezeS3
+    - symptom: SymptomCold9FreezeS3
 
 - type: disease
   id: DiseaseSpaceFlu
@@ -83,26 +83,26 @@
     - disease-sensation-muscles-ache
     - disease-sensation-stomach-hurt
     symptoms:
-    - SymptomCough
-    - SymptomSneeze
-    - SymptomToxinLight
+    - symptom: SymptomCough
+    - symptom: SymptomSneeze
+    - symptom: SymptomToxinLight
     cureSteps:
     - !type:CureBedrest
       bedrestChance: 0.20
-      sleepMultiplier: 0
+      sleepMultiplier: 1
       lowerStage: true
   - stage: 3
     sensation:
     - disease-sensation-muscles-ache
     - disease-sensation-stomach-hurt
     symptoms:
-    - SymptomCough
-    - SymptomSneeze
-    - SymptomToxinLight
+    - symptom: SymptomCough
+    - symptom: SymptomSneeze
+    - symptom: SymptomToxinLight
     cureSteps:
     - !type:CureBedrest
       bedrestChance: 0.15
-      sleepMultiplier: 0
+      sleepMultiplier: 1
       lowerStage: true
 
 
@@ -125,20 +125,20 @@
   # no-op
   - stage: 2
     symptoms:
-    - SymptomSneeze
-    - SymptomToxin
+    - symptom: SymptomSneeze
+    - symptom: SymptomToxin
   - stage: 3
     sensation:
     - disease-sensation-very-weak
     symptoms:
-    - SymptomCough
-    - SymptomGasp
+    - symptom: SymptomCough
+    - symptom: SymptomGasp
   - stage: 4
     symptoms:
-    - SymptomCough
+    - symptom: SymptomCough
   - stage: 5
     symptoms:
-    - SymptomCough
+    - symptom: SymptomCough
 
 
 - type: disease
@@ -160,23 +160,23 @@
   # no-op
   - stage: 2
     symptoms:
-    - SymptomSneeze
-    - SymptomToxin
+    - symptom: SymptomSneeze
+    - symptom: SymptomToxin
   - stage: 3
     sensation:
     - disease-sensation-very-weak
     symptoms:
-    - SymptomCough
-    - SymptomGasp
+    - symptom: SymptomCough
+    - symptom: SymptomGasp
   - stage: 4
     symptoms:
-    - SymptomCough
+    - symptom: SymptomCough
   - stage: 5
     sensation:
     - disease-sensation-gib-itself
     symptoms:
-    - SymptomCough
-    - SymptomGib
+    - symptom: SymptomCough
+    - symptom: SymptomGib
 
 
 - type: disease
@@ -204,7 +204,7 @@
     - disease-sensation-stomach-hurt
     - disease-sensation-sick
     symptoms:
-    - SymptomVomiting
+    - symptom: SymptomVomiting
 
 
 - type: disease
@@ -229,7 +229,7 @@
     - disease-sensation-sleepy-2
     - disease-sensation-sleepy-3
     symptoms:
-    - SymptomNarcolepsy
+    - symptom: SymptomNarcolepsy
 
 
 - type: disease
@@ -249,15 +249,16 @@
     sensation:
     - disease-sensation-clown
     symptoms:
-    - SymptomJitters
-    - SymptomEmoteHonk
+    - symptom: SymptomJitters
+    - symptom: SymptomEmoteHonk
   - stage: 3
     sensation:
     - disease-sensation-clown
     symptoms:
-    - SymptomHonkShout
-    - SymptomStutter
-    - SymptomTransformClown
+    - symptom: SymptomHonkShout
+    - symptom: SymptomStutter
+    - symptom: SymptomTransformClown
+
 
 - type: disease
   id: AMIV
@@ -277,20 +278,29 @@
     - disease-sensation-sick
     - disease-sensation-banana-compulsion
   - stage: 3
+    cureSteps:
+      - !type:CureWait
+        requiredSeconds: 600
+        cureChance: 0.5
     sensation:
     - disease-sensation-sick
     - disease-sensation-banana-compulsion
     symptoms:
-    - SymptomMonkeyShout
+    - symptom: SymptomMonkeyShout
+
 
 - type: disease
   id: OwOnavirus
   name: disease-name-OwOnavirus
   spreadFlags: [Contact]
   isBeneficial: true
+  cureSteps:
+  - !type:CureWait
+    requiredSeconds: 600
+    cureChance: 0.5
   stages:
   - stage: 1
     symptoms:
-    - SymptomOwOAccent
-    - SymptomEmoteCat
-    - SymptomSpeedBoost
+    - symptom: SymptomOwOAccent
+    - symptom: SymptomEmoteCat
+    - symptom: SymptomSpeedBoost

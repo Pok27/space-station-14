@@ -409,6 +409,36 @@
     Saline: 5
 
 - type: reaction
+  id: Salbutamol
+  reactants:
+    sal_acid:
+      amount: 1
+    Lithium:
+      amount: 1
+    Aluminium:
+      amount: 1
+    Bromine:
+      amount: 1
+    Ammonia:
+      amount: 1
+  products:
+    Salbutamol: 5
+
+- type: reaction
+  id: Spaceacillin
+  reactants:
+    Silver:
+      amount: 1
+    Carbon:
+      amount: 1
+    Ammonia:
+      amount: 1
+    Dylovene:
+      amount: 1
+  products:
+    Spaceacillin: 3
+
+- type: reaction
   id: Lacerinol
   impact: Medium
   minTemp: 335
@@ -664,15 +694,13 @@
     Haloperidol: 5
 
 - type: reaction
-  id: Spaceacillin
+  id: Perfluorodecalin
   reactants:
-    Silver:
+    Hydrogen:
       amount: 1
-    Carbon:
+    Fluorine:
       amount: 1
-    Ammonia:
-      amount: 1
-    Dylovene:
+    Oil:
       amount: 1
   products:
-    Spaceacillin: 3
+    Perfluorodecalin: 3

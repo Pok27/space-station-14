@@ -70,7 +70,7 @@
 - type: diseaseSymptom
   id: SymptomHonkShout
   name: disease-symptom-name-SymptomHonkShout
-  triggerProb: 0.1
+  probability: 0.1
   onlyWhenAlive: true
   behaviors:
   - !type:SymptomShout
@@ -79,7 +79,7 @@
 - type: diseaseSymptom
   id: SymptomMonkeyShout
   name: disease-symptom-name-SymptomMonkeyShout
-  triggerProb: 0.1
+  probability: 0.1
   onlyWhenAlive: true
   behaviors:
   - !type:SymptomShout
@@ -119,7 +119,7 @@
 - type: diseaseSymptom
   id: SymptomJitters
   name: disease-symptom-name-SymptomJitters
-  triggerProb: 0.1
+  probability: 0.1
   behaviors:
   - !type:SymptomStatusEffect
     effects:
@@ -133,7 +133,7 @@
 - type: diseaseSymptom
   id: SymptomTransformClown
   name: disease-symptom-name-SymptomTransformClown
-  triggerProb: 0.75
+  probability: 0.75
   behaviors:
   - !type:SymptomAddComponent
     component: Cluwne
@@ -141,7 +141,7 @@
 - type: diseaseSymptom
   id: SymptomOwOAccent
   name: disease-symptom-name-SymptomOwOAccent
-  triggerProb: 1
+  probability: 1
   behaviors:
   - !type:SymptomAddComponent
     component: OwOAccent
@@ -151,7 +151,7 @@
 - type: diseaseSymptom
   id: SymptomSpeedBoost
   name: disease-symptom-name-SymptomSpeedBoost
-  triggerProb: 0.5
+  probability: 0.5
   behaviors:
   - !type:SymptomAdjustReagent
     reagent: Ephedrine
@@ -162,7 +162,7 @@
 - type: diseaseSymptom
   id: SymptomTransitionToFlu
   name: disease-symptom-name-SymptomTransitionToFlu
-  triggerProb: 0.005
+  probability: 0.005
   behaviors:
   - !type:SymptomTransitionDisease
     disease: DiseaseSpaceFlu
@@ -214,7 +214,7 @@
 - type: diseaseSymptom
   id: SymptomCold9CoughS2
   name: disease-symptom-name-SymptomCold9CoughS2
-  triggerProb: 0.02
+  probability: 0.02
   airborneBurst:
     rangeMultiplier: 1.75
     chanceMultiplier: 1.5
@@ -225,7 +225,7 @@
 - type: diseaseSymptom
   id: SymptomCold9CoughS3
   name: disease-symptom-name-SymptomCold9CoughS3
-  triggerProb: 0.04
+  probability: 0.04
   airborneBurst:
     rangeMultiplier: 1.75
     chanceMultiplier: 1.5
@@ -236,7 +236,7 @@
 - type: diseaseSymptom
   id: SymptomCold9SneezeS2
   name: disease-symptom-name-SymptomCold9SneezeS2
-  triggerProb: 0.02
+  probability: 0.02
   airborneBurst:
     rangeMultiplier: 2.5
     chanceMultiplier: 2
@@ -247,7 +247,7 @@
 - type: diseaseSymptom
   id: SymptomCold9SneezeS3
   name: disease-symptom-name-SymptomCold9SneezeS3
-  triggerProb: 0.04
+  probability: 0.04
   airborneBurst:
     rangeMultiplier: 2.5
     chanceMultiplier: 2
@@ -258,7 +258,7 @@
 - type: diseaseSymptom
   id: SymptomCold9FreezeS2
   name: disease-symptom-name-SymptomCold9FreezeS2
-  triggerProb: 1.0
+  probability: 1.0
   behaviors:
   - !type:SymptomTemperature
     # Move body temp down by ~7.5K per trigger
@@ -268,7 +268,7 @@
 - type: diseaseSymptom
   id: SymptomCold9FreezeS3
   name: disease-symptom-name-SymptomCold9FreezeS3
-  triggerProb: 1.0
+  probability: 1.0
   behaviors:
   - !type:SymptomTemperature
     # Move body temp down by ~15K per trigger

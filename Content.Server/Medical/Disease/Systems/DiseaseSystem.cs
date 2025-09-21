@@ -131,8 +131,10 @@ public sealed partial class DiseaseSystem : EntitySystem
             _popup.PopupEntity(Loc.GetString(key), ent, ent.Owner, PopupType.Small);
         }
 
-        foreach (var symptomId in stageCfg.Symptoms)
+        // Symptoms are now a list of detailed entries (symptom + optional probability override).
+        foreach (var entry in stageCfg.Symptoms)
         {
+            var symptomId = entry.Symptom;
             if (!_prototypes.TryIndex<DiseaseSymptomPrototype>(symptomId, out var symptom))
                 continue;
 
@@ -140,7 +142,7 @@ public sealed partial class DiseaseSystem : EntitySystem
             if (ent.Comp.SuppressedSymptoms.TryGetValue(symptomId, out var value) && value > _timing.CurTime)
                 continue;
 
-            var prob = symptom.TriggerProb;
+            var prob = entry.Probability >= 0f ? entry.Probability : symptom.Probability;
             if (prob <= 0f)
                 continue;
 

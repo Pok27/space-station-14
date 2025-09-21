@@ -124,10 +124,10 @@ public sealed partial class DiseaseStage
 
     /// <summary>
     /// Symptoms that can trigger during this stage. Order matters for deterministic iteration.
-    /// Each entry is a symptom prototype ID. No per-disease overrides here.
+    /// Each entry is a mapping with `symptom` and optional `probability` to override the symptom prototype's `probability`.
     /// </summary>
     [DataField]
-    public List<ProtoId<DiseaseSymptomPrototype>> Symptoms { get; private set; } = new();
+    public List<SymptomEntry> Symptoms { get; private set; } = new();
 
     /// <summary>
     /// Optional list of localized message keys to show as "sensations" to the carrier while at this stage.
@@ -147,4 +147,20 @@ public sealed partial class DiseaseStage
     /// </summary>
     [DataField(serverOnly: true)]
     public List<CureStep> CureSteps { get; private set; } = new();
+}
+
+[DataDefinition]
+public sealed partial class SymptomEntry
+{
+    /// <summary>
+    /// Symptom prototype ID to trigger.
+    /// </summary>
+    [DataField(required: true)]
+    public ProtoId<DiseaseSymptomPrototype> Symptom { get; private set; } = default!;
+
+    /// <summary>
+    /// Per-tick probability (0-1) to trigger this symptom while in the stage. If negative, the probability of symptom is used.
+    /// </summary>
+    [DataField]
+    public float Probability { get; private set; } = -1f;
 }

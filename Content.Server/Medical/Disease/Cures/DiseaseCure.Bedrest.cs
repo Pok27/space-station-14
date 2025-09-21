@@ -2,6 +2,7 @@ using System;
 using Content.Shared.Bed.Components;
 using Content.Shared.Bed.Sleep;
 using Content.Shared.Buckle.Components;
+using Content.Shared.Stunnable;
 using Content.Shared.Medical.Disease;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
@@ -40,7 +41,9 @@ public sealed partial class CureBedrest
         if (_entityManager.TryGetComponent(uid, out BuckleComponent? buckle) && buckle.BuckledTo is { } strappedTo)
             onBed = _entityManager.HasComponent<HealOnBuckleComponent>(strappedTo);
 
-        if (!onBed)
+        var knockedDown = _entityManager.HasComponent<KnockedDownComponent>(uid);
+
+        if (!onBed && !knockedDown)
             return false;
 
         var sleepingNow = _entityManager.HasComponent<SleepingComponent>(uid);

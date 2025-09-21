@@ -113,8 +113,9 @@ public sealed class DiseaseDiagnoserSystem : EntitySystem
             }
             else
             {
-                foreach (var symptomId in stageCfg.Symptoms)
+                foreach (var symptomEntry in stageCfg.Symptoms)
                 {
+                    var symptomId = symptomEntry.Symptom;
                     string symName = "";
                     if (_prototypes.TryIndex<DiseaseSymptomPrototype>(symptomId, out var symProto))
                         symName = Loc.GetString(symProto.Name);
