@@ -9,6 +9,12 @@ namespace Content.Shared.Medical.Disease;
 public abstract partial class CureStep
 {
     /// <summary>
+    /// If true, a successful cure step lowers the current disease stage by 1 instead of curing entirely.
+    /// </summary>
+    [DataField]
+    public bool LowerStage { get; private set; } = false;
+
+    /// <summary>
     /// Attempts to execute this cure step on the given entity.
     /// </summary>
     public virtual bool OnCure(EntityUid uid, DiseasePrototype disease)

@@ -697,21 +697,26 @@
     prototype: RandomSatchelSpawner
 
 - type: entity
-  id: RandomDisease
-  parent: BaseStationEventShortDelay
+  id: DiseaseOutbreak
+  parent: BaseGameRule
+  noSpawn: true
   components:
   - type: StationEvent
+    startAnnouncement: station-event-disease-outbreak-announcement
+    startAudio:
+      path: /Audio/Announcements/outbreak7.ogg
+      params:
+        volume: -4
     weight: 5
-    minimumPlayers: 15
-    reoccurrenceDelay: 20
+    duration: 1
+    earliestStart: 15
   - type: RandomDiseaseRule
     disease:
-    - DiseaseExhaleDemo
-    - DiseaseVomitDemo
-    - DiseaseJitterDemo
-    - DiseaseTemperatureDemo
-    - DiseaseNarcolepsyDemo
-    - DiseaseShoutDemo
+    - DiseaseCold
+    - DiseaseSpaceFlu
+    - DiseaseFakeGBS
+    - DiseaseNarcolepsySyndrome
+    - AMIV
     minInfections: 2
     maxInfections: 5
 

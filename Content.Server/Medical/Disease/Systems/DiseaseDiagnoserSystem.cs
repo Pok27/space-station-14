@@ -68,6 +68,7 @@ public sealed class DiseaseDiagnoserSystem : EntitySystem
         var headerParts = new List<string>();
         if (!string.IsNullOrWhiteSpace(sample.SubjectName))
             headerParts.Add(Loc.GetString("diagnoser-disease-report-subject", ("name", sample.SubjectName!)));
+
         if (!string.IsNullOrWhiteSpace(sample.SubjectDNA))
             headerParts.Add(Loc.GetString("diagnoser-disease-report-subject-dna", ("dna", sample.SubjectDNA!)));
 
@@ -82,42 +83,60 @@ public sealed class DiseaseDiagnoserSystem : EntitySystem
         var lines = new List<string>();
         foreach (var id in sample.Diseases)
         {
-            var name = id;
-            if (_prototypes.TryIndex<DiseasePrototype>(id, out var proto))
-                name = string.IsNullOrWhiteSpace(proto.Name) ? id : proto.Name;
+            var displayName = id;
+            if (_prototypes.TryIndex<DiseasePrototype>(id, out var diseaseProto))
+                displayName = Loc.GetString(diseaseProto.Name);
 
             var stage = sample.Stages.TryGetValue(id, out var s) ? s : 1;
-            lines.Add(Loc.GetString("diagnoser-disease-report-name", ("name", name), ("stage", stage)));
+            lines.Add(Loc.GetString("diagnoser-disease-report-name", ("name", displayName), ("stage", stage)));
 
-            // Append cure lines if available on disease or its current stage
-            if (_prototypes.TryIndex<DiseasePrototype>(id, out var proto2))
+            if (diseaseProto == null)
+                continue;
+
+            DiseaseStage? stageCfg = null;
+            foreach (var stCfg in diseaseProto.Stages)
             {
-                DiseaseStage? stageCfg = null;
-                foreach (var stCfg in proto2.Stages)
+                if (stCfg.Stage == stage)
                 {
-                    if (stCfg.Stage == stage)
-                    {
-                        stageCfg = stCfg;
-                        break;
-                    }
+                    stageCfg = stCfg;
+                    break;
                 }
-                var cureSteps = (stageCfg != null && stageCfg.CureSteps.Count > 0)
-                    ? stageCfg.CureSteps
-                    : proto2.CureSteps;
+            }
+            if (stageCfg == null)
+                continue;
 
-                if (cureSteps.Count == 0)
+            // Symptoms block
+            lines.Add(Loc.GetString("diagnoser-disease-symptoms-header"));
+            if (stageCfg.Symptoms.Count == 0)
+            {
+                lines.Add("- " + Loc.GetString("diagnoser-disease-symptoms-none"));
+            }
+            else
+            {
+                foreach (var symptomId in stageCfg.Symptoms)
                 {
-                    lines.Add(Loc.GetString("diagnoser-no-cures"));
+                    string symName = "";
+                    if (_prototypes.TryIndex<DiseaseSymptomPrototype>(symptomId, out var symProto))
+                        symName = Loc.GetString(symProto.Name);
+
+                    lines.Add("- " + symName);
                 }
-                else
+            }
+
+            // Cures block
+            var cureSteps = (stageCfg.CureSteps.Count > 0) ? stageCfg.CureSteps : diseaseProto.CureSteps;
+            if (cureSteps.Count == 0)
+            {
+                lines.Add(Loc.GetString("diagnoser-no-cures"));
+            }
+            else
+            {
+                lines.Add(Loc.GetString("diagnoser-cure-has"));
+                foreach (var step in cureSteps)
                 {
-                    lines.Add(Loc.GetString("diagnoser-cure-has"));
-                    foreach (var step in cureSteps)
+                    foreach (var cureLine in step.BuildDiagnoserLines(_prototypes))
                     {
-                        foreach (var cureLine in step.BuildDiagnoserLines(_prototypes))
-                        {
-                            lines.Add("- " + cureLine);
-                        }
+                        lines.Add("- " + cureLine);
                     }
                 }
             }

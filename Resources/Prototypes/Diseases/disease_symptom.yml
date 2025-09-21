@@ -2,41 +2,61 @@
 
 - type: diseaseSymptom
   id: SymptomCough
-  name: Cough
+  name: disease-symptom-name-SymptomCough
   onlyWhenAlive: true
   airborneBurst:
     rangeMultiplier: 1.75
     chanceMultiplier: 1.5
-  leaveResidue:
-    enabled: false
+  cureDuration: 120
+  cureSteps:
+  - !type:CureReagent
+    requirements:
+    - reagentId: Salbutamol
+      quantity: 2
+    - reagentId: Perfluorodecalin
+      quantity: 2
   behaviors:
   - !type:SymptomEmote
     emoteId: Cough
 
 - type: diseaseSymptom
   id: SymptomSneeze
-  name: Sneeze
+  name: disease-symptom-name-SymptomSneeze
   onlyWhenAlive: true
   airborneBurst:
     rangeMultiplier: 2.5
     chanceMultiplier: 2
-  leaveResidue:
-    enabled: false
+  cureDuration: 120
+  cureSteps:
+  - !type:CureReagent
+    requirements:
+    - reagentId: Salbutamol
+      quantity: 2
+    - reagentId: Perfluorodecalin
+      quantity: 2
   behaviors:
   - !type:SymptomEmote
     emoteId: Sneeze
 
 - type: diseaseSymptom
   id: SymptomGasp
-  name: Gasp
+  name: disease-symptom-name-SymptomGasp
   onlyWhenAlive: true
   behaviors:
   - !type:SymptomEmote
     emoteId: Gasp
 
 - type: diseaseSymptom
+  id: SymptomEmoteHonk
+  name: disease-symptom-name-SymptomEmoteCat
+  onlyWhenAlive: true
+  behaviors:
+  - !type:SymptomEmote
+    emoteId: Honk
+
+- type: diseaseSymptom
   id: SymptomEmoteCat
-  name: Meow
+  name: disease-symptom-name-SymptomEmoteCat
   singleBehavior: true
   onlyWhenAlive: true
   behaviors:
@@ -49,7 +69,7 @@
 
 - type: diseaseSymptom
   id: SymptomHonkShout
-  name: Honk Shouts
+  name: disease-symptom-name-SymptomHonkShout
   triggerProb: 0.1
   onlyWhenAlive: true
   behaviors:
@@ -58,7 +78,7 @@
 
 - type: diseaseSymptom
   id: SymptomMonkeyShout
-  name: Monkey Shouts
+  name: disease-symptom-name-SymptomMonkeyShout
   triggerProb: 0.1
   onlyWhenAlive: true
   behaviors:
@@ -69,7 +89,7 @@
 
 - type: diseaseSymptom
   id: SymptomToxin
-  name: Toxin
+  name: disease-symptom-name-SymptomToxin
   behaviors:
   - !type:SymptomDamage
     damage:
@@ -78,7 +98,7 @@
 
 - type: diseaseSymptom
   id: SymptomToxinLight
-  name: Light toxin
+  name: disease-symptom-name-SymptomToxinLight
   behaviors:
   - !type:SymptomDamage
     damage:
@@ -87,7 +107,7 @@
 
 - type: diseaseSymptom
   id: SymptomGib
-  name: Rip from the inside
+  name: disease-symptom-name-SymptomGib
   behaviors:
   - !type:SymptomDamage
     damage:
@@ -98,7 +118,7 @@
 
 - type: diseaseSymptom
   id: SymptomJitters
-  name: Jitters
+  name: disease-symptom-name-SymptomJitters
   triggerProb: 0.1
   behaviors:
   - !type:SymptomStatusEffect
@@ -112,7 +132,7 @@
 
 - type: diseaseSymptom
   id: SymptomTransformClown
-  name: Transformation into a clown
+  name: disease-symptom-name-SymptomTransformClown
   triggerProb: 0.75
   behaviors:
   - !type:SymptomAddComponent
@@ -120,7 +140,7 @@
 
 - type: diseaseSymptom
   id: SymptomOwOAccent
-  name: OwO Virus
+  name: disease-symptom-name-SymptomOwOAccent
   triggerProb: 1
   behaviors:
   - !type:SymptomAddComponent
@@ -130,7 +150,7 @@
 
 - type: diseaseSymptom
   id: SymptomSpeedBoost
-  name: Speed Boost
+  name: disease-symptom-name-SymptomSpeedBoost
   triggerProb: 0.5
   behaviors:
   - !type:SymptomAdjustReagent
@@ -141,26 +161,116 @@
 
 - type: diseaseSymptom
   id: SymptomTransitionToFlu
-  name: Transition to Space Flu
-  triggerProb: 0.75
+  name: disease-symptom-name-SymptomTransitionToFlu
+  triggerProb: 0.005
   behaviors:
   - !type:SymptomTransitionDisease
     disease: DiseaseSpaceFlu
 
 - type: diseaseSymptom
   id: SymptomFever
-  name: Fever
+  name: disease-symptom-name-SymptomFever
+  cureDuration: 180
+  cureSteps:
+  - !type:CureReagent
+    requirements:
+    - reagentId: Haloperidol
+      quantity: 2
+    - reagentId: Synaptizine
+      quantity: 2
   behaviors:
   - !type:SymptomTemperature
 
 - type: diseaseSymptom
   id: SymptomVomiting
-  name: Vomiting
+  name: disease-symptom-name-SymptomVomiting
+  cureDuration: 120
+  cureSteps:
+  - !type:CureReagent
+    requirements:
+    - reagentId: Charcoal
+      quantity: 5
   behaviors:
   - !type:SymptomVomit
 
 - type: diseaseSymptom
   id: SymptomNarcolepsy
-  name: Narcolepsy
+  name: disease-symptom-name-SymptomNarcolepsy
+  cureDuration: 400
+  cureSteps:
+  - !type:CureReagent
+    requirements:
+    - reagentId: Ethyloxyephedrine
+      quantity: 5
+  - !type:CureReagent
+    requirements:
+    - reagentId: Diphenylmethylamine
+      quantity: 3
   behaviors:
   - !type:SymptomNarcolepsy
+
+# Cold9
+
+- type: diseaseSymptom
+  id: SymptomCold9CoughS2
+  name: disease-symptom-name-SymptomCold9CoughS2
+  triggerProb: 0.02
+  airborneBurst:
+    rangeMultiplier: 1.75
+    chanceMultiplier: 1.5
+  behaviors:
+  - !type:SymptomEmote
+    emoteId: Cough
+
+- type: diseaseSymptom
+  id: SymptomCold9CoughS3
+  name: disease-symptom-name-SymptomCold9CoughS3
+  triggerProb: 0.04
+  airborneBurst:
+    rangeMultiplier: 1.75
+    chanceMultiplier: 1.5
+  behaviors:
+  - !type:SymptomEmote
+    emoteId: Cough
+
+- type: diseaseSymptom
+  id: SymptomCold9SneezeS2
+  name: disease-symptom-name-SymptomCold9SneezeS2
+  triggerProb: 0.02
+  airborneBurst:
+    rangeMultiplier: 2.5
+    chanceMultiplier: 2
+  behaviors:
+  - !type:SymptomEmote
+    emoteId: Sneeze
+
+- type: diseaseSymptom
+  id: SymptomCold9SneezeS3
+  name: disease-symptom-name-SymptomCold9SneezeS3
+  triggerProb: 0.04
+  airborneBurst:
+    rangeMultiplier: 2.5
+    chanceMultiplier: 2
+  behaviors:
+  - !type:SymptomEmote
+    emoteId: Sneeze
+
+- type: diseaseSymptom
+  id: SymptomCold9FreezeS2
+  name: disease-symptom-name-SymptomCold9FreezeS2
+  triggerProb: 1.0
+  behaviors:
+  - !type:SymptomTemperature
+    # Move body temp down by ~7.5K per trigger
+    targetTemperature: 213.0
+    stepTemperature: 7.5
+
+- type: diseaseSymptom
+  id: SymptomCold9FreezeS3
+  name: disease-symptom-name-SymptomCold9FreezeS3
+  triggerProb: 1.0
+  behaviors:
+  - !type:SymptomTemperature
+    # Move body temp down by ~15K per trigger
+    targetTemperature: 213.0
+    stepTemperature: 15.0

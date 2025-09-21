@@ -1,8 +1,13 @@
 - type: disease
   id: DiseaseCold
-  name: Cold
+  name: disease-name-DiseaseCold
   spreadFlags: [Airborne]
   stageSpeed: 0.15
+  cureSteps:
+  - !type:CureReagent
+    requirements:
+    - reagentId: Spaceacillin
+      quantity: 5
   stages:
   - stage: 1
     # no-op
@@ -13,6 +18,10 @@
     symptoms:
     - SymptomCough
     - SymptomSneeze
+    cureSteps:
+    - !type:CureBedrest
+      bedrestChance: 0.10
+      sleepMultiplier: 4
   - stage: 3
     sensation:
     - disease-sensation-throat-sore
@@ -21,14 +30,51 @@
     - SymptomCough
     - SymptomSneeze
     - SymptomTransitionFlu
+    cureSteps:
+    - !type:CureBedrest
+      bedrestChance: 0.05
+      sleepMultiplier: 5
 
+- type: disease
+  id: DiseaseCold9
+  name: disease-name-DiseaseCold9
+  spreadFlags: [Contact]
+  cureSteps:
+  - !type:CureReagent
+    requirements:
+    - reagentId: Spaceacillin
+      quantity: 5
+  stages:
+  - stage: 1
+    # no-op
+  - stage: 2
+    sensation:
+    - disease-sensation-throat-sore
+    - disease-sensation-stiff
+    symptoms:
+    - SymptomCold9CoughS2
+    - SymptomCold9SneezeS2
+    - SymptomCold9FreezeS2
+  - stage: 3
+    sensation:
+    - disease-sensation-throat-sore
+    - disease-sensation-stiff
+    symptoms:
+    - SymptomCold9CoughS3
+    - SymptomCold9SneezeS3
+    - SymptomCold9FreezeS3
 
 - type: disease
   id: DiseaseSpaceFlu
-  name: Space Flu
+  name: disease-name-DiseaseSpaceFlu
   spreadFlags: [Airborne]
   stageSpeed: 0.1
   airborneInfect: 0.25
+  cureSteps:
+  - !type:CureReagent
+    requirements:
+    - reagentId: Spaceacillin
+      quantity: 5
   stages:
   - stage: 1
     # no-op
@@ -40,6 +86,11 @@
     - SymptomCough
     - SymptomSneeze
     - SymptomToxinLight
+    cureSteps:
+    - !type:CureBedrest
+      bedrestChance: 0.20
+      sleepMultiplier: 0
+      lowerStage: true
   - stage: 3
     sensation:
     - disease-sensation-muscles-ache
@@ -48,15 +99,27 @@
     - SymptomCough
     - SymptomSneeze
     - SymptomToxinLight
+    cureSteps:
+    - !type:CureBedrest
+      bedrestChance: 0.15
+      sleepMultiplier: 0
+      lowerStage: true
 
 
 - type: disease
   id: DiseaseFakeGBS
-  name: GBS
+  name: disease-name-DiseaseFakeGBS
   spreadFlags: [Contact]
-  contactInfect: 0.05
+  contactInfect: 0.005
   contactDeposit: 0.05
   ignoreMaskPPE: true
+  cureSteps:
+  - !type:CureReagent
+    requirements:
+    - reagentId: Diphenhydramine
+      quantity: 5
+    - reagentId: Sulfur
+      quantity: 5
   stages:
   - stage: 1
   # no-op
@@ -80,11 +143,18 @@
 
 - type: disease
   id: DiseaseGBS
-  name: GBS
+  name: disease-name-DiseaseGBS
   spreadFlags: [Contact]
-  contactInfect: 0.05
+  contactInfect: 0.005
   contactDeposit: 0.05
   ignoreMaskPPE: true
+  cureSteps:
+  - !type:CureReagent
+    requirements:
+    - reagentId: Diphenhydramine
+      quantity: 5
+    - reagentId: Sulfur
+      quantity: 5
   stages:
   - stage: 1
   # no-op
@@ -111,8 +181,15 @@
 
 - type: disease
   id: DiseaseFoodPoisoning
-  name: Food Poisoning
+  name: disease-name-DiseaseFoodPoisoning
   spreadFlags: [NonContagious]
+  cureSteps:
+  - !type:CureReagent
+    requirements:
+    - reagentId: ChickenSoup
+      quantity: 5
+  - !type:CureWait
+    requiredSeconds: 240
   stages:
   - stage: 1
     sensation:
@@ -132,9 +209,15 @@
 
 - type: disease
   id: DiseaseNarcolepsySyndrome
-  name: Narcolepsy Syndrome
+  name: disease-name-DiseaseNarcolepsySyndrome
   spreadFlags: [Airborne]
   stageSpeed: 0.15
+  cureSteps:
+  - !type:CureWait
+    requiredSeconds: 600
+    cureChance: 0.5
+  - !type:CureBedrest
+    requiredSeconds: 90
   stages:
   - stage: 1
   # no-op
@@ -151,13 +234,14 @@
 
 - type: disease
   id: DiseaseHonkSyndrome
-  name: Honk Syndrome
+  name: disease-name-DiseaseHonkSyndrome
   spreadFlags: [Airborne, Contact]
   airborneInfect: 0.15
   cureSteps:
   - !type:CureReagent
-    reagentId: BananaHonk
-    quantity: 5
+    requirements:
+    - reagentId: BananaHonk
+      quantity: 5
   stages:
   - stage: 1
     # no-op
@@ -166,6 +250,7 @@
     - disease-sensation-clown
     symptoms:
     - SymptomJitters
+    - SymptomEmoteHonk
   - stage: 3
     sensation:
     - disease-sensation-clown
@@ -175,23 +260,32 @@
     - SymptomTransformClown
 
 - type: disease
-  id: DiseaseMonkeySyndrome
-  name: Monkey Syndrome
+  id: AMIV
+  name: disease-name-AMIV
   spreadFlags: [Airborne, Contact]
   airborneInfect: 0.15
+  cureSteps:
+  - !type:CureReagent
+    requirements:
+    - reagentId: JuiceBanana
+      quantity: 5
   stages:
   - stage: 1
     # no-op
   - stage: 2
     sensation:
-    - disease-sensation-clown
+    - disease-sensation-sick
+    - disease-sensation-banana-compulsion
   - stage: 3
+    sensation:
+    - disease-sensation-sick
+    - disease-sensation-banana-compulsion
     symptoms:
     - SymptomMonkeyShout
 
 - type: disease
   id: OwOnavirus
-  name: OwOnavirus
+  name: disease-name-OwOnavirus
   spreadFlags: [Contact]
   isBeneficial: true
   stages:

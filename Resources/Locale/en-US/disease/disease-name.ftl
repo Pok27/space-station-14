@@ -1,0 +1,29 @@
+disease-name-DiseaseCold = Cold
+disease-name-DiseaseSpaceFlu = Space Flu
+disease-name-DiseaseFakeGBS = GBS
+disease-name-DiseaseGBS = GBS
+disease-name-DiseaseFoodPoisoning = Food Poisoning
+disease-name-DiseaseNarcolepsySyndrome = Narcolepsy Syndrome
+disease-name-DiseaseHonkSyndrome = Honk Syndrome
+disease-name-DiseaseCold9 = ICE9 Cold
+disease-name-AMIV = AMIV
+disease-name-OwOnavirus = OwOnavirus
+
+disease-symptom-name-SymptomCough = Cough
+disease-symptom-name-SymptomSneeze = Sneeze
+disease-symptom-name-SymptomGasp = Gasp
+disease-symptom-name-SymptomEmoteCat = Meow
+disease-symptom-name-SymptomHonkShout = Honk Shouts
+disease-symptom-name-SymptomMonkeyShout = Monkey Shouts
+disease-symptom-name-SymptomToxin = Toxin
+disease-symptom-name-SymptomToxinLight = Light toxin
+disease-symptom-name-SymptomGib = Rip from the inside
+disease-symptom-name-SymptomJitters = Jitters
+disease-symptom-name-SymptomTransformClown = Transformation into a clown
+disease-symptom-name-SymptomOwOAccent = OwO Virus
+disease-symptom-name-SymptomSpeedBoost = Speed Boost
+disease-symptom-name-SymptomTransitionToFlu = Transition to Space Flu
+disease-symptom-name-SymptomFever = Fever
+disease-symptom-name-SymptomVomiting = Vomiting
+disease-symptom-name-SymptomNarcolepsy = Narcolepsy
+

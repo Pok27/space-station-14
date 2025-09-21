@@ -68,7 +68,7 @@ public sealed partial class DiseasePrototype : IPrototype
     /// Base per-contact infection probability for this disease (0-1). Used when two entities make contact.
     /// </summary>
     [DataField]
-    public float ContactInfect { get; private set; } = 0.1f;
+    public float ContactInfect { get; private set; } = 0.01f;
 
     /// <summary>
     /// Amount of residue intensity deposited when a carrier with this disease contacts a surface.

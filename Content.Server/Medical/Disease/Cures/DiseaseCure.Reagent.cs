@@ -13,16 +13,17 @@ namespace Content.Server.Medical.Disease;
 public sealed partial class CureReagent : CureStep
 {
     /// <summary>
-    /// Reagent prototype ID to consume.
+    /// List of required reagents (all must be present at or above the required quantity).
     /// </summary>
     [DataField(required: true)]
-    public string ReagentId { get; private set; } = string.Empty;
+    public List<Requirement> Requirements { get; private set; } = new();
 
-    /// <summary>
-    /// Required reagent quantity in units.
-    /// </summary>
-    [DataField]
-    public FixedPoint2 Quantity { get; private set; } = FixedPoint2.New(1);
+    [DataDefinition]
+    public sealed partial class Requirement
+    {
+        [DataField(required: true)] public string ReagentId { get; private set; } = string.Empty;
+        [DataField] public FixedPoint2 Quantity { get; private set; } = FixedPoint2.New(1);
+    }
 }
 
 public sealed partial class CureReagent
@@ -31,8 +32,7 @@ public sealed partial class CureReagent
     [Dependency] private readonly SharedSolutionContainerSystem _solutions = default!;
 
     /// <summary>
-    /// Cures the disease if the bloodstream chemical solution contains enough of the reagent.
-    /// Does not consume the reagent.
+    /// Cures the disease if the bloodstream has the required reagents. Does not consume them.
     /// </summary>
     public override bool OnCure(EntityUid uid, DiseasePrototype disease)
     {
@@ -42,18 +42,30 @@ public sealed partial class CureReagent
         if (!_solutions.ResolveSolution(uid, bloodstream.ChemicalSolutionName, ref bloodstream.ChemicalSolution, out var chemSolution))
             return false;
 
-        var quant = chemSolution.GetTotalPrototypeQuantity(ReagentId);
-        return quant >= Quantity;
+        if (Requirements.Count == 0)
+            return false;
+
+        foreach (var req in Requirements)
+        {
+            var have = chemSolution.GetTotalPrototypeQuantity(req.ReagentId);
+            if (have < req.Quantity)
+                return false;
+        }
+
+        return true;
     }
 
     public override IEnumerable<string> BuildDiagnoserLines(IPrototypeManager prototypes)
     {
-        var reagentName = ReagentId;
-        if (prototypes.TryIndex<ReagentPrototype>(ReagentId, out var reagentProto))
-            reagentName = reagentProto.LocalizedName;
-
-        // Use FixedPoint2.ToString for locale-safe quantity
-        var unitsText = Quantity.ToString();
-        yield return Loc.GetString("diagnoser-cure-reagent", ("units", unitsText), ("reagent", reagentName));
+        var parts = new List<string>();
+        foreach (var r in Requirements)
+        {
+            var name = r.ReagentId;
+            if (prototypes.TryIndex<ReagentPrototype>(r.ReagentId, out var proto))
+                name = proto.LocalizedName;
+            parts.Add(Loc.GetString("diagnoser-cure-reagent-item", ("units", r.Quantity.ToString()), ("reagent", name)));
+        }
+        var joined = string.Join(", ", parts);
+        yield return Loc.GetString("diagnoser-cure-reagents-all", ("list", joined));
     }
 }

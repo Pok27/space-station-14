@@ -45,7 +45,25 @@ public sealed partial class DiseaseCureSystem : EntitySystem
         foreach (var step in applicable)
         {
             if (ExecuteCureStep(ent, step, disease))
-                ApplyCureDisease(ent, disease, stageCfg.Symptoms);
+            {
+                if (step.LowerStage)
+                {
+                    // Lower stage by 1 instead of curing outright.
+                    if (ent.Comp.ActiveDiseases.TryGetValue(disease.ID, out var curStage))
+                    {
+                        var newStage = Math.Max(1, curStage - 1);
+                        if (newStage != curStage)
+                        {
+                            ent.Comp.ActiveDiseases[disease.ID] = newStage;
+                            Dirty(ent);
+                        }
+                    }
+                }
+                else
+                {
+                    ApplyCureDisease(ent, disease, stageCfg.Symptoms);
+                }
+            }
         }
 
         // Also attempt symptom-level cure steps defined on the symptom prototypes for this stage.

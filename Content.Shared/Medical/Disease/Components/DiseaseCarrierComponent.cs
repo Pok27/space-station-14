@@ -19,7 +19,8 @@ public sealed partial class DiseaseCarrierComponent : Component
     public Dictionary<string, int> ActiveDiseases = new();
 
     /// <summary>
-    /// Optional incubation end times per disease (server authoritative). Before this time, disease won't spread or show symptoms.
+    /// Optional incubation end times per disease.
+    /// Before this time, disease won't spread or show symptoms.
     /// </summary>
     [DataField, AutoNetworkedField]
     public Dictionary<string, TimeSpan> IncubatingUntil = new();
@@ -45,9 +46,7 @@ public sealed partial class DiseaseCarrierComponent : Component
     public Dictionary<string, TimeSpan> SuppressedSymptoms = new();
 
     /// <summary>
-    /// Server-side: track components that were added by a disease so that cures can roll them back safely.
-    /// Key: disease prototype ID, Value: set of component registration names added by that disease.
-    /// Not networked.
+    /// Track components that were added by a disease so that cures can roll them back safely.
     /// </summary>
     [DataField]
     public Dictionary<string, HashSet<string>> AddedComponents = new();

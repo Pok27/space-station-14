@@ -217,7 +217,7 @@ public sealed class DiseaseResidueSystem : EntitySystem
             return;
 
         var chance = Math.Clamp(proto.ContactInfect * intensity, 0f, 1f);
-        chance = AdjustContactForPPE(target, chance);
+        chance = _disease.AdjustContactChanceForProtection(target, chance);
         _disease.TryInfectWithChance(target, diseaseId, chance);
     }
 
@@ -303,17 +303,5 @@ public sealed class DiseaseResidueSystem : EntitySystem
             else
                 residue.Diseases[id] = MathF.Min(1f, deposit);
         }
-    }
-
-    private float AdjustContactForPPE(EntityUid target, float baseChance)
-    {
-        var chance = baseChance;
-        foreach (var (slot, mult) in DiseaseEffectiveness.ContactSlots)
-        {
-            if (_inventory.TryGetSlotEntity(target, slot, out _))
-                chance *= mult;
-        }
-
-        return MathF.Max(0f, MathF.Min(1f, chance));
     }
 }

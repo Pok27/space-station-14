@@ -1,10 +1,6 @@
 using System;
-using Content.Server.Body.Systems;
-using Content.Shared.Clothing.Components;
 using Content.Shared.Interaction;
-using Content.Shared.Inventory;
 using Content.Shared.Medical.Disease;
-using Content.Shared.Mobs.Components;
 using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
@@ -22,9 +18,7 @@ public sealed class AirborneDiseaseSystem : EntitySystem
     [Dependency] private readonly EntityLookupSystem _lookup = default!;
     [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
     [Dependency] private readonly SharedInteractionSystem _interaction = default!;
-    [Dependency] private readonly InventorySystem _inventory = default!;
     [Dependency] private readonly DiseaseSystem _disease = default!;
-    [Dependency] private readonly InternalsSystem _internals = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
 
@@ -90,40 +84,9 @@ public sealed class AirborneDiseaseSystem : EntitySystem
                 continue;
 
             var chance = Math.Clamp(disease.AirborneInfect * chanceMultiplier, 0f, 1f);
-            chance = AdjustChanceForProtection(other, chance, disease);
+            chance = _disease.AdjustAirborneChanceForProtection(other, chance, disease);
             _disease.TryInfectWithChance(other, disease.ID, chance);
         }
-    }
-
-    /// <summary>
-    /// Coarse PPE/internals-based reduction.
-    /// </summary>
-    private float AdjustChanceForProtection(EntityUid target, float baseChance, DiseasePrototype disease)
-    {
-        var chance = baseChance;
-
-        if (!disease.IgnoreMaskPPE)
-        {
-            // Internals (active breathing gear).
-            if (_internals.AreInternalsWorking(target))
-                chance *= DiseaseEffectiveness.InternalsMultiplier;
-
-            foreach (var (slot, mult) in DiseaseEffectiveness.AirborneSlots)
-            {
-                if (slot == "mask")
-                {
-                    if (_inventory.TryGetSlotEntity(target, slot, out var maskUid)
-                        && TryComp<MaskComponent>(maskUid, out var mask) && !mask.IsToggled)
-                        chance *= mult;
-                    continue;
-                }
-
-                if (_inventory.TryGetSlotEntity(target, slot, out _))
-                    chance *= mult;
-            }
-        }
-
-        return MathF.Max(0f, MathF.Min(1f, chance));
     }
 }
 

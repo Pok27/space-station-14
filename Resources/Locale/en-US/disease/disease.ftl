@@ -16,3 +16,5 @@ disease-sensation-gib-itself = Your body feels as if it's trying to rip itself o
 disease-sensation-sleepy = You feel sleepy.
 disease-sensation-sleepy-2 = Your eyelids are getting heavy.
 disease-sensation-sleepy-3 = You feel irresistibly drawn to sleep...
+disease-sensation-banana-compulsion = You really want to eat some bananas.
+disease-sensation-stiff = You feel stiff.
