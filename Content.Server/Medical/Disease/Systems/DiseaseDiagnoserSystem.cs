@@ -137,10 +137,15 @@ public sealed class DiseaseDiagnoserSystem : EntitySystem
                 {
                     foreach (var cureLine in step.BuildDiagnoserLines(_prototypes))
                     {
-                        lines.Add("- " + cureLine);
+                        if (step.LowerStage)
+                            lines.Add("- " + cureLine + " " + Loc.GetString("diagnoser-cure-lower-stage"));
+                        else
+                            lines.Add("- " + cureLine + " " + Loc.GetString("diagnoser-cure-lower-disease"));
                     }
                 }
             }
+
+            lines.Add("\n");
         }
 
         var body = string.Join("\n", lines);

@@ -2,13 +2,12 @@ using System;
 using System.Linq;
 using Robust.Shared.Collections;
 using Content.Server.Body.Systems;
+using Content.Shared.Popups;
 using Content.Shared.Clothing.Components;
 using Content.Shared.Inventory;
 using Content.Shared.Medical.Disease;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
-using Content.Server.Popups;
-using Content.Shared.Popups;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
@@ -25,7 +24,7 @@ public sealed partial class DiseaseSystem : EntitySystem
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly DiseaseSymptomSystem _symptoms = default!;
     [Dependency] private readonly DiseaseCureSystem _cure = default!;
-    [Dependency] private readonly PopupSystem _popup = default!;
+    [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly InventorySystem _inventory = default!;
     [Dependency] private readonly InternalsSystem _internals = default!;
 
@@ -124,11 +123,15 @@ public sealed partial class DiseaseSystem : EntitySystem
         if (stageCfg == null)
             return;
 
-        // Stage sensations: optional lightweight popups.
-        if (stageCfg.Sensation.Count > 0 && _random.Prob(stageCfg.SensationProb))
+        // Stage sensations: each entry has its own per-tick probability.
+        foreach (var entry in stageCfg.Sensations)
         {
-            var key = _random.Pick(stageCfg.Sensation);
-            _popup.PopupEntity(Loc.GetString(key), ent, ent.Owner, PopupType.Small);
+            if (!_random.Prob(entry.Probability))
+                continue;
+
+            var text = Loc.GetString(entry.Sensation);
+            _popup.PopupEntity(text, ent, ent.Owner, entry.PopupType);
+            break;
         }
 
         // Symptoms are now a list of detailed entries (symptom + optional probability override).
@@ -143,8 +146,6 @@ public sealed partial class DiseaseSystem : EntitySystem
                 continue;
 
             var prob = entry.Probability >= 0f ? entry.Probability : symptom.Probability;
-            if (prob <= 0f)
-                continue;
 
             if (!_random.Prob(prob))
                 continue;
@@ -223,24 +224,21 @@ public sealed partial class DiseaseSystem : EntitySystem
     {
         var chance = baseChance;
 
-        if (!disease.IgnoreMaskPPE)
+        if (_internals.AreInternalsWorking(target))
+            chance *= DiseaseEffectiveness.InternalsMultiplier;
+
+        foreach (var (slot, mult) in DiseaseEffectiveness.AirborneSlots)
         {
-            if (_internals.AreInternalsWorking(target))
-                chance *= DiseaseEffectiveness.InternalsMultiplier;
-
-            foreach (var (slot, mult) in DiseaseEffectiveness.AirborneSlots)
+            if (slot == "mask")
             {
-                if (slot == "mask")
-                {
-                    if (_inventory.TryGetSlotEntity(target, slot, out var maskUid)
-                        && TryComp<MaskComponent>(maskUid, out var mask) && !mask.IsToggled)
-                        chance *= mult;
-                    continue;
-                }
-
-                if (_inventory.TryGetSlotEntity(target, slot, out _))
+                if (_inventory.TryGetSlotEntity(target, slot, out var maskUid)
+                    && TryComp<MaskComponent>(maskUid, out var mask) && !mask.IsToggled)
                     chance *= mult;
+                continue;
             }
+
+            if (_inventory.TryGetSlotEntity(target, slot, out _))
+                chance *= mult;
         }
 
         return MathF.Max(0f, MathF.Min(1f, chance));

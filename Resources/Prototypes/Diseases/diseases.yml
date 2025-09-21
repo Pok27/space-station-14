@@ -2,7 +2,6 @@
   id: DiseaseCold
   name: disease-name-DiseaseCold
   spreadFlags: [Airborne]
-  stageSpeed: 0.15
   cureSteps:
   - !type:CureReagent
     requirements:
@@ -12,24 +11,28 @@
   - stage: 1
     # no-op
   - stage: 2
-    sensation:
-    - disease-sensation-throat-sore
-    - disease-sensation-throat-mucus
+    sensations:
+    - sensation: disease-sensation-throat-sore
+    - sensation: disease-sensation-throat-mucus
     symptoms:
     - symptom: SymptomCough
+      probability: 0.01
     - symptom: SymptomSneeze
+      probability: 0.01
     cureSteps:
     - !type:CureBedrest
       bedrestChance: 0.10
       sleepMultiplier: 4
   - stage: 3
-    sensation:
-    - disease-sensation-throat-sore
-    - disease-sensation-throat-mucus
+    sensations:
+    - sensation: disease-sensation-throat-sore
+    - sensation: disease-sensation-throat-mucus
     symptoms:
     - symptom: SymptomCough
+      probability: 0.01
     - symptom: SymptomSneeze
-    - symptom: SymptomTransitionFlu
+      probability: 0.01
+    - symptom: SymptomTransitionToFlu
     cureSteps:
     - !type:CureBedrest
       bedrestChance: 0.05
@@ -48,27 +51,30 @@
   - stage: 1
     # no-op
   - stage: 2
-    sensation:
-    - disease-sensation-throat-sore
-    - disease-sensation-stiff
+    sensations:
+    - sensation: disease-sensation-throat-sore
+    - sensation: disease-sensation-stiff
     symptoms:
-    - symptom: SymptomCold9CoughS2
-    - symptom: SymptomCold9SneezeS2
+    - symptom: SymptomCough
+      probability: 0.02
+    - symptom: SymptomSneeze
+      probability: 0.02
     - symptom: SymptomCold9FreezeS2
   - stage: 3
-    sensation:
-    - disease-sensation-throat-sore
-    - disease-sensation-stiff
+    sensations:
+    - sensation: disease-sensation-throat-sore
+    - sensation: disease-sensation-stiff
     symptoms:
-    - symptom: SymptomCold9CoughS3
-    - symptom: SymptomCold9SneezeS3
+    - symptom: SymptomCough
+      probability: 0.04
+    - symptom: SymptomSneeze
+      probability: 0.04
     - symptom: SymptomCold9FreezeS3
 
 - type: disease
-  id: DiseaseSpaceFlu
-  name: disease-name-DiseaseSpaceFlu
+  id: DiseaseFlu
+  name: disease-name-DiseaseFlu
   spreadFlags: [Airborne]
-  stageSpeed: 0.1
   airborneInfect: 0.25
   cureSteps:
   - !type:CureReagent
@@ -79,9 +85,9 @@
   - stage: 1
     # no-op
   - stage: 2
-    sensation:
-    - disease-sensation-muscles-ache
-    - disease-sensation-stomach-hurt
+    sensations:
+    - sensation: disease-sensation-muscles-ache
+    - sensation: disease-sensation-stomach-hurt
     symptoms:
     - symptom: SymptomCough
     - symptom: SymptomSneeze
@@ -92,9 +98,9 @@
       sleepMultiplier: 1
       lowerStage: true
   - stage: 3
-    sensation:
-    - disease-sensation-muscles-ache
-    - disease-sensation-stomach-hurt
+    sensations:
+    - sensation: disease-sensation-muscles-ache
+    - sensation: disease-sensation-stomach-hurt
     symptoms:
     - symptom: SymptomCough
     - symptom: SymptomSneeze
@@ -112,7 +118,6 @@
   spreadFlags: [Contact]
   contactInfect: 0.005
   contactDeposit: 0.05
-  ignoreMaskPPE: true
   cureSteps:
   - !type:CureReagent
     requirements:
@@ -128,8 +133,8 @@
     - symptom: SymptomSneeze
     - symptom: SymptomToxin
   - stage: 3
-    sensation:
-    - disease-sensation-very-weak
+    sensations:
+    - sensation: disease-sensation-very-weak
     symptoms:
     - symptom: SymptomCough
     - symptom: SymptomGasp
@@ -147,7 +152,6 @@
   spreadFlags: [Contact]
   contactInfect: 0.005
   contactDeposit: 0.05
-  ignoreMaskPPE: true
   cureSteps:
   - !type:CureReagent
     requirements:
@@ -163,8 +167,8 @@
     - symptom: SymptomSneeze
     - symptom: SymptomToxin
   - stage: 3
-    sensation:
-    - disease-sensation-very-weak
+    sensations:
+    - sensation: disease-sensation-very-weak
     symptoms:
     - symptom: SymptomCough
     - symptom: SymptomGasp
@@ -172,8 +176,8 @@
     symptoms:
     - symptom: SymptomCough
   - stage: 5
-    sensation:
-    - disease-sensation-gib-itself
+    sensations:
+    - sensation: disease-sensation-gib-itself
     symptoms:
     - symptom: SymptomCough
     - symptom: SymptomGib
@@ -192,17 +196,17 @@
     requiredSeconds: 240
   stages:
   - stage: 1
-    sensation:
-    - disease-sensation-queasy
-    - disease-sensation-stomach-weird
+    sensations:
+    - sensation: disease-sensation-queasy
+    - sensation: disease-sensation-stomach-weird
   - stage: 2
-    sensation:
-    - disease-sensation-stomach-ache
-    - disease-sensation-nausea
+    sensations:
+    - sensation: disease-sensation-stomach-ache
+    - sensation: disease-sensation-nausea
   - stage: 3
-    sensation:
-    - disease-sensation-stomach-hurt
-    - disease-sensation-sick
+    sensations:
+    - sensation: disease-sensation-stomach-hurt
+    - sensation: disease-sensation-sick
     symptoms:
     - symptom: SymptomVomiting
 
@@ -211,7 +215,6 @@
   id: DiseaseNarcolepsySyndrome
   name: disease-name-DiseaseNarcolepsySyndrome
   spreadFlags: [Airborne]
-  stageSpeed: 0.15
   cureSteps:
   - !type:CureWait
     requiredSeconds: 600
@@ -222,12 +225,12 @@
   - stage: 1
   # no-op
   - stage: 2
-    sensation:
-    - disease-sensation-sleepy
+    sensations:
+    - sensation: disease-sensation-sleepy
   - stage: 3
-    sensation:
-    - disease-sensation-sleepy-2
-    - disease-sensation-sleepy-3
+    sensations:
+    - sensation: disease-sensation-sleepy-2
+    - sensation: disease-sensation-sleepy-3
     symptoms:
     - symptom: SymptomNarcolepsy
 
@@ -246,14 +249,15 @@
   - stage: 1
     # no-op
   - stage: 2
-    sensation:
-    - disease-sensation-clown
+    sensations:
+    - sensation: disease-sensation-clown
+    - sensation: disease-sensation-banana-compulsion
     symptoms:
     - symptom: SymptomJitters
     - symptom: SymptomEmoteHonk
   - stage: 3
-    sensation:
-    - disease-sensation-clown
+    sensations:
+    - sensation: disease-sensation-clown
     symptoms:
     - symptom: SymptomHonkShout
     - symptom: SymptomStutter
@@ -274,17 +278,17 @@
   - stage: 1
     # no-op
   - stage: 2
-    sensation:
-    - disease-sensation-sick
-    - disease-sensation-banana-compulsion
+    sensations:
+    - sensation: disease-sensation-sick
+    - sensation: disease-sensation-banana-compulsion
   - stage: 3
     cureSteps:
       - !type:CureWait
         requiredSeconds: 600
         cureChance: 0.5
-    sensation:
-    - disease-sensation-sick
-    - disease-sensation-banana-compulsion
+    sensations:
+    - sensation: disease-sensation-sick
+    - sensation: disease-sensation-banana-compulsion
     symptoms:
     - symptom: SymptomMonkeyShout
 

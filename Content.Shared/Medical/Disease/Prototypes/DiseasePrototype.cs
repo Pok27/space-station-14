@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Content.Shared.Popups;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared.Medical.Disease;
@@ -30,7 +31,7 @@ public sealed partial class DiseasePrototype : IPrototype
     /// Speed of progression through disease stages per second.
     /// </summary>
     [DataField]
-    public float StageSpeed { get; private set; } = 0.2f;
+    public float StageSpeed { get; private set; } = 0.005f;
 
     /// <summary>
     /// Stage configurations in ascending order (1-indexed semantics). Each stage can define stealth/resistance and symptom activations.
@@ -57,12 +58,6 @@ public sealed partial class DiseasePrototype : IPrototype
     /// </summary>
     [DataField]
     public List<DiseaseSpreadFlags> SpreadFlags { get; private set; } = new();
-
-    /// <summary>
-    /// If true, masks (mask slot PPE) will not reduce airborne infection chance for this disease.
-    /// </summary>
-    [DataField]
-    public bool IgnoreMaskPPE { get; private set; } = false;
 
     /// <summary>
     /// Base per-contact infection probability for this disease (0-1). Used when two entities make contact.
@@ -134,13 +129,7 @@ public sealed partial class DiseaseStage
     /// A single entry is randomly picked on each eligible tick, controlled by <see cref="SensationProb"/>.
     /// </summary>
     [DataField]
-    public List<string> Sensation { get; private set; } = new();
-
-    /// <summary>
-    /// Per-tick probability (0-1) to show a random sensation popup from <see cref="Sensation"/>.
-    /// </summary>
-    [DataField]
-    public float SensationProb { get; private set; } = 0.05f;
+    public List<SensationEntry> Sensations { get; private set; } = new();
 
     /// <summary>
     /// Optional list of cure steps specific to this stage. Overrides disease-level <see cref="CureSteps"/> for this stage.
@@ -163,4 +152,26 @@ public sealed partial class SymptomEntry
     /// </summary>
     [DataField]
     public float Probability { get; private set; } = -1f;
+}
+
+[DataDefinition]
+public sealed partial class SensationEntry
+{
+    /// <summary>
+    /// Localization key for the popup text.
+    /// </summary>
+    [DataField(required: true)]
+    public string Sensation { get; private set; } = default!;
+
+    /// <summary>
+    /// Popup visual style <see cref="PopupType"/>.
+    /// </summary>
+    [DataField]
+    public PopupType PopupType { get; private set; } = PopupType.Small;
+
+    /// <summary>
+    /// Per-tick probability (0-1) to show this sensation popup.
+    /// </summary>
+    [DataField]
+    public float Probability { get; private set; } = 0.05f;
 }

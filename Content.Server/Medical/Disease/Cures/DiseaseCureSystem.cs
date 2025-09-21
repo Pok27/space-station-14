@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using Content.Shared.Popups;
 using Content.Shared.Medical.Disease;
 using Robust.Shared.GameObjects;
 using Robust.Shared.IoC;
@@ -12,6 +13,7 @@ namespace Content.Server.Medical.Disease;
 public sealed partial class DiseaseCureSystem : EntitySystem
 {
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
+    [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
 
     /// <inheritdoc/>
@@ -101,6 +103,8 @@ public sealed partial class DiseaseCureSystem : EntitySystem
         ent.Comp.ActiveDiseases.Remove(disease.ID);
         ApplyPostCureImmunity(ent.Comp, disease);
 
+        _popup.PopupEntity(Loc.GetString("disease-cured"), ent, ent.Owner);
+
         NotifyDiseaseCured(ent, disease, stageSymptoms);
     }
 
@@ -117,6 +121,8 @@ public sealed partial class DiseaseCureSystem : EntitySystem
             return;
 
         ent.Comp.SuppressedSymptoms[symptomId] = _timing.CurTime + TimeSpan.FromSeconds(duration);
+
+        _popup.PopupEntity(Loc.GetString("disease-cured-symptom"), ent, ent.Owner);
 
         NotifySymptomCured(ent, disease, symptomId);
     }

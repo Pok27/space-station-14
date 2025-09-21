@@ -12,7 +12,7 @@ public sealed partial class CureWait : CureStep
     /// Seconds since infection required before curing can occur.
     /// </summary>
     [DataField]
-    public float RequiredSeconds { get; private set; } = 90.0f;
+    public int RequiredSeconds { get; private set; } = 90;
 
     /// <summary>
     /// Chance to cure when the required time elapses (0-1).

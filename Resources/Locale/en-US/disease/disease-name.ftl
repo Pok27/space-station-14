@@ -1,5 +1,5 @@
 disease-name-DiseaseCold = Cold
-disease-name-DiseaseSpaceFlu = Space Flu
+disease-name-DiseaseFlu = The Flu
 disease-name-DiseaseFakeGBS = GBS
 disease-name-DiseaseGBS = GBS
 disease-name-DiseaseFoodPoisoning = Food Poisoning

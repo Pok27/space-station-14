@@ -5,6 +5,12 @@ namespace Content.Server.Medical.Disease;
 [DataDefinition]
 public sealed partial class SymptomVomit : SymptomBehavior
 {
+
+    [DataField]
+    public float ThirstAdded = -40f;
+
+    [DataField]
+    public float HungerAdded = -40f;
 }
 
 public sealed partial class SymptomVomit
@@ -16,6 +22,6 @@ public sealed partial class SymptomVomit
     /// </summary>
     public override void OnSymptom(EntityUid uid, DiseasePrototype disease)
     {
-        _vomitSystem.Vomit(uid, force: true);
+        _vomitSystem.Vomit(uid, ThirstAdded, HungerAdded, true);
     }
 }

@@ -6,23 +6,23 @@ diagnoser-disease-report-name = Disease Name: {$name} (stage {$stage})
 diagnoser-disease-report-subject = Subject: {$name}
 diagnoser-disease-report-subject-dna = DNA: {$dna}
 
-diagnoser-no-cures = The disease has no specific cures.
-diagnoser-cure-has = The disease has the following cures:
-diagnoser-cure-bedrest = Resting in bed: {$chance}% per second to cure; sleeping multiplies by {$sleepMult}x.
-diagnoser-cure-reagent = Consume at least {$units}u of {$reagent}.
-diagnoser-cure-reagent-item = {$units}u {$reagent}
-diagnoser-cure-reagents-all = Consume all of: {$list}.
-diagnoser-cure-time = It will go away on its own after {$time} seconds.
-diagnoser-cure-temp = Reach a body temperature below {$max}°K or above {$min}°K.
-diagnoser-cure-temp-min = Reach a body temperature above {$min}°K.
-diagnoser-cure-temp-max = Reach a body temperature below {$max}°K.
-diagnoser-cure-posture = Cure chances per second - unconscious: {$uncon}%, lying: {$horiz}%, fallback: {$fallback}%.
+diagnoser-no-cures = [bold]The disease has no cures.[/bold]
+diagnoser-cure-has = [bold]The disease has cures:[/bold]
+diagnoser-cure-bedrest = Resting in bed [color=orange]{$chance}%[/color] per second to cure; sleeping multiplies by [color=orange]{$sleepMult}x[/color].
+diagnoser-cure-reagent-item = {$units}u [color=orange]{$reagent}[/color]
+diagnoser-cure-reagents-all = Consume all of: [color=orange]{$list}[/color].
+diagnoser-cure-time = It will go away on its own after [color=orange]{$time}[/color] seconds.
+diagnoser-cure-temp = Reach a body temperature below [color=orange]{$max}°K[/color] or above [color=orange]{$min}°K[/color].
+diagnoser-cure-temp-min = Reach a body temperature above [color=orange]{$min}°K[/color].
+diagnoser-cure-temp-max = Reach a body temperature below [color=orange]{$max}°K[/color].
+diagnoser-cure-lower-stage = [color=green]Lowers the disease stage by 1.[/color]
+diagnoser-cure-lower-disease = [color=green]Cures the disease.[/color]
+
+diagnoser-disease-symptoms-header = [bold]This disease has symptoms:[/bold]
+diagnoser-disease-symptoms-none = [bold]This disease has no symptoms.[/bold]
 
 diagnoser-disease-empty-swab-popup = No sample material on the swab.
 diagnoser-disease-printed-popup = Diagnosis report printed.
 
 diagnoser-disease-swab-collected = Disease sample collected.
 diagnoser-disease-swab-no-diseases = No diseases detected.
-
-diagnoser-disease-symptoms-header = Symptoms:
-diagnoser-disease-symptoms-none = No symptoms

@@ -165,7 +165,7 @@
   probability: 0.005
   behaviors:
   - !type:SymptomTransitionDisease
-    disease: DiseaseSpaceFlu
+    disease: DiseaseFlu
 
 - type: diseaseSymptom
   id: SymptomFever
@@ -210,50 +210,6 @@
   - !type:SymptomNarcolepsy
 
 # Cold9
-
-- type: diseaseSymptom
-  id: SymptomCold9CoughS2
-  name: disease-symptom-name-SymptomCold9CoughS2
-  probability: 0.02
-  airborneBurst:
-    rangeMultiplier: 1.75
-    chanceMultiplier: 1.5
-  behaviors:
-  - !type:SymptomEmote
-    emoteId: Cough
-
-- type: diseaseSymptom
-  id: SymptomCold9CoughS3
-  name: disease-symptom-name-SymptomCold9CoughS3
-  probability: 0.04
-  airborneBurst:
-    rangeMultiplier: 1.75
-    chanceMultiplier: 1.5
-  behaviors:
-  - !type:SymptomEmote
-    emoteId: Cough
-
-- type: diseaseSymptom
-  id: SymptomCold9SneezeS2
-  name: disease-symptom-name-SymptomCold9SneezeS2
-  probability: 0.02
-  airborneBurst:
-    rangeMultiplier: 2.5
-    chanceMultiplier: 2
-  behaviors:
-  - !type:SymptomEmote
-    emoteId: Sneeze
-
-- type: diseaseSymptom
-  id: SymptomCold9SneezeS3
-  name: disease-symptom-name-SymptomCold9SneezeS3
-  probability: 0.04
-  airborneBurst:
-    rangeMultiplier: 2.5
-    chanceMultiplier: 2
-  behaviors:
-  - !type:SymptomEmote
-    emoteId: Sneeze
 
 - type: diseaseSymptom
   id: SymptomCold9FreezeS2
