@@ -1,5 +1,4 @@
 using Robust.Shared.Prototypes;
-using Robust.Shared.GameObjects;
 
 namespace Content.Shared.Medical.Disease;
 

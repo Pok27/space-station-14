@@ -1,6 +1,6 @@
 using Content.Shared.Medical.Disease;
 
-namespace Content.Server.Medical.Disease;
+namespace Content.Server.Medical.Disease.Symptoms;
 
 [DataDefinition]
 public sealed partial class SymptomVomit : SymptomBehavior

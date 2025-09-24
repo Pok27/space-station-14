@@ -8,7 +8,7 @@ using Robust.Shared.IoC;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
-namespace Content.Server.Medical.Disease;
+namespace Content.Server.Medical.Disease.Cures;
 
 public sealed partial class DiseaseCureSystem : EntitySystem
 {

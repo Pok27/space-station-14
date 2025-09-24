@@ -20,7 +20,7 @@ using Content.Server.Temperature.Components;
 using Content.Server.Temperature.Systems;
 using Content.Server.Traits.Assorted;
 using Content.Server.Zombies;
-using Content.Server.Medical.Disease;
+using Content.Server.Medical.Disease.Systems;
 using Content.Shared.Atmos;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Body.Components;
@@ -77,7 +77,7 @@ public sealed class EntityEffectSystem : EntitySystem
     [Dependency] private readonly SharedTransformSystem _xform = default!;
     [Dependency] private readonly VomitSystem _vomit = default!;
     [Dependency] private readonly TurfSystem _turf = default!;
-        [Dependency] private readonly DiseaseSystem _diseaseSystem = default!;
+    [Dependency] private readonly DiseaseSystem _diseaseSystem = default!;
 
     public override void Initialize()
     {

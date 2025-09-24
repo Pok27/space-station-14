@@ -4,7 +4,7 @@ using Content.Shared.Medical.Disease;
 using Content.Shared.StatusEffectNew;
 using Robust.Shared.Prototypes;
 
-namespace Content.Server.Medical.Disease;
+namespace Content.Server.Medical.Disease.Symptoms;
 
 [DataDefinition]
 public sealed partial class SymptomGenericStatusEffect : SymptomBehavior

@@ -3,7 +3,7 @@ using Content.Server.Temperature.Components;
 using Content.Shared.Medical.Disease;
 using Robust.Shared.Prototypes;
 
-namespace Content.Server.Medical.Disease;
+namespace Content.Server.Medical.Disease.Cures;
 
 [DataDefinition]
 public sealed partial class CureTemperature : CureStep
@@ -60,19 +60,19 @@ public sealed partial class CureTemperature
 
         if (float.IsFinite(min) && float.IsFinite(max))
         {
-            yield return Loc.GetString("diagnoser-cure-temp", ("min", (int) MathF.Ceiling(min)), ("max", (int) MathF.Floor(max)));
+            yield return Loc.GetString("diagnoser-cure-temp", ("min", (int)MathF.Ceiling(min)), ("max", (int)MathF.Floor(max)));
             yield break;
         }
 
         if (float.IsFinite(min))
         {
-            yield return Loc.GetString("diagnoser-cure-temp-min", ("min", (int) MathF.Ceiling(min)));
+            yield return Loc.GetString("diagnoser-cure-temp-min", ("min", (int)MathF.Ceiling(min)));
             yield break;
         }
 
         if (float.IsFinite(max))
         {
-            yield return Loc.GetString("diagnoser-cure-temp-max", ("max", (int) MathF.Floor(max)));
+            yield return Loc.GetString("diagnoser-cure-temp-max", ("max", (int)MathF.Floor(max)));
             yield break;
         }
     }

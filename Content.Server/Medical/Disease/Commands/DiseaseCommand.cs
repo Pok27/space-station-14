@@ -1,12 +1,10 @@
+using System.Globalization;
+using Content.Server.Medical.Disease.Systems;
 using Content.Server.Administration;
 using Content.Shared.Administration;
-using Content.Shared.Medical.Disease;
 using Robust.Shared.Console;
-using Robust.Shared.IoC;
-using Robust.Shared.GameObjects;
-using System.Globalization;
 
-namespace Content.Server.Medical.Disease;
+namespace Content.Server.Medical.Disease.Commands;
 
 /// <summary>
 /// Infects your attached entity with a disease at an optional stage.
@@ -14,49 +12,49 @@ namespace Content.Server.Medical.Disease;
 [AdminCommand(AdminFlags.Fun)]
 public sealed class InfectCommand : LocalizedEntityCommands
 {
-	public override string Command => "infect";
-	public override string Description => Loc.GetString("cmd-infect-desc");
-	public override string Help => Loc.GetString("cmd-infect-help");
+    public override string Command => "infect";
+    public override string Description => Loc.GetString("cmd-infect-desc");
+    public override string Help => Loc.GetString("cmd-infect-help");
 
-	[Dependency] private readonly IEntitySystemManager _sysMan = default!;
+    [Dependency] private readonly IEntitySystemManager _sysMan = default!;
 
-	public override void Execute(IConsoleShell shell, string argStr, string[] args)
-	{
-		if (args.Length == 1)
-		{
+    public override void Execute(IConsoleShell shell, string argStr, string[] args)
+    {
+        if (args.Length == 1)
+        {
             shell.WriteError(Loc.GetString("cmd-infect-need-id"));
-			shell.WriteLine(Help);
-			return;
-		}
-
-		if (args.Length < 2)
-		{
-			shell.WriteError(Loc.GetString("cmd-infect-need-target"));
             shell.WriteLine(Help);
-			return;
-		}
+            return;
+        }
 
-		if (!NetEntity.TryParse(args[0], out var parsedNet) || !EntityManager.TryGetEntity(parsedNet, out var parsedUid))
-		{
-			shell.WriteError(Loc.GetString("cmd-infect-bad-target", ("value", args[0])));
-			return;
-		}
+        if (args.Length < 2)
+        {
+            shell.WriteError(Loc.GetString("cmd-infect-need-target"));
+            shell.WriteLine(Help);
+            return;
+        }
 
-		var disease = _sysMan.GetEntitySystem<DiseaseSystem>();
-		var targetUid = parsedUid.Value;
-		var diseaseId = args[1];
+        if (!NetEntity.TryParse(args[0], out var parsedNet) || !EntityManager.TryGetEntity(parsedNet, out var parsedUid))
+        {
+            shell.WriteError(Loc.GetString("cmd-infect-bad-target", ("value", args[0])));
+            return;
+        }
 
-		// Optional stage as 3rd argument.
-		var stage = 1;
-		if (args.Length >= 3 && int.TryParse(args[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedStage))
-			stage = Math.Max(1, parsedStage);
+        var disease = _sysMan.GetEntitySystem<DiseaseSystem>();
+        var targetUid = parsedUid.Value;
+        var diseaseId = args[1];
 
-		if (!disease.Infect(targetUid, diseaseId, stage))
-		{
-			shell.WriteError(Loc.GetString("cmd-infect-fail"));
-			return;
-		}
+        // Optional stage as 3rd argument.
+        var stage = 1;
+        if (args.Length >= 3 && int.TryParse(args[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedStage))
+            stage = Math.Max(1, parsedStage);
 
-		shell.WriteLine(Loc.GetString("cmd-infect-ok", ("target", targetUid.ToString()), ("disease", diseaseId), ("stage", stage)));
-	}
+        if (!disease.Infect(targetUid, diseaseId, stage))
+        {
+            shell.WriteError(Loc.GetString("cmd-infect-fail"));
+            return;
+        }
+
+        shell.WriteLine(Loc.GetString("cmd-infect-ok", ("target", targetUid.ToString()), ("disease", diseaseId), ("stage", stage)));
+    }
 }

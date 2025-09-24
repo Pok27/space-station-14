@@ -7,7 +7,7 @@ using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.EntitySystems;
 using Robust.Shared.Prototypes;
 
-namespace Content.Server.Medical.Disease;
+namespace Content.Server.Medical.Disease.Cures;
 
 [DataDefinition]
 public sealed partial class CureReagent : CureStep
@@ -65,6 +65,7 @@ public sealed partial class CureReagent
                 name = proto.LocalizedName;
             parts.Add(Loc.GetString("diagnoser-cure-reagent-item", ("units", r.Quantity.ToString()), ("reagent", name)));
         }
+
         var joined = string.Join(", ", parts);
         yield return Loc.GetString("diagnoser-cure-reagents-all", ("list", joined));
     }

@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Robust.Shared.GameStates;
 
 namespace Content.Shared.Medical.Disease;
@@ -10,22 +8,22 @@ namespace Content.Shared.Medical.Disease;
 [RegisterComponent, NetworkedComponent]
 public sealed partial class DiseaseResidueComponent : Component
 {
-	/// <summary>
-	/// Per-disease intensity map for this residue. Each disease ID maps to its current intensity [0..1].
-	/// </summary>
-	[DataField, ViewVariables(VVAccess.ReadWrite)]
-	public Dictionary<string, float> Diseases = new();
+    /// <summary>
+    /// Per-disease intensity map for this residue. Each disease ID maps to its current intensity [0..1].
+    /// </summary>
+    [DataField]
+    public Dictionary<string, float> Diseases = [];
 
-	/// <summary>
-	/// Intensity decay per second.
+    /// <summary>
+	/// Intensity decay per tick.
     /// TODO: Must be removed in the future. The premises must be disinfected, not cleaned. (like it was in SS13)
 	/// </summary>
 	[DataField]
-	public float DecayPerSecond = 0.08f;
+    public float DecayPerTick = 0.08f;
 
-	/// <summary>
-	/// Amount to reduce per-disease intensity after a contact interaction.
-	/// </summary>
-	[DataField]
-	public float ContactReduction = 0.15f;
+    /// <summary>
+    /// Amount to reduce per-disease intensity after a contact interaction.
+    /// </summary>
+    [DataField]
+    public float ContactReduction = 0.15f;
 }

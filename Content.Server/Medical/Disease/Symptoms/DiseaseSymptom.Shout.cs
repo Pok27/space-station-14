@@ -2,10 +2,9 @@ using Content.Shared.Dataset;
 using Robust.Shared.Prototypes;
 using Content.Shared.Medical.Disease;
 using Robust.Shared.Random;
-using Content.Shared.Chat;
 using Content.Server.Chat.Systems;
 
-namespace Content.Server.Medical.Disease;
+namespace Content.Server.Medical.Disease.Symptoms;
 
 [DataDefinition]
 public sealed partial class SymptomShout : SymptomBehavior

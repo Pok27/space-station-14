@@ -65,6 +65,22 @@
   - !type:SymptomEmote
     emoteId: CatHisses
 
+- type: diseaseSymptom
+  id: SymptomEmoteGroan
+  name: disease-symptom-name-SymptomEmoteGroan
+  onlyWhenAlive: true
+  behaviors:
+  - !type:SymptomEmote
+    emoteId: Groan
+
+- type: diseaseSymptom
+  id: SymptomEmoteMoan
+  name: disease-symptom-name-SymptomEmoteMoan
+  onlyWhenAlive: true
+  behaviors:
+  - !type:SymptomEmote
+    emoteId: Moan
+
 # Shout
 
 - type: diseaseSymptom
@@ -106,8 +122,19 @@
         Poison: 3
 
 - type: diseaseSymptom
+  id: SymptomGeneticDamage
+  name: disease-symptom-name-SymptomGeneticDamage
+  probability: 0.025
+  behaviors:
+  - !type:SymptomDamage
+    damage:
+      types:
+        Genetic: 1
+
+- type: diseaseSymptom
   id: SymptomGib
   name: disease-symptom-name-SymptomGib
+  probability: 0.05
   behaviors:
   - !type:SymptomDamage
     damage:
@@ -184,6 +211,7 @@
 - type: diseaseSymptom
   id: SymptomVomiting
   name: disease-symptom-name-SymptomVomiting
+  probability: 0.05
   cureDuration: 120
   cureSteps:
   - !type:CureReagent
@@ -209,11 +237,9 @@
   behaviors:
   - !type:SymptomNarcolepsy
 
-# Cold9
-
 - type: diseaseSymptom
-  id: SymptomCold9FreezeS2
-  name: disease-symptom-name-SymptomCold9FreezeS2
+  id: SymptomFreezeLight
+  name: disease-symptom-name-SymptomFreezeLight
   probability: 1.0
   behaviors:
   - !type:SymptomTemperature
@@ -222,8 +248,8 @@
     stepTemperature: 7.5
 
 - type: diseaseSymptom
-  id: SymptomCold9FreezeS3
-  name: disease-symptom-name-SymptomCold9FreezeS3
+  id: SymptomFreeze
+  name: disease-symptom-name-SymptomFreeze
   probability: 1.0
   behaviors:
   - !type:SymptomTemperature

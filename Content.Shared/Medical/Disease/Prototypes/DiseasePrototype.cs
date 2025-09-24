@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Content.Shared.Popups;
 using Robust.Shared.Prototypes;
 
@@ -15,10 +14,22 @@ public sealed partial class DiseasePrototype : IPrototype
     public string ID { get; private set; } = default!;
 
     /// <summary>
-    /// Display name for UIs.
+    /// Displayed name of the disease.
     /// </summary>
-    [DataField]
-    public string Name { get; private set; } = string.Empty;
+    [DataField(required: true)]
+    public string Name { get; private set; } = default!;
+
+    /// <summary>
+    /// Displayed description of the disease.
+    /// </summary>
+    [DataField("desc", required: true)]
+    public string Description { get; private set; } = default!;
+
+    /// <summary>
+    /// Spread vectors for this disease. Use a list so multiple vectors can be selected in prototypes.
+    /// </summary>
+    [DataField(required: true)]
+    public List<DiseaseSpreadFlags> SpreadFlags { get; private set; } = [];
 
     /// <summary>
     /// If true, this disease is considered beneficial for HUD purposes.
@@ -28,22 +39,22 @@ public sealed partial class DiseasePrototype : IPrototype
     public bool IsBeneficial { get; private set; } = false;
 
     /// <summary>
-    /// Speed of progression through disease stages per second.
+    /// Probability of progression through disease stages per tick.
     /// </summary>
     [DataField]
-    public float StageSpeed { get; private set; } = 0.005f;
+    public float StageProb { get; private set; } = 0.04f;
 
     /// <summary>
     /// Stage configurations in ascending order (1-indexed semantics). Each stage can define stealth/resistance and symptom activations.
     /// </summary>
-    [DataField]
-    public List<DiseaseStage> Stages { get; private set; } = new();
+    [DataField(required: true)]
+    public List<DiseaseStage> Stages { get; private set; } = [];
 
     /// <summary>
-    /// Optional list of cure steps for the disease. Each entry is a specific cure action (e.g., reagent, time).
+    /// Optional list of cure steps for the disease. Each entry is a specific cure action.
     /// </summary>
     [DataField(serverOnly: true)]
-    public List<CureStep> CureSteps { get; private set; } = new();
+    public List<CureStep> CureSteps { get; private set; } = [];
 
     /// <summary>
     /// Default immunity strength granted after curing this disease (0-1).
@@ -52,12 +63,6 @@ public sealed partial class DiseasePrototype : IPrototype
     /// </summary>
     [DataField]
     public float PostCureImmunity { get; private set; } = 0.7f;
-
-    /// <summary>
-    /// Spread vectors for this disease. Use a list so multiple vectors can be selected in prototypes.
-    /// </summary>
-    [DataField]
-    public List<DiseaseSpreadFlags> SpreadFlags { get; private set; } = new();
 
     /// <summary>
     /// Base per-contact infection probability for this disease (0-1). Used when two entities make contact.
@@ -122,20 +127,20 @@ public sealed partial class DiseaseStage
     /// Each entry is a mapping with `symptom` and optional `probability` to override the symptom prototype's `probability`.
     /// </summary>
     [DataField]
-    public List<SymptomEntry> Symptoms { get; private set; } = new();
+    public List<SymptomEntry> Symptoms { get; private set; } = [];
 
     /// <summary>
     /// Optional list of localized message keys to show as "sensations" to the carrier while at this stage.
     /// A single entry is randomly picked on each eligible tick, controlled by <see cref="SensationProb"/>.
     /// </summary>
     [DataField]
-    public List<SensationEntry> Sensations { get; private set; } = new();
+    public List<SensationEntry> Sensations { get; private set; } = [];
 
     /// <summary>
     /// Optional list of cure steps specific to this stage. Overrides disease-level <see cref="CureSteps"/> for this stage.
     /// </summary>
     [DataField(serverOnly: true)]
-    public List<CureStep> CureSteps { get; private set; } = new();
+    public List<CureStep> CureSteps { get; private set; } = [];
 }
 
 [DataDefinition]

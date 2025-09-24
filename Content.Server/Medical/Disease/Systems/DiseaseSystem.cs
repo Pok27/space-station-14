@@ -1,7 +1,8 @@
-using System;
 using System.Linq;
 using Robust.Shared.Collections;
 using Content.Server.Body.Systems;
+using Content.Server.Medical.Disease.Cures;
+using Content.Server.Medical.Disease.Symptoms;
 using Content.Shared.Popups;
 using Content.Shared.Clothing.Components;
 using Content.Shared.Inventory;
@@ -12,7 +13,7 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
 
-namespace Content.Server.Medical.Disease;
+namespace Content.Server.Medical.Disease.Systems;
 
 /// <summary>
 /// Server system that progresses diseases, triggers symptom behaviors, and handles spread/immunity.
@@ -28,7 +29,7 @@ public sealed partial class DiseaseSystem : EntitySystem
     [Dependency] private readonly InventorySystem _inventory = default!;
     [Dependency] private readonly InternalsSystem _internals = default!;
 
-    private static readonly TimeSpan TickDelay = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan TickDelay = TimeSpan.FromSeconds(2);
 
     /// <inheritdoc/>
     /// <summary>
@@ -81,7 +82,7 @@ public sealed partial class DiseaseSystem : EntitySystem
             if (ent.Comp.IncubatingUntil.TryGetValue(diseaseId, out var until) && until > _timing.CurTime)
                 continue;
 
-            // Progression: scale advance chance strictly according to StageSpeed and time between ticks.
+            // Progression: scale advance chance strictly according to StageProb and time between ticks.
             var newStage = AdvanceStage(disease, stage);
 
             if (newStage != stage)
@@ -109,7 +110,7 @@ public sealed partial class DiseaseSystem : EntitySystem
 
     private int AdvanceStage(DiseasePrototype disease, int currentStage)
     {
-        var perTickAdvance = Math.Clamp(disease.StageSpeed, 0f, 1f);
+        var perTickAdvance = Math.Clamp(disease.StageProb, 0f, 1f);
         var maxStage = Math.Max(1, disease.Stages.Count);
         if (_random.Prob(perTickAdvance))
             return Math.Min(currentStage + 1, maxStage);

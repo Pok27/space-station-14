@@ -7,7 +7,7 @@ using Robust.Shared.Prototypes;
 using Content.Server.Popups;
 using Robust.Shared.Localization;
 
-namespace Content.Server.Medical.Disease;
+namespace Content.Server.Medical.Disease.Systems;
 
 /// <summary>
 /// Handles using a DiseaseSample on the DiseaseDiagnoser to print a report.
@@ -83,15 +83,15 @@ public sealed class DiseaseDiagnoserSystem : EntitySystem
         var lines = new List<string>();
         foreach (var id in sample.Diseases)
         {
-            var displayName = id;
-            if (_prototypes.TryIndex<DiseasePrototype>(id, out var diseaseProto))
-                displayName = Loc.GetString(diseaseProto.Name);
+            if (!_prototypes.TryIndex<DiseasePrototype>(id, out var diseaseProto))
+                continue;
 
+            var displayName = Loc.GetString(diseaseProto.Name);
             var stage = sample.Stages.TryGetValue(id, out var s) ? s : 1;
             lines.Add(Loc.GetString("diagnoser-disease-report-name", ("name", displayName), ("stage", stage)));
 
-            if (diseaseProto == null)
-                continue;
+            var description = diseaseProto.Description;
+            lines.Add(Loc.GetString(description));
 
             DiseaseStage? stageCfg = null;
             foreach (var stCfg in diseaseProto.Stages)
@@ -102,6 +102,7 @@ public sealed class DiseaseDiagnoserSystem : EntitySystem
                     break;
                 }
             }
+
             if (stageCfg == null)
                 continue;
 
@@ -116,7 +117,7 @@ public sealed class DiseaseDiagnoserSystem : EntitySystem
                 foreach (var symptomEntry in stageCfg.Symptoms)
                 {
                     var symptomId = symptomEntry.Symptom;
-                    string symName = "";
+                    var symName = "";
                     if (_prototypes.TryIndex<DiseaseSymptomPrototype>(symptomId, out var symProto))
                         symName = Loc.GetString(symProto.Name);
 

@@ -7,7 +7,7 @@ using Content.Shared.Medical.Disease;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 
-namespace Content.Server.Medical.Disease;
+namespace Content.Server.Medical.Disease.Cures;
 
 [DataDefinition]
 public sealed partial class CureBedrest : CureStep
@@ -60,9 +60,7 @@ public sealed partial class CureBedrest
     {
         var baseChance = MathF.Max(0f, BedrestChance);
         var sleepMult = MathF.Max(1f, SleepMultiplier);
-        var percent = (int) MathF.Round(baseChance * 100f);
+        var percent = (int)MathF.Round(baseChance * 100f);
         yield return Loc.GetString("diagnoser-cure-bedrest", ("chance", percent), ("sleepMult", sleepMult));
     }
 }
-
-

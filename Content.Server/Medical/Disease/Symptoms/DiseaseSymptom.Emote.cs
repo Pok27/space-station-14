@@ -3,7 +3,7 @@ using Content.Shared.Chat.Prototypes;
 using Content.Shared.Medical.Disease;
 using Content.Server.Chat.Systems;
 
-namespace Content.Server.Medical.Disease;
+namespace Content.Server.Medical.Disease.Symptoms;
 
 [DataDefinition]
 public sealed partial class SymptomEmote : SymptomBehavior

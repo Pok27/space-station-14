@@ -3,7 +3,7 @@ using Content.Shared.Medical.Disease;
 using Robust.Shared.Random;
 using Robust.Shared.Prototypes;
 
-namespace Content.Server.Medical.Disease;
+namespace Content.Server.Medical.Disease.Cures;
 
 [DataDefinition]
 public sealed partial class CureWait : CureStep
@@ -51,7 +51,7 @@ public sealed partial class CureWait
 
     public override IEnumerable<string> BuildDiagnoserLines(IPrototypeManager prototypes)
     {
-        var time = (int) MathF.Ceiling(RequiredSeconds);
+        var time = (int)MathF.Ceiling(RequiredSeconds);
         yield return Loc.GetString("diagnoser-cure-time", ("time", time));
     }
 }

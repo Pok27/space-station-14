@@ -1,6 +1,6 @@
 using Content.Shared.Medical.Disease;
 
-namespace Content.Server.Medical.Disease;
+namespace Content.Server.Medical.Disease.Symptoms;
 
 [DataDefinition]
 public sealed partial class SymptomAddComponent : SymptomBehavior
@@ -30,7 +30,7 @@ public sealed partial class SymptomAddComponent
         if (_entityManager.HasComponent(uid, reg.Type))
             return;
 
-        var comp = (Component) _entityManager.ComponentFactory.GetComponent(Component);
+        var comp = (Component)_entityManager.ComponentFactory.GetComponent(Component);
         _entityManager.AddComponent(uid, comp);
 
         if (!_entityManager.TryGetComponent(uid, out DiseaseCarrierComponent? carrier))

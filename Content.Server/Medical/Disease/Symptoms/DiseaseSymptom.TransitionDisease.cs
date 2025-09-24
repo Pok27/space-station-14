@@ -1,6 +1,7 @@
+using Content.Server.Medical.Disease.Systems;
 using Content.Shared.Medical.Disease;
 
-namespace Content.Server.Medical.Disease;
+namespace Content.Server.Medical.Disease.Symptoms;
 
 [DataDefinition]
 public sealed partial class SymptomTransitionDisease : SymptomBehavior

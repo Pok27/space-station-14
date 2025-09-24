@@ -11,7 +11,7 @@ using Robust.Shared.Collections;
 using Robust.Shared.Prototypes;
 using Content.Shared.Weapons.Melee.Events;
 
-namespace Content.Server.Medical.Disease;
+namespace Content.Server.Medical.Disease.Systems;
 
 /// <summary>
 /// Decays disease residue on tiles/items and infects entities on direct contact.
@@ -45,7 +45,7 @@ public sealed class DiseaseResidueSystem : EntitySystem
         while (query.MoveNext(out var uid, out var residue))
         {
             // Decay per-disease intensities
-            var decay = residue.DecayPerSecond * (float)frameTime;
+            var decay = residue.DecayPerTick * (float)frameTime;
             var toRemoveAfterDecay = new ValueList<string>();
             foreach (var kv in residue.Diseases.ToArray())
             {

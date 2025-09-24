@@ -1,6 +1,4 @@
-using Content.Shared.StatusEffect;
 using Robust.Shared.Prototypes;
-using Robust.Shared.GameObjects;
 
 namespace Content.Shared.Medical.Disease;
 
@@ -21,13 +19,13 @@ public sealed partial class DiseaseSymptomPrototype : IPrototype
     /// Behavior variants configured by name. Each entry is a symptom effect with its own parameters.
     /// </summary>
     [DataField(serverOnly: true)]
-    public List<SymptomBehavior> Behaviors { get; private set; } = new();
+    public List<SymptomBehavior> Behaviors { get; private set; } = [];
 
     /// <summary>
     /// Probability per tick to trigger behavior when eligible (0-1).
     /// </summary>
     [DataField]
-    public float Probability { get; private set; } = 0.05f;
+    public float Probability { get; private set; } = 0.01f;
 
     /// <summary>
     /// If true, only a single randomly selected behavior from <see cref="Behaviors"/> will run when the symptom triggers.
@@ -59,7 +57,7 @@ public sealed partial class DiseaseSymptomPrototype : IPrototype
     /// suppress this symptom for <see cref="CureDuration"/> instead of curing the disease.
     /// </summary>
     [DataField(serverOnly: true)]
-    public List<CureStep> CureSteps { get; private set; } = new();
+    public List<CureStep> CureSteps { get; private set; } = [];
 }
 
 [DataDefinition]

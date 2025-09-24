@@ -4,7 +4,7 @@ using Content.Shared.Medical.Disease;
 using Robust.Shared.Random;
 using Content.Shared.StatusEffectNew;
 
-namespace Content.Server.Medical.Disease;
+namespace Content.Server.Medical.Disease.Symptoms;
 
 [DataDefinition]
 public sealed partial class SymptomNarcolepsy : SymptomBehavior
@@ -19,7 +19,7 @@ public sealed partial class SymptomNarcolepsy : SymptomBehavior
     /// Forced sleep duration in seconds.
     /// </summary>
     [DataField("sleepDuration")]
-    public float SleepDurationSeconds { get; private set; } = 6.0f;
+    public float SleepDuration { get; private set; } = 6.0f;
 }
 
 public sealed partial class SymptomNarcolepsy
@@ -35,7 +35,7 @@ public sealed partial class SymptomNarcolepsy
         if (!_random.Prob(SleepChance))
             return;
 
-        var dur = TimeSpan.FromSeconds(SleepDurationSeconds);
+        var dur = TimeSpan.FromSeconds(SleepDuration);
         _status.TryAddStatusEffectDuration(uid, SleepingSystem.StatusEffectForcedSleeping, dur);
     }
 }

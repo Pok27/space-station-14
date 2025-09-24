@@ -1,6 +1,4 @@
-using System.Linq;
-using Content.Server.GameTicking.Rules.Components;
-using Content.Server.Medical.Disease;
+using Content.Server.Medical.Disease.Systems;
 using Content.Server.StationEvents.Components;
 using Content.Shared.GameTicking.Components;
 using Content.Shared.Humanoid;

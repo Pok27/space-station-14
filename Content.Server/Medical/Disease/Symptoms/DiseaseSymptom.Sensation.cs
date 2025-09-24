@@ -2,7 +2,7 @@ using Content.Shared.Popups;
 using Content.Shared.Medical.Disease;
 using Content.Server.Popups;
 
-namespace Content.Server.Medical.Disease;
+namespace Content.Server.Medical.Disease.Symptoms;
 
 [DataDefinition]
 public sealed partial class SymptomSensation : SymptomBehavior

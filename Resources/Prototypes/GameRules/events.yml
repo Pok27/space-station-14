@@ -713,10 +713,11 @@
   - type: RandomDiseaseRule
     disease:
     - DiseaseCold
-    - DiseaseSpaceFlu
+    - DiseaseCold9
+    - DiseaseFlu
     - DiseaseFakeGBS
     - DiseaseNarcolepsySyndrome
-    - AMIV
+    - DiseaseAMIV
     minInfections: 2
     maxInfections: 5
 

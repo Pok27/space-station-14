@@ -6,7 +6,7 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
 
-namespace Content.Server.Medical.Disease;
+namespace Content.Server.Medical.Disease.Systems;
 
 /// <summary>
 /// Handles airborne disease spread in a periodic.
