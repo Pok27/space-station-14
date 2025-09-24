@@ -42,7 +42,7 @@ public sealed partial class DiseasePrototype : IPrototype
     /// Probability of progression through disease stages per tick.
     /// </summary>
     [DataField]
-    public float StageProb { get; private set; } = 0.04f;
+    public float StageProb { get; private set; } = 0.02f;
 
     /// <summary>
     /// Stage configurations in ascending order (1-indexed semantics). Each stage can define stealth/resistance and symptom activations.

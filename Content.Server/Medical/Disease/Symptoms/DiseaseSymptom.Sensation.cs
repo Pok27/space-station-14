@@ -10,7 +10,7 @@ public sealed partial class SymptomSensation : SymptomBehavior
     /// <summary>
     /// Localization key for the popup text.
     /// </summary>
-    [DataField]
+    [DataField(required: true)]
     public string Popup { get; private set; } = string.Empty;
 
     /// <summary>
@@ -33,6 +33,6 @@ public sealed partial class SymptomSensation
         if (string.IsNullOrEmpty(text))
             return;
 
-        _popup.PopupEntity(text, uid, PopupType);
+        _popup.PopupEntity(text, uid, uid.Owner, PopupType);
     }
 }

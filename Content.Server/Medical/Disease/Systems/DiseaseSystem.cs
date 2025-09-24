@@ -67,8 +67,8 @@ public sealed partial class DiseaseSystem : EntitySystem
         if (ent.Comp.ActiveDiseases.Count == 0)
             return;
 
-        var toRemove = new ValueList<string>();
         var dirty = false;
+        var toRemove = new ValueList<string>();
 
         foreach (var (diseaseId, stage) in ent.Comp.ActiveDiseases.ToArray())
         {

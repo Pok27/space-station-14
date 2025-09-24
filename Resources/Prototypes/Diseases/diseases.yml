@@ -198,7 +198,7 @@
   name: disease-name-DiseaseFoodPoisoning
   desc: disease-desc-DiseaseFoodPoisoning
   spreadFlags: [NonContagious]
-  stageProb: 0.05
+  stageProb: 0.03
   cureSteps:
   - !type:CureReagent
     requirements:
