@@ -13,7 +13,7 @@ namespace Content.Server.Medical.Disease.Cures;
 public sealed partial class CureBedrest : CureStep
 {
     /// <summary>
-    /// Base per-tick cure chance while buckled to a healing bed.
+    /// Base per-tick cure chance while buckled to a bed.
     /// </summary>
     [DataField]
     public float BedrestChance { get; private set; } = 0.05f;
@@ -33,7 +33,7 @@ public sealed partial class CureBedrest
 
     /// <summary>
     /// Rolls a cure chance each tick while buckled to a healing bed.
-    /// Sleeping multiplies the cure chance. No accumulation is tracked.
+    /// Sleeping multiplies the cure chance.
     /// </summary>
     public override bool OnCure(EntityUid uid, DiseasePrototype disease)
     {

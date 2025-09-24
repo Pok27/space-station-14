@@ -27,10 +27,10 @@ public sealed class RandomDiseaseRule : StationEventSystem<RandomDiseaseRuleComp
         if (!TryGetRandomStation(out var station))
             return;
 
-        // Choose disease uniformly from pool
+        // Choose disease uniformly from pool.
         var chosenDisease = _random.Pick(comp.Disease);
 
-        // Collect eligible humanoids with carrier component on the chosen station
+        // Collect eligible humanoids with carrier component on the chosen station.
         var candidates = new List<EntityUid>();
         var query = EntityQueryEnumerator<DiseaseCarrierComponent, MindContainerComponent, HumanoidAppearanceComponent, TransformComponent>();
         while (query.MoveNext(out var ent, out _, out var mind, out _, out var xform))
@@ -38,11 +38,11 @@ public sealed class RandomDiseaseRule : StationEventSystem<RandomDiseaseRuleComp
             if (StationSystem.GetOwningStation(ent, xform) != station)
                 continue;
 
-            // Central eligibility check: prototype exists, not dead
+            // Central eligibility check: prototype exists, not dead.
             if (!_disease.CanBeInfected(ent, chosenDisease))
                 continue;
 
-            // Only consider entities with an attached mind (players)
+            // Only consider entities with an attached mind (players).
             if (!mind.HasMind)
                 continue;
 
@@ -52,7 +52,7 @@ public sealed class RandomDiseaseRule : StationEventSystem<RandomDiseaseRuleComp
         if (candidates.Count == 0)
             return;
 
-        // Determine how many to infect
+        // Determine how many to infect.
         var toInfect = Math.Clamp(_random.Next(comp.MinInfections, comp.MaxInfections + 1), 0, candidates.Count);
         _random.Shuffle(candidates);
 
@@ -62,7 +62,7 @@ public sealed class RandomDiseaseRule : StationEventSystem<RandomDiseaseRuleComp
             if (infected >= toInfect)
                 break;
 
-            // Optional: skip entities already immune if desired
+            // Optional: skip entities already immune if desired.
             if (comp.SkipImmune)
             {
                 if (TryComp<DiseaseCarrierComponent>(ent, out var carrier) && carrier.Immunity.TryGetValue(chosenDisease, out var immunity) && immunity >= 1f)

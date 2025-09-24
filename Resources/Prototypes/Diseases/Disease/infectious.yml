@@ -3,11 +3,13 @@
   name: disease-name-DiseaseCold
   desc: disease-desc-DiseaseCold
   spreadFlags: [Airborne]
+  permeabilityMod: 0.5
   cureSteps:
   - !type:CureReagent
+    cureChance: 0.08
     requirements:
     - reagentId: Spaceacillin
-      quantity: 5
+  - !type:CureTemperature
   stages:
   - stage: 1
     # no-op
@@ -29,6 +31,7 @@
     symptoms:
     - symptom: SymptomCough
     - symptom: SymptomSneeze
+    - symptom: SymptomFever
     - symptom: SymptomTransitionToFlu
     cureSteps:
     - !type:CureBedrest
@@ -42,9 +45,9 @@
   spreadFlags: [Contact]
   cureSteps:
   - !type:CureReagent
+    cureChance: 0.08
     requirements:
     - reagentId: Spaceacillin
-      quantity: 5
   stages:
   - stage: 1
     # no-op
@@ -74,12 +77,12 @@
   name: disease-name-DiseaseFlu
   desc: disease-desc-DiseaseFlu
   spreadFlags: [Airborne]
-  airborneInfect: 0.25
+  permeabilityMod: 0.75
   cureSteps:
   - !type:CureReagent
+    cureChance: 0.1
     requirements:
     - reagentId: Spaceacillin
-      quantity: 5
   stages:
   - stage: 1
     # no-op
@@ -110,7 +113,6 @@
       sleepMultiplier: 1
       lowerStage: true
 
-
 - type: disease
   id: DiseaseFakeGBS
   name: disease-name-DiseaseGBS
@@ -120,11 +122,10 @@
   contactDeposit: 0.05
   cureSteps:
   - !type:CureReagent
+    cureChance: 0.15 # Higher chance to cure, since two reagents are required.
     requirements:
     - reagentId: Diphenhydramine
-      quantity: 5
     - reagentId: Sulfur
-      quantity: 5
   stages:
   - stage: 1
   # no-op
@@ -149,21 +150,19 @@
     - symptom: SymptomCough
       probability: 0.1
 
-
 - type: disease
   id: DiseaseGBS
   name: disease-name-DiseaseGBS
   desc: disease-desc-DiseaseGBS
   spreadFlags: [Contact]
   contactInfect: 0.005
-  contactDeposit: 0.05
+  contactDeposit: 0.08
   cureSteps:
   - !type:CureReagent
+    cureChance: 0.15 # Higher chance to cure, since two reagents are required.
     requirements:
     - reagentId: Diphenhydramine
-      quantity: 5
     - reagentId: Sulfur
-      quantity: 5
   stages:
   - stage: 1
   # no-op
@@ -192,75 +191,68 @@
       probability: 0.05
     - symptom: SymptomGib
 
-
-- type: disease
-  id: DiseaseFoodPoisoning
-  name: disease-name-DiseaseFoodPoisoning
-  desc: disease-desc-DiseaseFoodPoisoning
-  spreadFlags: [NonContagious]
-  stageProb: 0.03
-  cureSteps:
-  - !type:CureReagent
-    requirements:
-    - reagentId: ChickenSoup
-      quantity: 5
-  - !type:CureWait
-    requiredSeconds: 240
-  stages:
-  - stage: 1
-    sensations:
-    - sensation: disease-sensation-queasy
-    - sensation: disease-sensation-stomach-weird
-  - stage: 2
-    sensations:
-    - sensation: disease-sensation-stomach-ache
-    - sensation: disease-sensation-nausea
-    symptoms:
-    - symptom: SymptomEmoteGroan
-      probability: 0.1
-  - stage: 3
-    sensations:
-    - sensation: disease-sensation-stomach-hurt
-    - sensation: disease-sensation-sick
-    symptoms:
-    - symptom: SymptomVomiting
-    - symptom: SymptomEmoteGroan
-      probability: 0.1
-    - symptom: SymptomEmoteMoan
-      probability: 0.1
-
-
 - type: disease
   id: DiseaseNarcolepsySyndrome
   name: disease-name-DiseaseNarcolepsySyndrome
   desc: disease-desc-DiseaseNarcolepsySyndrome
   spreadFlags: [Airborne]
+  permeabilityMod: 0.75
   cureSteps:
+  - !type:CureReagent
+    cureChance: 0.08
+    requirements:
+    - reagentId: Haloperidol
   - !type:CureWait
-    requiredSeconds: 600
-    cureChance: 0.5
-  - !type:CureBedrest
-    requiredSeconds: 90
+    requiredTicks: 300
+    waitChance: 0.5
   stages:
   - stage: 1
-  # no-op
-  - stage: 2
     sensations:
     - sensation: disease-sensation-sleepy
-  - stage: 3
+  - stage: 2
     sensations:
     - sensation: disease-sensation-sleepy-2
     - sensation: disease-sensation-sleepy-3
     symptoms:
     - symptom: SymptomNarcolepsy
 
+- type: disease
+  id: DiseaseAMIV
+  name: disease-name-DiseaseAMIV
+  desc: disease-desc-DiseaseAMIV
+  spreadFlags: [Airborne, Contact]
+  airborneInfect: 0.15
+  contactInfect: 0.005
+  contactDeposit: 0.05
+  cureSteps:
+  - !type:CureReagent
+    requirements:
+    - reagentId: JuiceBanana
+      quantity: 5
+  stages:
+  - stage: 1
+    # no-op
+  - stage: 2
+    sensations:
+    - sensation: disease-sensation-sick
+    - sensation: disease-sensation-banana-compulsion
+  - stage: 3
+    cureSteps:
+      - !type:CureWait
+        requiredTicks: 200
+        waitChance: 0.5
+    sensations:
+    - sensation: disease-sensation-sick
+    - sensation: disease-sensation-banana-compulsion
+    symptoms:
+    - symptom: SymptomMonkeyShout
+    - symptom: SymptomGeneticDamage
 
 - type: disease
   id: DiseaseHonkSyndrome
   name: disease-name-DiseaseHonkSyndrome
   desc: disease-desc-DiseaseHonkSyndrome
-  spreadFlags: [Airborne, Contact]
-  airborneInfect: 0.15
+  spreadFlags: [Contact]
   cureSteps:
   - !type:CureReagent
     requirements:
@@ -284,38 +276,6 @@
     - symptom: SymptomStutter
     - symptom: SymptomTransformClown
 
-
-- type: disease
-  id: DiseaseAMIV
-  name: disease-name-DiseaseAMIV
-  desc: disease-desc-DiseaseAMIV
-  spreadFlags: [Airborne, Contact]
-  airborneInfect: 0.15
-  cureSteps:
-  - !type:CureReagent
-    requirements:
-    - reagentId: JuiceBanana
-      quantity: 5
-  stages:
-  - stage: 1
-    # no-op
-  - stage: 2
-    sensations:
-    - sensation: disease-sensation-sick
-    - sensation: disease-sensation-banana-compulsion
-  - stage: 3
-    cureSteps:
-      - !type:CureWait
-        requiredSeconds: 600
-        cureChance: 0.5
-    sensations:
-    - sensation: disease-sensation-sick
-    - sensation: disease-sensation-banana-compulsion
-    symptoms:
-    - symptom: SymptomMonkeyShout
-    - symptom: SymptomGeneticDamage
-
-
 - type: disease
   id: DiseaseOwOnavirus
   name: disease-name-DiseaseOwOnavirus
@@ -324,8 +284,7 @@
   isBeneficial: true
   cureSteps:
   - !type:CureWait
-    requiredSeconds: 600
-    cureChance: 0.5
+    requiredTicks: 400
   stages:
   - stage: 1
     symptoms:

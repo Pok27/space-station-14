@@ -11,6 +11,7 @@ namespace Content.Server.Medical.Disease.Systems;
 
 /// <summary>
 /// Handles using a DiseaseSample on the DiseaseDiagnoser to print a report.
+/// TODO: there should be more functions.
 /// </summary>
 public sealed class DiseaseDiagnoserSystem : EntitySystem
 {
@@ -90,8 +91,8 @@ public sealed class DiseaseDiagnoserSystem : EntitySystem
             var stage = sample.Stages.TryGetValue(id, out var s) ? s : 1;
             lines.Add(Loc.GetString("diagnoser-disease-report-name", ("name", displayName), ("stage", stage)));
 
-            var description = diseaseProto.Description;
-            lines.Add(Loc.GetString(description));
+            var description = Loc.GetString(diseaseProto.Description);
+            lines.Add(Loc.GetString("diagnoser-disease-report-desc", ("desc", description)));
 
             DiseaseStage? stageCfg = null;
             foreach (var stCfg in diseaseProto.Stages)

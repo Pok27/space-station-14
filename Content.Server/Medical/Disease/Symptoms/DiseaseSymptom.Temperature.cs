@@ -11,13 +11,13 @@ public sealed partial class SymptomTemperature : SymptomBehavior
     /// Target body temperature (K) to move towards.
     /// </summary>
     [DataField]
-    public float TargetTemperature { get; private set; } = 310.15f;
+    public float TargetTemperature { get; private set; } = 310.15f; // 37.0 °C
 
     /// <summary>
     /// Maximum delta (K) applied per trigger.
     /// </summary>
     [DataField]
-    public float StepTemperature { get; private set; } = 0.5f;
+    public float StepTemperature { get; private set; } = 60f;
 }
 
 public sealed partial class SymptomTemperature

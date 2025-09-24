@@ -44,7 +44,7 @@ public sealed class DiseaseResidueSystem : EntitySystem
         var query = EntityQueryEnumerator<DiseaseResidueComponent>();
         while (query.MoveNext(out var uid, out var residue))
         {
-            // Decay per-disease intensities
+            // Decay per-disease intensities.
             var decay = residue.DecayPerTick * (float)frameTime;
             var toRemoveAfterDecay = new ValueList<string>();
             foreach (var kv in residue.Diseases.ToArray())
@@ -66,7 +66,7 @@ public sealed class DiseaseResidueSystem : EntitySystem
             }
         }
 
-        // Adjacent contact spread around carriers each tick
+        // Adjacent contact spread around carriers each tick.
         var carriers = EntityQueryEnumerator<DiseaseCarrierComponent>();
         while (carriers.MoveNext(out var cuid, out var carrier))
         {
@@ -77,7 +77,6 @@ public sealed class DiseaseResidueSystem : EntitySystem
 
     /// <summary>
     /// Handles contact spread when a user uses an item on a diseased target (or vice versa).
-    /// Moved from DiseaseSystem.
     /// </summary>
     private void OnAfterInteractUsing(Entity<DiseaseCarrierComponent> target, ref AfterInteractUsingEvent args)
     {
@@ -217,7 +216,7 @@ public sealed class DiseaseResidueSystem : EntitySystem
             return;
 
         var chance = Math.Clamp(proto.ContactInfect * intensity, 0f, 1f);
-        chance = _disease.AdjustContactChanceForProtection(target, chance);
+        chance = _disease.AdjustContactChanceForProtection(target, chance, proto);
         _disease.TryInfectWithChance(target, diseaseId, chance);
     }
 

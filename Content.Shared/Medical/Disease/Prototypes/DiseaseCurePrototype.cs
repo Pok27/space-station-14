@@ -14,6 +14,12 @@ public abstract partial class CureStep
     public bool LowerStage { get; private set; } = false;
 
     /// <summary>
+    /// Per-tick probability (0-1) to attempt this cure step.
+    /// </summary>
+    [DataField]
+    public float CureChance { get; private set; } = 1.0f;
+
+    /// <summary>
     /// Attempts to execute this cure step on the given entity.
     /// </summary>
     public virtual bool OnCure(EntityUid uid, DiseasePrototype disease)

@@ -63,6 +63,7 @@ public sealed partial class CureReagent
             var name = r.ReagentId;
             if (prototypes.TryIndex<ReagentPrototype>(r.ReagentId, out var proto))
                 name = proto.LocalizedName;
+
             parts.Add(Loc.GetString("diagnoser-cure-reagent-item", ("units", r.Quantity.ToString()), ("reagent", name)));
         }
 

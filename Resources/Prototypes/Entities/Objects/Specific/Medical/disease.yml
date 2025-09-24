@@ -17,7 +17,7 @@
   - type: BotanySwab
   - type: GuideHelp
     guides:
-  # - Virology (when it's back)
+  # - Virology (when it will be written)
     - Botany
     - Chemicals
 
@@ -39,7 +39,7 @@
     capacity: 30
   - type: GuideHelp
     guides:
-  # - Virology (when it's back)
+  # - Virology (when it will be written)
     - Botany
     - Chemicals
 
@@ -54,12 +54,3 @@
   - type: Sprite
     sprite: Objects/Specific/Medical/medipen.rsi
     state: salpen
-
-- type: entity
-  id: DiseaseResidueTile
-  name: residue
-  noSpawn: true
-  components:
-  - type: Transform
-    anchored: true
-  - type: DiseaseResidue

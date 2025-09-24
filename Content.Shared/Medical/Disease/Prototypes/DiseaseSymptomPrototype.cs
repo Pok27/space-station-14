@@ -3,15 +3,20 @@ using Robust.Shared.Prototypes;
 namespace Content.Shared.Medical.Disease;
 
 /// <summary>
-/// Prototype for defining disease symptoms via YAML.
-/// Logic is handled by server systems.
+/// Describes information about a specific disease symptom.
 /// </summary>
 [Prototype("diseaseSymptom")]
 public sealed partial class DiseaseSymptomPrototype : IPrototype
 {
+    /// <summary>
+    /// ID of the symptom.
+    /// </summary>
     [IdDataField]
     public string ID { get; private set; } = default!;
 
+    /// <summary>
+    /// Displayed name of the symptom.
+    /// </summary>
     [DataField]
     public string Name { get; private set; } = string.Empty;
 

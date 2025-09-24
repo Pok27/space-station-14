@@ -34,7 +34,6 @@ public sealed partial class DiseaseSampleComponent : Component
 
     /// <summary>
     /// Optional per-disease stage captured at the moment of sampling.
-    /// Key is disease prototype ID, value is stage (>= 1).
     /// </summary>
     [DataField]
     public Dictionary<string, int> Stages = [];

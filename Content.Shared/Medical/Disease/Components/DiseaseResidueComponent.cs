@@ -3,7 +3,7 @@ using Robust.Shared.GameStates;
 namespace Content.Shared.Medical.Disease;
 
 /// <summary>
-/// Residual surface/item contamination by diseases. Decays over time.
+/// Residual surface/item contamination by diseases.
 /// </summary>
 [RegisterComponent, NetworkedComponent]
 public sealed partial class DiseaseResidueComponent : Component

@@ -33,6 +33,6 @@ public sealed partial class SymptomSensation
         if (string.IsNullOrEmpty(text))
             return;
 
-        _popup.PopupEntity(text, uid, uid.Owner, PopupType);
+        _popup.PopupEntity(text, uid, uid, PopupType);
     }
 }

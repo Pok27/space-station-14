@@ -9,16 +9,16 @@ namespace Content.Server.Medical.Disease.Cures;
 public sealed partial class CureWait : CureStep
 {
     /// <summary>
-    /// Seconds since infection required before curing can occur.
+    /// Ticks since infection required before curing can occur.
     /// </summary>
     [DataField]
-    public int RequiredSeconds { get; private set; } = 90;
+    public int RequiredTicks { get; private set; } = 90;
 
     /// <summary>
     /// Chance to cure when the required time elapses (0-1).
     /// </summary>
     [DataField]
-    public float CureChance { get; private set; } = 1.0f;
+    public float WaitChance { get; private set; } = 1.0f;
 }
 
 public sealed partial class CureWait
@@ -31,12 +31,12 @@ public sealed partial class CureWait
     /// </summary>
     public override bool OnCure(EntityUid uid, DiseasePrototype disease)
     {
-        if (RequiredSeconds <= 0f)
+        if (RequiredTicks <= 0f)
             return false;
 
         var state = _cureSystem.GetState(uid, disease.ID, this);
         state.Ticker++;
-        if (state.Ticker < RequiredSeconds)
+        if (state.Ticker < RequiredTicks)
             return false;
 
         if (_random.Prob(CureChance))
@@ -51,7 +51,8 @@ public sealed partial class CureWait
 
     public override IEnumerable<string> BuildDiagnoserLines(IPrototypeManager prototypes)
     {
-        var time = (int)MathF.Ceiling(RequiredSeconds);
-        yield return Loc.GetString("diagnoser-cure-time", ("time", time));
+        var defaultTickSeconds = new DiseaseCarrierComponent().TickDelay.TotalSeconds;
+        var seconds = RequiredTicks * defaultTickSeconds;
+        yield return Loc.GetString("diagnoser-cure-time", ("time", seconds));
     }
 }

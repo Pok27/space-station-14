@@ -4,12 +4,14 @@ using Robust.Shared.Prototypes;
 namespace Content.Shared.Medical.Disease;
 
 /// <summary>
-/// Prototype for defining diseases via YAML.
-/// Logic is handled by server systems.
+/// Describes information about a specific disease.
 /// </summary>
 [Prototype("disease")]
 public sealed partial class DiseasePrototype : IPrototype
 {
+    /// <summary>
+    /// ID of the disease.
+    /// </summary>
     [IdDataField]
     public string ID { get; private set; } = default!;
 
@@ -26,7 +28,7 @@ public sealed partial class DiseasePrototype : IPrototype
     public string Description { get; private set; } = default!;
 
     /// <summary>
-    /// Spread vectors for this disease. Use a list so multiple vectors can be selected in prototypes.
+    /// Spread vectors for this disease.
     /// </summary>
     [DataField(required: true)]
     public List<DiseaseSpreadFlags> SpreadFlags { get; private set; } = [];
@@ -45,7 +47,8 @@ public sealed partial class DiseasePrototype : IPrototype
     public float StageProb { get; private set; } = 0.02f;
 
     /// <summary>
-    /// Stage configurations in ascending order (1-indexed semantics). Each stage can define stealth/resistance and symptom activations.
+    /// Stage configurations in ascending order (1-indexed semantics).
+    /// Each stage can define stealth/resistance and symptom activations.
     /// </summary>
     [DataField(required: true)]
     public List<DiseaseStage> Stages { get; private set; } = [];
@@ -58,8 +61,6 @@ public sealed partial class DiseasePrototype : IPrototype
 
     /// <summary>
     /// Default immunity strength granted after curing this disease (0-1).
-    /// When a carrier is cured, this value is written into the carrier's immunity map unless
-    /// the disease stage-specific cure step overrides it.
     /// </summary>
     [DataField]
     public float PostCureImmunity { get; private set; } = 0.7f;
@@ -68,18 +69,17 @@ public sealed partial class DiseasePrototype : IPrototype
     /// Base per-contact infection probability for this disease (0-1). Used when two entities make contact.
     /// </summary>
     [DataField]
-    public float ContactInfect { get; private set; } = 0.01f;
+    public float ContactInfect { get; private set; } = 0.1f;
 
     /// <summary>
     /// Amount of residue intensity deposited when a carrier with this disease contacts a surface.
-    /// Expressed as [0..1] fraction added to per-disease residue intensity.
+    /// Expressed as (0-1) fraction added to per-disease residue intensity.
     /// </summary>
     [DataField]
     public float ContactDeposit { get; private set; } = 0.1f;
 
     /// <summary>
     /// Base per-target airborne infection probability (0-1) before PPE adjustments.
-    /// This value is used both for direct airborne spread and for transient clouds spawned by symptoms.
     /// </summary>
     [DataField]
     public float AirborneInfect { get; private set; } = 0.2f;
@@ -88,23 +88,30 @@ public sealed partial class DiseasePrototype : IPrototype
     /// Airborne infection radius in world units, used when <see cref="SpreadFlags"/> contains Airborne.
     /// </summary>
     [DataField]
-    public float AirborneRange { get; private set; } = 1.5f;
+    public float AirborneRange { get; private set; } = 2f;
 
     /// <summary>
     /// Per-tick chance (0-1) to attempt airborne spread from each carrier of this disease.
     /// </summary>
     [DataField]
-    public float AirborneTickChance { get; private set; } = 0.15f;
+    public float AirborneTickChance { get; private set; } = 0.3f;
 
     /// <summary>
     /// Optional incubation time in seconds before symptoms/spread begin after infection.
     /// </summary>
     [DataField]
     public float IncubationSeconds { get; private set; } = 0f;
+
+    /// <summary>
+    /// Per-disease permeability multiplier (0-1) applied to PPE/internals effectiveness.
+    /// Values > 1 reduce protection; values < 1 increase protection.
+    /// </summary>
+    [DataField]
+    public float PermeabilityMod { get; private set; } = 1.0f;
 }
 
 /// <summary>
-/// Per-stage configuration for a disease. Defines stealth/resistance modifiers and which symptoms become active.
+/// Per-stage configuration for a disease.
 /// </summary>
 [DataDefinition]
 public sealed partial class DiseaseStage

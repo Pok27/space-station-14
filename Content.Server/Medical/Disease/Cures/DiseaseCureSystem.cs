@@ -7,6 +7,7 @@ using Robust.Shared.GameObjects;
 using Robust.Shared.IoC;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
+using Robust.Shared.Random;
 
 namespace Content.Server.Medical.Disease.Cures;
 
@@ -15,6 +16,7 @@ public sealed partial class DiseaseCureSystem : EntitySystem
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private readonly IRobustRandom _random = default!;
 
     /// <inheritdoc/>
     /// <summary>
@@ -46,6 +48,10 @@ public sealed partial class DiseaseCureSystem : EntitySystem
 
         foreach (var step in applicable)
         {
+            // Calculates the probability of treatment at each tick.
+            if (!_random.Prob(Math.Clamp(step.CureChance, 0f, 1f)))
+                continue;
+
             if (ExecuteCureStep(ent, step, disease))
             {
                 if (step.LowerStage)
@@ -93,7 +99,7 @@ public sealed partial class DiseaseCureSystem : EntitySystem
     }
 
     /// <summary>
-    /// Removes the disease, applies post-cure immunity, and triggers symptom cleanup hooks.
+    /// Removes the disease, applies post-cure immunity.
     /// </summary>
     public void ApplyCureDisease(Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease, IReadOnlyList<ProtoId<DiseaseSymptomPrototype>> stageSymptoms)
     {

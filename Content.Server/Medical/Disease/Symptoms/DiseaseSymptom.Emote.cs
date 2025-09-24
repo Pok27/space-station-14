@@ -9,9 +9,9 @@ namespace Content.Server.Medical.Disease.Symptoms;
 public sealed partial class SymptomEmote : SymptomBehavior
 {
     /// <summary>
-    /// Optional emote prototype to execute.
+    /// Emote prototype to execute.
     /// </summary>
-    [DataField]
+    [DataField(required: true)]
     public ProtoId<EmotePrototype>? EmoteId { get; private set; }
 }
 
@@ -20,7 +20,7 @@ public sealed partial class SymptomEmote
     [Dependency] private readonly ChatSystem _chat = default!;
 
     /// <summary>
-    /// Triggers an emote on the carrier if the symptom specifies an emote prototype.
+    /// Triggers an emote on the carrier.
     /// </summary>
     public override void OnSymptom(EntityUid uid, DiseasePrototype disease)
     {

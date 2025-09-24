@@ -46,18 +46,18 @@ public static class DiseaseEffectiveness
 
     public static readonly (string Slot, float Multiplier)[] AirborneSlots = new[]
     {
-        ("mask", 0.5f),
-        ("head", 0.75f),
-        ("eyes", 0.85f),
+        ("mask", 0.7f),
+        ("head", 0.85f),
+        ("eyes", 0.9f),
     };
 
     // Contact protection
     public static readonly (string Slot, float Multiplier)[] ContactSlots = new[]
     {
-        ("gloves", 0.5f),
-        ("shoes", 0.7f),
-        ("outerClothing", 0.8f),
-        ("uniform", 0.85f),
+        ("gloves", 0.7f),
+        ("shoes", 0.8f),
+        ("outerClothing", 0.85f),
+        ("uniform", 0.9f),
     };
 
     // Foot residue deposit modifiers

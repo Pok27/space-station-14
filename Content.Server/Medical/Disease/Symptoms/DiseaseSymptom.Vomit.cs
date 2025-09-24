@@ -5,10 +5,15 @@ namespace Content.Server.Medical.Disease.Symptoms;
 [DataDefinition]
 public sealed partial class SymptomVomit : SymptomBehavior
 {
-
+    /// <summary>
+    /// Amount of thirst to add.
+    /// </summary>
     [DataField]
     public float ThirstAdded = -40f;
 
+    /// <summary>
+    /// Amount of hunger to add.
+    /// </summary>
     [DataField]
     public float HungerAdded = -40f;
 }

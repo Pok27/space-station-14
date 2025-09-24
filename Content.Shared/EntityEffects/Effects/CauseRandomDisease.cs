@@ -6,7 +6,6 @@ namespace Content.Shared.EntityEffects.Effects;
 
 /// <summary>
 /// Adds a random disease from the configured pool when the effect triggers.
-/// The actual infection is handled server-side in EntityEffectSystem.
 /// </summary>
 public sealed partial class CauseRandomDisease : EventEntityEffect<CauseRandomDisease>
 {

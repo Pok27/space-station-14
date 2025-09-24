@@ -23,6 +23,12 @@ public sealed partial class DiseaseCarrierComponent : Component
     public Dictionary<string, TimeSpan> IncubatingUntil = [];
 
     /// <summary>
+    /// Delay between disease processing ticks.
+    /// </summary>
+    [DataField]
+    public TimeSpan TickDelay = TimeSpan.FromSeconds(2);
+
+    /// <summary>
     /// Time when the next disease processing tick occurs.
     /// </summary>
     [DataField(customTypeSerializer: typeof(TimeOffsetSerializer))]

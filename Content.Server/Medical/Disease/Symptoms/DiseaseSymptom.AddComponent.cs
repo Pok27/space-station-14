@@ -44,6 +44,9 @@ public sealed partial class SymptomAddComponent
         set.Add(Component);
     }
 
+    /// <summary>
+    /// Removes the component after cure.
+    /// </summary>
     public override void OnDiseaseCured(EntityUid uid, DiseasePrototype disease)
     {
         if (!_entityManager.TryGetComponent(uid, out DiseaseCarrierComponent? carrier))

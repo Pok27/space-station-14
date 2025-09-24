@@ -10,7 +10,7 @@ namespace Content.Server.Medical.Disease.Symptoms;
 public sealed partial class SymptomGenericStatusEffect : SymptomBehavior
 {
     /// <summary>
-    /// Prototype ID of the status effect entity to apply. Must be an entity with StatusEffectComponent.
+    /// Prototype ID of the status effect entity to apply. Must be an entity with <see cref="StatusEffectComponent"/>.
     /// </summary>
     [DataField(required: true)]
     public EntProtoId EffectProto { get; private set; }
@@ -29,7 +29,7 @@ public sealed partial class SymptomGenericStatusEffect : SymptomBehavior
     public bool Refresh { get; private set; } = true;
 
     /// <summary>
-    /// How to modify the status effect time: Add/Remove/Set.
+    /// How to modify the status effect time <see cref="StatusEffectSymptomType"/>.
     /// </summary>
     [DataField]
     public StatusEffectSymptomType Type { get; private set; } = StatusEffectSymptomType.Add;

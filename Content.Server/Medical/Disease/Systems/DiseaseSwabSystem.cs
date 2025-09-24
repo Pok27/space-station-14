@@ -89,11 +89,11 @@ public sealed class DiseaseSwabSystem : EntitySystem
                 swab.Stages[diseaseId] = stage;
             }
 
-            _popup.PopupEntity(Loc.GetString("diagnoser-disease-swab-collected"), target, args.Args.User);
+            _popup.PopupEntity(Loc.GetString("diagnoser-disease-swab-collected-popup"), target, args.Args.User);
         }
         else
         {
-            _popup.PopupEntity(Loc.GetString("diagnoser-disease-swab-no-diseases"), target, args.Args.User);
+            _popup.PopupEntity(Loc.GetString("diagnoser-disease-swab-no-diseases-popup"), target, args.Args.User);
         }
 
         args.Handled = true;

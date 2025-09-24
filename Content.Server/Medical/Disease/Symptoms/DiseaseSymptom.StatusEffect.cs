@@ -11,7 +11,7 @@ namespace Content.Server.Medical.Disease.Symptoms;
 public sealed partial class SymptomStatusEffect : SymptomBehavior
 {
     /// <summary>
-    /// List of effects to execute on symptom trigger. Supports any EntityEffect.
+    /// List of effects to execute on symptom trigger. Supports any <see cref="EntityEffect"/>.
     /// </summary>
     [DataField(required: true)]
     public EntityEffect[] Effects { get; private set; } = Array.Empty<EntityEffect>();

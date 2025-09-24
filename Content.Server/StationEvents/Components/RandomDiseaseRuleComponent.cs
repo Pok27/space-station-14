@@ -4,7 +4,6 @@ using Robust.Shared.Prototypes;
 namespace Content.Server.StationEvents.Components;
 
 /// <summary>
-///     Configuration for the RandomDisease station event.
 ///     Provides a pool of disease prototype IDs to choose from and infection counts.
 /// </summary>
 [RegisterComponent, Access(typeof(RandomDiseaseRule))]
@@ -29,7 +28,7 @@ public sealed partial class RandomDiseaseRuleComponent : Component
     public int MaxInfections = 3;
 
     /// <summary>
-    ///     If true, immune players are skipped when infecting. If false, we still attempt Infect which will fail if immune.
+    ///     If true, immune players are skipped when infected. If false, we still try to infect them, which may not work if the player is lucky with immunity.
     /// </summary>
     [DataField]
     public bool SkipImmune = true;
