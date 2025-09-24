@@ -1,7 +1,7 @@
-disease-vomit = {CAPITALIZE(THE($person))} vomits.
-
 disease-cured = You feel better.
 disease-cured-symptom = You feel a little better.
+
+disease-condition-vomit = {CAPITALIZE(THE($person))} vomits.
 
 disease-sensation-stomach-ache = Your stomach aches.
 disease-sensation-nausea = You feel nauseous.
