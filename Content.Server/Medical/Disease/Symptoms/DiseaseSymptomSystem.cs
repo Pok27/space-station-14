@@ -30,8 +30,7 @@ public sealed partial class DiseaseSymptomSystem : EntitySystem
         if (symptom.SingleBehavior && symptom.Behaviors.Count > 0)
         {
             // Run exactly one random behavior.
-            var idx = _random.Next(0, symptom.Behaviors.Count);
-            var behavior = symptom.Behaviors[idx];
+            var behavior = symptom.Behaviors[_random.Next(0, symptom.Behaviors.Count)];
             deps.InjectDependencies(behavior, oneOff: true);
             behavior.OnSymptom(ent.Owner, disease);
         }

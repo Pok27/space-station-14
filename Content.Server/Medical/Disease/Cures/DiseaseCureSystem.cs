@@ -41,50 +41,42 @@ public sealed partial class DiseaseCureSystem : EntitySystem
         if (stageCfg == null)
             return;
 
-        // Prefer stage-level cure steps when available
-        var applicable = stageCfg.CureSteps.Count > 0
-            ? stageCfg.CureSteps
-            : disease.CureSteps;
+        var applicable = stageCfg.CureSteps.Count > 0 ? stageCfg.CureSteps : disease.CureSteps;
+        var simpleSymptoms = stageCfg.Symptoms.Select(s => s.Symptom).ToList();
 
+        // disease-level cures
         foreach (var step in applicable)
         {
             // Calculates the probability of treatment at each tick.
             if (!_random.Prob(Math.Clamp(step.CureChance, 0f, 1f)))
                 continue;
 
-            if (ExecuteCureStep(ent, step, disease))
+            if (!ExecuteCureStep(ent, step, disease))
+                continue;
+
+            if (step.LowerStage)
             {
-                if (step.LowerStage)
+                if (ent.Comp.ActiveDiseases.TryGetValue(disease.ID, out var curStage) && curStage > 1)
                 {
-                    // Lower stage by 1 instead of curing outright.
-                    if (ent.Comp.ActiveDiseases.TryGetValue(disease.ID, out var curStage))
-                    {
-                        var newStage = Math.Max(1, curStage - 1);
-                        if (newStage != curStage)
-                        {
-                            ent.Comp.ActiveDiseases[disease.ID] = newStage;
-                            Dirty(ent);
-                        }
-                    }
+                    ent.Comp.ActiveDiseases[disease.ID] = curStage - 1;
+                    Dirty(ent);
                 }
-                else
-                {
-                    // Build a simple list of ProtoId strings from the detailed symptom entries for notifier.
-                    var simpleSymptoms = stageCfg.Symptoms.Select(s => s.Symptom).ToList();
-                    ApplyCureDisease(ent, disease, simpleSymptoms);
-                }
+            }
+            else
+            {
+                ApplyCureDisease(ent, disease, simpleSymptoms);
             }
         }
 
-        // Also attempt symptom-level cure steps defined on the symptom prototypes for this stage.
-        foreach (var symptomEntry in stageCfg.Symptoms)
+        // symptom-level cures
+        foreach (var entry in stageCfg.Symptoms)
         {
-            var symptomId = symptomEntry.Symptom;
+            var symptomId = entry.Symptom;
             if (!_prototypeManager.TryIndex<DiseaseSymptomPrototype>(symptomId, out var symptomProto))
                 continue;
 
-            // If symptom is currently suppressed (recently treated), skip any further treatment
-            if (ent.Comp.SuppressedSymptoms.TryGetValue(symptomId, out var suppressUntil) && suppressUntil > _timing.CurTime)
+            // If symptom is currently suppressed (recently treated).
+            if (ent.Comp.SuppressedSymptoms.TryGetValue(symptomId, out var until) && until > _timing.CurTime)
                 continue;
 
             if (symptomProto.CureSteps.Count == 0)
@@ -92,6 +84,9 @@ public sealed partial class DiseaseCureSystem : EntitySystem
 
             foreach (var step in symptomProto.CureSteps)
             {
+                if (!_random.Prob(Math.Clamp(step.CureChance, 0f, 1f)))
+                    continue;
+
                 if (ExecuteCureStep(ent, step, disease))
                     ApplyCureSymptom(ent, disease, symptomId);
             }

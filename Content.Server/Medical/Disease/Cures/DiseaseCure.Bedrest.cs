@@ -47,11 +47,8 @@ public sealed partial class CureBedrest
             return false;
 
         var sleepingNow = _entityManager.HasComponent<SleepingComponent>(uid);
-        var mult = sleepingNow ? MathF.Max(1f, SleepMultiplier) : 1f;
-        var chance = MathF.Max(0f, BedrestChance) * mult;
-
-        if (chance <= 0f)
-            return false;
+        var sleepMult = sleepingNow ? MathF.Max(1f, SleepMultiplier) : 1f;
+        var chance = MathF.Max(0f, BedrestChance) * sleepMult;
 
         return _random.Prob(chance);
     }
@@ -60,7 +57,7 @@ public sealed partial class CureBedrest
     {
         var baseChance = MathF.Max(0f, BedrestChance);
         var sleepMult = MathF.Max(1f, SleepMultiplier);
-        var percent = (int)MathF.Round(baseChance * 100f);
+        var percent = MathF.Round(baseChance * 100f);
         yield return Loc.GetString("diagnoser-cure-bedrest", ("chance", percent), ("sleepMult", sleepMult));
     }
 }
