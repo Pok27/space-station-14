@@ -1,6 +1,6 @@
 using Robust.Shared.Prototypes;
 
-namespace Content.Shared.Medical.Disease;
+namespace Content.Shared.Medical.Disease.Prototypes;
 
 /// <summary>
 /// Describes information about a specific disease symptom.
@@ -23,7 +23,7 @@ public sealed partial class DiseaseSymptomPrototype : IPrototype
     /// <summary>
     /// Behavior variants configured by name. Each entry is a symptom effect with its own parameters.
     /// </summary>
-    [DataField(serverOnly: true)]
+    [DataField]
     public List<SymptomBehavior> Behaviors { get; private set; } = [];
 
     /// <summary>
@@ -61,7 +61,7 @@ public sealed partial class DiseaseSymptomPrototype : IPrototype
     /// Optional cure steps specific to this symptom. These are attempted by the cure system and, on success,
     /// suppress this symptom for <see cref="CureDuration"/> instead of curing the disease.
     /// </summary>
-    [DataField(serverOnly: true)]
+    [DataField]
     public List<CureStep> CureSteps { get; private set; } = [];
 }
 
@@ -89,21 +89,5 @@ public abstract partial class SymptomBehavior
     /// <summary>
     /// Called when the symptom is triggered on the carrier.
     /// </summary>
-    public virtual void OnSymptom(EntityUid uid, DiseasePrototype disease)
-    {
-    }
-
-    /// <summary>
-    /// Called when the parent disease is fully cured on the carrier.
-    /// </summary>
-    public virtual void OnDiseaseCured(EntityUid uid, DiseasePrototype disease)
-    {
-    }
-
-    /// <summary>
-    /// Called when this symptom is cured/suppressed on the carrier.
-    /// </summary>
-    public virtual void OnSymptomCured(EntityUid uid, DiseasePrototype disease, string symptomId)
-    {
-    }
+    public virtual void OnSymptom(EntityUid uid, DiseasePrototype disease) { }
 }

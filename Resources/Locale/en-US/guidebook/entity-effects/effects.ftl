@@ -333,6 +333,12 @@ entity-effect-guidebook-emote =
         *[other] force
     } the metabolizer to [bold][color=white]{$emote}[/color][/bold]
 
+entity-effect-guidebook-transition-disease =
+    { $chance ->
+        [1] Causes
+        *[other] cause
+    } disease transition to { $disease }
+
 entity-effect-guidebook-extinguish-reaction =
     { $chance ->
         [1] Extinguishes

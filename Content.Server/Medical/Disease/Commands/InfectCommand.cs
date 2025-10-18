@@ -1,6 +1,6 @@
 using System.Globalization;
 using Content.Server.Administration;
-using Content.Shared.Medical.Disease;
+using Content.Shared.Medical.Disease.Systems;
 using Content.Shared.Administration;
 using Robust.Shared.Console;
 
@@ -12,31 +12,22 @@ namespace Content.Server.Medical.Disease.Commands;
 [AdminCommand(AdminFlags.Fun)]
 public sealed class InfectCommand : LocalizedEntityCommands
 {
-    public override string Command => "infect";
-    public override string Description => Loc.GetString("cmd-infect-desc");
-    public override string Help => Loc.GetString("cmd-infect-help");
-
     [Dependency] private readonly SharedDiseaseSystem _disease = default!;
+
+    public override string Command => "infect";
 
     public override void Execute(IConsoleShell shell, string argStr, string[] args)
     {
-        if (args.Length == 1)
-        {
-            shell.WriteError(Loc.GetString("cmd-infect-need-id"));
-            shell.WriteLine(Help);
-            return;
-        }
-
         if (args.Length < 2)
         {
-            shell.WriteError(Loc.GetString("cmd-infect-need-target"));
+            shell.WriteError(Loc.GetString("shell-need-minimum-arguments", ("minimum", 2)));
             shell.WriteLine(Help);
             return;
         }
 
         if (!NetEntity.TryParse(args[0], out var parsedNet) || !EntityManager.TryGetEntity(parsedNet, out var parsedUid))
         {
-            shell.WriteError(Loc.GetString("cmd-infect-bad-target", ("value", args[0])));
+            shell.WriteError(Loc.GetString("shell-invalid-entity-uid", ("uid", args[0])));
             return;
         }
 

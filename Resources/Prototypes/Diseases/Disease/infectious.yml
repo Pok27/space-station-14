@@ -1,7 +1,7 @@
 - type: disease
   id: DiseaseCold
-  name: disease-name-DiseaseCold
-  desc: disease-desc-DiseaseCold
+  name: disease-DiseaseCold-name
+  desc: disease-DiseaseCold-desc
   spreadFlags: [Airborne]
   permeabilityMod: 0.5
   cureSteps:
@@ -40,8 +40,8 @@
 
 - type: disease
   id: DiseaseCold9
-  name: disease-name-DiseaseCold9
-  desc: disease-desc-DiseaseCold9
+  name: disease-DiseaseCold9-name
+  desc: disease-DiseaseCold9-desc
   spreadFlags: [Contact]
   cureSteps:
   - !type:CureReagent
@@ -74,8 +74,8 @@
 
 - type: disease
   id: DiseaseFlu
-  name: disease-name-DiseaseFlu
-  desc: disease-desc-DiseaseFlu
+  name: disease-DiseaseFlu-name
+  desc: disease-DiseaseFlu-desc
   spreadFlags: [Airborne]
   permeabilityMod: 0.75
   cureSteps:
@@ -115,8 +115,8 @@
 
 - type: disease
   id: DiseaseFakeGBS
-  name: disease-name-DiseaseGBS
-  desc: disease-desc-DiseaseGBS
+  name: disease-DiseaseGBS-name
+  desc: disease-DiseaseGBS-desc
   spreadFlags: [Contact]
   contactInfect: 0.005
   contactDeposit: 0.05
@@ -152,8 +152,8 @@
 
 - type: disease
   id: DiseaseGBS
-  name: disease-name-DiseaseGBS
-  desc: disease-desc-DiseaseGBS
+  name: disease-DiseaseGBS-name
+  desc: disease-DiseaseGBS-desc
   spreadFlags: [Contact]
   contactInfect: 0.005
   contactDeposit: 0.08
@@ -185,7 +185,7 @@
   - stage: 5
     sensations:
     - sensation: disease-sensation-gib-itself
-      popupType: MediumCaution
+      visualType: MediumCaution
     symptoms:
     - symptom: SymptomCough
       probability: 0.05
@@ -193,8 +193,8 @@
 
 - type: disease
   id: DiseaseNarcolepsySyndrome
-  name: disease-name-DiseaseNarcolepsySyndrome
-  desc: disease-desc-DiseaseNarcolepsySyndrome
+  name: disease-DiseaseNarcolepsySyndrome-name
+  desc: disease-DiseaseNarcolepsySyndrome-desc
   spreadFlags: [Airborne]
   permeabilityMod: 0.75
   cureSteps:
@@ -218,8 +218,8 @@
 
 - type: disease
   id: DiseaseAMIV
-  name: disease-name-DiseaseAMIV
-  desc: disease-desc-DiseaseAMIV
+  name: disease-DiseaseAMIV-name
+  desc: disease-DiseaseAMIV-desc
   spreadFlags: [Airborne, Contact]
   airborneInfect: 0.15
   contactInfect: 0.005
@@ -250,8 +250,8 @@
 
 - type: disease
   id: DiseaseHonkSyndrome
-  name: disease-name-DiseaseHonkSyndrome
-  desc: disease-desc-DiseaseHonkSyndrome
+  name: disease-DiseaseHonkSyndrome-name
+  desc: disease-DiseaseHonkSyndrome-desc
   spreadFlags: [Contact]
   cureSteps:
   - !type:CureReagent
@@ -277,10 +277,10 @@
 
 - type: disease
   id: DiseaseOwOnavirus
-  name: disease-name-DiseaseOwOnavirus
-  desc: disease-desc-DiseaseOwOnavirus
+  name: disease-DiseaseOwOnavirus-name
+  desc: disease-DiseaseOwOnavirus-desc
   spreadFlags: [Contact]
-  iconType: Buff
+  iconDisease: DiseaseIconBuff
   cureSteps:
   - !type:CureWait
     requiredTicks: 400

@@ -1,5 +1,5 @@
 using Content.Server.StationEvents.Events;
-using Content.Shared.Medical.Disease;
+using Content.Shared.Medical.Disease.Prototypes;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server.StationEvents.Components;

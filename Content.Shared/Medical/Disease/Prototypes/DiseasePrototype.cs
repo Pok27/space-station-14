@@ -1,8 +1,9 @@
 using Content.Shared.Popups;
-using Content.Shared.Medical.Disease;
+using Content.Shared.StatusIcon;
+using Content.Shared.EntityEffects.Effects.Transform;
 using Robust.Shared.Prototypes;
 
-namespace Content.Shared.Medical.Disease;
+namespace Content.Shared.Medical.Disease.Prototypes;
 
 /// <summary>
 /// Describes information about a specific disease.
@@ -35,10 +36,10 @@ public sealed partial class DiseasePrototype : IPrototype
     public DiseaseSpreadFlags SpreadFlags { get; private set; } = DiseaseSpreadFlags.NonContagious;
 
     /// <summary>
-    /// Controls how this disease appears on HUDs.
+    /// Disease icon prototype to show on HUDs.
     /// </summary>
     [DataField]
-    public DiseaseIconType IconType { get; private set; } = DiseaseIconType.Ill;
+    public ProtoId<DiseaseIconPrototype>? IconDisease { get; private set; } = "DiseaseIconIll";
 
     /// <summary>
     /// Probability of progression through disease stages per tick.
@@ -100,7 +101,7 @@ public sealed partial class DiseasePrototype : IPrototype
     /// <summary>
     /// Optional list of cure steps for the disease. Each entry is a specific cure action.
     /// </summary>
-    [DataField(serverOnly: true)]
+    [DataField]
     public List<CureStep> CureSteps { get; private set; } = [];
 }
 
@@ -140,7 +141,7 @@ public sealed partial class DiseaseStage
     /// <summary>
     /// Optional list of cure steps specific to this stage. Overrides disease-level <see cref="CureSteps"/> for this stage.
     /// </summary>
-    [DataField(serverOnly: true)]
+    [DataField]
     public List<CureStep> CureSteps { get; private set; } = [];
 }
 
@@ -170,10 +171,16 @@ public sealed partial class SensationEntry
     public string Sensation { get; private set; } = default!;
 
     /// <summary>
+    /// Whether to just the entity we're affecting, or everyone around them.
+    /// </summary>
+    [DataField]
+    public PopupRecipients Type = PopupRecipients.Local;
+
+    /// <summary>
     /// Popup visual style <see cref="PopupType"/>.
     /// </summary>
     [DataField]
-    public PopupType PopupType { get; private set; } = PopupType.Small;
+    public PopupType VisualType { get; private set; } = PopupType.Small;
 
     /// <summary>
     /// Per-tick probability (0-1) to show this sensation popup.

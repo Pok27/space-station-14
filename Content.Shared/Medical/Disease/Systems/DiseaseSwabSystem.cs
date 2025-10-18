@@ -5,8 +5,10 @@ using Content.Shared.Popups;
 using Content.Shared.Forensics.Components;
 using Content.Shared.IdentityManagement;
 using Robust.Shared.Prototypes;
+using Content.Shared.Medical.Disease.Components;
+using Content.Shared.Medical.Disease.Prototypes;
 
-namespace Content.Shared.Medical.Disease;
+namespace Content.Shared.Medical.Disease.Systems;
 
 /// <summary>
 /// Handles using a disease sample swab on mobs to collect their active diseases.

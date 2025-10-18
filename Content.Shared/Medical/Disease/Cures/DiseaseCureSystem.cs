@@ -1,19 +1,19 @@
 using System.Linq;
+using Content.Shared.Medical.Disease.Components;
+using Content.Shared.Medical.Disease.Prototypes;
 using Content.Shared.Popups;
 using Content.Shared.Random.Helpers;
-using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
-using Robust.Shared.Timing;
 using Robust.Shared.Random;
+using Robust.Shared.Timing;
 
-namespace Content.Shared.Medical.Disease;
+namespace Content.Shared.Medical.Disease.Cures;
 
 public sealed partial class SharedDiseaseCureSystem : EntitySystem
 {
     [Dependency] private readonly IPrototypeManager _prototypes = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
 
     /// <inheritdoc/>
     /// <summary>
@@ -73,7 +73,7 @@ public sealed partial class SharedDiseaseCureSystem : EntitySystem
         foreach (var entry in stageCfg.Symptoms)
         {
             var symptomId = entry.Symptom;
-            if (!_prototypes.TryIndex(symptomId, out DiseaseSymptomPrototype? symptomProto))
+            if (!_prototypes.TryIndex(symptomId, out var symptomProto))
                 continue;
 
             // If symptom is currently suppressed (recently treated).
@@ -106,8 +106,6 @@ public sealed partial class SharedDiseaseCureSystem : EntitySystem
         ApplyPostCureImmunity(ent.Comp, disease);
 
         _popup.PopupPredicted(Loc.GetString("disease-cured"), ent, ent.Owner);
-
-        NotifyDiseaseCured(ent, disease, stageSymptoms);
     }
 
     /// <summary>
@@ -125,8 +123,6 @@ public sealed partial class SharedDiseaseCureSystem : EntitySystem
         ent.Comp.SuppressedSymptoms[symptomId] = _timing.CurTime + TimeSpan.FromSeconds(duration);
 
         _popup.PopupPredicted(Loc.GetString("disease-cured-symptom"), ent, ent.Owner);
-
-        NotifySymptomCured(ent, disease, symptomId);
     }
 
     /// <summary>
@@ -143,29 +139,23 @@ public sealed partial class SharedDiseaseCureSystem : EntitySystem
     }
 
     /// <summary>
-    /// Invokes <see cref="SymptomBehavior.OnDiseaseCured"/> on behaviors for the symptoms present on the cured stage only.
+    /// Runtime per-step state stored in the system.
     /// </summary>
-    private void NotifyDiseaseCured(Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease, IReadOnlyList<ProtoId<DiseaseSymptomPrototype>> stageSymptoms)
+    internal sealed class CureState
     {
-        foreach (var symptomId in stageSymptoms)
-        {
-            if (!_prototypes.TryIndex(symptomId, out DiseaseSymptomPrototype? symptomProto))
-                continue;
-
-            foreach (var behavior in symptomProto.Behaviors)
-                behavior.OnDiseaseCured(ent.Owner, disease);
-        }
+        public float Ticker;
     }
 
-    /// <summary>
-    /// Invokes <see cref="SymptomBehavior.OnSymptomCured"/> for the behaviors of the cured symptom.
-    /// </summary>
-    private void NotifySymptomCured(Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease, string symptomId)
-    {
-        if (!_prototypes.TryIndex(symptomId, out DiseaseSymptomPrototype? symptomProto))
-            return;
+    private readonly Dictionary<(EntityUid, string, CureStep), CureState> _cureStates = [];
 
-        foreach (var behavior in symptomProto.Behaviors)
-            behavior.OnSymptomCured(ent.Owner, disease, symptomId);
+    internal CureState GetState(EntityUid uid, string diseaseId, CureStep step)
+    {
+        var key = (uid, diseaseId, step);
+        if (!_cureStates.TryGetValue(key, out var state))
+        {
+            state = new CureState();
+            _cureStates[key] = state;
+        }
+        return state;
     }
 }

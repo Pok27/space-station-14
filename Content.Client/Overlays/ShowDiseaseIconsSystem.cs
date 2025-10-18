@@ -1,7 +1,5 @@
-using System.Linq;
-using Content.Shared.Medical.Disease;
+using Content.Shared.Medical.Disease.Components;
 using Content.Shared.Overlays;
-using Content.Shared.StatusIcon;
 using Content.Shared.StatusIcon.Components;
 using Robust.Shared.Prototypes;
 

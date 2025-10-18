@@ -1,9 +1,9 @@
-using Content.Server.Temperature.Components;
-using Content.Server.Medical.Disease.Systems;
-using Content.Shared.Medical.Disease;
+using Content.Shared.Temperature.Components;
+using Content.Shared.Medical.Disease.Prototypes;
+using Content.Shared.Medical.Disease.Components;
 using Robust.Shared.Prototypes;
 
-namespace Content.Server.Medical.Disease.Cures;
+namespace Content.Shared.Medical.Disease.Cures;
 
 [DataDefinition]
 public sealed partial class CureTemperature : CureStep
@@ -24,7 +24,7 @@ public sealed partial class CureTemperature : CureStep
 public sealed partial class CureTemperature
 {
     [Dependency] private readonly IEntityManager _entityManager = default!;
-    [Dependency] private readonly DiseaseCureSystem _cureSystem = default!;
+    [Dependency] private readonly SharedDiseaseCureSystem _cureSystem = default!;
 
     /// <summary>
     /// Cures the disease after spending consecutive time within a temperature range.

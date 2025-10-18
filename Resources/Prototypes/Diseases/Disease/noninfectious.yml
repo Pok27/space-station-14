@@ -1,7 +1,7 @@
 - type: disease
   id: DiseaseFoodPoisoning
-  name: disease-name-DiseaseFoodPoisoning
-  desc: disease-desc-DiseaseFoodPoisoning
+  name: disease-DiseaseFoodPoisoning-name
+  desc: disease-DiseaseFoodPoisoning-desc
   spreadFlags: [NonContagious]
   stageProb: 0.03
   cureSteps:

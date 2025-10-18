@@ -14,8 +14,11 @@
     - reagentId: Perfluorodecalin
       quantity: 2
   behaviors:
-  - !type:SymptomEmote
-    emoteId: Cough
+  - !type:SymptomStatusEffect
+    effects:
+    - !type:Emote
+      emote: Cough
+      showInChat: true
 
 - type: diseaseSymptom
   id: SymptomSneeze
@@ -33,16 +36,22 @@
     - reagentId: Perfluorodecalin
       quantity: 2
   behaviors:
-  - !type:SymptomEmote
-    emoteId: Sneeze
+  - !type:SymptomStatusEffect
+    effects:
+    - !type:Emote
+      emote: Sneeze
+      showInChat: true
 
 - type: diseaseSymptom
   id: SymptomGasp
   name: disease-symptom-name-SymptomGasp
   onlyWhenAlive: true
   behaviors:
-  - !type:SymptomEmote
-    emoteId: Gasp
+  - !type:SymptomStatusEffect
+    effects:
+    - !type:Emote
+      emote: Gasp
+      showInChat: true
 
 - type: diseaseSymptom
   id: SymptomEmoteHonk
@@ -50,53 +59,82 @@
   probability: 0.05
   onlyWhenAlive: true
   behaviors:
-  - !type:SymptomEmote
-    emoteId: Honk
+  - !type:SymptomStatusEffect
+    effects:
+    - !type:Emote
+      emote: Honk
+      showInChat: true
 
 - type: diseaseSymptom
   id: SymptomEmoteCat
-  name: disease-symptom-name-SymptomEmoteCat
+  name: disease-symptom-SymptomEmoteCat-name
   probability: 0.05
   singleBehavior: true
   onlyWhenAlive: true
   behaviors:
-  - !type:SymptomEmote
-    emoteId: CatMeow
-  - !type:SymptomEmote
-    emoteId: CatHisses
+  - !type:SymptomStatusEffect
+    effects:
+    - !type:Emote
+      emote: CatMeow
+      showInChat: true
+  - !type:SymptomStatusEffect
+    effects:
+    - !type:Emote
+      emote: CatHisses
+      showInChat: true
 
 - type: diseaseSymptom
   id: SymptomEmoteGroan
-  name: disease-symptom-name-SymptomEmoteGroan
+  name: disease-symptom-SymptomEmoteGroan-name
   onlyWhenAlive: true
   behaviors:
-  - !type:SymptomEmote
-    emoteId: Groan
+  - !type:SymptomStatusEffect
+    effects:
+    - !type:Emote
+      emote: Groan
+      showInChat: true
 
 - type: diseaseSymptom
   id: SymptomEmoteMoan
-  name: disease-symptom-name-SymptomEmoteMoan
+  name: disease-symptom-SymptomEmoteMoan-name
   onlyWhenAlive: true
   behaviors:
-  - !type:SymptomEmote
-    emoteId: Moan
+  - !type:SymptomStatusEffect
+    effects:
+    - !type:Emote
+      emote: Moan
+      showInChat: true
 
 # Shout
 
 - type: diseaseSymptom
   id: SymptomHonkShout
-  name: disease-symptom-name-SymptomHonkShout
+  name: disease-symptom-SymptomHonkShout-name
   probability: 0.05
   onlyWhenAlive: true
   behaviors:
-  - !type:SymptomShout
-    pack: DiseaseHonkShouts
+  - !type:SymptomStatusEffect
+    effects:
+    - !type:SpeakDataset
+      pack: DiseaseHonkShouts
 
 - type: diseaseSymptom
   id: SymptomMonkeyShout
-  name: disease-symptom-name-SymptomMonkeyShout
+  name: disease-symptom-SymptomMonkeyShout-name
   probability: 0.05
   onlyWhenAlive: true
   behaviors:
-  - !type:SymptomShout
-    pack: DiseaseMonkeyShouts
+  - !type:SymptomStatusEffect
+    effects:
+    - !type:SpeakDataset
+      pack: DiseaseMonkeyShouts
+
+# Accent
+
+- type: diseaseSymptom
+  id: SymptomOwOAccent
+  name: disease-symptom-SymptomOwOAccent-name
+  probability: 1
+  behaviors:
+  - !type:SymptomGenericStatusEffect
+    effectProto: StatusEffectOwOAccent

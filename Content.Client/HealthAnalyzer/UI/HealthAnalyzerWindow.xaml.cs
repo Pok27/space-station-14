@@ -13,7 +13,7 @@ using Content.Shared.Humanoid.Prototypes;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Inventory;
 using Content.Shared.MedicalScanner;
-using Content.Shared.Medical.Disease;
+using Content.Shared.Medical.Disease.Components;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
@@ -152,11 +152,11 @@ namespace Content.Client.HealthAnalyzer.UI
 
             if (_entityManager.TryGetComponent<DiseaseCarrierComponent>(target.Value, out var carrier)
                 && !string.IsNullOrEmpty(carrier.DiseaseIcon)
-                && _prototypes.TryIndex<HealthIconPrototype>(carrier.DiseaseIcon, out var healthIcon))
+                && _prototypes.TryIndex<DiseaseIconPrototype>(carrier.DiseaseIcon, out var diseaseIcon))
             {
                 infected = true;
                 DiseaseIcon.Visible = true;
-                DiseaseIcon.Texture = _spriteSystem.Frame0(healthIcon.Icon);
+                DiseaseIcon.Texture = _spriteSystem.Frame0(diseaseIcon.Icon);
             }
             else
             {

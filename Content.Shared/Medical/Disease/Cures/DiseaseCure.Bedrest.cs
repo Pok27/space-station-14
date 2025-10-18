@@ -1,13 +1,12 @@
-using System;
 using Content.Shared.Bed.Components;
 using Content.Shared.Bed.Sleep;
 using Content.Shared.Buckle.Components;
 using Content.Shared.Stunnable;
-using Content.Shared.Medical.Disease;
+using Content.Shared.Medical.Disease.Prototypes;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 
-namespace Content.Server.Medical.Disease.Cures;
+namespace Content.Shared.Medical.Disease.Cures;
 
 [DataDefinition]
 public sealed partial class CureBedrest : CureStep
@@ -28,7 +27,6 @@ public sealed partial class CureBedrest : CureStep
 public sealed partial class CureBedrest
 {
     [Dependency] private readonly IEntityManager _entityManager = default!;
-    [Dependency] private readonly SharedDiseaseCureSystem _cureSystem = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
 
     /// <summary>

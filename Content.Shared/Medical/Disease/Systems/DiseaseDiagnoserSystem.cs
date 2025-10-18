@@ -2,8 +2,10 @@ using Content.Shared.Interaction;
 using Content.Shared.Paper;
 using Robust.Shared.Prototypes;
 using Content.Shared.Popups;
+using Content.Shared.Medical.Disease.Components;
+using Content.Shared.Medical.Disease.Prototypes;
 
-namespace Content.Shared.Medical.Disease;
+namespace Content.Shared.Medical.Disease.Systems;
 
 /// <summary>
 /// Handles using a DiseaseSample on the DiseaseDiagnoser to print a report.
@@ -44,7 +46,7 @@ public sealed class DiseaseDiagnoserSystem : EntitySystem
         var content = BuildReportContent(sample);
 
         // Spawn paper and set content
-        var paperUid = EntityManager.SpawnAtPosition(component.PaperPrototype, Transform(uid).Coordinates);
+        var paperUid = EntityManager.PredictedSpawnAtPosition(component.PaperPrototype, Transform(uid).Coordinates);
         if (TryComp<PaperComponent>(paperUid, out var paperComp))
         {
             _paper.SetContent((paperUid, paperComp), content);

@@ -1054,7 +1054,7 @@
         damage:
           types:
             Poison: -0.5
-      - !type:ChemCleanBloodstream
+      - !type:CleanBloodstream
         cleanseRate: 1
 
 - type: reagent

@@ -33,3 +33,11 @@
   name: scrambled
   components:
   - type: ScrambledAccent
+
+# Causes OwO accent while the is active.
+- type: entity
+  parent: SpeechStatusEffectBase
+  id: StatusEffectOwOAccent
+  name: owo accent
+  components:
+  - type: OwOAccent

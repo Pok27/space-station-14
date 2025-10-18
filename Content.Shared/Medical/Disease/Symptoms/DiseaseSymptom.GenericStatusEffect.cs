@@ -1,10 +1,8 @@
-using System;
-using Content.Shared.EntityEffects.Effects.StatusEffects;
-using Content.Shared.Medical.Disease;
+using Content.Shared.Medical.Disease.Prototypes;
 using Content.Shared.StatusEffectNew;
 using Robust.Shared.Prototypes;
 
-namespace Content.Server.Medical.Disease.Symptoms;
+namespace Content.Shared.Medical.Disease.Symptoms;
 
 [DataDefinition]
 public sealed partial class SymptomGenericStatusEffect : SymptomBehavior
@@ -19,7 +17,7 @@ public sealed partial class SymptomGenericStatusEffect : SymptomBehavior
     /// Duration in seconds for the status effect. Behavior depends on <see cref="Refresh"/> and <see cref="Type"/>.
     /// </summary>
     [DataField]
-    public float Time { get; private set; } = 2.0f;
+    public float Time { get; private set; } = 10.0f;
 
     /// <summary>
     /// true - refresh to greater value; false - accumulate.

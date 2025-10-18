@@ -263,7 +263,7 @@ public sealed partial class CrewMonitoringWindow : FancyWindow
 
             // Disease icon
             if (!string.IsNullOrEmpty(sensor.DiseaseIcon)
-                && _prototypeManager.TryIndex<HealthIconPrototype>(sensor.DiseaseIcon, out var diseaseProto))
+                && _prototypeManager.TryIndex<DiseaseIconPrototype>(sensor.DiseaseIcon, out var diseaseProto))
             {
                 var diseaseIcon = new TextureRect
                 {

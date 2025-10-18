@@ -1,18 +1,24 @@
 using System.Linq;
-using Robust.Shared.Collections;
 using Content.Shared.Body.Systems;
-using Content.Shared.Popups;
 using Content.Shared.Clothing.Components;
 using Content.Shared.Inventory;
+using Content.Shared.Medical.Disease.Components;
+using Content.Shared.Medical.Disease.Cures;
+using Content.Shared.Medical.Disease.Prototypes;
+using Content.Shared.Medical.Disease.Symptoms;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
+using Content.Shared.Popups;
+using Content.Shared.Random.Helpers;
+using Content.Shared.EntityEffects;
+using Content.Shared.EntityEffects.Effects.Transform;
+using Content.Shared.StatusIcon;
+using Robust.Shared.Collections;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
-using Content.Shared.Random.Helpers;
-using Robust.Shared.Network;
 
-namespace Content.Shared.Medical.Disease;
+namespace Content.Shared.Medical.Disease.Systems;
 
 /// <summary>
 /// Server system that progresses diseases, triggers symptom behaviors, and handles spread/immunity.
@@ -25,6 +31,7 @@ public sealed partial class SharedDiseaseSystem : EntitySystem
     [Dependency] private readonly SharedDiseaseSymptomSystem _symptoms = default!;
     [Dependency] private readonly SharedDiseaseCureSystem _cure = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
+    [Dependency] private readonly SharedEntityEffectsSystem _effects = default!;
     [Dependency] private readonly InventorySystem _inventory = default!;
     [Dependency] private readonly SharedInternalsSystem _internals = default!;
 
@@ -145,8 +152,13 @@ public sealed partial class SharedDiseaseSystem : EntitySystem
             if (!rand.Prob(entry.Probability))
                 continue;
 
-            var text = Loc.GetString(entry.Sensation);
-            _popup.PopupPredicted(text, ent, ent.Owner, entry.PopupType);
+            var effect = new PopupMessage
+            {
+                Messages = [entry.Sensation],
+                Type = entry.Type,
+                VisualType = entry.VisualType
+            };
+            _effects.TryApplyEffect(ent.Owner, effect);
             break;
         }
 
@@ -155,7 +167,7 @@ public sealed partial class SharedDiseaseSystem : EntitySystem
         {
             var entry = stageCfg.Symptoms[i];
             var symptomId = entry.Symptom;
-            if (!_prototypes.TryIndex(symptomId, out DiseaseSymptomPrototype? symptom))
+            if (!_prototypes.TryIndex(symptomId, out var symptom))
                 continue;
 
             // Skip if this symptom is currently suppressed by a symptom-level cure.
@@ -175,22 +187,24 @@ public sealed partial class SharedDiseaseSystem : EntitySystem
 
     private void UpdateIcon(Entity<DiseaseCarrierComponent> ent)
     {
-        // Collect present icon types from active diseases.
-        var present = new HashSet<DiseaseIconType>();
+        var selected = string.Empty;
+        var bestPriority = int.MinValue;
+
         foreach (var (id, _) in ent.Comp.ActiveDiseases)
         {
-            if (_prototypes.TryIndex<DiseasePrototype>(id, out var diseaseProto))
-                present.Add(diseaseProto.IconType);
-        }
+            if (!_prototypes.TryIndex<DiseasePrototype>(id, out var diseaseProto))
+                continue;
 
-        // Choose the first icon by priority defined in DiseaseHud.HudIcons.
-        var selected = string.Empty;
-        foreach (var (type, protoId) in DiseaseHud.HudIcons)
-        {
-            if (present.Contains(type))
+            if (diseaseProto.IconDisease is not { } iconId)
+                continue;
+
+            if (!_prototypes.TryIndex(iconId, out var iconProto))
+                continue;
+
+            if (iconProto.PriorityDisease > bestPriority)
             {
-                selected = protoId;
-                break;
+                bestPriority = iconProto.PriorityDisease;
+                selected = iconId;
             }
         }
 

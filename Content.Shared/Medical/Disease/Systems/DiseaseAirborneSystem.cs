@@ -1,11 +1,12 @@
 using Content.Shared.Interaction;
-using Content.Shared.Medical.Disease;
+using Content.Shared.Medical.Disease.Components;
+using Content.Shared.Medical.Disease.Prototypes;
 using Robust.Shared.Containers;
 using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
-namespace Content.Shared.Medical.Disease;
+namespace Content.Shared.Medical.Disease.Systems;
 
 /// <summary>
 /// Handles airborne disease spread in a periodic.
@@ -99,5 +100,3 @@ public sealed class DiseaseAirborneSystem : EntitySystem
         }
     }
 }
-
-

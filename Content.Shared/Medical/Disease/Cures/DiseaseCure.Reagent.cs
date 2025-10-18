@@ -1,13 +1,11 @@
-using Content.Server.Body.Components;
 using Content.Shared.FixedPoint;
-using Content.Shared.Medical.Disease;
 using Content.Shared.Body.Components;
 using Content.Shared.Chemistry.Reagent;
-using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.EntitySystems;
+using Content.Shared.Medical.Disease.Prototypes;
 using Robust.Shared.Prototypes;
 
-namespace Content.Server.Medical.Disease.Cures;
+namespace Content.Shared.Medical.Disease.Cures;
 
 [DataDefinition]
 public sealed partial class CureReagent : CureStep

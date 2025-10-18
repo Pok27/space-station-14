@@ -1,8 +1,6 @@
 using Content.Shared.Inventory;
-using Robust.Shared.Prototypes;
-using Content.Shared.StatusIcon;
 
-namespace Content.Shared.Medical.Disease;
+namespace Content.Shared.Medical.Disease.Prototypes;
 
 /// <summary>
 /// Enumeration describing disease transmission vectors.
@@ -42,11 +40,11 @@ public static class DiseaseEffectiveness
     public const float InternalsMultiplier = 0.25f;
 
     public static readonly (SlotFlags Slot, float Multiplier)[] AirborneSlots =
-    {
+    [
         (SlotFlags.MASK, 0.6f),
         (SlotFlags.HEAD, 0.8f),
         (SlotFlags.EYES, 0.9f),
-    };
+    ];
 
     // Contact protection
     public static readonly (SlotFlags Slot, float Multiplier)[] ContactSlots =
@@ -58,22 +56,3 @@ public static class DiseaseEffectiveness
     ];
 }
 
-/// <summary>
-/// How a disease should be represented on HUDs.
-/// </summary>
-public enum DiseaseIconType
-{
-    Ill,
-    Buff,
-    None,
-}
-
-public static class DiseaseHud
-{
-    public static readonly (DiseaseIconType Type, ProtoId<HealthIconPrototype> PrototypeId)[] HudIcons =
-    [
-        (DiseaseIconType.Ill, "DiseaseIconIll"),
-        (DiseaseIconType.Buff, "DiseaseIconBuff"),
-        (DiseaseIconType.None, string.Empty),
-    ];
-}

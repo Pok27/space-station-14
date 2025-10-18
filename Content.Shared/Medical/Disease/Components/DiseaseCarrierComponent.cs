@@ -3,7 +3,7 @@ using Robust.Shared.GameStates;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
 using Robust.Shared.Prototypes;
 
-namespace Content.Shared.Medical.Disease;
+namespace Content.Shared.Medical.Disease.Components;
 
 /// <summary>
 /// Networked component storing active diseases and immunity tokens.
@@ -52,14 +52,8 @@ public sealed partial class DiseaseCarrierComponent : Component
     public Dictionary<string, TimeSpan> SuppressedSymptoms = [];
 
     /// <summary>
-    /// Track components that were added by a disease so that cures can roll them back safely.
-    /// </summary>
-    [DataField]
-    public Dictionary<string, HashSet<string>> AddedComponents = [];
-
-    /// <summary>
-    /// Prototype ID of the health icon to display for HUDs.
+    /// Prototype ID of the disease icon to display for HUDs.
     /// </summary>
     [AutoNetworkedField]
-    public ProtoId<HealthIconPrototype> DiseaseIcon = string.Empty;
+    public ProtoId<DiseaseIconPrototype> DiseaseIcon = string.Empty;
 }

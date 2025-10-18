@@ -1,10 +1,9 @@
-using System;
-using Content.Server.Medical.Disease.Systems;
-using Content.Shared.Medical.Disease;
+using Content.Shared.Medical.Disease.Prototypes;
+using Content.Shared.Medical.Disease.Components;
 using Robust.Shared.Random;
 using Robust.Shared.Prototypes;
 
-namespace Content.Server.Medical.Disease.Cures;
+namespace Content.Shared.Medical.Disease.Cures;
 
 [DataDefinition]
 public sealed partial class CureWait : CureStep
@@ -24,7 +23,7 @@ public sealed partial class CureWait : CureStep
 
 public sealed partial class CureWait
 {
-    [Dependency] private readonly DiseaseCureSystem _cureSystem = default!;
+    [Dependency] private readonly SharedDiseaseCureSystem _cureSystem = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
 
     /// <summary>

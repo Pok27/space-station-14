@@ -1,7 +1,10 @@
 using Content.Shared.Mobs.Systems;
+using Content.Shared.Medical.Disease.Systems;
+using Content.Shared.Medical.Disease.Components;
+using Content.Shared.Medical.Disease.Prototypes;
 using Robust.Shared.Random;
 
-namespace Content.Shared.Medical.Disease;
+namespace Content.Shared.Medical.Disease.Symptoms;
 
 /// <summary>
 /// Encapsulates symptom-side effects and secondary spread mechanics for diseases.

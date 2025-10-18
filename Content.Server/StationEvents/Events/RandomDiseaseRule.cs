@@ -1,7 +1,8 @@
+using Content.Shared.Humanoid;
+using Content.Shared.Medical.Disease.Systems;
 using Content.Server.StationEvents.Components;
 using Content.Shared.GameTicking.Components;
-using Content.Shared.Humanoid;
-using Content.Shared.Medical.Disease;
+using Content.Shared.Medical.Disease.Components;
 using Content.Shared.Mind.Components;
 using Robust.Shared.Random;
 
