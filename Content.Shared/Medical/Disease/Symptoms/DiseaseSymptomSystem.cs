@@ -32,14 +32,14 @@ public sealed partial class SharedDiseaseSymptomSystem : EntitySystem
         {
             // Run exactly one random behavior.
             var behavior = symptom.Behaviors[_random.Next(0, symptom.Behaviors.Count)];
-            deps.InjectDependencies(behavior, oneOff: true);
+            deps.InjectDependencies(behavior);
             behavior.OnSymptom(ent.Owner, disease);
         }
         else
         {
             foreach (var behavior in symptom.Behaviors)
             {
-                deps.InjectDependencies(behavior, oneOff: true);
+                deps.InjectDependencies(behavior);
                 behavior.OnSymptom(ent.Owner, disease);
             }
         }

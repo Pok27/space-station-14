@@ -17,7 +17,7 @@ public sealed partial class SymptomGenericStatusEffect : SymptomBehavior
     /// Duration in seconds for the status effect. Behavior depends on <see cref="Refresh"/> and <see cref="Type"/>.
     /// </summary>
     [DataField]
-    public float Time { get; private set; } = 10.0f;
+    public float Time { get; private set; } = 4.0f;
 
     /// <summary>
     /// true - refresh to greater value; false - accumulate.

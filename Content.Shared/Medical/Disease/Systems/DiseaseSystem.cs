@@ -8,11 +8,9 @@ using Content.Shared.Medical.Disease.Prototypes;
 using Content.Shared.Medical.Disease.Symptoms;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
-using Content.Shared.Popups;
 using Content.Shared.Random.Helpers;
 using Content.Shared.EntityEffects;
 using Content.Shared.EntityEffects.Effects.Transform;
-using Content.Shared.StatusIcon;
 using Robust.Shared.Collections;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
@@ -30,7 +28,6 @@ public sealed partial class SharedDiseaseSystem : EntitySystem
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly SharedDiseaseSymptomSystem _symptoms = default!;
     [Dependency] private readonly SharedDiseaseCureSystem _cure = default!;
-    [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly SharedEntityEffectsSystem _effects = default!;
     [Dependency] private readonly InventorySystem _inventory = default!;
     [Dependency] private readonly SharedInternalsSystem _internals = default!;
@@ -216,7 +213,7 @@ public sealed partial class SharedDiseaseSystem : EntitySystem
     }
 
     /// <summary>
-    /// Helper: finds an entity in a specific flagged slot if present.
+    /// Helper that finds an entity in a specific flagged slot, if present.
     /// </summary>
     private bool TryGetInventoryEntity(EntityUid target, SlotFlags flags, out EntityUid item)
     {

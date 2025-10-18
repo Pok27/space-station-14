@@ -9,7 +9,7 @@ namespace Content.Shared.Medical.Disease.Systems;
 
 /// <summary>
 /// Handles using a DiseaseSample on the DiseaseDiagnoser to print a report.
-/// TODO: there should be more functions.
+/// TODO: There should be more features. The current implementation provides a minimal implementation for diagnostics.
 /// </summary>
 public sealed class DiseaseDiagnoserSystem : EntitySystem
 {
@@ -21,6 +21,7 @@ public sealed class DiseaseDiagnoserSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
+
         SubscribeLocalEvent<DiseaseDiagnoserComponent, InteractUsingEvent>(OnInteractUsing);
     }
 
@@ -32,7 +33,7 @@ public sealed class DiseaseDiagnoserSystem : EntitySystem
         if (!TryComp<DiseaseSampleComponent>(args.Used, out var sample))
             return;
 
-        // Reject if no sample material present
+        // Reject if no sample material present.
         if (!sample.HasSample)
         {
             _popup.PopupPredicted(Loc.GetString("diagnoser-disease-empty-swab-popup"), uid, args.User);
@@ -42,17 +43,17 @@ public sealed class DiseaseDiagnoserSystem : EntitySystem
 
         args.Handled = true;
 
-        // Build report text
+        // Build report text.
         var content = BuildReportContent(sample);
 
-        // Spawn paper and set content
+        // Spawn paper and set content.
         var paperUid = EntityManager.PredictedSpawnAtPosition(component.PaperPrototype, Transform(uid).Coordinates);
         if (TryComp<PaperComponent>(paperUid, out var paperComp))
         {
             _paper.SetContent((paperUid, paperComp), content);
         }
 
-        // Clear diagnoser state if any and clear sample to avoid reusing stale data
+        // Clear diagnoser state if any and clear sample to avoid reusing stale data.
         sample.Diseases.Clear();
         sample.Stages.Clear();
         sample.SubjectName = null;
@@ -105,7 +106,7 @@ public sealed class DiseaseDiagnoserSystem : EntitySystem
             if (stageCfg == null)
                 continue;
 
-            // Symptoms block
+            // Symptoms block.
             lines.Add(Loc.GetString("diagnoser-disease-symptoms-header"));
             if (stageCfg.Symptoms.Count == 0)
             {
@@ -116,7 +117,7 @@ public sealed class DiseaseDiagnoserSystem : EntitySystem
                 foreach (var symptomEntry in stageCfg.Symptoms)
                 {
                     var symptomId = symptomEntry.Symptom;
-                    if (_prototypes.TryIndex(symptomId, out DiseaseSymptomPrototype? symProto))
+                    if (_prototypes.TryIndex(symptomId, out var symProto))
                     {
                         var symName = Loc.GetString(symProto.Name);
                         lines.Add("- " + symName);
@@ -124,7 +125,7 @@ public sealed class DiseaseDiagnoserSystem : EntitySystem
                 }
             }
 
-            // Cures block
+            // Cures block.
             var cureSteps = (stageCfg.CureSteps.Count > 0) ? stageCfg.CureSteps : diseaseProto.CureSteps;
             if (cureSteps.Count == 0)
             {

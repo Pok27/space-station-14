@@ -23,6 +23,7 @@ public sealed class DiseaseSwabSystem : EntitySystem
 	public override void Initialize()
     {
         base.Initialize();
+
         SubscribeLocalEvent<DiseaseSampleComponent, AfterInteractEvent>(OnAfterInteract);
         SubscribeLocalEvent<DiseaseSampleComponent, DiseaseSwabDoAfterEvent>(OnDoAfter);
     }

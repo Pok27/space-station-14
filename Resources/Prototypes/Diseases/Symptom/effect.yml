@@ -50,12 +50,9 @@
     - reagentId: Diphenylmethylamine
       quantity: 3
   behaviors:
-  - !type:SymptomStatusEffect
-    effects:
-    - !type:ModifyStatusEffect
-      effectProto: StatusEffectForcedSleeping
-      time: 6
-      type: Add
+  - !type:SymptomGenericStatusEffect
+    effectProto: StatusEffectForcedSleeping
+    time: 6
 
 - type: diseaseSymptom
   id: SymptomFever
