@@ -45,10 +45,8 @@ public sealed class VaccinateCommand : LocalizedEntityCommands
             comp = EntityManager.AddComponent<DiseaseCarrierComponent>(targetUid);
 
         if (_proto.TryIndex(diseaseId, out DiseasePrototype? disease))
-        {
-            var stageSymptoms = Array.Empty<ProtoId<DiseaseSymptomPrototype>>();
-            _cure.ApplyCureDisease((targetUid, comp), disease, stageSymptoms);
-        }
-        shell.WriteLine(Loc.GetString("cmd-vaccinate-ok", ("target", targetUid.ToString()), ("disease", diseaseId)));
+            _cure.ApplyCureDisease((targetUid, comp), disease);
+
+        shell.WriteLine(Loc.GetString("cmd-vaccinate-completed", ("target", targetUid.ToString()), ("disease", diseaseId)));
     }
 }

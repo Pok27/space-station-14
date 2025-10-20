@@ -44,6 +44,6 @@ public sealed class InfectCommand : LocalizedEntityCommands
             return;
         }
 
-        shell.WriteLine(Loc.GetString("cmd-infect-ok", ("target", targetUid.ToString()), ("disease", diseaseId), ("stage", stage)));
+        shell.WriteLine(Loc.GetString("cmd-infect-completed", ("target", targetUid.ToString()), ("disease", diseaseId), ("stage", stage)));
     }
 }

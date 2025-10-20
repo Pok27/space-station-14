@@ -20,7 +20,7 @@ public sealed partial class SharedDiseaseCureSystem : EntitySystem
     /// <summary>
     /// Executes a configured cure step via its polymorphic OnCure.
     /// </summary>
-    private static bool ExecuteCureStep(Entity<DiseaseCarrierComponent> ent, CureStep step, DiseasePrototype disease)
+    private bool ExecuteCureStep(Entity<DiseaseCarrierComponent> ent, CureStep step, DiseasePrototype disease)
     {
         var deps = _entitySystemManager.DependencyCollection;
         deps.InjectDependencies(step);

@@ -1,10 +1,10 @@
-using Content.Server.Chat.Systems;
-using Content.Shared.EntityEffects;
+using Content.Shared.Chat;
 using Content.Shared.Dataset;
+using Content.Shared.Random.Helpers;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 
-namespace Content.Server.EntityEffects.Effects;
+namespace Content.Shared.EntityEffects.Effects;
 
 /// <summary>
 /// Causes the entity to speak a random localized line from the given dataset immediately.
@@ -12,16 +12,19 @@ namespace Content.Server.EntityEffects.Effects;
 /// <inheritdoc cref="EntityEffectSystem{T,TEffect}"/>
 public sealed partial class SpeakDatasetEntityEffectSystem : EntityEffectSystem<MetaDataComponent, SpeakDataset>
 {
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly ChatSystem _chat = default!;
+    [Dependency] private readonly IPrototypeManager _prototype = default!;
+    [Dependency] private readonly SharedChatSystem _chat = default!;
 
     protected override void Effect(Entity<MetaDataComponent> entity, ref EntityEffectEvent<SpeakDataset> args)
     {
-        if (!_prototypeManager.TryIndex(args.Effect.PackId, out var pack))
+        if (!_prototype.TryIndex(args.Effect.PackId, out var pack))
             return;
-
-        var message = Loc.GetString(_random.Pick(pack.Values));
+        if (pack.Values.Count == 0)
+            return;
+        // TODO: Replace with RandomPredicted once the engine PR is merged
+        var seed = SharedRandomExtensions.HashCodeCombine([(int)entity.Owner, pack.Values.Count]);
+        var rand = new System.Random(seed);
+        var message = Loc.GetString(pack.Values[rand.Next(pack.Values.Count)]);
         _chat.TrySendInGameICMessage(entity.Owner, message, InGameICChatType.Speak, args.Effect.HideInChat);
     }
 }

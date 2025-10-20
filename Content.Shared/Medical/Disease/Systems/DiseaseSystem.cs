@@ -24,7 +24,6 @@ namespace Content.Shared.Medical.Disease.Systems;
 public sealed partial class SharedDiseaseSystem : EntitySystem
 {
     [Dependency] private readonly IPrototypeManager _prototypes = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly SharedDiseaseSymptomSystem _symptoms = default!;
     [Dependency] private readonly SharedDiseaseCureSystem _cure = default!;
@@ -292,13 +291,19 @@ public sealed partial class SharedDiseaseSystem : EntitySystem
         if (!CanBeInfected(uid, diseaseId))
             return false;
 
-        if (!_random.Prob(probability))
+        // TODO: Replace with RandomPredicted once the engine PR is merged
+        var seed = SharedRandomExtensions.HashCodeCombine([(int)_timing.CurTick.Value, uid.GetHashCode(), 0]);
+        var rand = new System.Random(seed);
+        if (!rand.Prob(probability))
             return false;
 
         if (TryComp<DiseaseCarrierComponent>(uid, out var carrier) && carrier.Immunity.TryGetValue(diseaseId, out var immunityStrength))
         {
             // Roll against immunity strength.
-            if (_random.Prob(immunityStrength))
+            // TODO: Replace with RandomPredicted once the engine PR is merged
+            var seedImmunity = SharedRandomExtensions.HashCodeCombine([(int)_timing.CurTick.Value, uid.GetHashCode(), 1]);
+            var randImmunity = new System.Random(seedImmunity);
+            if (!randImmunity.Prob(immunityStrength))
                 return false;
         }
 

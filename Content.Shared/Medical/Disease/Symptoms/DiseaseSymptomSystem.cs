@@ -2,6 +2,7 @@ using Content.Shared.Mobs.Systems;
 using Content.Shared.Medical.Disease.Systems;
 using Content.Shared.Medical.Disease.Components;
 using Content.Shared.Medical.Disease.Prototypes;
+using Content.Shared.Random.Helpers;
 using Robust.Shared.Random;
 
 namespace Content.Shared.Medical.Disease.Symptoms;
@@ -11,7 +12,6 @@ namespace Content.Shared.Medical.Disease.Symptoms;
 /// </summary>
 public sealed partial class SharedDiseaseSymptomSystem : EntitySystem
 {
-    [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly IEntitySystemManager _entitySystemManager = default!;
     [Dependency] private readonly MobStateSystem _mobState = default!;
     [Dependency] private readonly DiseaseAirborneSystem _airborneDisease = default!;
@@ -38,7 +38,10 @@ public sealed partial class SharedDiseaseSymptomSystem : EntitySystem
         if (symptom.SingleBehavior && symptom.Behaviors.Count > 0)
         {
             // Run exactly one random behavior.
-            var behavior = symptom.Behaviors[_random.Next(0, symptom.Behaviors.Count)];
+            // TODO: Replace with RandomPredicted once the engine PR is merged
+            var seed = SharedRandomExtensions.HashCodeCombine([(int)GetNetEntity(ent).Id, 0, 0, symptom.Behaviors.Count]);
+            var rand = new System.Random(seed);
+            var behavior = symptom.Behaviors[rand.Next(0, symptom.Behaviors.Count)];
             RunSingleBehavior(behavior);
         }
         else
