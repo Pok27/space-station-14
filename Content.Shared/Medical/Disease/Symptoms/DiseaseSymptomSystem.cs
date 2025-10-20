@@ -50,7 +50,6 @@ public sealed partial class SharedDiseaseSymptomSystem : EntitySystem
             }
         }
 
-        // Apply configurable symptom-driven airborne burst.
         ApplyAirborneBurst(symptom, ent, disease);
     }
 

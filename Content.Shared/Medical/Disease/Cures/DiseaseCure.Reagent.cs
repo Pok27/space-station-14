@@ -11,16 +11,25 @@ namespace Content.Shared.Medical.Disease.Cures;
 public sealed partial class CureReagent : CureStep
 {
     /// <summary>
-    /// List of required reagents (all must be present at or above the required quantity).
+    /// List of required reagents.
     /// </summary>
     [DataField(required: true)]
-    public List<Requirement> Requirements { get; private set; } = new();
+    public List<Requirement> Requirements { get; private set; } = [];
 
     [DataDefinition]
     public sealed partial class Requirement
     {
-        [DataField(required: true)] public string ReagentId { get; private set; } = string.Empty;
-        [DataField] public FixedPoint2 Quantity { get; private set; } = FixedPoint2.New(1);
+        /// <summary>
+        /// The reagent that needs to be present.
+        /// </summary>
+        [DataField(required: true)]
+        public string ReagentId { get; private set; } = string.Empty;
+
+        /// <summary>
+        /// How much of the reagent must be present.
+        /// </summary>
+        [DataField]
+        public FixedPoint2 Quantity { get; private set; } = FixedPoint2.New(1);
     }
 }
 

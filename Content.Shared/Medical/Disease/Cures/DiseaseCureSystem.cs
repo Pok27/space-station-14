@@ -12,8 +12,9 @@ namespace Content.Shared.Medical.Disease.Cures;
 public sealed partial class SharedDiseaseCureSystem : EntitySystem
 {
     [Dependency] private readonly IPrototypeManager _prototypes = default!;
-    [Dependency] private readonly SharedPopupSystem _popup = default!;
+    [Dependency] private readonly IEntitySystemManager _entitySystemManager = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private readonly SharedPopupSystem _popup = default!;
 
     /// <inheritdoc/>
     /// <summary>
@@ -21,8 +22,8 @@ public sealed partial class SharedDiseaseCureSystem : EntitySystem
     /// </summary>
     private static bool ExecuteCureStep(Entity<DiseaseCarrierComponent> ent, CureStep step, DiseasePrototype disease)
     {
-        var deps = IoCManager.Resolve<IEntitySystemManager>().DependencyCollection;
-        deps.InjectDependencies(step, oneOff: true);
+        var deps = _entitySystemManager.DependencyCollection;
+        deps.InjectDependencies(step);
         return step.OnCure(ent.Owner, disease);
     }
 
