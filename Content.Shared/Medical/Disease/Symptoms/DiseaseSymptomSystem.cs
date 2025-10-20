@@ -28,19 +28,25 @@ public sealed partial class SharedDiseaseSymptomSystem : EntitySystem
 
         var deps = _entitySystemManager.DependencyCollection;
 
+        // Local helper to execute a single symptom behavior with dependencies injected.
+        void RunSingleBehavior(SymptomBehavior behavior)
+        {
+            deps.InjectDependencies(behavior);
+            behavior.OnSymptom(ent.Owner, disease);
+        }
+
         if (symptom.SingleBehavior && symptom.Behaviors.Count > 0)
         {
             // Run exactly one random behavior.
             var behavior = symptom.Behaviors[_random.Next(0, symptom.Behaviors.Count)];
-            deps.InjectDependencies(behavior);
-            behavior.OnSymptom(ent.Owner, disease);
+            RunSingleBehavior(behavior);
         }
         else
         {
+            // Run all behavior.
             foreach (var behavior in symptom.Behaviors)
             {
-                deps.InjectDependencies(behavior);
-                behavior.OnSymptom(ent.Owner, disease);
+                RunSingleBehavior(behavior);
             }
         }
 

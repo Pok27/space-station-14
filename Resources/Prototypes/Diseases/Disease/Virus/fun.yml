@@ -1,0 +1,120 @@
+- type: disease
+  id: DiseaseFakeGBS
+  name: disease-DiseaseGBS-name
+  desc: disease-DiseaseGBS-desc
+  spreadFlags: [Contact]
+  contactInfect: 0.005
+  contactDeposit: 0.05
+  cureSteps:
+  - !type:CureReagent
+    cureChance: 0.15 # Higher chance to cure, since two reagents are required.
+    requirements:
+    - reagentId: Diphenhydramine
+    - reagentId: Sulfur
+  stages:
+  - stage: 1
+  # no-op
+  - stage: 2
+    symptoms:
+    - symptom: SymptomSneeze
+  - stage: 3
+    sensations:
+    - sensation: disease-sensation-very-weak
+      probability: 0.1
+    symptoms:
+    - symptom: SymptomCough
+      probability: 0.05
+    - symptom: SymptomGasp
+      probability: 0.05
+  - stage: 4
+    symptoms:
+    - symptom: SymptomCough
+      probability: 0.1
+  - stage: 5
+    symptoms:
+    - symptom: SymptomCough
+      probability: 0.1
+
+- type: disease
+  id: DiseaseGBS
+  name: disease-DiseaseGBS-name
+  desc: disease-DiseaseGBS-desc
+  spreadFlags: [Contact]
+  contactInfect: 0.005
+  contactDeposit: 0.08
+  cureSteps:
+  - !type:CureReagent
+    cureChance: 0.15 # Higher chance to cure, since two reagents are required.
+    requirements:
+    - reagentId: Diphenhydramine
+    - reagentId: Sulfur
+  stages:
+  - stage: 1
+  # no-op
+  - stage: 2
+    symptoms:
+    - symptom: SymptomSneeze
+  - stage: 3
+    sensations:
+    - sensation: disease-sensation-very-weak
+      probability: 0.1
+    symptoms:
+    - symptom: SymptomCough
+      probability: 0.05
+    - symptom: SymptomGasp
+      probability: 0.05
+  - stage: 4
+    symptoms:
+    - symptom: SymptomCough
+      probability: 0.1
+  - stage: 5
+    sensations:
+    - sensation: disease-sensation-gib-itself
+      visualType: MediumCaution
+    symptoms:
+    - symptom: SymptomCough
+      probability: 0.05
+    - symptom: SymptomGib
+
+- type: disease
+  id: DiseaseHonkSyndrome
+  name: disease-DiseaseHonkSyndrome-name
+  desc: disease-DiseaseHonkSyndrome-desc
+  spreadFlags: [Contact]
+  cureSteps:
+  - !type:CureReagent
+    requirements:
+    - reagentId: BananaHonk
+      quantity: 5
+  stages:
+  - stage: 1
+    # no-op
+  - stage: 2
+    sensations:
+    - sensation: disease-sensation-clown
+    - sensation: disease-sensation-banana-compulsion
+    symptoms:
+    - symptom: SymptomJitters
+    - symptom: SymptomEmoteHonk
+  - stage: 3
+    sensations:
+    - sensation: disease-sensation-clown
+    symptoms:
+    - symptom: SymptomHonkShout
+    - symptom: SymptomTransformClown
+
+- type: disease
+  id: DiseaseOwOnavirus
+  name: disease-DiseaseOwOnavirus-name
+  desc: disease-DiseaseOwOnavirus-desc
+  spreadFlags: [Contact]
+  iconDisease: DiseaseIconBuff
+  cureSteps:
+  - !type:CureWait
+    requiredTicks: 400
+  stages:
+  - stage: 1
+    symptoms:
+    - symptom: SymptomOwOAccent
+    - symptom: SymptomEmoteCat
+    - symptom: SymptomSpeedBoost

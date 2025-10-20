@@ -1,0 +1,114 @@
+- type: disease
+  id: DiseaseCold
+  name: disease-DiseaseCold-name
+  desc: disease-DiseaseCold-desc
+  spreadFlags: [Airborne]
+  permeabilityMod: 0.5
+  cureSteps:
+  - !type:CureReagent
+    cureChance: 0.08
+    requirements:
+    - reagentId: Spaceacillin
+  - !type:CureTemperature
+  stages:
+  - stage: 1
+    # no-op
+  - stage: 2
+    sensations:
+    - sensation: disease-sensation-throat-sore
+    - sensation: disease-sensation-throat-mucus
+    symptoms:
+    - symptom: SymptomCough
+    - symptom: SymptomSneeze
+    cureSteps:
+    - !type:CureBedrest
+      bedrestChance: 0.10
+      sleepMultiplier: 4
+  - stage: 3
+    sensations:
+    - sensation: disease-sensation-throat-sore
+    - sensation: disease-sensation-throat-mucus
+    symptoms:
+    - symptom: SymptomCough
+    - symptom: SymptomSneeze
+    - symptom: SymptomFever
+    - symptom: SymptomTransitionToFlu
+    cureSteps:
+    - !type:CureBedrest
+      bedrestChance: 0.05
+      sleepMultiplier: 5
+
+- type: disease
+  id: DiseaseCold9
+  name: disease-DiseaseCold9-name
+  desc: disease-DiseaseCold9-desc
+  spreadFlags: [Contact]
+  cureSteps:
+  - !type:CureReagent
+    cureChance: 0.08
+    requirements:
+    - reagentId: Spaceacillin
+  stages:
+  - stage: 1
+    # no-op
+  - stage: 2
+    sensations:
+    - sensation: disease-sensation-throat-sore
+    - sensation: disease-sensation-stiff
+    symptoms:
+    - symptom: SymptomCough
+      probability: 0.02
+    - symptom: SymptomSneeze
+      probability: 0.02
+    - symptom: SymptomFreezeLight
+  - stage: 3
+    sensations:
+    - sensation: disease-sensation-throat-sore
+    - sensation: disease-sensation-stiff
+    symptoms:
+    - symptom: SymptomCough
+      probability: 0.04
+    - symptom: SymptomSneeze
+      probability: 0.04
+    - symptom: SymptomFreeze
+
+- type: disease
+  id: DiseaseFlu
+  name: disease-DiseaseFlu-name
+  desc: disease-DiseaseFlu-desc
+  spreadFlags: [Airborne]
+  permeabilityMod: 0.75
+  cureSteps:
+  - !type:CureReagent
+    cureChance: 0.1
+    requirements:
+    - reagentId: Spaceacillin
+  stages:
+  - stage: 1
+    # no-op
+  - stage: 2
+    sensations:
+    - sensation: disease-sensation-muscles-ache
+    - sensation: disease-sensation-stomach-hurt
+    symptoms:
+    - symptom: SymptomCough
+    - symptom: SymptomSneeze
+    - symptom: SymptomToxinLight
+    cureSteps:
+    - !type:CureBedrest
+      bedrestChance: 0.20
+      sleepMultiplier: 1
+      lowerStage: true
+  - stage: 3
+    sensations:
+    - sensation: disease-sensation-muscles-ache
+    - sensation: disease-sensation-stomach-hurt
+    symptoms:
+    - symptom: SymptomCough
+    - symptom: SymptomSneeze
+    - symptom: SymptomToxinLight
+    cureSteps:
+    - !type:CureBedrest
+      bedrestChance: 0.15
+      sleepMultiplier: 1
+      lowerStage: true

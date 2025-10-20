@@ -714,9 +714,6 @@
     - DiseaseCold
     - DiseaseCold9
     - DiseaseFlu
-    - DiseaseFakeGBS
-    - DiseaseNarcolepsySyndrome
-    - DiseaseAMIV
     minInfections: 2
     maxInfections: 5
 

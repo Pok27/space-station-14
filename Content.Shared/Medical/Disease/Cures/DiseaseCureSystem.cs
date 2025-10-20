@@ -42,7 +42,7 @@ public sealed partial class SharedDiseaseCureSystem : EntitySystem
         var simpleSymptoms = stageCfg.Symptoms.Select(s => s.Symptom).ToList();
 
         // TODO: Replace with RandomPredicted once the engine PR is merged
-        var seed = SharedRandomExtensions.HashCodeCombine(new() { (int)_timing.CurTick.Value, GetNetEntity(ent).Id });
+        var seed = SharedRandomExtensions.HashCodeCombine([(int)_timing.CurTick.Value, GetNetEntity(ent).Id]);
         var rand = new System.Random(seed);
 
         // disease-level cures
@@ -65,7 +65,7 @@ public sealed partial class SharedDiseaseCureSystem : EntitySystem
             }
             else
             {
-                ApplyCureDisease(ent, disease, simpleSymptoms);
+                ApplyCureDisease(ent, disease);
             }
         }
 
@@ -89,7 +89,7 @@ public sealed partial class SharedDiseaseCureSystem : EntitySystem
                     continue;
 
                 if (ExecuteCureStep(ent, step, disease))
-                    ApplyCureSymptom(ent, disease, symptomId);
+                    ApplyCureSymptom(ent, symptomId);
             }
         }
     }
@@ -97,7 +97,7 @@ public sealed partial class SharedDiseaseCureSystem : EntitySystem
     /// <summary>
     /// Removes the disease, applies post-cure immunity.
     /// </summary>
-    public void ApplyCureDisease(Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease, IReadOnlyList<ProtoId<DiseaseSymptomPrototype>> stageSymptoms)
+    public void ApplyCureDisease(Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease)
     {
         if (!ent.Comp.ActiveDiseases.ContainsKey(disease.ID))
             return;
@@ -111,7 +111,7 @@ public sealed partial class SharedDiseaseCureSystem : EntitySystem
     /// <summary>
     /// Suppresses the given symptom for its configured duration and notifies hooks.
     /// </summary>
-    public void ApplyCureSymptom(Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease, string symptomId)
+    public void ApplyCureSymptom(Entity<DiseaseCarrierComponent> ent, string symptomId)
     {
         if (!_prototypes.TryIndex(symptomId, out DiseaseSymptomPrototype? symptomProto))
             return;

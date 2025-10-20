@@ -125,7 +125,7 @@ public sealed partial class SharedDiseaseSystem : EntitySystem
         var perTickAdvance = Math.Clamp(disease.StageProb, 0f, 1f);
         var maxStage = Math.Max(1, disease.Stages.Count);
         // TODO: Replace with RandomPredicted once the engine PR is merged
-        var seed = SharedRandomExtensions.HashCodeCombine(new() { (int)_timing.CurTick.Value, GetNetEntity(ent).Id, 1, currentStage });
+        var seed = SharedRandomExtensions.HashCodeCombine([(int)_timing.CurTick.Value, GetNetEntity(ent).Id, 1, currentStage]);
         var rand = new System.Random(seed);
         if (rand.Prob(perTickAdvance))
             return Math.Min(currentStage + 1, maxStage);
@@ -144,7 +144,7 @@ public sealed partial class SharedDiseaseSystem : EntitySystem
         {
             var entry = stageCfg.Sensations[i];
             // TODO: Replace with RandomPredicted once the engine PR is merged
-            var seed = SharedRandomExtensions.HashCodeCombine(new() { (int)_timing.CurTick.Value, GetNetEntity(ent).Id, 2, stage, i });
+            var seed = SharedRandomExtensions.HashCodeCombine([(int)_timing.CurTick.Value, GetNetEntity(ent).Id, 2, stage, i]);
             var rand = new System.Random(seed);
             if (!rand.Prob(entry.Probability))
                 continue;
@@ -173,7 +173,7 @@ public sealed partial class SharedDiseaseSystem : EntitySystem
 
             var prob = entry.Probability >= 0f ? entry.Probability : symptom.Probability;
             // TODO: Replace with RandomPredicted once the engine PR is merged
-            var seed = SharedRandomExtensions.HashCodeCombine(new() { (int)_timing.CurTick.Value, GetNetEntity(ent).Id, 3, stage, i });
+            var seed = SharedRandomExtensions.HashCodeCombine([(int)_timing.CurTick.Value, GetNetEntity(ent).Id, 3, stage, i]);
             var rand = new System.Random(seed);
             if (!rand.Prob(prob))
                 continue;

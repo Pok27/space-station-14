@@ -70,7 +70,7 @@ public sealed partial class DiseasePrototype : IPrototype
     /// Base per-contact infection probability for this disease (0-1). Used when two entities make contact.
     /// </summary>
     [DataField]
-    public float ContactInfect { get; private set; } = 0.05f;
+    public float ContactInfect { get; private set; } = 0.025f;
 
     /// <summary>
     /// Amount of residue intensity deposited when a carrier with this disease contacts a surface.
@@ -83,7 +83,7 @@ public sealed partial class DiseasePrototype : IPrototype
     /// Base per-target airborne infection probability (0-1) before PPE adjustments.
     /// </summary>
     [DataField]
-    public float AirborneInfect { get; private set; } = 0.1f;
+    public float AirborneInfect { get; private set; } = 0.025f;
 
     /// <summary>
     /// Airborne infection radius in world units, used when <see cref="SpreadFlags"/> contains Airborne.

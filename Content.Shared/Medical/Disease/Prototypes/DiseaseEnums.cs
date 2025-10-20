@@ -37,7 +37,7 @@ public enum DiseaseStealthFlags
 public static class DiseaseEffectiveness
 {
     // Airborne protection
-    public const float InternalsMultiplier = 0.25f;
+    public const float InternalsMultiplier = 0.4f;
 
     public static readonly (SlotFlags Slot, float Multiplier)[] AirborneSlots =
     [
