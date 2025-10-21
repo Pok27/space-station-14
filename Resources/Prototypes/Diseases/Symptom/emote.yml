@@ -1,7 +1,7 @@
 - type: diseaseSymptom
   id: SymptomCough
   name: disease-symptom-name-SymptomCough
-  onlyWhenAlive: true
+  onlyAlive: true
   airborneBurst:
     rangeMultiplier: 1.75
     chanceMultiplier: 1.5
@@ -10,9 +10,7 @@
   - !type:CureReagent
     requirements:
     - reagentId: Salbutamol
-      quantity: 2
-    - reagentId: Perfluorodecalin
-      quantity: 2
+      amount: 5
   behaviors:
   - !type:SymptomStatusEffect
     effects:
@@ -23,7 +21,7 @@
 - type: diseaseSymptom
   id: SymptomSneeze
   name: disease-symptom-name-SymptomSneeze
-  onlyWhenAlive: true
+  onlyAlive: true
   airborneBurst:
     rangeMultiplier: 2.5
     chanceMultiplier: 2.5
@@ -32,9 +30,7 @@
   - !type:CureReagent
     requirements:
     - reagentId: Salbutamol
-      quantity: 2
-    - reagentId: Perfluorodecalin
-      quantity: 2
+      amount: 5
   behaviors:
   - !type:SymptomStatusEffect
     effects:
@@ -45,7 +41,7 @@
 - type: diseaseSymptom
   id: SymptomGasp
   name: disease-symptom-name-SymptomGasp
-  onlyWhenAlive: true
+  onlyAlive: true
   behaviors:
   - !type:SymptomStatusEffect
     effects:
@@ -57,7 +53,7 @@
   id: SymptomEmoteHonk
   name: disease-symptom-name-SymptomEmoteCat
   probability: 0.05
-  onlyWhenAlive: true
+  onlyAlive: true
   behaviors:
   - !type:SymptomStatusEffect
     effects:
@@ -70,7 +66,7 @@
   name: disease-symptom-SymptomEmoteCat-name
   probability: 0.05
   singleBehavior: true
-  onlyWhenAlive: true
+  onlyAlive: true
   behaviors:
   - !type:SymptomStatusEffect
     effects:
@@ -86,7 +82,7 @@
 - type: diseaseSymptom
   id: SymptomEmoteGroan
   name: disease-symptom-SymptomEmoteGroan-name
-  onlyWhenAlive: true
+  onlyAlive: true
   behaviors:
   - !type:SymptomStatusEffect
     effects:
@@ -97,7 +93,7 @@
 - type: diseaseSymptom
   id: SymptomEmoteMoan
   name: disease-symptom-SymptomEmoteMoan-name
-  onlyWhenAlive: true
+  onlyAlive: true
   behaviors:
   - !type:SymptomStatusEffect
     effects:
@@ -111,7 +107,7 @@
   id: SymptomHonkShout
   name: disease-symptom-SymptomHonkShout-name
   probability: 0.05
-  onlyWhenAlive: true
+  onlyAlive: true
   behaviors:
   - !type:SymptomStatusEffect
     effects:
@@ -122,7 +118,7 @@
   id: SymptomMonkeyShout
   name: disease-symptom-SymptomMonkeyShout-name
   probability: 0.05
-  onlyWhenAlive: true
+  onlyAlive: true
   behaviors:
   - !type:SymptomStatusEffect
     effects:

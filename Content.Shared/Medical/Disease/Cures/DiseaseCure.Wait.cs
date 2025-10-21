@@ -13,12 +13,6 @@ public sealed partial class CureWait : CureStep
     /// </summary>
     [DataField]
     public int RequiredTicks { get; private set; } = 90;
-
-    /// <summary>
-    /// Chance to cure when the required time elapses (0-1).
-    /// </summary>
-    [DataField]
-    public float WaitChance { get; private set; } = 1.0f;
 }
 
 public sealed partial class CureWait

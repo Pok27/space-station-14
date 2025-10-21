@@ -411,18 +411,14 @@
 - type: reaction
   id: Salbutamol
   reactants:
-#    SalicylicAcid:
-#      amount: 1
     Lithium:
-      amount: 1
+      amount: 2
     Aluminium:
-      amount: 1
-#    Bromine:
-#      amount: 1
+      amount: 2
     Ammonia:
       amount: 1
   products:
-    Salbutamol: 3
+    Salbutamol: 5
 
 - type: reaction
   id: Spaceacillin

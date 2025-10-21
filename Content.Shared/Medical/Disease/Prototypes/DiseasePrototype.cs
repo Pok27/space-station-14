@@ -33,7 +33,7 @@ public sealed partial class DiseasePrototype : IPrototype
     /// Spread vectors for this disease.
     /// </summary>
     [DataField(required: true)]
-    public DiseaseSpreadFlags SpreadFlags { get; private set; } = DiseaseSpreadFlags.NonContagious;
+    public DiseaseSpreadPath SpreadPath { get; private set; } = DiseaseSpreadPath.NonContagious;
 
     /// <summary>
     /// Disease icon prototype to show on HUDs.
@@ -86,7 +86,7 @@ public sealed partial class DiseasePrototype : IPrototype
     public float AirborneInfect { get; private set; } = 0.025f;
 
     /// <summary>
-    /// Airborne infection radius in world units, used when <see cref="SpreadFlags"/> contains Airborne.
+    /// Airborne infection radius in world units, used when <see cref="SpreadPath"/> contains Airborne.
     /// </summary>
     [DataField]
     public float AirborneRange { get; private set; } = 3f;
@@ -136,7 +136,7 @@ public sealed partial class DiseaseStage
     /// A single entry is randomly picked on each eligible tick, controlled by <see cref="SensationProb"/>.
     /// </summary>
     [DataField]
-    public List<SensationEntry> Sensations { get; private set; } = [];
+    public PopupMessage[] Sensations { get; private set; } = [];
 
     /// <summary>
     /// Optional list of cure steps specific to this stage. Overrides disease-level <see cref="CureSteps"/> for this stage.
@@ -159,32 +159,4 @@ public sealed partial class SymptomEntry
     /// </summary>
     [DataField]
     public float Probability { get; private set; } = -1f;
-}
-
-[DataDefinition]
-public sealed partial class SensationEntry
-{
-    /// <summary>
-    /// Localization key for the popup text.
-    /// </summary>
-    [DataField(required: true)]
-    public string Sensation { get; private set; } = default!;
-
-    /// <summary>
-    /// Whether to just the entity we're affecting, or everyone around them.
-    /// </summary>
-    [DataField]
-    public PopupRecipients Type = PopupRecipients.Local;
-
-    /// <summary>
-    /// Popup visual style <see cref="PopupType"/>.
-    /// </summary>
-    [DataField]
-    public PopupType VisualType { get; private set; } = PopupType.Small;
-
-    /// <summary>
-    /// Per-tick probability (0-1) to show this sensation popup.
-    /// </summary>
-    [DataField]
-    public float Probability { get; private set; } = 0.05f;
 }

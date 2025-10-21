@@ -57,17 +57,9 @@ public sealed partial class SharedDiseaseCureSystem : EntitySystem
                 continue;
 
             if (step.LowerStage)
-            {
-                if (ent.Comp.ActiveDiseases.TryGetValue(disease.ID, out var curStage) && curStage > 1)
-                {
-                    ent.Comp.ActiveDiseases[disease.ID] = curStage - 1;
-                    Dirty(ent);
-                }
-            }
+                ApplyCureDiseaseStage(ent, disease);
             else
-            {
                 ApplyCureDisease(ent, disease);
-            }
         }
 
         // symptom-level cures
@@ -107,6 +99,17 @@ public sealed partial class SharedDiseaseCureSystem : EntitySystem
         ApplyPostCureImmunity(ent.Comp, disease);
 
         _popup.PopupPredicted(Loc.GetString("disease-cured"), ent, ent.Owner);
+    }
+
+    /// <summary>
+    /// Lowers the disease stage by 1.
+    /// </summary>
+    public void ApplyCureDiseaseStage(Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease)
+    {
+        if (!ent.Comp.ActiveDiseases.TryGetValue(disease.ID, out var stage) || stage <= 1)
+            return;
+
+        ent.Comp.ActiveDiseases[disease.ID] = stage - 1;
     }
 
     /// <summary>

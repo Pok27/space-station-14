@@ -44,5 +44,6 @@ public sealed partial class TransitionDisease : EntityEffectBase<TransitionDisea
     public override string? EntityEffectGuidebookText(IPrototypeManager prototype, IEntitySystemManager entSys)
         => Loc.GetString("entity-effect-guidebook-transition-disease",
             ("chance", Probability),
-            ("disease", ToDiseaseId));
+            ("fromDisease", Loc.GetString(prototype.Index(FromDiseaseId).Name)),
+            ("toDisease", Loc.GetString(prototype.Index(ToDiseaseId).Name)));
 }

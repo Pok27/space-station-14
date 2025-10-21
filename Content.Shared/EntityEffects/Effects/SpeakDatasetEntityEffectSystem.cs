@@ -3,6 +3,7 @@ using Content.Shared.Dataset;
 using Content.Shared.Random.Helpers;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
+using Robust.Shared.Network;
 
 namespace Content.Shared.EntityEffects.Effects;
 
@@ -12,19 +13,21 @@ namespace Content.Shared.EntityEffects.Effects;
 /// <inheritdoc cref="EntityEffectSystem{T,TEffect}"/>
 public sealed partial class SpeakDatasetEntityEffectSystem : EntityEffectSystem<MetaDataComponent, SpeakDataset>
 {
+    [Dependency] private readonly INetManager _net = default!;
+    [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly IPrototypeManager _prototype = default!;
     [Dependency] private readonly SharedChatSystem _chat = default!;
 
     protected override void Effect(Entity<MetaDataComponent> entity, ref EntityEffectEvent<SpeakDataset> args)
     {
+        // TODO: When we get proper random prediction remove this check.
+        if (_net.IsClient)
+            return;
+
         if (!_prototype.TryIndex(args.Effect.PackId, out var pack))
             return;
-        if (pack.Values.Count == 0)
-            return;
-        // TODO: Replace with RandomPredicted once the engine PR is merged
-        var seed = SharedRandomExtensions.HashCodeCombine([(int)entity.Owner, pack.Values.Count]);
-        var rand = new System.Random(seed);
-        var message = Loc.GetString(pack.Values[rand.Next(pack.Values.Count)]);
+
+        var message = Loc.GetString(_random.Pick(pack));
         _chat.TrySendInGameICMessage(entity.Owner, message, InGameICChatType.Speak, args.Effect.HideInChat);
     }
 }
@@ -43,4 +46,7 @@ public sealed partial class SpeakDataset : EntityEffectBase<SpeakDataset>
     /// </summary>
     [DataField]
     public bool HideInChat = false;
+
+    public override string EntityEffectGuidebookText(IPrototypeManager prototype, IEntitySystemManager entSys)
+        => Loc.GetString("entity-effect-guidebook-speak-dataset", ("chance", Probability)); // TODO: localized dataset names are needed.
 }

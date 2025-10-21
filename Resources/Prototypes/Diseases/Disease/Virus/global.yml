@@ -2,7 +2,7 @@
   id: DiseaseCold
   name: disease-DiseaseCold-name
   desc: disease-DiseaseCold-desc
-  spreadFlags: [Airborne]
+  spreadPath: [ Airborne ]
   permeabilityMod: 0.5
   cureSteps:
   - !type:CureReagent
@@ -15,8 +15,9 @@
     # no-op
   - stage: 2
     sensations:
-    - sensation: disease-sensation-throat-sore
-    - sensation: disease-sensation-throat-mucus
+    - !type:PopupMessage
+      messages: [ "disease-sensation-throat-sore", "disease-sensation-throat-mucus" ]
+      probability: 0.05
     symptoms:
     - symptom: SymptomCough
     - symptom: SymptomSneeze
@@ -26,8 +27,9 @@
       sleepMultiplier: 4
   - stage: 3
     sensations:
-    - sensation: disease-sensation-throat-sore
-    - sensation: disease-sensation-throat-mucus
+    - !type:PopupMessage
+      messages: [ "disease-sensation-throat-sore", "disease-sensation-throat-mucus" ]
+      probability: 0.05
     symptoms:
     - symptom: SymptomCough
     - symptom: SymptomSneeze
@@ -42,19 +44,21 @@
   id: DiseaseCold9
   name: disease-DiseaseCold9-name
   desc: disease-DiseaseCold9-desc
-  spreadFlags: [Contact]
+  spreadPath: [ Contact ]
   cureSteps:
   - !type:CureReagent
-    cureChance: 0.08
+    cureChance: 0.15 # Higher chance to cure, since two reagents are required.
     requirements:
     - reagentId: Spaceacillin
+    - reagentId: Leporazine
   stages:
   - stage: 1
     # no-op
   - stage: 2
     sensations:
-    - sensation: disease-sensation-throat-sore
-    - sensation: disease-sensation-stiff
+    - !type:PopupMessage
+      messages: [ "disease-sensation-throat-sore", "disease-sensation-stiff" ]
+      probability: 0.05
     symptoms:
     - symptom: SymptomCough
       probability: 0.02
@@ -63,8 +67,9 @@
     - symptom: SymptomFreezeLight
   - stage: 3
     sensations:
-    - sensation: disease-sensation-throat-sore
-    - sensation: disease-sensation-stiff
+    - !type:PopupMessage
+      messages: [ "disease-sensation-throat-sore", "disease-sensation-stiff" ]
+      probability: 0.05
     symptoms:
     - symptom: SymptomCough
       probability: 0.04
@@ -76,20 +81,24 @@
   id: DiseaseFlu
   name: disease-DiseaseFlu-name
   desc: disease-DiseaseFlu-desc
-  spreadFlags: [Airborne]
+  spreadPath: [ Airborne ]
   permeabilityMod: 0.75
   cureSteps:
   - !type:CureReagent
     cureChance: 0.1
     requirements:
     - reagentId: Spaceacillin
+  - !type:CureWait
+    requiredTicks: 300
+    cureChance: 0.5
   stages:
   - stage: 1
     # no-op
   - stage: 2
     sensations:
-    - sensation: disease-sensation-muscles-ache
-    - sensation: disease-sensation-stomach-hurt
+    - !type:PopupMessage
+      messages: [ "disease-sensation-muscles-ache", "disease-sensation-stomach-hurt" ]
+      probability: 0.05
     symptoms:
     - symptom: SymptomCough
     - symptom: SymptomSneeze
@@ -101,8 +110,9 @@
       lowerStage: true
   - stage: 3
     sensations:
-    - sensation: disease-sensation-muscles-ache
-    - sensation: disease-sensation-stomach-hurt
+    - !type:PopupMessage
+      messages: [ "disease-sensation-muscles-ache", "disease-sensation-stomach-hurt" ]
+      probability: 0.05
     symptoms:
     - symptom: SymptomCough
     - symptom: SymptomSneeze

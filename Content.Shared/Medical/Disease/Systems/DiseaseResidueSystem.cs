@@ -90,7 +90,7 @@ public sealed class DiseaseResidueSystem : EntitySystem
             if (!_prototypes.TryIndex(id, out DiseasePrototype? proto))
                 continue;
 
-            if ((proto.SpreadFlags & DiseaseSpreadFlags.Contact) == 0)
+            if ((proto.SpreadPath & DiseaseSpreadPath.Contact) == 0)
                 continue;
 
             var deposit = proto.ContactDeposit;
@@ -187,7 +187,7 @@ public sealed class DiseaseResidueSystem : EntitySystem
         if (!_prototypes.TryIndex(diseaseId, out DiseasePrototype? proto))
             return;
 
-        if ((proto.SpreadFlags & DiseaseSpreadFlags.Contact) == 0)
+        if ((proto.SpreadPath & DiseaseSpreadPath.Contact) == 0)
             return;
 
         var chance = Math.Clamp(proto.ContactInfect, 0f, 1f);

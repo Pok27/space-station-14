@@ -794,6 +794,14 @@
         damage:
           types:
             Asphyxiation: -0.5
+      - !type:HealthChange
+        conditions:
+        - !type:ReagentCondition
+          reagent: Salbutamol
+          min: 15
+        damage:
+          types:
+            Asphyxiation: 5
 
 - type: reagent
   id: Perfluorodecalin
@@ -810,6 +818,14 @@
         damage:
           types:
             Asphyxiation: -1
+      - !type:HealthChange
+        conditions:
+        - !type:ReagentCondition
+          reagent: Perfluorodecalin
+          min: 15
+        damage:
+          types:
+            Asphyxiation: 10
 
 - type: reagent
   id: TranexamicAcid
@@ -1056,6 +1072,14 @@
             Poison: -0.5
       - !type:CleanBloodstream
         cleanseRate: 1
+      - !type:HealthChange
+        conditions:
+        - !type:ReagentCondition
+          reagent: Perfluorodecalin
+          min: 10
+        damage:
+          types:
+            Poison: 5
 
 - type: reagent
   id: Sigynate

@@ -7,7 +7,7 @@ namespace Content.Shared.Medical.Disease.Prototypes;
 /// TODO: only the Contact works and Airborne.
 /// </summary>
 [Flags]
-public enum DiseaseSpreadFlags
+public enum DiseaseSpreadPath
 {
     NonContagious = 0,
     Airborne = 1 << 0,

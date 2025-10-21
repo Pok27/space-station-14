@@ -23,13 +23,13 @@ public sealed partial class CureReagent : CureStep
         /// The reagent that needs to be present.
         /// </summary>
         [DataField(required: true)]
-        public string ReagentId { get; private set; } = string.Empty;
+        public ProtoId<ReagentPrototype> ReagentId { get; private set; } = default!;
 
         /// <summary>
         /// How much of the reagent must be present.
         /// </summary>
         [DataField]
-        public FixedPoint2 Quantity { get; private set; } = FixedPoint2.New(1);
+        public FixedPoint2 Amount { get; private set; } = FixedPoint2.New(1);
     }
 }
 
@@ -55,7 +55,7 @@ public sealed partial class CureReagent
         foreach (var req in Requirements)
         {
             var have = chemSolution.GetTotalPrototypeQuantity(req.ReagentId);
-            if (have < req.Quantity)
+            if (have < req.Amount)
                 return false;
         }
 
@@ -68,10 +68,10 @@ public sealed partial class CureReagent
         foreach (var r in Requirements)
         {
             var name = r.ReagentId;
-            if (prototypes.TryIndex<ReagentPrototype>(r.ReagentId, out var proto))
+            if (prototypes.TryIndex(r.ReagentId, out var proto))
                 name = proto.LocalizedName;
 
-            parts.Add(Loc.GetString("diagnoser-cure-reagent-item", ("units", r.Quantity.ToString()), ("reagent", name)));
+            parts.Add(Loc.GetString("diagnoser-cure-reagent-item", ("units", r.Amount.ToString()), ("reagent", name)));
         }
 
         var joined = string.Join(", ", parts);

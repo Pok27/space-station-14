@@ -42,7 +42,7 @@ public sealed partial class DiseaseSymptomPrototype : IPrototype
     /// If true, this symptom will only trigger on living carriers. If the carrier is dead the symptom is skipped.
     /// </summary>
     [DataField]
-    public bool OnlyWhenAlive { get; private set; } = false;
+    public bool OnlyAlive { get; private set; } = false;
 
     /// <summary>
     /// Configuration for symptom-driven airborne burst.

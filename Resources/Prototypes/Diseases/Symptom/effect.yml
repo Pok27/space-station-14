@@ -30,7 +30,7 @@
   - !type:CureReagent
     requirements:
     - reagentId: Charcoal
-      quantity: 5
+      amount: 5
   behaviors:
   - !type:SymptomStatusEffect
     effects:
@@ -44,11 +44,11 @@
   - !type:CureReagent
     requirements:
     - reagentId: Ethyloxyephedrine
-      quantity: 5
+      amount: 5
   - !type:CureReagent
     requirements:
     - reagentId: Diphenylmethylamine
-      quantity: 3
+      amount: 3
   behaviors:
   - !type:SymptomGenericStatusEffect
     effectProto: StatusEffectForcedSleeping
@@ -63,9 +63,9 @@
   - !type:CureReagent
     requirements:
     - reagentId: Haloperidol
-      quantity: 2
+      amount: 2
     - reagentId: Synaptizine
-      quantity: 2
+      amount: 2
   behaviors:
   - !type:SymptomStatusEffect
     effects:
@@ -108,6 +108,13 @@
   id: SymptomToxinLight
   name: disease-symptom-SymptomToxinLight-name
   probability: 0.05
+  cureSteps:
+  - !type:CureReagent
+    requirements:
+    - reagentId: Salbutamol
+      amount: 2
+    - reagentId: Perfluorodecalin
+      amount: 2
   behaviors:
   - !type:SymptomStatusEffect
     effects:
@@ -120,6 +127,13 @@
   id: SymptomGeneticDamage
   name: disease-symptom-SymptomGeneticDamage-name
   probability: 0.05
+  cureSteps:
+  - !type:CureReagent
+    requirements:
+    - reagentId: Salbutamol
+      amount: 2
+    - reagentId: Perfluorodecalin
+      amount: 2
   behaviors:
   - !type:SymptomStatusEffect
     effects:

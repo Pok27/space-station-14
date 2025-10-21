@@ -23,7 +23,7 @@ public sealed partial class SharedDiseaseSymptomSystem : EntitySystem
     public void TriggerSymptom(Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease, DiseaseSymptomPrototype symptom)
     {
         // Skip this symptom when the carrier is dead.
-        if (symptom.OnlyWhenAlive && _mobState.IsDead(ent.Owner))
+        if (symptom.OnlyAlive && _mobState.IsDead(ent.Owner))
             return;
 
         var deps = _entitySystemManager.DependencyCollection;
@@ -63,7 +63,7 @@ public sealed partial class SharedDiseaseSymptomSystem : EntitySystem
     {
         var cfg = symptom.AirborneBurst;
 
-        if ((disease.SpreadFlags & DiseaseSpreadFlags.Airborne) == 0)
+        if ((disease.SpreadPath & DiseaseSpreadPath.Airborne) == 0)
             return;
 
         var range = disease.AirborneRange * MathF.Max(0.1f, cfg.RangeMultiplier);

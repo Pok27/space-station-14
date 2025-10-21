@@ -78,6 +78,13 @@
       - !type:AdjustReagent
         reagent: UncookedAnimalProteins
         amount: 0.5
+      - !type:CauseDisease
+        conditions:
+        - !type:MetabolizerTypeCondition
+          type: [ Animal, Vox ]
+          inverted: true
+        disease: DiseaseFoodPoisoning
+        probability: 0.03
 
 - type: reagent
   id: EggCooked

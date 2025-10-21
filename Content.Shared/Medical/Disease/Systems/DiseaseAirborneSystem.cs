@@ -44,7 +44,7 @@ public sealed class DiseaseAirborneSystem : EntitySystem
                 if (!_prototypes.TryIndex(diseaseId, out DiseasePrototype? disease))
                     continue;
 
-                if ((disease.SpreadFlags & DiseaseSpreadFlags.Airborne) == 0)
+                if ((disease.SpreadPath & DiseaseSpreadPath.Airborne) == 0)
                     continue;
 
                 TryAirborneSpread(uid, disease);

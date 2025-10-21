@@ -138,25 +138,9 @@ public sealed partial class SharedDiseaseSystem : EntitySystem
         if (stageCfg == null)
             return;
 
-        // Stage sensations: each entry has its own per-tick probability.
-        for (var i = 0; i < stageCfg.Sensations.Count; i++)
-        {
-            var entry = stageCfg.Sensations[i];
-            // TODO: Replace with RandomPredicted once the engine PR is merged
-            var seed = SharedRandomExtensions.HashCodeCombine([(int)_timing.CurTick.Value, GetNetEntity(ent).Id, 2, stage, i]);
-            var rand = new System.Random(seed);
-            if (!rand.Prob(entry.Probability))
-                continue;
-
-            var effect = new PopupMessage
-            {
-                Messages = [entry.Sensation],
-                Type = entry.Type,
-                VisualType = entry.VisualType
-            };
-            _effects.TryApplyEffect(ent.Owner, effect);
-            break;
-        }
+        // Apply the <see cref="PopupMessageEntityEffectSystem"/> effect to show the popup.
+        foreach (var entry in stageCfg.Sensations)
+            _effects.TryApplyEffect(ent.Owner, entry);
 
         // Symptoms are a list of detailed entries (symptom + optional probability override).
         for (var i = 0; i < stageCfg.Symptoms.Count; i++)
