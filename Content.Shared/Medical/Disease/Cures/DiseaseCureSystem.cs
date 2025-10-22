@@ -39,14 +39,12 @@ public sealed partial class SharedDiseaseCureSystem : EntitySystem
         if (stageCfg == null)
             return;
 
-        var applicable = stageCfg.CureSteps.Count > 0 ? stageCfg.CureSteps : disease.CureSteps;
-        var simpleSymptoms = stageCfg.Symptoms.Select(s => s.Symptom).ToList();
-
         // TODO: Replace with RandomPredicted once the engine PR is merged
         var seed = SharedRandomExtensions.HashCodeCombine([(int)_timing.CurTick.Value, GetNetEntity(ent).Id]);
         var rand = new System.Random(seed);
 
-        // disease-level cures
+        // Disease-level cures.
+        var applicable = stageCfg.CureSteps.Count > 0 ? stageCfg.CureSteps : disease.CureSteps;
         foreach (var step in applicable)
         {
             // Calculates the probability of treatment at each tick.
@@ -62,7 +60,7 @@ public sealed partial class SharedDiseaseCureSystem : EntitySystem
                 ApplyCureDisease(ent, disease);
         }
 
-        // symptom-level cures
+        // Symptom-level cures.
         foreach (var entry in stageCfg.Symptoms)
         {
             var symptomId = entry.Symptom;
