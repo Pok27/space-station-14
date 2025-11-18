@@ -67,7 +67,7 @@ public abstract class AlertsSystem : EntitySystem
                 autoComp.AlertKeys.Remove(alertKey);
             }
 
-            Dirty(uid, alertComp);
+            OnAlertsDirty(uid, alertComp);
             Dirty(uid, autoComp);
         }
     }
@@ -183,8 +183,7 @@ public abstract class AlertsSystem : EntitySystem
         }
 
         AfterShowAlert((entity, entity.Comp));
-
-        Dirty(entity);
+        OnAlertsDirty(entity, entity.Comp);
     }
 
     /// <summary>
@@ -243,8 +242,7 @@ public abstract class AlertsSystem : EntitySystem
         }
 
         AfterClearAlert((entity, entity.Comp));
-
-        Dirty(entity);
+        OnAlertsDirty(entity, entity.Comp);
     }
 
     /// <summary>
@@ -266,8 +264,7 @@ public abstract class AlertsSystem : EntitySystem
             }
 
             AfterClearAlert((entity, entity.Comp));
-
-            Dirty(entity);
+            OnAlertsDirty(entity, entity.Comp);
         }
         else
         {
@@ -306,7 +303,7 @@ public abstract class AlertsSystem : EntitySystem
         }
 
         if (dirty)
-            Dirty(entity, alertComp);
+            OnAlertsDirty(entity, alertComp);
     }
 
     protected virtual void HandleComponentShutdown(EntityUid uid, AlertsComponent component, ComponentShutdown args)
@@ -352,7 +349,17 @@ public abstract class AlertsSystem : EntitySystem
         if (player is null || !HasComp<AlertsComponent>(player))
             return;
 
-        if (!IsShowingAlert(player.Value, msg.Type))
+        // Relay: if this entity is displaying alerts for another source via relay.
+        var target = player.Value;
+        if (TryComp<AlertsDisplayRelayComponent>(player.Value, out var relay) && relay.Source is { } src)
+        {
+            if (relay.InteractAsSource)
+                target = src;
+            else
+                target = player.Value;
+        }
+
+        if (!IsShowingAlert(target, msg.Type))
         {
             Log.Debug($"User {ToPrettyString(player.Value)} attempted to click alert {msg.Type} which is not currently showing for them");
             return;
@@ -364,7 +371,7 @@ public abstract class AlertsSystem : EntitySystem
             return;
         }
 
-        if (ActivateAlert(player.Value, alert) && _timing.IsFirstTimePredicted)
+        if (ActivateAlert(target, alert) && _timing.IsFirstTimePredicted)
         {
             HandledAlert();
         }
@@ -390,6 +397,22 @@ public abstract class AlertsSystem : EntitySystem
 
     private void OnPlayerAttached(EntityUid uid, AlertsComponent component, PlayerAttachedEvent args)
     {
+        OnAlertsDirty(uid, component);
+    }
+
+    private void OnAlertsDirty(EntityUid uid, AlertsComponent component)
+    {
         Dirty(uid, component);
+
+        // Relay: dirty for all connected relays.
+        var relayQuery = EntityQueryEnumerator<AlertsDisplayRelayComponent>();
+        while (relayQuery.MoveNext(out var relayUid, out var relayComp))
+        {
+            if (relayComp.Source == uid)
+            {
+                if (TryComp<AlertsComponent>(relayUid, out var relayAlertsComp))
+                    Dirty(relayUid, relayAlertsComp);
+            }
+        }
     }
 }
