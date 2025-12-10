@@ -5,7 +5,7 @@ using Robust.Shared.Maths;
 namespace Content.Shared.Weapons.Melee.Events;
 
 /// <summary>
-/// Raised on the attacker (user) before spawning melee lunge visuals on the client.
+/// Raised on the attacker before spawning melee lunge visuals on the client.
 /// Systems may adjust the visual behavior by setting the flags below.
 /// </summary>
 [ByRefEvent]

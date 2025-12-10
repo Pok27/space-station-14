@@ -408,7 +408,7 @@ public abstract class SharedMeleeWeaponSystem : EntitySystem
                 break;
         }
 
-        // Resolve effective melee attacker (e.g., mech instead of pilot)
+        // Resolve effective melee attacker.
         var attacker = user;
         var getAttackerEv = new GetMeleeAttackerEntityEvent();
         RaiseLocalEvent(user, ref getAttackerEv);
@@ -453,17 +453,17 @@ public abstract class SharedMeleeWeaponSystem : EntitySystem
             switch (attack)
             {
                 case LightAttackEvent light:
-                    DoLightAttack(user, light, weaponUid, weapon, session, attacker);
+                    DoLightAttack(attacker, light, weaponUid, weapon, session);
                     animation = weapon.Animation;
                     break;
                 case DisarmAttackEvent disarm:
-                    if (!DoDisarm(user, disarm, weaponUid, weapon, session, attacker))
+                    if (!DoDisarm(attacker, disarm, weaponUid, weapon, session))
                         return false;
 
                     animation = weapon.Animation;
                     break;
                 case HeavyAttackEvent heavy:
-                    if (!DoHeavyAttack(user, heavy, weaponUid, weapon, session, attacker))
+                    if (!DoHeavyAttack(attacker, heavy, weaponUid, weapon, session))
                         return false;
 
                     animation = weapon.WideAnimation;
@@ -472,7 +472,7 @@ public abstract class SharedMeleeWeaponSystem : EntitySystem
                     throw new NotImplementedException();
             }
 
-        DoLungeAnimation(attacker, weaponUid, weapon.Angle, TransformSystem.ToMapCoordinates(GetCoordinates(attack.Coordinates)), weapon.Range, animation);
+            DoLungeAnimation(attacker, weaponUid, weapon.Angle, TransformSystem.ToMapCoordinates(GetCoordinates(attack.Coordinates)), weapon.Range, animation);
         }
 
         var attackEv = new MeleeAttackEvent(weaponUid);
@@ -595,7 +595,7 @@ public abstract class SharedMeleeWeaponSystem : EntitySystem
             return false;
 
         // Use the resolved attacker for positional calculations if available
-        var userPos = TransformSystem.GetWorldPosition(attackerXform);
+        var userPos = TransformSystem.GetWorldPosition(userXform);
         var direction = targetMap.Position - userPos;
         var distance = Math.Min(component.Range, direction.Length());
 

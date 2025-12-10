@@ -180,7 +180,7 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
             return;
         }
 
-        // Resolve attacker and use its transform for ray origin and ignore
+        // Resolve attacker and use its transform for ray origin and ignore.
         var attacker = user;
         var getAttackerEv = new GetMeleeAttackerEntityEvent();
         RaiseLocalEvent(user, ref getAttackerEv);
