@@ -12,7 +12,6 @@ using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.XAML;
 using Robust.Client.Player;
-using Robust.Shared.GameObjects;
 
 namespace Content.Client.Mech.Ui;
 
