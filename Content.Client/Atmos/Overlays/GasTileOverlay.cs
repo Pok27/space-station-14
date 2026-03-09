@@ -36,6 +36,9 @@ namespace Content.Client.Atmos.Overlays
         private readonly float[][] _frameDelays;
         private readonly int[] _frameCounter;
 
+        private const int MinSmoothingSubdivisionsPerAxis = 1;
+        private const int MaxSmoothingSubdivisionsPerAxis = 4;
+
         // TODO combine textures into a single texture atlas.
         private readonly Texture[][] _frames;
 
@@ -49,8 +52,9 @@ namespace Content.Client.Atmos.Overlays
         private readonly Texture[][] _fireFrames = new Texture[FireStates][];
 
         private int _gasCount;
+        private int _smoothingSubdivisionsPerAxis;
 
-        public const int GasOverlayZIndex = (int) Shared.DrawDepth.DrawDepth.Effects; // Under ghosts, above mostly everything else
+        public const int GasOverlayZIndex = (int)Shared.DrawDepth.DrawDepth.Effects; // Under ghosts, above mostly everything else
 
         public GasTileOverlay(GasTileOverlaySystem system, IEntityManager entManager, IResourceCache resourceCache, IPrototypeManager protoMan, SpriteSystem spriteSys, SharedTransformSystem xformSys)
         {
@@ -75,9 +79,9 @@ namespace Content.Client.Atmos.Overlays
                 SpriteSpecifier overlay;
 
                 if (!string.IsNullOrEmpty(gasPrototype.GasOverlaySprite) && !string.IsNullOrEmpty(gasPrototype.GasOverlayState))
-                    overlay = new SpriteSpecifier.Rsi(new (gasPrototype.GasOverlaySprite), gasPrototype.GasOverlayState);
+                    overlay = new SpriteSpecifier.Rsi(new(gasPrototype.GasOverlaySprite), gasPrototype.GasOverlayState);
                 else if (!string.IsNullOrEmpty(gasPrototype.GasOverlayTexture))
-                    overlay = new SpriteSpecifier.Texture(new (gasPrototype.GasOverlayTexture));
+                    overlay = new SpriteSpecifier.Texture(new(gasPrototype.GasOverlayTexture));
                 else
                     continue;
 
@@ -161,6 +165,7 @@ namespace Content.Client.Atmos.Overlays
             var gridState = (args.WorldBounds,
                 args.WorldHandle,
                 _gasCount,
+                _smoothingSubdivisionsPerAxis,
                 _frames,
                 _frameCounter,
                 _fireFrames,
@@ -184,6 +189,7 @@ namespace Content.Client.Atmos.Overlays
                     ref (Box2Rotated WorldBounds,
                         DrawingHandleWorld drawHandle,
                         int gasCount,
+                        int smoothingSubdivisionsPerAxis,
                         Texture[][] frames,
                         int[] frameCounter,
                         Texture[][] fireFrames,
@@ -195,18 +201,18 @@ namespace Content.Client.Atmos.Overlays
                 {
                     if (!state.overlayQuery.TryGetComponent(uid, out var comp) ||
                         !state.xformQuery.TryGetComponent(uid, out var gridXform))
-                        {
-                            return true;
-                        }
+                    {
+                        return true;
+                    }
 
                     var (_, _, worldMatrix, invMatrix) = state.xformSys.GetWorldPositionRotationMatrixWithInv(gridXform);
                     state.drawHandle.SetTransform(worldMatrix);
                     var floatBounds = invMatrix.TransformBox(state.WorldBounds).Enlarged(grid.TileSize);
                     var localBounds = new Box2i(
-                        (int) MathF.Floor(floatBounds.Left),
-                        (int) MathF.Floor(floatBounds.Bottom),
-                        (int) MathF.Ceiling(floatBounds.Right),
-                        (int) MathF.Ceiling(floatBounds.Top));
+                        (int)MathF.Floor(floatBounds.Left),
+                        (int)MathF.Floor(floatBounds.Bottom),
+                        (int)MathF.Ceiling(floatBounds.Right),
+                        (int)MathF.Ceiling(floatBounds.Top));
 
                     // Currently it would be faster to group drawing by gas rather than by chunk, but if the textures are
                     // ever moved to a single atlas, that should no longer be the case. So this is just grouping draw calls
@@ -229,8 +235,17 @@ namespace Content.Client.Atmos.Overlays
                             for (var i = 0; i < state.gasCount; i++)
                             {
                                 var opacity = gas.Opacity[i];
-                                if (opacity > 0)
-                                    state.drawHandle.DrawTexture(state.frames[i][state.frameCounter[i]], tilePosition, Color.White.WithAlpha(opacity));
+                                if (opacity == 0)
+                                    continue;
+
+                                DrawSmoothedGasTile(
+                                    state.drawHandle,
+                                    state.frames[i][state.frameCounter[i]],
+                                    tilePosition,
+                                    i,
+                                    opacity,
+                                    comp.Chunks,
+                                    state.smoothingSubdivisionsPerAxis);
                             }
                         }
                     }
@@ -261,6 +276,156 @@ namespace Content.Client.Atmos.Overlays
 
             drawHandle.UseShader(null);
             drawHandle.SetTransform(Matrix3x2.Identity);
+        }
+
+        /// <summary>
+        /// Draws a gas overlay tile with edge smoothing based on neighbouring gas opacity.
+        /// </summary>
+        /// <remarks>
+        /// The function renders a gas tile whose opacity smoothly blends with adjacent tiles.
+        /// Instead of drawing the tile with a uniform alpha, it samples the opacity of the
+        /// four cardinal neighbours (N,S,E,W) and four diagonal neighbours to approximate
+        /// how the gas density changes across the tile.
+        /// </remarks>
+        private static void DrawSmoothedGasTile(
+            DrawingHandleWorld drawHandle,
+            Texture texture,
+            Vector2i tileIndices,
+            int gasIndex,
+            byte centerOpacity,
+            Dictionary<Vector2i, GasOverlayChunk> chunks,
+            int smoothingSubdivisionsPerAxis)
+        {
+            var north = GetOpacity(chunks, tileIndices + Vector2i.Up, gasIndex);
+            var south = GetOpacity(chunks, tileIndices + Vector2i.Down, gasIndex);
+            var east = GetOpacity(chunks, tileIndices + Vector2i.Right, gasIndex);
+            var west = GetOpacity(chunks, tileIndices + Vector2i.Left, gasIndex);
+
+            // Dense clouds are common and can use the old single draw call path.
+            if (north == centerOpacity &&
+                south == centerOpacity &&
+                east == centerOpacity &&
+                west == centerOpacity)
+            {
+                drawHandle.DrawTexture(texture, tileIndices, Color.White.WithAlpha(centerOpacity));
+                return;
+            }
+
+            var northWest = GetOpacity(chunks, tileIndices + Vector2i.UpLeft, gasIndex);
+            var northEast = GetOpacity(chunks, tileIndices + Vector2i.UpRight, gasIndex);
+            var southWest = GetOpacity(chunks, tileIndices + Vector2i.DownLeft, gasIndex);
+            var southEast = GetOpacity(chunks, tileIndices + Vector2i.DownRight, gasIndex);
+
+            var alphaNw = BlendCorner(centerOpacity, north, west, northWest);
+            var alphaNe = BlendCorner(centerOpacity, north, east, northEast);
+            var alphaSw = BlendCorner(centerOpacity, south, west, southWest);
+            var alphaSe = BlendCorner(centerOpacity, south, east, southEast);
+
+            if (alphaNw == centerOpacity &&
+                alphaNe == centerOpacity &&
+                alphaSw == centerOpacity &&
+                alphaSe == centerOpacity)
+            {
+                drawHandle.DrawTexture(texture, tileIndices, Color.White.WithAlpha(centerOpacity));
+                return;
+            }
+
+            if (smoothingSubdivisionsPerAxis <= 1)
+            {
+                var uniformAlpha = (byte)((alphaNw + alphaNe + alphaSw + alphaSe + 2) / 4);
+                if (uniformAlpha > 0)
+                    drawHandle.DrawTexture(texture, tileIndices, Color.White.WithAlpha(uniformAlpha));
+                return;
+            }
+
+            var texWidth = texture.Width;
+            var texHeight = texture.Height;
+            var x = tileIndices.X;
+            var y = tileIndices.Y;
+            var segmentWorldSize = 1f / smoothingSubdivisionsPerAxis;
+            var segmentTextureWidth = texWidth / smoothingSubdivisionsPerAxis;
+            var segmentTextureHeight = texHeight / smoothingSubdivisionsPerAxis;
+
+            for (var sx = 0; sx < smoothingSubdivisionsPerAxis; sx++)
+            {
+                var sampleX = (sx + 0.5f) / smoothingSubdivisionsPerAxis;
+
+                for (var sy = 0; sy < smoothingSubdivisionsPerAxis; sy++)
+                {
+                    var sampleY = (sy + 0.5f) / smoothingSubdivisionsPerAxis;
+                    var alpha = Bilinear(sampleX, sampleY, alphaSw, alphaSe, alphaNw, alphaNe);
+                    if (alpha == 0)
+                        continue;
+
+                    var worldRect = Box2.FromDimensions(
+                        x + sx * segmentWorldSize,
+                        y + sy * segmentWorldSize,
+                        segmentWorldSize,
+                        segmentWorldSize);
+
+                    // World-space Y grows upwards, sub-region Y grows downwards.
+                    var subTop = texHeight - (sy + 1) * segmentTextureHeight;
+                    var subBottom = texHeight - sy * segmentTextureHeight;
+                    var subLeft = sx * segmentTextureWidth;
+                    var subRight = (sx + 1) * segmentTextureWidth;
+
+                    drawHandle.DrawTextureRectRegion(
+                        texture,
+                        worldRect,
+                        Color.White.WithAlpha(alpha),
+                        new UIBox2(subLeft, subTop, subRight, subBottom));
+                }
+            }
+        }
+
+        private static byte BlendCorner(byte center, byte cardA, byte cardB, byte diagonal)
+        {
+            // 4:2:2:1 (center:cardinal:cardinal:diagonal) keeps edges soft without washing out dense tiles.
+            const int blendCenterWeight = 4;
+            const int blendCardinalWeight = 2;
+            const int blendDiagonalWeight = 1;
+            const int blendWeightTotal = blendCenterWeight + blendCardinalWeight + blendCardinalWeight + blendDiagonalWeight;
+            var weighted = center * blendCenterWeight + cardA * blendCardinalWeight + cardB * blendCardinalWeight + diagonal * blendDiagonalWeight;
+            return (byte)((weighted + blendWeightTotal / 2) / blendWeightTotal);
+        }
+
+        private static byte Bilinear(float x, float y, byte sw, byte se, byte nw, byte ne)
+        {
+            var south = MathHelper.Lerp(sw, se, x);
+            var north = MathHelper.Lerp(nw, ne, x);
+            return (byte)MathF.Round(MathHelper.Lerp(south, north, y));
+        }
+
+        private static byte GetOpacity(Dictionary<Vector2i, GasOverlayChunk> chunks, Vector2i tileIndices, int gasIndex)
+        {
+            var chunkIndices = SharedGasTileOverlaySystem.GetGasChunkIndices(tileIndices);
+            if (!chunks.TryGetValue(chunkIndices, out var chunk))
+                return 0;
+
+            var localX = tileIndices.X - chunk.Origin.X;
+            var localY = tileIndices.Y - chunk.Origin.Y;
+            if ((uint)localX >= SharedGasTileOverlaySystem.ChunkSize ||
+                (uint)localY >= SharedGasTileOverlaySystem.ChunkSize)
+            {
+                return 0;
+            }
+
+            var data = chunk.TileData[localX + localY * SharedGasTileOverlaySystem.ChunkSize];
+            if (gasIndex >= data.Opacity.Length)
+                return 0;
+
+            return data.Opacity[gasIndex];
+        }
+
+        /// <summary>
+        /// Controls how many discrete smoothing segments are rendered per tile axis.
+        /// </summary>
+        public void SetSmoothingSubdivisionsPerAxis(int value)
+        {
+            _smoothingSubdivisionsPerAxis = Math.Clamp(
+                value,
+                MinSmoothingSubdivisionsPerAxis,
+                MaxSmoothingSubdivisionsPerAxis);
         }
 
         private void DrawMapOverlay(
