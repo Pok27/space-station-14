@@ -164,7 +164,6 @@ namespace Content.Client.Atmos.Overlays
                 args.WorldHandle,
                 _gasCount,
                 _smoothingSubdivisionsPerAxis,
-                _fireSegmentationSubdivisionsPerAxis,
                 _frames,
                 _frameCounter,
                 _fireFrames,
@@ -189,7 +188,6 @@ namespace Content.Client.Atmos.Overlays
                         DrawingHandleWorld drawHandle,
                         int gasCount,
                         int smoothingSubdivisionsPerAxis,
-                        int fireSegmentationSubdivisionsPerAxis,
                         Texture[][] frames,
                         int[] frameCounter,
                         Texture[][] fireFrames,
@@ -265,13 +263,9 @@ namespace Content.Client.Atmos.Overlays
                             if (!localBounds.Contains(index))
                                 continue;
 
-                            DrawSegmentedFireTile(
-                                state.drawHandle,
-                                index,
-                                comp.Chunks,
-                                state.fireFrames,
-                                state.fireFrameCounter,
-                                state.fireSegmentationSubdivisionsPerAxis);
+                            var fireState = gas.FireState - 1;
+                            var texture = state.fireFrames[fireState][state.fireFrameCounter[fireState]];
+                            state.drawHandle.DrawTexture(texture, index);
                         }
                     }
 
@@ -446,159 +440,6 @@ namespace Content.Client.Atmos.Overlays
             var south = MathHelper.Lerp(sw, se, x);
             var north = MathHelper.Lerp(nw, ne, x);
             return (byte)MathF.Round(MathHelper.Lerp(south, north, y));
-        }
-
-        /// <summary>
-        /// Controls how many discrete fire segments are rendered per tile axis.
-        /// </summary>
-        public void SetFireSegmentationSubdivisionsPerAxis(int value)
-        {
-            _fireSegmentationSubdivisionsPerAxis = Math.Clamp(value, 1, 32);
-        }
-
-        /// <summary>
-        /// Draws a fire overlay tile by interpolating discrete fire states from neighbouring tiles.
-        /// </summary>
-        private static void DrawSegmentedFireTile(
-            DrawingHandleWorld drawHandle,
-            Vector2i tileIndices,
-            Dictionary<Vector2i, GasOverlayChunk> chunks,
-            Texture[][] fireFrames,
-            int[] fireFrameCounter,
-            int subdivisionsPerAxis)
-        {
-            if (!TryGetTileData(chunks, tileIndices, out var centerData) || centerData.ByteGasTemperature.IsAtmosImpossible)
-                return;
-
-            var centerState = centerData.FireState;
-            if (centerState == 0)
-                return;
-
-            var n = GetFireState(chunks, tileIndices + Vector2i.Up, centerState);
-            var s = GetFireState(chunks, tileIndices + Vector2i.Down, centerState);
-            var e = GetFireState(chunks, tileIndices + Vector2i.Right, centerState);
-            var w = GetFireState(chunks, tileIndices + Vector2i.Left, centerState);
-
-            var centerTexture = fireFrames[centerState - 1][fireFrameCounter[centerState - 1]];
-
-            if (n == centerState && s == centerState && e == centerState && w == centerState)
-            {
-                drawHandle.DrawTexture(centerTexture, tileIndices);
-                return;
-            }
-
-            var nw = GetFireState(chunks, tileIndices + Vector2i.UpLeft, centerState);
-            var ne = GetFireState(chunks, tileIndices + Vector2i.UpRight, centerState);
-            var sw = GetFireState(chunks, tileIndices + Vector2i.DownLeft, centerState);
-            var se = GetFireState(chunks, tileIndices + Vector2i.DownRight, centerState);
-
-            var alphaNw = BlendCorner(
-                FireStateToBlendValue(centerState),
-                FireStateToBlendValue(n),
-                FireStateToBlendValue(w),
-                FireStateToBlendValue(nw));
-            var alphaNe = BlendCorner(
-                FireStateToBlendValue(centerState),
-                FireStateToBlendValue(n),
-                FireStateToBlendValue(e),
-                FireStateToBlendValue(ne));
-            var alphaSw = BlendCorner(
-                FireStateToBlendValue(centerState),
-                FireStateToBlendValue(s),
-                FireStateToBlendValue(w),
-                FireStateToBlendValue(sw));
-            var alphaSe = BlendCorner(
-                FireStateToBlendValue(centerState),
-                FireStateToBlendValue(s),
-                FireStateToBlendValue(e),
-                FireStateToBlendValue(se));
-
-            if (alphaNw == FireStateToBlendValue(centerState) &&
-                alphaNe == FireStateToBlendValue(centerState) &&
-                alphaSw == FireStateToBlendValue(centerState) &&
-                alphaSe == FireStateToBlendValue(centerState))
-            {
-                drawHandle.DrawTexture(centerTexture, tileIndices);
-                return;
-            }
-
-            if (subdivisionsPerAxis <= 1)
-            {
-                var average = (byte)((alphaNw + alphaNe + alphaSw + alphaSe + 2) / 4);
-                var averagedState = BlendValueToFireState(average);
-                if (averagedState > 0)
-                    drawHandle.DrawTexture(fireFrames[averagedState - 1][fireFrameCounter[averagedState - 1]], tileIndices);
-
-                return;
-            }
-
-            var texWidth = centerTexture.Width;
-            var texHeight = centerTexture.Height;
-            var x = tileIndices.X;
-            var y = tileIndices.Y;
-            var segmentWorldSize = 1f / subdivisionsPerAxis;
-            var segmentTextureWidth = texWidth / subdivisionsPerAxis;
-            var segmentTextureHeight = texHeight / subdivisionsPerAxis;
-
-            for (var sx = 0; sx < subdivisionsPerAxis; sx++)
-            {
-                var sampleX = (sx + 0.5f) / subdivisionsPerAxis;
-
-                for (var sy = 0; sy < subdivisionsPerAxis; sy++)
-                {
-                    var sampleY = (sy + 0.5f) / subdivisionsPerAxis;
-                    var blend = Bilinear(sampleX, sampleY, alphaSw, alphaSe, alphaNw, alphaNe);
-                    var sampledState = BlendValueToFireState(blend);
-                    if (sampledState == 0)
-                        continue;
-
-                    var texture = fireFrames[sampledState - 1][fireFrameCounter[sampledState - 1]];
-
-                    var worldRect = Box2.FromDimensions(
-                        x + sx * segmentWorldSize,
-                        y + sy * segmentWorldSize,
-                        segmentWorldSize,
-                        segmentWorldSize);
-
-                    var subTop = texHeight - (sy + 1) * segmentTextureHeight;
-                    var subBottom = texHeight - sy * segmentTextureHeight;
-                    var subLeft = sx * segmentTextureWidth;
-                    var subRight = (sx + 1) * segmentTextureWidth;
-
-                    drawHandle.DrawTextureRectRegion(
-                        texture,
-                        worldRect,
-                        Color.White,
-                        new UIBox2(subLeft, subTop, subRight, subBottom));
-                }
-            }
-        }
-
-        private static byte GetFireState(
-            Dictionary<Vector2i, GasOverlayChunk> chunks,
-            Vector2i tileIndices,
-            byte fallbackForBlocked)
-        {
-            if (!TryGetTileData(chunks, tileIndices, out var data))
-                return fallbackForBlocked;
-
-            if (data.ByteGasTemperature.IsAtmosImpossible)
-                return fallbackForBlocked;
-
-            if (data.FireState == 0)
-                return fallbackForBlocked;
-
-            return data.FireState;
-        }
-
-        private static byte FireStateToBlendValue(byte fireState)
-        {
-            return (byte)((fireState * byte.MaxValue + FireStates / 2) / FireStates);
-        }
-
-        private static byte BlendValueToFireState(byte value)
-        {
-            return (byte)Math.Clamp((value * FireStates + byte.MaxValue / 2) / byte.MaxValue, 0, FireStates);
         }
 
         private void DrawMapOverlay(

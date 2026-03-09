@@ -169,14 +169,6 @@ public sealed partial class CCVars
         CVarDef.Create("atmos.gas_overlay_smoothing_subdivisions_per_axis", 4, CVar.CLIENTONLY | CVar.ARCHIVE);
 
     /// <summary>
-    ///     Client-side fire overlay segmentation per tile axis.
-    ///     1 = whole tile, 2 = 2x2 segments (4 pieces), 4 = 4x4 segments (16 pieces).
-    ///     Higher values let fire edges conform to neighbours more closely, but increase draw calls.
-    /// </summary>
-    public static readonly CVarDef<int> FireOverlaySegmentationSubdivisionsPerAxis =
-        CVarDef.Create("atmos.fire_overlay_segmentation_subdivisions_per_axis", 4, CVar.CLIENTONLY | CVar.ARCHIVE);
-
-    /// <summary>
     /// Whether atmospherics will process delta-pressure damage on entities with a DeltaPressureComponent.
     /// Entities with this component will take damage if they are exposed to a pressure difference
     /// above the minimum pressure threshold defined in the component.
