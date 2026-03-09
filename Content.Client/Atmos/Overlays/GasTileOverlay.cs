@@ -283,9 +283,8 @@ namespace Content.Client.Atmos.Overlays
         /// </summary>
         /// <remarks>
         /// The function renders a gas tile whose opacity smoothly blends with adjacent tiles.
-        /// Instead of drawing the tile with a uniform alpha, it samples the opacity of the
-        /// four cardinal neighbours (N,S,E,W) and four diagonal neighbours to approximate
-        /// how the gas density changes across the tile.
+        /// It samples the opacity of the four cardinal neighbours (N,S,E,W) and four diagonal neighbours
+        /// to approximate how the gas density changes across the tile.
         /// </remarks>
         private static void DrawSmoothedGasTile(
             DrawingHandleWorld drawHandle,
@@ -296,35 +295,29 @@ namespace Content.Client.Atmos.Overlays
             Dictionary<Vector2i, GasOverlayChunk> chunks,
             int smoothingSubdivisionsPerAxis)
         {
-            var north = GetOpacity(chunks, tileIndices + Vector2i.Up, gasIndex);
-            var south = GetOpacity(chunks, tileIndices + Vector2i.Down, gasIndex);
-            var east = GetOpacity(chunks, tileIndices + Vector2i.Right, gasIndex);
-            var west = GetOpacity(chunks, tileIndices + Vector2i.Left, gasIndex);
+            var n = GetOpacity(chunks, tileIndices + Vector2i.Up, gasIndex);
+            var s = GetOpacity(chunks, tileIndices + Vector2i.Down, gasIndex);
+            var e = GetOpacity(chunks, tileIndices + Vector2i.Right, gasIndex);
+            var w = GetOpacity(chunks, tileIndices + Vector2i.Left, gasIndex);
 
             // Dense clouds are common and can use the old single draw call path.
-            if (north == centerOpacity &&
-                south == centerOpacity &&
-                east == centerOpacity &&
-                west == centerOpacity)
+            if (n == centerOpacity && s == centerOpacity && e == centerOpacity && w == centerOpacity)
             {
                 drawHandle.DrawTexture(texture, tileIndices, Color.White.WithAlpha(centerOpacity));
                 return;
             }
 
-            var northWest = GetOpacity(chunks, tileIndices + Vector2i.UpLeft, gasIndex);
-            var northEast = GetOpacity(chunks, tileIndices + Vector2i.UpRight, gasIndex);
-            var southWest = GetOpacity(chunks, tileIndices + Vector2i.DownLeft, gasIndex);
-            var southEast = GetOpacity(chunks, tileIndices + Vector2i.DownRight, gasIndex);
+            var nw = GetOpacity(chunks, tileIndices + Vector2i.UpLeft, gasIndex);
+            var ne = GetOpacity(chunks, tileIndices + Vector2i.UpRight, gasIndex);
+            var sw = GetOpacity(chunks, tileIndices + Vector2i.DownLeft, gasIndex);
+            var se = GetOpacity(chunks, tileIndices + Vector2i.DownRight, gasIndex);
 
-            var alphaNw = BlendCorner(centerOpacity, north, west, northWest);
-            var alphaNe = BlendCorner(centerOpacity, north, east, northEast);
-            var alphaSw = BlendCorner(centerOpacity, south, west, southWest);
-            var alphaSe = BlendCorner(centerOpacity, south, east, southEast);
+            var alphaNw = BlendCorner(centerOpacity, n, w, nw);
+            var alphaNe = BlendCorner(centerOpacity, n, e, ne);
+            var alphaSw = BlendCorner(centerOpacity, s, w, sw);
+            var alphaSe = BlendCorner(centerOpacity, s, e, se);
 
-            if (alphaNw == centerOpacity &&
-                alphaNe == centerOpacity &&
-                alphaSw == centerOpacity &&
-                alphaSe == centerOpacity)
+            if (alphaNw == centerOpacity && alphaNe == centerOpacity && alphaSw == centerOpacity && alphaSe == centerOpacity)
             {
                 drawHandle.DrawTexture(texture, tileIndices, Color.White.WithAlpha(centerOpacity));
                 return;
@@ -385,6 +378,7 @@ namespace Content.Client.Atmos.Overlays
             const int blendCardinalWeight = 2;
             const int blendDiagonalWeight = 1;
             const int blendWeightTotal = blendCenterWeight + blendCardinalWeight + blendCardinalWeight + blendDiagonalWeight;
+
             var weighted = center * blendCenterWeight + cardA * blendCardinalWeight + cardB * blendCardinalWeight + diagonal * blendDiagonalWeight;
             return (byte)((weighted + blendWeightTotal / 2) / blendWeightTotal);
         }
