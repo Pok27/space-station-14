@@ -32,6 +32,7 @@ namespace Content.Client.Atmos.EntitySystems
             _overlay = new GasTileOverlay(this, EntityManager, _resourceCache, ProtoMan, _spriteSys, _xformSys);
             _overlayMan.AddOverlay(_overlay);
             Subs.CVar(_cfg, CCVars.GasOverlaySmoothingSubdivisionsPerAxis, value => _overlay.SetSmoothingSubdivisionsPerAxis(value), true);
+            Subs.CVar(_cfg, CCVars.FireOverlaySegmentationSubdivisionsPerAxis, value => _overlay.SetFireSegmentationSubdivisionsPerAxis(value), true);
         }
 
         public override void Shutdown()
