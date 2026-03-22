@@ -5,11 +5,17 @@
   spreadPath: [ Airborne ]
   permeabilityMod: 0.5
   cureSteps:
-  - !type:CureReagent
+  - !type:CureConditions
     cureChance: 0.08
-    requirements:
-    - reagentId: Spaceacillin
-  - !type:CureTemperature
+    conditions:
+    - !type:ReagentCondition
+      reagent: Spaceacillin
+      min: 1
+  - !type:CureConditions
+    cureChance: 0.2
+    conditions:
+    - !type:TemperatureCondition
+      min: 309.15
   stages:
   - stage: 1
     # no-op
@@ -44,11 +50,15 @@
   desc: disease-DiseaseCold9-desc
   spreadPath: [ Contact ]
   cureSteps:
-  - !type:CureReagent
+  - !type:CureConditions
     cureChance: 0.15 # Higher chance to cure, since two reagents are required.
-    requirements:
-    - reagentId: Spaceacillin
-    - reagentId: Leporazine
+    conditions:
+    - !type:ReagentCondition
+      reagent: Spaceacillin
+      min: 1
+    - !type:ReagentCondition
+      reagent: Leporazine
+      min: 1
   stages:
   - stage: 1
     # no-op
@@ -80,10 +90,12 @@
   spreadPath: [ Airborne ]
   permeabilityMod: 0.75
   cureSteps:
-  - !type:CureReagent
+  - !type:CureConditions
     cureChance: 0.1
-    requirements:
-    - reagentId: Spaceacillin
+    conditions:
+    - !type:ReagentCondition
+      reagent: Spaceacillin
+      min: 1
   - !type:CureWait
     requiredTicks: 300
     cureChance: 0.5

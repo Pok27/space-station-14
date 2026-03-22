@@ -37,10 +37,12 @@
   spreadPath: [ Airborne ]
   airborneInfect: 0.01
   cureSteps:
-  - !type:CureReagent
+  - !type:CureConditions
     cureChance: 0.05
-    requirements:
-    - reagentId: Haloperidol
+    conditions:
+    - !type:ReagentCondition
+      reagent: Haloperidol
+      min: 1
   stages:
   - stage: 1
     sensations:
@@ -61,10 +63,11 @@
   contactInfect: 0.005
   contactDeposit: 0.05
   cureSteps:
-  - !type:CureReagent
-    requirements:
-    - reagentId: JuiceBanana
-      amount: 3
+  - !type:CureConditions
+    conditions:
+    - !type:ReagentCondition
+      reagent: JuiceBanana
+      min: 3
   stages:
   - stage: 1
     # no-op

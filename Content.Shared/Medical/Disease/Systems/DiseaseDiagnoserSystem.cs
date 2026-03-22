@@ -1,3 +1,4 @@
+using System.Linq;
 using Content.Shared.Interaction;
 using Content.Shared.Paper;
 using Robust.Shared.Prototypes;
@@ -137,9 +138,11 @@ public sealed class DiseaseDiagnoserSystem : EntitySystem
                 lines.Add(Loc.GetString("diagnoser-cure-has"));
                 foreach (var step in cureSteps)
                 {
-                    foreach (var cureLine in step.BuildDiagnoserLines(_prototypes))
+                    var stepLines = step.BuildDiagnoserLines(_prototypes).ToList();
+
+                    foreach (var stepLine in stepLines)
                     {
-                        var finalLine = cureLine;
+                        var finalLine = stepLine;
                         var chance = Math.Clamp(step.CureChance, 0f, 1f);
                         if (chance > 0f && chance < 1f)
                         {

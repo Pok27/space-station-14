@@ -27,10 +27,11 @@
   probability: 0.05
   cureDuration: 120
   cureSteps:
-  - !type:CureReagent
-    requirements:
-    - reagentId: Charcoal
-      amount: 5
+  - !type:CureConditions
+    conditions:
+    - !type:ReagentCondition
+      reagent: Charcoal
+      min: 5
   behaviors:
   - !type:SymptomStatusEffect
     effects:
@@ -41,14 +42,16 @@
   name: disease-symptom-SymptomNarcolepsy-name
   cureDuration: 400
   cureSteps:
-  - !type:CureReagent
-    requirements:
-    - reagentId: Ethyloxyephedrine
-      amount: 5
-  - !type:CureReagent
-    requirements:
-    - reagentId: Diphenylmethylamine
-      amount: 3
+  - !type:CureConditions
+    conditions:
+    - !type:ReagentCondition
+      reagent: Ethyloxyephedrine
+      min: 5
+  - !type:CureConditions
+    conditions:
+    - !type:ReagentCondition
+      reagent: Diphenylmethylamine
+      min: 3
   behaviors:
   - !type:SymptomGenericStatusEffect
     effectProto: StatusEffectForcedSleeping
@@ -60,12 +63,14 @@
   probability: 1.0
   cureDuration: 180
   cureSteps:
-  - !type:CureReagent
-    requirements:
-    - reagentId: Haloperidol
-      amount: 2
-    - reagentId: Synaptizine
-      amount: 2
+  - !type:CureConditions
+    conditions:
+    - !type:ReagentCondition
+      reagent: Haloperidol
+      min: 2
+    - !type:ReagentCondition
+      reagent: Synaptizine
+      min: 2
   behaviors:
   - !type:SymptomStatusEffect
     effects:
@@ -109,12 +114,14 @@
   name: disease-symptom-SymptomToxinLight-name
   probability: 0.05
   cureSteps:
-  - !type:CureReagent
-    requirements:
-    - reagentId: Salbutamol
-      amount: 2
-    - reagentId: Perfluorodecalin
-      amount: 2
+  - !type:CureConditions
+    conditions:
+    - !type:ReagentCondition
+      reagent: Salbutamol
+      min: 2
+    - !type:ReagentCondition
+      reagent: Perfluorodecalin
+      min: 2
   behaviors:
   - !type:SymptomStatusEffect
     effects:
@@ -128,12 +135,14 @@
   name: disease-symptom-SymptomGeneticDamage-name
   probability: 0.05
   cureSteps:
-  - !type:CureReagent
-    requirements:
-    - reagentId: Salbutamol
-      amount: 2
-    - reagentId: Perfluorodecalin
-      amount: 2
+  - !type:CureConditions
+    conditions:
+    - !type:ReagentCondition
+      reagent: Salbutamol
+      min: 2
+    - !type:ReagentCondition
+      reagent: Perfluorodecalin
+      min: 2
   behaviors:
   - !type:SymptomStatusEffect
     effects:

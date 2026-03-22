@@ -6,11 +6,15 @@
   contactInfect: 0.005
   contactDeposit: 0.08
   cureSteps:
-  - !type:CureReagent
+  - !type:CureConditions
     cureChance: 0.15 # Higher chance to cure, since two reagents are required.
-    requirements:
-    - reagentId: Diphenhydramine
-    - reagentId: Sulfur
+    conditions:
+    - !type:ReagentCondition
+      reagent: Diphenhydramine
+      min: 1
+    - !type:ReagentCondition
+      reagent: Sulfur
+      min: 1
   stages:
   - stage: 1
   # no-op
@@ -46,10 +50,11 @@
   desc: disease-DiseaseHonkSyndrome-desc
   spreadPath: [ Contact ]
   cureSteps:
-  - !type:CureReagent
-    requirements:
-    - reagentId: BananaHonk
-      amount: 5
+  - !type:CureConditions
+    conditions:
+    - !type:ReagentCondition
+      reagent: BananaHonk
+      min: 5
   stages:
   - stage: 1
     # no-op

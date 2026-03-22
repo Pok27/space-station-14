@@ -78,8 +78,10 @@ public sealed partial class SharedDiseaseCureSystem : EntitySystem
                 if (!rand.Prob(Math.Clamp(step.CureChance, 0f, 1f)))
                     continue;
 
-                if (ExecuteCureStep(ent, step, disease))
-                    ApplyCureSymptom(ent, symptomId);
+                if (!ExecuteCureStep(ent, step, disease))
+                    continue;
+
+                ApplyCureSymptom(ent, symptomId);
             }
         }
     }

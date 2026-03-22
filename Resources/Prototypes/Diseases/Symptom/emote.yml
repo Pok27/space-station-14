@@ -7,10 +7,11 @@
     chanceMultiplier: 1.5
   cureDuration: 120
   cureSteps:
-  - !type:CureReagent
-    requirements:
-    - reagentId: Salbutamol
-      amount: 5
+  - !type:CureConditions
+    conditions:
+    - !type:ReagentCondition
+      reagent: Salbutamol
+      min: 5
   behaviors:
   - !type:SymptomStatusEffect
     effects:
@@ -27,10 +28,11 @@
     chanceMultiplier: 2.5
   cureDuration: 120
   cureSteps:
-  - !type:CureReagent
-    requirements:
-    - reagentId: Salbutamol
-      amount: 5
+  - !type:CureConditions
+    conditions:
+    - !type:ReagentCondition
+      reagent: Salbutamol
+      min: 5
   behaviors:
   - !type:SymptomStatusEffect
     effects:
