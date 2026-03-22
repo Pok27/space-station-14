@@ -36,16 +36,15 @@ namespace Content.Server.Speech.EntitySystems
                 .Replace("l", "w").Replace("L", "W");
         }
 
-        private void OnAccent(EntityUid uid, OwOAccentComponent component, AccentGetEvent args)
+        private void OnAccent(Entity<OwOAccentComponent> entity, ref AccentGetEvent args)
         {
             args.Message = Accentuate(args.Message);
         }
 
         private void OnAccentRelayed(Entity<OwOAccentComponent> entity, ref StatusEffectRelayedEvent<AccentGetEvent> args)
         {
-            var ev = args.Args;
-            ev.Message = Accentuate(ev.Message);
-            args.Args = ev;
+            args.Args.Message = Accentuate(args.Args.Message);
         }
+
     }
 }
