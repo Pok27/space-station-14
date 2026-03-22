@@ -36,13 +36,13 @@ public sealed partial class DiseaseSymptomPrototype : IPrototype
     /// If true, only a single randomly selected behavior from <see cref="Behaviors"/> will run when the symptom triggers.
     /// </summary>
     [DataField]
-    public bool SingleBehavior { get; private set; } = false;
+    public bool SingleBehavior { get; private set; }
 
     /// <summary>
     /// If true, this symptom will only trigger on living carriers. If the carrier is dead the symptom is skipped.
     /// </summary>
     [DataField]
-    public bool OnlyAlive { get; private set; } = false;
+    public bool OnlyAlive { get; private set; }
 
     /// <summary>
     /// Configuration for symptom-driven airborne burst.
@@ -55,7 +55,7 @@ public sealed partial class DiseaseSymptomPrototype : IPrototype
     /// If zero, symptom-level cures do not suppress.
     /// </summary>
     [DataField]
-    public float CureDuration { get; private set; } = 0f;
+    public float CureDuration { get; private set; }
 
     /// <summary>
     /// Optional cure steps specific to this symptom. These are attempted by the cure system and, on success,

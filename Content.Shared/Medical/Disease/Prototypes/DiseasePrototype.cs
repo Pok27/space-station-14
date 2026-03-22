@@ -1,4 +1,3 @@
-using Content.Shared.Popups;
 using Content.Shared.StatusIcon;
 using Content.Shared.EntityEffects.Effects.Transform;
 using Robust.Shared.Prototypes;
@@ -57,7 +56,7 @@ public sealed partial class DiseasePrototype : IPrototype
     /// Optional incubation time in seconds before symptoms/spread begin after infection.
     /// </summary>
     [DataField]
-    public float IncubationSeconds { get; private set; } = 0f;
+    public float IncubationSeconds { get; private set; }
 
     /// <summary>
     /// Per-disease permeability multiplier (0-1) applied to PPE/internals effectiveness.
@@ -132,8 +131,7 @@ public sealed partial class DiseaseStage
     public List<SymptomEntry> Symptoms { get; private set; } = [];
 
     /// <summary>
-    /// Optional list of localized message keys to show as "sensations" to the carrier while at this stage.
-    /// A single entry is randomly picked on each eligible tick, controlled by <see cref="SensationProb"/>.
+    /// Optional list of loc message keys to show as "sensations" to the carrier while at this stage.
     /// </summary>
     [DataField]
     public PopupMessage[] Sensations { get; private set; } = [];
@@ -152,7 +150,7 @@ public sealed partial class SymptomEntry
     /// Symptom prototype ID to trigger.
     /// </summary>
     [DataField(required: true)]
-    public ProtoId<DiseaseSymptomPrototype> Symptom { get; private set; } = default!;
+    public ProtoId<DiseaseSymptomPrototype> Symptom { get; private set; }
 
     /// <summary>
     /// Per-tick probability (0-1) to trigger this symptom while in the stage. If negative, the probability of symptom is used.

@@ -1,3 +1,4 @@
+using Content.Shared.Medical.Disease.Prototypes;
 using Content.Shared.StatusIcon;
 using Robust.Shared.GameStates;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
@@ -15,14 +16,14 @@ public sealed partial class DiseaseCarrierComponent : Component
     /// Active diseases and their current stage.
     /// </summary>
     [DataField, AutoNetworkedField]
-    public Dictionary<string, int> ActiveDiseases = [];
+    public Dictionary<ProtoId<DiseasePrototype>, int> ActiveDiseases = [];
 
     /// <summary>
     /// Optional incubation end times per disease.
     /// Before this time, disease won't spread or show symptoms.
     /// </summary>
     [DataField, AutoNetworkedField]
-    public Dictionary<string, TimeSpan> IncubatingUntil = [];
+    public Dictionary<ProtoId<DiseasePrototype>, TimeSpan> IncubatingUntil = [];
 
     /// <summary>
     /// Delay between disease processing ticks.
@@ -42,18 +43,18 @@ public sealed partial class DiseaseCarrierComponent : Component
     /// Value represents the probability to block infection attempts for that disease.
     /// </summary>
     [DataField, AutoNetworkedField]
-    public Dictionary<string, float> Immunity = [];
+    public Dictionary<ProtoId<DiseasePrototype>, float> Immunity = [];
 
     /// <summary>
     /// Map of symptom prototype IDs to a suppression end time. Used to temporarily
     /// suppress (treat) symptoms without curing the underlying disease.
     /// </summary>
     [DataField, AutoNetworkedField]
-    public Dictionary<string, TimeSpan> SuppressedSymptoms = [];
+    public Dictionary<ProtoId<DiseaseSymptomPrototype>, TimeSpan> SuppressedSymptoms = [];
 
     /// <summary>
     /// Prototype ID of the disease icon to display for HUDs.
     /// </summary>
-    [AutoNetworkedField]
+    [ViewVariables, AutoNetworkedField]
     public ProtoId<DiseaseIconPrototype> DiseaseIcon = string.Empty;
 }

@@ -42,7 +42,7 @@ public sealed class DiseaseResidueSystem : EntitySystem
         while (query.MoveNext(out var uid, out var residue))
         {
             // Decay per-disease intensities.
-            var decay = residue.DecayPerTick * (float)frameTime;
+            var decay = residue.DecayPerTick * frameTime;
             toRemoveAfterDecay.Clear();
 
             foreach (var (id, value) in residue.Diseases)
@@ -55,13 +55,14 @@ public sealed class DiseaseResidueSystem : EntitySystem
             }
 
             foreach (var k in toRemoveAfterDecay)
+            {
                 residue.Diseases.Remove(k);
+            }
 
             if (residue.Diseases.Count == 0)
-            {
                 RemCompDeferred<DiseaseResidueComponent>(uid);
-                continue;
-            }
+
+            Dirty(uid, residue);
         }
 
         // Residue processing each disease tick.
@@ -72,22 +73,22 @@ public sealed class DiseaseResidueSystem : EntitySystem
             if (carrier.NextTick > now)
                 continue;
 
-            TryAdjacentContactSpread(cuid, carrier);
+            TryAdjacentContactSpread((cuid, carrier));
         }
     }
 
     /// <summary>
     /// Deposits per-disease residue intensity onto contacted entity.
     /// </summary>
-    private void OnCarrierContact(EntityUid uid, DiseaseCarrierComponent carrier, ContactInteractionEvent args)
+    private void OnCarrierContact(Entity<DiseaseCarrierComponent> ent, ref ContactInteractionEvent args)
     {
-        if (carrier.ActiveDiseases.Count == 0)
+        if (ent.Comp.ActiveDiseases.Count == 0)
             return;
 
         var residue = EnsureComp<DiseaseResidueComponent>(args.Other);
-        foreach (var (id, _) in carrier.ActiveDiseases)
+        foreach (var (id, _) in ent.Comp.ActiveDiseases)
         {
-            if (!_prototypes.TryIndex(id, out DiseasePrototype? proto))
+            if (!_prototypes.TryIndex(id, out var proto))
                 continue;
 
             if ((proto.SpreadPath & DiseaseSpreadPath.Contact) == 0)
@@ -98,36 +99,51 @@ public sealed class DiseaseResidueSystem : EntitySystem
                 residue.Diseases[id] = MathF.Min(1f, cur + deposit);
             else
                 residue.Diseases[id] = MathF.Min(1f, deposit);
+
+            Dirty(args.Other, residue);
         }
     }
 
     /// <summary>
     /// Attempts infection from residue to the contacting entity and reduces residue on contact.
     /// </summary>
-    private void OnResidueContact(EntityUid uid, DiseaseResidueComponent residue, ContactInteractionEvent args)
+    private void OnResidueContact(Entity<DiseaseResidueComponent> ent, ref ContactInteractionEvent args)
     {
-        if (residue.Diseases.Count == 0)
+        if (ent.Comp.Diseases.Count == 0)
             return;
 
-        foreach (var (id, intensity) in residue.Diseases)
+        var toRemoveAfterContact = new ValueList<string>();
+        foreach (var (id, intensity) in ent.Comp.Diseases)
         {
             InfectByContactChance(args.Other, id);
 
-            var newIntensity = MathF.Max(0f, intensity - residue.ContactReduction);
+            var newIntensity = MathF.Max(0f, intensity - ent.Comp.ContactReduction);
             if (newIntensity > 0f)
-                residue.Diseases[id] = newIntensity;
+                ent.Comp.Diseases[id] = newIntensity;
+            else
+                toRemoveAfterContact.Add(id);
         }
+
+        foreach (var id in toRemoveAfterContact)
+        {
+            ent.Comp.Diseases.Remove(id);
+        }
+
+        if (ent.Comp.Diseases.Count == 0)
+            RemCompDeferred<DiseaseResidueComponent>(ent);
+        else
+            Dirty(ent);
     }
 
     /// <summary>
     /// Adjacent contact spread within 1 tile if disease has Contact vector.
     /// </summary>
-    private void TryAdjacentContactSpread(EntityUid source, DiseaseCarrierComponent carrier)
+    private void TryAdjacentContactSpread(Entity<DiseaseCarrierComponent> ent)
     {
-        if (carrier.ActiveDiseases.Count == 0)
+        if (ent.Comp.ActiveDiseases.Count == 0)
             return;
 
-        var mapPos = _xform.GetMapCoordinates(source);
+        var mapPos = _xform.GetMapCoordinates(ent.Owner);
         if (mapPos.MapId == MapId.Nullspace)
             return;
 
@@ -135,13 +151,13 @@ public sealed class DiseaseResidueSystem : EntitySystem
         var targets = _lookup.GetEntitiesInRange(mapPos, 1.0f, LookupFlags.Dynamic | LookupFlags.Sundries);
         foreach (var other in targets)
         {
-            if (other == source)
+            if (other == ent.Owner)
                 continue;
 
-            if (!_interaction.InRangeUnobstructed(source, other, 0.8f))
+            if (!_interaction.InRangeUnobstructed(ent.Owner, other, 0.8f))
                 continue;
 
-            foreach (var (id, _) in carrier.ActiveDiseases)
+            foreach (var (id, _) in ent.Comp.ActiveDiseases)
             {
                 InfectByContactChance(other, id);
             }
@@ -164,7 +180,9 @@ public sealed class DiseaseResidueSystem : EntitySystem
             foreach (var target in args.HitEntities)
             {
                 foreach (var (id, _) in attackerCar.ActiveDiseases)
+                {
                     InfectByContactChance(target, id);
+                }
             }
         }
 
@@ -175,7 +193,9 @@ public sealed class DiseaseResidueSystem : EntitySystem
                 continue;
 
             foreach (var (id, _) in targetCar.ActiveDiseases)
+            {
                 InfectByContactChance(attackerUid, id);
+            }
         }
     }
 

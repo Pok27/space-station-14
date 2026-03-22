@@ -1,8 +1,10 @@
 using System.Globalization;
 using Content.Server.Administration;
 using Content.Shared.Medical.Disease.Systems;
+using Content.Shared.Medical.Disease.Prototypes;
 using Content.Shared.Administration;
 using Robust.Shared.Console;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server.Medical.Disease.Commands;
 
@@ -13,6 +15,7 @@ namespace Content.Server.Medical.Disease.Commands;
 public sealed class InfectCommand : LocalizedEntityCommands
 {
     [Dependency] private readonly SharedDiseaseSystem _disease = default!;
+    [Dependency] private readonly IPrototypeManager _proto = default!;
 
     public override string Command => "infect";
 
@@ -45,5 +48,20 @@ public sealed class InfectCommand : LocalizedEntityCommands
         }
 
         shell.WriteLine(Loc.GetString("cmd-infect-completed", ("target", targetUid.ToString()), ("disease", diseaseId), ("stage", stage)));
+    }
+
+    public override CompletionResult GetCompletion(IConsoleShell shell, string[] args)
+    {
+        return args.Length switch
+        {
+            1 => CompletionResult.FromHintOptions(
+                CompletionHelper.NetEntities(args[0], EntityManager),
+                "<uid>"),
+            2 => CompletionResult.FromHintOptions(
+                CompletionHelper.PrototypeIDs<DiseasePrototype>(proto: _proto),
+                "<disease prototype>"),
+            3 => CompletionResult.FromHint("<stage>"),
+            _ => CompletionResult.Empty,
+        };
     }
 }

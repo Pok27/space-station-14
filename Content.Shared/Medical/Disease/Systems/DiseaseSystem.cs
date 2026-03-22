@@ -7,10 +7,9 @@ using Content.Shared.Medical.Disease.Cures;
 using Content.Shared.Medical.Disease.Prototypes;
 using Content.Shared.Medical.Disease.Symptoms;
 using Content.Shared.Mobs;
-using Content.Shared.Mobs.Components;
+using Content.Shared.Mobs.Systems;
 using Content.Shared.Random.Helpers;
 using Content.Shared.EntityEffects;
-using Content.Shared.EntityEffects.Effects.Transform;
 using Robust.Shared.Collections;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
@@ -30,6 +29,7 @@ public sealed partial class SharedDiseaseSystem : EntitySystem
     [Dependency] private readonly SharedEntityEffectsSystem _effects = default!;
     [Dependency] private readonly InventorySystem _inventory = default!;
     [Dependency] private readonly SharedInternalsSystem _internals = default!;
+    [Dependency] private readonly MobStateSystem _mobState = default!;
 
     /// <inheritdoc/>
     /// <summary>
@@ -80,7 +80,7 @@ public sealed partial class SharedDiseaseSystem : EntitySystem
 
         foreach (var (diseaseId, stage) in ent.Comp.ActiveDiseases.ToArray())
         {
-            if (!_prototypes.TryIndex(diseaseId, out DiseasePrototype? disease))
+            if (!_prototypes.TryIndex(diseaseId, out var disease))
             {
                 toRemove.Add(diseaseId);
                 continue;
@@ -140,7 +140,9 @@ public sealed partial class SharedDiseaseSystem : EntitySystem
 
         // Apply the <see cref="PopupMessageEntityEffectSystem"/> effect to show the popup.
         foreach (var entry in stageCfg.Sensations)
+        {
             _effects.TryApplyEffect(ent.Owner, entry);
+        }
 
         // Symptoms are a list of detailed entries (symptom + optional probability override).
         for (var i = 0; i < stageCfg.Symptoms.Count; i++)
@@ -156,7 +158,7 @@ public sealed partial class SharedDiseaseSystem : EntitySystem
 
             var prob = entry.Probability >= 0f ? entry.Probability : symptom.Probability;
             // TODO: Replace with RandomPredicted once the engine PR is merged
-            var seed = SharedRandomExtensions.HashCodeCombine([(int)_timing.CurTick.Value, GetNetEntity(ent).Id, 3, stage, i]);
+            var seed = SharedRandomExtensions.HashCodeCombine((int)_timing.CurTick.Value, GetNetEntity(ent).Id, 3, stage, i);
             var rand = new System.Random(seed);
             if (!rand.Prob(prob))
                 continue;
@@ -172,7 +174,7 @@ public sealed partial class SharedDiseaseSystem : EntitySystem
 
         foreach (var (id, _) in ent.Comp.ActiveDiseases)
         {
-            if (!_prototypes.TryIndex<DiseasePrototype>(id, out var diseaseProto))
+            if (!_prototypes.TryIndex(id, out var diseaseProto))
                 continue;
 
             if (diseaseProto.IconDisease is not { } iconId)
@@ -203,6 +205,7 @@ public sealed partial class SharedDiseaseSystem : EntitySystem
         var enumerator = _inventory.GetSlotEnumerator((target, CompOrNull<InventoryComponent>(target)), flags);
         if (enumerator.NextItem(out item))
             return true;
+
         item = default;
         return false;
     }
@@ -261,7 +264,7 @@ public sealed partial class SharedDiseaseSystem : EntitySystem
         if (!_prototypes.HasIndex<DiseasePrototype>(diseaseId))
             return false;
 
-        if (!TryComp<MobStateComponent>(uid, out var mobState) || mobState.CurrentState == MobState.Dead)
+        if (_mobState.IsDead(uid))
             return false;
 
         return true;
@@ -306,10 +309,9 @@ public sealed partial class SharedDiseaseSystem : EntitySystem
             return false;
 
         // Only initialize stage and incubation when this disease is first added to the carrier.
-        if (!carrier.ActiveDiseases.ContainsKey(diseaseId))
+        if (carrier.ActiveDiseases.TryAdd(diseaseId, startStage))
         {
             // Set initial stage.
-            carrier.ActiveDiseases[diseaseId] = startStage;
 
             // Schedule incubation window if configured; during incubation symptoms/spread are suppressed.
             var proto = _prototypes.Index<DiseasePrototype>(diseaseId);

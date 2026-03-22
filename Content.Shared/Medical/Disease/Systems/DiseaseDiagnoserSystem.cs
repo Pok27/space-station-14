@@ -25,7 +25,7 @@ public sealed class DiseaseDiagnoserSystem : EntitySystem
         SubscribeLocalEvent<DiseaseDiagnoserComponent, InteractUsingEvent>(OnInteractUsing);
     }
 
-    private void OnInteractUsing(EntityUid uid, DiseaseDiagnoserComponent component, InteractUsingEvent args)
+    private void OnInteractUsing(Entity<DiseaseDiagnoserComponent> ent, ref InteractUsingEvent args)
     {
         if (args.Handled)
             return;
@@ -36,7 +36,7 @@ public sealed class DiseaseDiagnoserSystem : EntitySystem
         // Reject if no sample material present.
         if (!sample.HasSample)
         {
-            _popup.PopupPredicted(Loc.GetString("diagnoser-disease-empty-swab-popup"), uid, args.User);
+            _popup.PopupPredicted(Loc.GetString("diagnoser-disease-empty-swab-popup"), ent.Owner, args.User);
             args.Handled = true;
             return;
         }
@@ -47,7 +47,7 @@ public sealed class DiseaseDiagnoserSystem : EntitySystem
         var content = BuildReportContent(sample);
 
         // Spawn paper and set content.
-        var paperUid = EntityManager.PredictedSpawnAtPosition(component.PaperPrototype, Transform(uid).Coordinates);
+        var paperUid = PredictedSpawnAtPosition(ent.Comp.PaperPrototype, Transform(ent.Owner).Coordinates);
         if (TryComp<PaperComponent>(paperUid, out var paperComp))
         {
             _paper.SetContent((paperUid, paperComp), content);
@@ -59,8 +59,9 @@ public sealed class DiseaseDiagnoserSystem : EntitySystem
         sample.SubjectName = null;
         sample.SubjectDNA = null;
         sample.HasSample = false;
+        Dirty(args.Used, sample);
 
-        _popup.PopupPredicted(Loc.GetString("diagnoser-disease-printed-popup"), uid, args.User);
+        _popup.PopupPredicted(Loc.GetString("diagnoser-disease-printed-popup"), ent.Owner, args.User);
     }
 
     private string BuildReportContent(DiseaseSampleComponent sample)
@@ -87,7 +88,7 @@ public sealed class DiseaseDiagnoserSystem : EntitySystem
                 continue;
 
             var displayName = Loc.GetString(diseaseProto.Name);
-            var stage = sample.Stages.TryGetValue(id, out var s) ? s : 1;
+            var stage = sample.Stages.GetValueOrDefault(id, 1);
             lines.Add(Loc.GetString("diagnoser-disease-report-name", ("name", displayName), ("stage", stage)));
 
             lines.Add(Loc.GetString("diagnoser-disease-report-desc"));
@@ -126,7 +127,7 @@ public sealed class DiseaseDiagnoserSystem : EntitySystem
             }
 
             // Cures block.
-            var cureSteps = (stageCfg.CureSteps.Count > 0) ? stageCfg.CureSteps : diseaseProto.CureSteps;
+            var cureSteps = stageCfg.CureSteps.Count > 0 ? stageCfg.CureSteps : diseaseProto.CureSteps;
             if (cureSteps.Count == 0)
             {
                 lines.Add(Loc.GetString("diagnoser-no-cures"));

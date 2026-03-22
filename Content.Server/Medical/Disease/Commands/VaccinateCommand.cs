@@ -49,4 +49,18 @@ public sealed class VaccinateCommand : LocalizedEntityCommands
 
         shell.WriteLine(Loc.GetString("cmd-vaccinate-completed", ("target", targetUid.ToString()), ("disease", diseaseId)));
     }
+
+    public override CompletionResult GetCompletion(IConsoleShell shell, string[] args)
+    {
+        return args.Length switch
+        {
+            1 => CompletionResult.FromHintOptions(
+                CompletionHelper.NetEntities(args[0], EntityManager),
+                "<uid>"),
+            2 => CompletionResult.FromHintOptions(
+                CompletionHelper.PrototypeIDs<DiseasePrototype>(proto: _proto),
+                "<disease prototype>"),
+            _ => CompletionResult.Empty,
+        };
+    }
 }

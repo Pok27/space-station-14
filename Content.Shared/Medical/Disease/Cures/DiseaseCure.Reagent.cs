@@ -23,7 +23,7 @@ public sealed partial class CureReagent : CureStep
         /// The reagent that needs to be present.
         /// </summary>
         [DataField(required: true)]
-        public ProtoId<ReagentPrototype> ReagentId { get; private set; } = default!;
+        public ProtoId<ReagentPrototype> ReagentId { get; private set; }
 
         /// <summary>
         /// How much of the reagent must be present.
@@ -46,7 +46,7 @@ public sealed partial class CureReagent
         if (!_entityManager.TryGetComponent(uid, out BloodstreamComponent? bloodstream))
             return false;
 
-        if (!_solutions.ResolveSolution(uid, bloodstream.ChemicalSolutionName, ref bloodstream.ChemicalSolution, out var chemSolution))
+        if (!_solutions.ResolveSolution(uid, bloodstream.BloodSolutionName, ref bloodstream.BloodSolution, out var chemSolution))
             return false;
 
         if (Requirements.Count == 0)

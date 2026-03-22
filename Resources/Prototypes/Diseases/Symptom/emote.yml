@@ -133,4 +133,4 @@
   probability: 1
   behaviors:
   - !type:SymptomGenericStatusEffect
-    effectProto: StatusEffectOwOAccent
+    effectProto: StatusEffectOwO

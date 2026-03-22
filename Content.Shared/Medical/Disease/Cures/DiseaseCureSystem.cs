@@ -16,7 +16,6 @@ public sealed partial class SharedDiseaseCureSystem : EntitySystem
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
 
-    /// <inheritdoc/>
     /// <summary>
     /// Executes a configured cure step via its polymorphic OnCure.
     /// </summary>
@@ -90,12 +89,10 @@ public sealed partial class SharedDiseaseCureSystem : EntitySystem
     /// </summary>
     public void ApplyCureDisease(Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease)
     {
-        if (!ent.Comp.ActiveDiseases.ContainsKey(disease.ID))
+        if (!ent.Comp.ActiveDiseases.Remove(disease.ID))
             return;
 
-        ent.Comp.ActiveDiseases.Remove(disease.ID);
-        ApplyPostCureImmunity(ent.Comp, disease);
-
+        ApplyPostCureImmunity(ent, disease);
         _popup.PopupPredicted(Loc.GetString("disease-cured"), ent, ent.Owner);
     }
 
@@ -108,6 +105,7 @@ public sealed partial class SharedDiseaseCureSystem : EntitySystem
             return;
 
         ent.Comp.ActiveDiseases[disease.ID] = stage - 1;
+        Dirty(ent);
     }
 
     /// <summary>
@@ -123,6 +121,7 @@ public sealed partial class SharedDiseaseCureSystem : EntitySystem
             return;
 
         ent.Comp.SuppressedSymptoms[symptomId] = _timing.CurTime + TimeSpan.FromSeconds(duration);
+        Dirty(ent);
 
         _popup.PopupPredicted(Loc.GetString("disease-cured-symptom"), ent, ent.Owner);
     }
@@ -130,14 +129,16 @@ public sealed partial class SharedDiseaseCureSystem : EntitySystem
     /// <summary>
     /// Writes or raises the immunity strength for the cured disease on the carrier.
     /// </summary>
-    private static void ApplyPostCureImmunity(DiseaseCarrierComponent comp, DiseasePrototype disease)
+    private void ApplyPostCureImmunity(Entity<DiseaseCarrierComponent> ent, DiseasePrototype disease)
     {
         var strength = disease.PostCureImmunity;
 
-        if (comp.Immunity.TryGetValue(disease.ID, out var existing))
-            comp.Immunity[disease.ID] = MathF.Max(existing, strength);
+        if (ent.Comp.Immunity.TryGetValue(disease.ID, out var existing))
+            ent.Comp.Immunity[disease.ID] = MathF.Max(existing, strength);
         else
-            comp.Immunity[disease.ID] = strength;
+            ent.Comp.Immunity[disease.ID] = strength;
+
+        Dirty(ent);
     }
 
     /// <summary>

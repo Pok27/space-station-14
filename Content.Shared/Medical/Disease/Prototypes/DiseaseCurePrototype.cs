@@ -11,7 +11,7 @@ public abstract partial class CureStep
     /// If true, a successful cure step lowers the current disease stage by 1 instead of curing entirely.
     /// </summary>
     [DataField]
-    public bool LowerStage { get; private set; } = false;
+    public bool LowerStage { get; private set; }
 
     /// <summary>
     /// Per-tick probability (0-1) to attempt this cure step.

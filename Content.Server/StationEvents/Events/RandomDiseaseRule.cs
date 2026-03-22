@@ -32,17 +32,15 @@ public sealed class RandomDiseaseRule : StationEventSystem<RandomDiseaseRuleComp
 
         // Collect eligible humanoids with carrier component on the chosen station.
         var candidates = new List<EntityUid>();
-        var query = EntityQueryEnumerator<DiseaseCarrierComponent, MindContainerComponent, HumanoidAppearanceComponent, TransformComponent>();
-        while (query.MoveNext(out var ent, out _, out var mind, out _, out var xform))
+        var query = EntityQueryEnumerator<DiseaseCarrierComponent, MindContainerComponent, TransformComponent>();
+        while (query.MoveNext(out var ent, out _, out var mind, out var xform))
         {
             if (StationSystem.GetOwningStation(ent, xform) != station)
                 continue;
 
-            // Central eligibility check: prototype exists, not dead.
             if (!_disease.CanBeInfected(ent, chosenDisease))
                 continue;
 
-            // Only consider entities with an attached mind (players).
             if (!mind.HasMind)
                 continue;
 

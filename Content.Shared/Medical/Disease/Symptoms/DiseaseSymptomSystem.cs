@@ -3,7 +3,6 @@ using Content.Shared.Medical.Disease.Systems;
 using Content.Shared.Medical.Disease.Components;
 using Content.Shared.Medical.Disease.Prototypes;
 using Content.Shared.Random.Helpers;
-using Robust.Shared.Random;
 
 namespace Content.Shared.Medical.Disease.Symptoms;
 
@@ -16,7 +15,6 @@ public sealed partial class SharedDiseaseSymptomSystem : EntitySystem
     [Dependency] private readonly MobStateSystem _mobState = default!;
     [Dependency] private readonly DiseaseAirborneSystem _airborneDisease = default!;
 
-    /// <inheritdoc/>
     /// <summary>
     /// Executes the side-effects for a triggered symptom on a carrier.
     /// </summary>

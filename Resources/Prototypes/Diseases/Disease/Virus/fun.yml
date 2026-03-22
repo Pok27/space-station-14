@@ -19,8 +19,7 @@
     - symptom: SymptomSneeze
   - stage: 3
     sensations:
-    - !type:PopupMessage
-      messages: [ "disease-sensation-very-weak" ]
+    - messages: [ "disease-sensation-very-weak" ]
       probability: 0.05
     symptoms:
     - symptom: SymptomCough
@@ -33,8 +32,7 @@
       probability: 0.1
   - stage: 5
     sensations:
-    - !type:PopupMessage
-      messages: [ "disease-sensation-gib-itself" ]
+    - messages: [ "disease-sensation-gib-itself" ]
       visualType: MediumCaution
       probability: 0.05
     symptoms:
@@ -57,16 +55,14 @@
     # no-op
   - stage: 2
     sensations:
-    - !type:PopupMessage
-      messages: [ "disease-sensation-clown", "disease-sensation-banana-compulsion" ]
+    - messages: [ "disease-sensation-clown", "disease-sensation-banana-compulsion" ]
       probability: 0.05
     symptoms:
     - symptom: SymptomJitters
     - symptom: SymptomEmoteHonk
   - stage: 3
     sensations:
-    - !type:PopupMessage
-      messages: [ "disease-sensation-clown" ]
+    - messages: [ "disease-sensation-clown" ]
       probability: 0.05
     symptoms:
     - symptom: SymptomHonkShout

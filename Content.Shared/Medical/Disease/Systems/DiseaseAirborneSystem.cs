@@ -41,7 +41,7 @@ public sealed class DiseaseAirborneSystem : EntitySystem
 
             foreach (var (diseaseId, _) in carrier.ActiveDiseases)
             {
-                if (!_prototypes.TryIndex(diseaseId, out DiseasePrototype? disease))
+                if (!_prototypes.TryIndex(diseaseId, out var disease))
                     continue;
 
                 if ((disease.SpreadPath & DiseaseSpreadPath.Airborne) == 0)
