@@ -31,6 +31,11 @@
   - type: Sprite
     drawdepth: ThinWire
     visible: false
+  - type: E3DRenderable
+    archetype: DecalLike
+    floorAnchored: true
+    height: 0.04
+    width: 0.85
   - type: Damageable
     damageContainer: Inorganic
     damageModifierSet: Metallic

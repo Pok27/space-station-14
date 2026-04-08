@@ -1,4 +1,5 @@
 using Content.Client.ContextMenu.UI;
+using Content.Client.E3D.FirstPerson;
 using Content.Client.Gameplay;
 using Content.Client.Interactable.Components;
 using Content.Client.Viewport;
@@ -23,6 +24,7 @@ public sealed class InteractionOutlineSystem : EntitySystem
     [Dependency] private readonly IStateManager _stateManager = default!;
     [Dependency] private readonly IUserInterfaceManager _uiManager = default!;
     [Dependency] private readonly SharedInteractionSystem _interactionSystem = default!;
+    [Dependency] private readonly FirstPersonInteractionSystem _firstPersonInteraction = default!;
 
     /// <summary>
     ///     Whether to currently draw the outline. The outline may be temporarily disabled by other systems
@@ -111,7 +113,11 @@ public sealed class InteractionOutlineSystem : EntitySystem
         {
             var mousePosWorld = vp.PixelToMap(_inputManager.MouseScreenPosition.Position);
 
-            if (vp is ScalingViewport svp)
+            if (vp is FirstPersonViewControl && _firstPersonInteraction.TryGetCurrentHit(out var fpvHit))
+            {
+                entityToClick = fpvHit.Target;
+            }
+            else if (vp is ScalingViewport svp)
             {
                 renderScale = svp.CurrentRenderScale;
                 entityToClick = screen.GetClickedEntity(mousePosWorld, svp.Eye);

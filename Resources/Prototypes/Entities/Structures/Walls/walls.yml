@@ -28,6 +28,12 @@
   - type: IsRoof
   - type: Sprite
     drawdepth: Walls
+  - type: E3DRenderable
+    archetype: Wall
+    blocksVision: true
+    blocksInteraction: true
+    height: 1.8
+    width: 1.0
   - type: Icon
     state: full
   - type: PlacementReplacement

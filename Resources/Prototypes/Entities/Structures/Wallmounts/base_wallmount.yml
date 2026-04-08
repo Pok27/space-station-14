@@ -22,6 +22,12 @@
     - Structure
   - type: Sprite
     drawdepth: WallMountedItems
+  - type: E3DRenderable
+    archetype: Wallmount
+    wallMounted: true
+    floorAnchored: false
+    height: 0.9
+    width: 0.65
 
 - type: entity
   parent: BaseWallmount

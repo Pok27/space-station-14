@@ -64,6 +64,10 @@
           visible: false
           shader: unshaded
           map: ["enum.FirelockVisualLayersTemperature.Base"]
+    - type: E3DRenderable
+      archetype: Door
+      height: 1.8
+      width: 1.0
     - type: GenericVisualizer
       visuals:
         enum.FirelockVisuals.PressureWarning:

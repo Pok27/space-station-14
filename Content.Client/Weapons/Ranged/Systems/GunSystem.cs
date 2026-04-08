@@ -1,5 +1,6 @@
 using System.Numerics;
 using Content.Client.Animations;
+using Content.Client.E3D.FirstPerson;
 using Content.Client.Gameplay;
 using Content.Client.Items;
 using Content.Client.Weapons.Ranged.Components;
@@ -45,6 +46,7 @@ public sealed partial class GunSystem : SharedGunSystem
     [Dependency] private readonly SharedMapSystem _maps = default!;
     [Dependency] private readonly SharedTransformSystem _xform = default!;
     [Dependency] private readonly SpriteSystem _sprite = default!;
+    [Dependency] private readonly FirstPersonInteractionSystem _fpvInteraction = default!;
 
     public static readonly EntProtoId HitscanProto = "HitscanEffect";
 
@@ -188,6 +190,8 @@ public sealed partial class GunSystem : SharedGunSystem
             return;
 
         var mousePos = _eyeManager.PixelToMap(_inputManager.MouseScreenPosition);
+        if (_fpvInteraction.TryGetCurrentHit(out var fpvHit))
+            mousePos = fpvHit.Coordinates;
 
         if (mousePos.MapId == MapId.Nullspace)
         {
@@ -201,7 +205,9 @@ public sealed partial class GunSystem : SharedGunSystem
         var coordinates = TransformSystem.ToCoordinates(entity, mousePos);
 
         NetEntity? target = null;
-        if (_state.CurrentState is GameplayStateBase screen)
+        if (_fpvInteraction.TryGetCurrentHit(out fpvHit))
+            target = GetNetEntity(fpvHit.Target);
+        else if (_state.CurrentState is GameplayStateBase screen)
             target = GetNetEntity(screen.GetClickedEntity(mousePos));
 
         Log.Debug($"Sending shoot request tick {Timing.CurTick} / {Timing.CurTime}");

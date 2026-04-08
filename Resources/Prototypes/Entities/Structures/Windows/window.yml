@@ -25,6 +25,12 @@
   - type: Sprite
     drawdepth: WallTops
     sprite: Structures/Windows/window.rsi
+  - type: E3DRenderable
+    archetype: Window
+    transparent: true
+    wallThicknessMode: Thin
+    height: 1.6
+    width: 1.0
   - type: Icon
     sprite: Structures/Windows/window.rsi
     state: full

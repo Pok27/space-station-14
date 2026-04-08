@@ -54,6 +54,11 @@
   - type: MobMover
   - type: MovementSpeedModifier
   - type: LagCompensation
+  - type: E3DRenderable
+    archetype: Mob
+    floorAnchored: false
+    height: 1.45
+    width: 0.8
 
 - type: entity
   save: false

@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Client.E3D.FirstPerson;
 using Content.Client.Gameplay;
 using Content.Shared.CCVar;
 using Content.Shared.CombatMode;
@@ -34,6 +35,7 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
     [Dependency] private readonly MapSystem _map = default!;
     [Dependency] private readonly SpriteSystem _sprite = default!;
     [Dependency] private readonly IConfigurationManager _cfg = default!;
+    [Dependency] private readonly FirstPersonInteractionSystem _fpvInteraction = default!;
 
     private const string MeleeLungeKey = "melee-lunge";
 
@@ -93,6 +95,8 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
         // TODO using targeted actions while combat mode is enabled should NOT trigger attacks.
 
         var mousePos = _eyeManager.PixelToMap(_inputManager.MouseScreenPosition);
+        if (_fpvInteraction.TryGetCurrentHit(out var fpvHit))
+            mousePos = fpvHit.Coordinates;
 
         if (mousePos.MapId == MapId.Nullspace)
         {
@@ -200,7 +204,9 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
     {
         EntityUid? target = null;
 
-        if (_stateManager.CurrentState is GameplayStateBase screen)
+        if (_fpvInteraction.TryGetCurrentHit(out var fpvHit))
+            target = fpvHit.Target;
+        else if (_stateManager.CurrentState is GameplayStateBase screen)
             target = screen.GetClickedEntity(mousePos);
 
         RaisePredictiveEvent(new DisarmAttackEvent(GetNetEntity(target), GetNetCoordinates(coordinates)));
@@ -215,7 +221,9 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
 
         EntityUid? target = null;
 
-        if (_stateManager.CurrentState is GameplayStateBase screen)
+        if (_fpvInteraction.TryGetCurrentHit(out var fpvHit))
+            target = fpvHit.Target;
+        else if (_stateManager.CurrentState is GameplayStateBase screen)
             target = screen.GetClickedEntity(mousePos);
 
         // Don't light-attack if interaction will be handling this instead

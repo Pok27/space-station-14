@@ -1,8 +1,12 @@
-﻿using Content.Shared.MouseRotator;
+using System;
+using Content.Client.E3D.FirstPerson;
+using Content.Shared.MouseRotator;
 using Robust.Client.Graphics;
 using Robust.Client.Input;
 using Robust.Client.Player;
+using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
+using Robust.Shared.Maths;
 using Robust.Shared.Timing;
 
 namespace Content.Client.MouseRotator;
@@ -15,6 +19,7 @@ public sealed class MouseRotatorSystem : SharedMouseRotatorSystem
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly IEyeManager _eye = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private readonly FirstPersonInputGateSystem _fpvGate = default!;
 
     public override void Update(float frameTime)
     {
@@ -28,9 +33,11 @@ public sealed class MouseRotatorSystem : SharedMouseRotatorSystem
         if (player == null || !TryComp<MouseRotatorComponent>(player, out var rotator))
             return;
 
+        if (_fpvGate.BlocksMouseRotator(player.Value))
+            return;
+
         var xform = Transform(player.Value);
 
-        // Get mouse loc and convert to angle based on player location
         var coords = _input.MouseScreenPosition;
         var mapPos = _eye.PixelToMap(coords);
 
@@ -38,23 +45,21 @@ public sealed class MouseRotatorSystem : SharedMouseRotatorSystem
             return;
 
         var angle = (mapPos.Position - _transform.GetMapCoordinates(player.Value, xform: xform).Position).ToWorldAngle();
-
         var curRot = _transform.GetWorldRotation(xform);
 
-        // 4-dir handling is separate --
-        // only raise event if the cardinal direction has changed
         if (rotator.Simple4DirMode)
         {
-            var eyeRot = _eye.CurrentEye.Rotation; // camera rotation
-            var angleDir = (angle + eyeRot).GetCardinalDir(); // apply GetCardinalDir in the camera frame, not in the world frame
+            var eyeRot = _eye.CurrentEye.Rotation;
+            var angleDir = (angle + eyeRot).GetCardinalDir();
             if (angleDir == (curRot + eyeRot).GetCardinalDir())
                 return;
 
-            var rotation = angleDir.ToAngle() - eyeRot; // convert back to world frame
-            if (rotation >= Math.PI) // convert to [-PI, +PI)
+            var rotation = angleDir.ToAngle() - eyeRot;
+            if (rotation >= Math.PI)
                 rotation -= 2 * Math.PI;
             else if (rotation < -Math.PI)
                 rotation += 2 * Math.PI;
+
             RaisePredictiveEvent(new RequestMouseRotatorRotationEvent
             {
                 Rotation = rotation,
@@ -64,7 +69,6 @@ public sealed class MouseRotatorSystem : SharedMouseRotatorSystem
             return;
         }
 
-        // Don't raise event if mouse ~hasn't moved (or if too close to goal rotation already)
         var diff = Angle.ShortestDistance(angle, curRot);
         if (Math.Abs(diff.Theta) < rotator.AngleTolerance.Theta)
             return;

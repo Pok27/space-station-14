@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Numerics;
 using Content.Client.Clickable;
+using Content.Client.E3D.FirstPerson;
 using Content.Client.UserInterface;
 using Content.Client.Viewport;
 using Content.Shared.CCVar;
@@ -121,11 +122,17 @@ namespace Content.Client.Gameplay
 
         public EntityUid? GetClickedEntity(MapCoordinates coordinates)
         {
+            if (TryGetFirstPersonTarget(out var fpvTarget))
+                return fpvTarget;
+
             return GetClickedEntity(coordinates, _eyeManager.CurrentEye);
         }
 
         public EntityUid? GetClickedEntity(MapCoordinates coordinates, IEye? eye)
         {
+            if (TryGetFirstPersonTarget(out var fpvTarget))
+                return fpvTarget;
+
             if (eye == null)
                 return null;
 
@@ -182,6 +189,22 @@ namespace Content.Client.Gameplay
             return foundEntities.Select(a => a.Item1);
         }
 
+        private bool TryGetFirstPersonTarget(out EntityUid? target)
+        {
+            target = null;
+            var fpv = _entitySystemManager.GetEntitySystem<FirstPersonInteractionSystem>();
+            if (!fpv.TryGetCurrentHit(out var hit))
+                return false;
+
+            target = hit.Target;
+            return true;
+        }
+
+        private bool TryGetFirstPersonHit(out FpvInteractionHit hit)
+        {
+            return _entitySystemManager.GetEntitySystem<FirstPersonInteractionSystem>().TryGetCurrentHit(out hit);
+        }
+
         private sealed class ClickableEntityComparer : IComparer<(EntityUid clicked, int depth, uint renderOrder, float bottom)>
         {
             public int Compare((EntityUid clicked, int depth, uint renderOrder, float bottom) x,
@@ -230,12 +253,17 @@ namespace Content.Client.Gameplay
             if (args.Viewport is IViewportControl vp && kArgs.PointerLocation.IsValid)
             {
                 var mousePosWorld = vp.PixelToMap(kArgs.PointerLocation.Position);
+                if (vp is FirstPersonViewControl && TryGetFirstPersonHit(out var fpvHit))
+                {
+                    mousePosWorld = fpvHit.Coordinates;
+                    entityToClick = fpvHit.Target;
+                }
 
-                if (vp is ScalingViewport svp)
+                if (entityToClick == null && vp is ScalingViewport svp)
                 {
                     entityToClick = GetClickedEntity(mousePosWorld, svp.Eye);
                 }
-                else
+                else if (entityToClick == null)
                 {
                     entityToClick = GetClickedEntity(mousePosWorld);
                 }

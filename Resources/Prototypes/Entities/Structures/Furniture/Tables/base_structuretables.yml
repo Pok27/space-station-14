@@ -40,6 +40,12 @@
   - type: Tag
     tags:
     - ForceFixRotations
+  - type: E3DRenderable
+    archetype: Table
+    floorAnchored: true
+    preferFixtureBounds: true
+    height: 0.9
+    width: 1.0
 
 - type: entity
   id: CounterBase

@@ -61,6 +61,12 @@
       map: ["enum.DoorVisualLayers.BaseEmagging"]
       shader: unshaded
       visible: false
+  - type: E3DRenderable
+    archetype: Window
+    transparent: true
+    wallThicknessMode: Thin
+    height: 1.6
+    width: 1.0
   - type: AnimationPlayer
   - type: ApcPowerReceiver
   - type: ExtensionCableReceiver

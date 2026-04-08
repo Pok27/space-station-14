@@ -19,6 +19,10 @@
       map: ["enum.DoorVisualLayers.Base"]
     - state: welded
       map: ["enum.WeldableLayers.BaseWelded"]
+  - type: E3DRenderable
+    archetype: Door
+    height: 1.8
+    width: 1.0
   - type: AnimationPlayer
   - type: Physics
   - type: Fixtures

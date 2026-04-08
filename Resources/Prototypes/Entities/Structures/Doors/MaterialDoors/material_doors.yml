@@ -15,6 +15,10 @@
     layers:
     - state: closed
       map: ["enum.DoorVisualLayers.Base"]
+  - type: E3DRenderable
+    archetype: Door
+    height: 1.8
+    width: 1.0
   - type: AnimationPlayer
   - type: Physics
   - type: Fixtures
