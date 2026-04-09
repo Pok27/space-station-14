@@ -2,21 +2,14 @@ using Robust.Shared.GameStates;
 
 namespace Content.Shared.E3D.Components;
 
-/// <summary>
-/// Enables pseudo-3D first-person rendering for the local player when attached to their controlled entity.
-/// </summary>
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class FirstPersonViewComponent : Component
 {
-    /// <summary>
-    /// Eye height relative to the entity's map position.
-    /// Mirrors Yog e3D's idea of e3d_eye_height, but as content data.
-    /// </summary>
     [DataField, AutoNetworkedField]
     public float EyeHeight = 0.82f;
 
     [DataField, AutoNetworkedField]
-    public float FovDegrees = 55f;
+    public float FovDegrees = 100f;
 
     [DataField, AutoNetworkedField]
     public float MaxDistance = 18f;
@@ -46,7 +39,7 @@ public sealed partial class FirstPersonViewComponent : Component
     public int LogicalColumns = 160;
 
     [DataField, AutoNetworkedField]
-    public int MaxBillboards = 64;
+    public int MaxBillboards = 16;
 
     [DataField, AutoNetworkedField]
     public bool EnableFloorPass = true;

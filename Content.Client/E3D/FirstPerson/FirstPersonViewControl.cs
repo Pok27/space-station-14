@@ -13,9 +13,6 @@ using Robust.Shared.Timing;
 
 namespace Content.Client.E3D.FirstPerson;
 
-/// <summary>
-/// Thin first-person viewport host. Rendering and camera math live in dedicated helpers/systems.
-/// </summary>
 public sealed class FirstPersonViewControl : Control, IViewportControl
 {
     [Dependency] private readonly IEyeManager _eyeManager = default!;
@@ -29,7 +26,7 @@ public sealed class FirstPersonViewControl : Control, IViewportControl
     private FirstPersonInteractionSystem Interaction => _entitySystems.GetEntitySystem<FirstPersonInteractionSystem>();
     private FirstPersonRenderPipelineSystem RenderPipeline => _entitySystems.GetEntitySystem<FirstPersonRenderPipelineSystem>();
 
-    public float FovDegrees { get; set; } = 55f;
+    public float FovDegrees { get; set; } = 100f;
     public float MaxDistance { get; set; } = 18f;
     public float EyeHeight { get; set; } = 0.82f;
     public float InteractionDistance { get; set; } = 2.5f;
@@ -46,7 +43,7 @@ public sealed class FirstPersonViewControl : Control, IViewportControl
     public FirstPersonLightingMode LightingMode { get; set; } = FirstPersonLightingMode.DistanceFog;
     public FirstPersonQualityPreset QualityPreset { get; set; } = FirstPersonQualityPreset.CorrectnessLow;
     public int LogicalColumns { get; set; } = 160;
-    public int MaxBillboards { get; set; } = 64;
+    public int MaxBillboards { get; set; } = 16;
     public bool EnableFloorPass { get; set; } = true;
 
     public FirstPersonViewControl()

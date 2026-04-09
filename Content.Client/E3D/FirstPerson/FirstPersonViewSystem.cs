@@ -11,9 +11,6 @@ using Robust.Shared.Player;
 
 namespace Content.Client.E3D.FirstPerson;
 
-/// <summary>
-/// Bridges networked/content state to the client-side FPV overlay.
-/// </summary>
 public sealed class FirstPersonViewSystem : EntitySystem
 {
     [Dependency] private readonly IPlayerManager _player = default!;
@@ -122,10 +119,7 @@ public sealed class FirstPersonViewSystem : EntitySystem
 
     private void ApplySettings(FirstPersonViewComponent fpv)
     {
-        // At the moment the controller owns the view; set values directly on the control.
-        // This keeps all rendering isolated to Content.Client.
         var ctrl = Controller;
-        // Enabled state handled separately.
         if (ctrl.TryGetControl(out var view))
         {
             view.FovDegrees = fpv.FovDegrees;

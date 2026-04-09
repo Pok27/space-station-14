@@ -11,9 +11,6 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace Content.Client.E3D.FirstPerson;
 
-/// <summary>
-/// Owns the lifetime of the first-person overlay control in gameplay.
-/// </summary>
 public sealed class FirstPersonUIController : UIController, IOnStateEntered<GameplayState>, IOnStateExited<GameplayState>
 {
     [Dependency] private readonly IClyde _clyde = default!;
@@ -21,9 +18,6 @@ public sealed class FirstPersonUIController : UIController, IOnStateEntered<Game
     private FirstPersonViewControl? _control;
     private ICursor? _hiddenCursor;
 
-    /// <summary>
-    /// Whether the pseudo-3D view is currently shown.
-    /// </summary>
     public bool Enabled => _control?.Visible == true;
 
     public void OnStateEntered(GameplayState state)

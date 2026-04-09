@@ -7,9 +7,6 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared.E3D.Systems;
 
-/// <summary>
-/// Synchronizes first-person camera yaw with the mover rotation so that movement stays relative to the FP view.
-/// </summary>
 public sealed class SharedFirstPersonRotationSystem : EntitySystem
 {
     public override void Initialize()
