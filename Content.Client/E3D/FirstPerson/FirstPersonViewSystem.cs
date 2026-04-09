@@ -13,6 +13,8 @@ namespace Content.Client.E3D.FirstPerson;
 
 public sealed class FirstPersonViewSystem : EntitySystem
 {
+    private const double YawSyncEpsilonRadians = 0.0001;
+
     [Dependency] private readonly IPlayerManager _player = default!;
     [Dependency] private readonly IUserInterfaceManager _ui = default!;
     [Dependency] private readonly IEntitySystemManager _systems = default!;
@@ -80,7 +82,7 @@ public sealed class FirstPersonViewSystem : EntitySystem
             return;
 
         var yaw = view.LookYaw;
-        if (_lastSentYaw != null && Angle.ShortestDistance(_lastSentYaw.Value, yaw).EqualsApprox(Angle.Zero, 0.0001))
+        if (_lastSentYaw != null && Angle.ShortestDistance(_lastSentYaw.Value, yaw).EqualsApprox(Angle.Zero, YawSyncEpsilonRadians))
             return;
 
         if (!TryComp<InputMoverComponent>(local, out var mover))

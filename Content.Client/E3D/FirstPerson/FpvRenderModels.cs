@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using Content.Shared.E3D;
 using Robust.Client.Graphics;
 using Robust.Shared.GameObjects;

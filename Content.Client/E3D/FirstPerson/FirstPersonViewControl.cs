@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 using Content.Shared.E3D;
+using Content.Shared.E3D.Components;
 using Robust.Client.Graphics;
 using Robust.Client.Input;
 using Robust.Client.UserInterface;
@@ -15,6 +16,11 @@ namespace Content.Client.E3D.FirstPerson;
 
 public sealed class FirstPersonViewControl : Control, IViewportControl
 {
+    private const float DefaultMouseSensitivity = 0.16f;
+    private const float DefaultMaxPitchDegrees = 70f;
+    private const float DefaultCursorTurnSpeedDegrees = 220f;
+    private const float DefaultCursorTurnDeadZoneFraction = 0.08f;
+
     [Dependency] private readonly IEyeManager _eyeManager = default!;
     [Dependency] private readonly IEntitySystemManager _entitySystems = default!;
     [Dependency] private readonly IInputManager _input = default!;
@@ -26,25 +32,25 @@ public sealed class FirstPersonViewControl : Control, IViewportControl
     private FirstPersonInteractionSystem Interaction => _entitySystems.GetEntitySystem<FirstPersonInteractionSystem>();
     private FirstPersonRenderPipelineSystem RenderPipeline => _entitySystems.GetEntitySystem<FirstPersonRenderPipelineSystem>();
 
-    public float FovDegrees { get; set; } = 100f;
-    public float MaxDistance { get; set; } = 18f;
-    public float EyeHeight { get; set; } = 0.82f;
-    public float InteractionDistance { get; set; } = 2.5f;
+    public float FovDegrees { get; set; } = FirstPersonViewDefaults.DefaultFovDegrees;
+    public float MaxDistance { get; set; } = FirstPersonViewDefaults.DefaultMaxDistance;
+    public float EyeHeight { get; set; } = FirstPersonViewDefaults.DefaultEyeHeight;
+    public float InteractionDistance { get; set; } = FirstPersonViewDefaults.DefaultInteractionDistance;
     public bool DrawCrosshair { get; set; } = true;
-    public float MouseSensitivity { get; set; } = 0.16f;
+    public float MouseSensitivity { get; set; } = DefaultMouseSensitivity;
     public bool InvertPitch { get; set; }
-    public float MaxPitchDegrees { get; set; } = 70f;
-    public float CursorTurnSpeedDegrees { get; set; } = 220f;
-    public float CursorTurnDeadZoneFraction { get; set; } = 0.08f;
-    public int ColumnStep { get; set; } = 2;
-    public bool FloorEnabled { get; set; } = true;
-    public bool BillboardEnabled { get; set; } = true;
-    public bool PitchEnabled { get; set; } = true;
-    public FirstPersonLightingMode LightingMode { get; set; } = FirstPersonLightingMode.DistanceFog;
-    public FirstPersonQualityPreset QualityPreset { get; set; } = FirstPersonQualityPreset.CorrectnessLow;
-    public int LogicalColumns { get; set; } = 160;
-    public int MaxBillboards { get; set; } = 16;
-    public bool EnableFloorPass { get; set; } = true;
+    public float MaxPitchDegrees { get; set; } = DefaultMaxPitchDegrees;
+    public float CursorTurnSpeedDegrees { get; set; } = DefaultCursorTurnSpeedDegrees;
+    public float CursorTurnDeadZoneFraction { get; set; } = DefaultCursorTurnDeadZoneFraction;
+    public int ColumnStep { get; set; } = FirstPersonViewDefaults.DefaultColumnStep;
+    public bool FloorEnabled { get; set; } = FirstPersonViewDefaults.DefaultFloorEnabled;
+    public bool BillboardEnabled { get; set; } = FirstPersonViewDefaults.DefaultBillboardEnabled;
+    public bool PitchEnabled { get; set; } = FirstPersonViewDefaults.DefaultPitchEnabled;
+    public FirstPersonLightingMode LightingMode { get; set; } = FirstPersonViewDefaults.DefaultLightingMode;
+    public FirstPersonQualityPreset QualityPreset { get; set; } = FirstPersonViewDefaults.DefaultQualityPreset;
+    public int LogicalColumns { get; set; } = FirstPersonViewDefaults.DefaultLogicalColumns;
+    public int MaxBillboards { get; set; } = FirstPersonViewDefaults.DefaultMaxBillboards;
+    public bool EnableFloorPass { get; set; } = FirstPersonViewDefaults.DefaultEnableFloorPass;
 
     public FirstPersonViewControl()
     {

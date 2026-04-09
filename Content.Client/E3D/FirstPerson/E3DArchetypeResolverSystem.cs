@@ -202,12 +202,9 @@ public sealed class E3DArchetypeResolverSystem : EntitySystem
 
     private E3DArchetype ResolveFallbackArchetype(EntityUid uid, SpriteComponent? sprite)
     {
-        var isWindow = _tags.HasTag(uid, WindowTag);
-        var isWall = _tags.HasTag(uid, WallTag);
-
         if (TryComp(uid, out DoorComponent? _))
         {
-            if (isWindow)
+            if (_tags.HasTag(uid, WindowTag))
                 return E3DArchetype.Window;
 
             if (HasComp<WallMountComponent>(uid))
@@ -219,10 +216,10 @@ public sealed class E3DArchetypeResolverSystem : EntitySystem
         if (TryComp(uid, out MobStateComponent? _))
             return E3DArchetype.Mob;
 
-        if (isWall)
+        if (_tags.HasTag(uid, WallTag))
             return E3DArchetype.Wall;
 
-        if (isWindow)
+        if (_tags.HasTag(uid, WindowTag))
             return E3DArchetype.Window;
 
         if (HasComp<WallMountComponent>(uid))

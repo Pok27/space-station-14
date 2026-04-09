@@ -6,42 +6,59 @@ namespace Content.Shared.E3D.Components;
 public sealed partial class FirstPersonViewComponent : Component
 {
     [DataField, AutoNetworkedField]
-    public float EyeHeight = 0.82f;
+    public float EyeHeight = FirstPersonViewDefaults.DefaultEyeHeight;
 
     [DataField, AutoNetworkedField]
-    public float FovDegrees = 100f;
+    public float FovDegrees = FirstPersonViewDefaults.DefaultFovDegrees;
 
     [DataField, AutoNetworkedField]
-    public float MaxDistance = 18f;
+    public float MaxDistance = FirstPersonViewDefaults.DefaultMaxDistance;
 
     [DataField, AutoNetworkedField]
-    public bool PitchEnabled = true;
+    public bool PitchEnabled = FirstPersonViewDefaults.DefaultPitchEnabled;
 
     [DataField, AutoNetworkedField]
-    public float InteractionDistance = 2.5f;
+    public float InteractionDistance = FirstPersonViewDefaults.DefaultInteractionDistance;
 
     [DataField, AutoNetworkedField]
-    public int ColumnStep = 2;
+    public int ColumnStep = FirstPersonViewDefaults.DefaultColumnStep;
 
     [DataField, AutoNetworkedField]
-    public bool FloorEnabled = true;
+    public bool FloorEnabled = FirstPersonViewDefaults.DefaultFloorEnabled;
 
     [DataField, AutoNetworkedField]
-    public bool BillboardEnabled = true;
+    public bool BillboardEnabled = FirstPersonViewDefaults.DefaultBillboardEnabled;
 
     [DataField, AutoNetworkedField]
-    public FirstPersonLightingMode LightingMode = FirstPersonLightingMode.DistanceFog;
+    public FirstPersonLightingMode LightingMode = FirstPersonViewDefaults.DefaultLightingMode;
 
     [DataField, AutoNetworkedField]
-    public FirstPersonQualityPreset QualityPreset = FirstPersonQualityPreset.CorrectnessLow;
+    public FirstPersonQualityPreset QualityPreset = FirstPersonViewDefaults.DefaultQualityPreset;
 
     [DataField, AutoNetworkedField]
-    public int LogicalColumns = 160;
+    public int LogicalColumns = FirstPersonViewDefaults.DefaultLogicalColumns;
 
     [DataField, AutoNetworkedField]
-    public int MaxBillboards = 16;
+    public int MaxBillboards = FirstPersonViewDefaults.DefaultMaxBillboards;
 
     [DataField, AutoNetworkedField]
-    public bool EnableFloorPass = true;
+    public bool EnableFloorPass = FirstPersonViewDefaults.DefaultEnableFloorPass;
+}
+
+public static class FirstPersonViewDefaults
+{
+    public const float DefaultEyeHeight = 0.82f;
+    public const float DefaultFovDegrees = 55f;
+    public const float DefaultMaxDistance = 18f;
+    public const bool DefaultPitchEnabled = true;
+    public const float DefaultInteractionDistance = 2.5f;
+    public const int DefaultColumnStep = 2;
+    public const bool DefaultFloorEnabled = true;
+    public const bool DefaultBillboardEnabled = true;
+    public const FirstPersonLightingMode DefaultLightingMode = FirstPersonLightingMode.DistanceFog;
+    public const FirstPersonQualityPreset DefaultQualityPreset = FirstPersonQualityPreset.CorrectnessLow;
+    public const int DefaultLogicalColumns = 160;
+    public const int DefaultMaxBillboards = 64;
+    public const bool DefaultEnableFloorPass = true;
 }
 
