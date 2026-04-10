@@ -48,17 +48,17 @@ public sealed partial class FirstPersonViewComponent : Component
 public static class FirstPersonViewDefaults
 {
     public const float DefaultEyeHeight = 0.82f;
-    public const float DefaultFovDegrees = 55f;
+    public const float DefaultFovDegrees = 100f;
     public const float DefaultMaxDistance = 18f;
     public const bool DefaultPitchEnabled = true;
     public const float DefaultInteractionDistance = 2.5f;
     public const int DefaultColumnStep = 2;
-    public const bool DefaultFloorEnabled = true;
+    public const bool DefaultFloorEnabled = false;
     public const bool DefaultBillboardEnabled = true;
     public const FirstPersonLightingMode DefaultLightingMode = FirstPersonLightingMode.DistanceFog;
-    public const FirstPersonQualityPreset DefaultQualityPreset = FirstPersonQualityPreset.CorrectnessLow;
-    public const int DefaultLogicalColumns = 160;
-    public const int DefaultMaxBillboards = 64;
+    public const FirstPersonQualityPreset DefaultQualityPreset = FirstPersonQualityPreset.Balanced;
+    public const int DefaultLogicalColumns = 0;
+    public const int DefaultMaxBillboards = 192;
     public const bool DefaultEnableFloorPass = true;
 }
 

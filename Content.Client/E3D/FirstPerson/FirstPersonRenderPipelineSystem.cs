@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Content.Shared.E3D;
-using Content.Shared.DrawDepth;
+using DrawDepth = Content.Shared.DrawDepth.DrawDepth;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Shared.GameObjects;
@@ -16,6 +16,9 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
 {
     private const float MinSurfaceRenderDistance = 0.35f;
     private const float MinCorrectedDistance = 0.05f;
+    private const float NearSurfaceSofteningDistance = 0.9f;
+    private const float NearSurfaceSofteningStrength = 0.24f;
+    private const float MaxSurfaceScreenHeightMultiplier = 1.2f;
     private const float MinLayerBoundsSizeSquared = 0.0001f;
     private const float MinRelativeLengthSquared = 0.0001f;
     private const float MinNonZero = 0.0001f;
@@ -109,13 +112,10 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
         if (rel.LengthSquared() <= MinRelativeLengthSquared)
             return control.GlobalPixelPosition + (Vector2) control.PixelSize / 2f;
 
-        var angleTo = new Angle(MathF.Atan2(rel.Y, rel.X));
-        var delta = (angleTo - camera.Yaw).Theta;
-        while (delta < -MathF.PI) delta += 2 * MathF.PI;
-        while (delta > MathF.PI) delta -= 2 * MathF.PI;
-
-        var fov = MathF.PI * (camera.FovDegrees / 180f);
-        var x = (float) ((delta / fov + 0.5f) * control.PixelSize.X);
+        var forwardDepth = Vector2.Dot(rel, camera.Yaw.ToVec());
+        var sideDepth = Vector2.Dot(rel, (camera.Yaw + Angle.FromDegrees(90f)).ToVec());
+        var projectionPlane = _sceneBuilder.GetProjectionPlaneDistance(control.PixelSize.X, camera.FovDegrees);
+        var x = control.PixelSize.X / 2f + sideDepth / MathF.Max(MinNonZero, forwardDepth) * projectionPlane;
         var y = control.PixelSize.Y / 2f;
         return new Vector2(x, y) + control.GlobalPixelPosition;
     }
@@ -227,12 +227,48 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
         return new UIBox2(texX, texY, texX + sampleSize, texY + sampleSize);
     }
 
+    private static int GetLogicalSurfaceColumnCount(FpvCameraState camera, int width)
+    {
+        if (width <= 1)
+            return 1;
+
+        if (width < 48)
+            return Math.Max(1, width);
+
+        if (camera.LogicalColumns > 0)
+            return Math.Clamp(camera.LogicalColumns, 48, width);
+
+        var columnStep = GetSurfaceColumnStep(camera);
+        var columns = (int) MathF.Ceiling(width / (float) columnStep);
+        return Math.Clamp(columns, 48, width);
+    }
+
+    private static int GetSurfaceColumnStep(FpvCameraState camera)
+    {
+        var configuredStep = Math.Clamp(camera.ColumnStep, 1, 8);
+        return camera.QualityPreset switch
+        {
+            FirstPersonQualityPreset.High => Math.Max(1, configuredStep / 2),
+            FirstPersonQualityPreset.Balanced => configuredStep,
+            _ => Math.Min(8, configuredStep * 2),
+        };
+    }
+
+    private static float GetSurfaceRenderDistance(float correctedDist)
+    {
+        var clamped = MathF.Max(MinCorrectedDistance, correctedDist);
+        if (clamped >= NearSurfaceSofteningDistance)
+            return MathF.Max(MinSurfaceRenderDistance, clamped);
+
+        var t = 1f - clamped / NearSurfaceSofteningDistance;
+        var softened = clamped + t * t * NearSurfaceSofteningStrength;
+        return MathF.Max(MinSurfaceRenderDistance, softened);
+    }
+
     private void DrawSurfaces(DrawingHandleScreen handle, FpvCameraState camera, int width, float height, float horizon)
     {
         _transparentSurfaces.Clear();
-        var logicalColumns = width < 48
-            ? Math.Max(1, width)
-            : Math.Clamp(camera.LogicalColumns, 48, width);
+        var logicalColumns = GetLogicalSurfaceColumnCount(camera, width);
         var projectionPlane = _sceneBuilder.GetProjectionPlaneDistance(width, camera.FovDegrees);
         EnsureSurfaceBuffers(logicalColumns);
         var job = new SurfaceCastJob
@@ -305,7 +341,7 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
         bool forceOpaque,
         bool deferToAlpha)
     {
-        var lineHeight = MathF.Min(height * 1.35f, projectionPlane * resolved.Height / renderDist);
+        var lineHeight = MathF.Min(height * MaxSurfaceScreenHeightMultiplier, projectionPlane * resolved.Height / renderDist);
         var top = horizon - lineHeight / 2f - projectionPlane * resolved.EyeOffset / renderDist;
         var color = _sceneBuilder.ApplyDistanceFog(Color.White, hit.Distance, camera);
         if (hit.VerticalSide)
@@ -313,7 +349,7 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
 
         var transparent = !forceOpaque && resolved.Transparent;
         var wallRect = UIBox2.FromDimensions(new Vector2(bandLeft, top), new Vector2(bandWidth, lineHeight));
-        var surfaceDrawDepth = (int) Content.Shared.DrawDepth.DrawDepth.Walls;
+        var surfaceDrawDepth = (int) DrawDepth.Walls;
         if (TryComp(hit.HitEntity, out SpriteComponent? sprite))
             surfaceDrawDepth = sprite.DrawDepth;
 
@@ -375,6 +411,35 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
         return new UIBox2(left, top, right, bottom);
     }
 
+    private static bool TryClipRectHorizontally(UIBox2 rect, float visibleLeft, float visibleRight, out UIBox2 clippedRect, out float clipStart, out float clipEnd)
+    {
+        clippedRect = default;
+        clipStart = 0f;
+        clipEnd = 1f;
+
+        var width = rect.Width;
+        if (width <= MinNonZero)
+            return false;
+
+        var left = Math.Clamp(visibleLeft, rect.Left, rect.Right);
+        var right = Math.Clamp(visibleRight, rect.Left, rect.Right);
+        if (right - left <= MinNonZero)
+            return false;
+
+        clipStart = (left - rect.Left) / width;
+        clipEnd = (right - rect.Left) / width;
+        clippedRect = new UIBox2(left, rect.Top, right, rect.Bottom);
+        return true;
+    }
+
+    private static UIBox2 GetHorizontalTextureRegion(Texture texture, float clipStart, float clipEnd)
+    {
+        var textureWidth = Math.Max(1f, texture.Width);
+        var left = Math.Clamp(clipStart * textureWidth, 0f, textureWidth - 1f);
+        var right = Math.Clamp(clipEnd * textureWidth, left + 1f, textureWidth);
+        return new UIBox2(left, 0f, right, texture.Height);
+    }
+
     private void DrawAlphaPass(DrawingHandleScreen handle, FpvCameraState camera, int width, int height)
     {
         _sceneBuilder.CollectBillboards(camera, _depthBuffer, width, height, _billboards);
@@ -427,14 +492,24 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
                 foreach (var layer in _billboardLayers)
                 {
                     var layerRect = GetLayerScreenRect(billboard.ScreenRect, billboard.CombinedBounds, layer.Bounds);
+                    if (!TryClipRectHorizontally(layerRect, billboard.VisibleLeft, billboard.VisibleRight, out var clippedLayerRect, out var clipStart, out var clipEnd))
+                        continue;
+
                     var layerColor = _sceneBuilder.ApplyDistanceFog(layer.Color, billboard.Distance, camera)
                         .WithAlpha(billboard.Transparent ? TransparentBillboardAlpha : 1f);
-                    handle.DrawTextureRect(layer.Texture, layerRect, layerColor);
+                    handle.DrawTextureRectRegion(layer.Texture, clippedLayerRect, GetHorizontalTextureRegion(layer.Texture, clipStart, clipEnd), layerColor);
                 }
             }
             else if (billboard.Texture != null)
             {
-                handle.DrawTextureRect(billboard.Texture, billboard.ScreenRect, billboard.Color.WithAlpha(billboard.Transparent ? TransparentBillboardAlpha : 1f));
+                if (!TryClipRectHorizontally(billboard.ScreenRect, billboard.VisibleLeft, billboard.VisibleRight, out var clippedRect, out var clipStart, out var clipEnd))
+                    continue;
+
+                handle.DrawTextureRectRegion(
+                    billboard.Texture,
+                    clippedRect,
+                    GetHorizontalTextureRegion(billboard.Texture, clipStart, clipEnd),
+                    billboard.Color.WithAlpha(billboard.Transparent ? TransparentBillboardAlpha : 1f));
             }
         }
     }
@@ -584,7 +659,7 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
 
             var correctedDist = MathF.Max(MinCorrectedDistance, hit.Distance * (float) Math.Cos((rayAngle - Camera.Yaw).Theta));
             CorrectedDist[index] = correctedDist;
-            RenderDist[index] = MathF.Max(MinSurfaceRenderDistance, correctedDist);
+            RenderDist[index] = GetSurfaceRenderDistance(correctedDist);
 
             if (!resolved.Transparent)
             {
@@ -600,7 +675,7 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
                 OpaqueResolved[index] = opaqueResolved;
                 var opaqueDist = MathF.Max(MinCorrectedDistance, opaqueHit.Distance * (float) Math.Cos((rayAngle - Camera.Yaw).Theta));
                 OpaqueCorrectedDist[index] = opaqueDist;
-                OpaqueRenderDist[index] = MathF.Max(MinSurfaceRenderDistance, opaqueDist);
+                OpaqueRenderDist[index] = GetSurfaceRenderDistance(opaqueDist);
                 OccluderDist[index] = opaqueDist;
             }
             else

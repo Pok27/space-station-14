@@ -1,7 +1,6 @@
 using Content.Shared.E3D.Systems;
 using Content.Shared.E3D;
 using Content.Shared.E3D.Components;
-using Content.Shared.Movement.Components;
 using Robust.Client.Player;
 using Robust.Shared.GameObjects;
 using Robust.Shared.GameStates;
@@ -84,13 +83,6 @@ public sealed class FirstPersonViewSystem : EntitySystem
         var yaw = view.LookYaw;
         if (_lastSentYaw != null && Angle.ShortestDistance(_lastSentYaw.Value, yaw).EqualsApprox(Angle.Zero, YawSyncEpsilonRadians))
             return;
-
-        if (!TryComp<InputMoverComponent>(local, out var mover))
-            return;
-
-        var moverRotation = (-yaw).FlipPositive();
-        mover.RelativeRotation = moverRotation;
-        mover.TargetRelativeRotation = moverRotation;
 
         RaisePredictiveEvent(new RequestFirstPersonRotationEvent
         {

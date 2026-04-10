@@ -9,6 +9,8 @@ namespace Content.Shared.E3D.Systems;
 
 public sealed class SharedFirstPersonRotationSystem : EntitySystem
 {
+    [Dependency] private readonly SharedTransformSystem _transform = default!;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -27,13 +29,30 @@ public sealed class SharedFirstPersonRotationSystem : EntitySystem
             return;
         }
 
-        var moverRotation = (-msg.ViewRotation).FlipPositive();
+        var moverRotation = GetMoverViewRotation(attached, mover, msg.ViewRotation);
         if (mover.RelativeRotation.Equals(moverRotation) && mover.TargetRelativeRotation.Equals(moverRotation))
             return;
 
         mover.RelativeRotation = moverRotation;
         mover.TargetRelativeRotation = moverRotation;
         Dirty(attached, mover);
+    }
+
+    private Angle GetMoverViewRotation(EntityUid uid, InputMoverComponent mover, Angle viewYaw)
+    {
+        var parentRotation = Angle.Zero;
+        var relative = mover.RelativeEntity;
+
+        if (relative == null)
+        {
+            var xform = Transform(uid);
+            relative = xform.GridUid ?? xform.MapUid;
+        }
+
+        if (relative != null && TryComp(relative.Value, out TransformComponent? relativeXform))
+            parentRotation = _transform.GetWorldRotation(relativeXform);
+
+        return (-(viewYaw + parentRotation)).FlipPositive();
     }
 }
 

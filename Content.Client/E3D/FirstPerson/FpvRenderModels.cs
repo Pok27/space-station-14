@@ -49,6 +49,8 @@ public readonly record struct FpvSurfaceSpan(
 public readonly record struct FpvBillboard(
     EntityUid Entity,
     UIBox2 ScreenRect,
+    float VisibleLeft,
+    float VisibleRight,
     float Distance,
     float SortDepth,
     int DrawDepth,

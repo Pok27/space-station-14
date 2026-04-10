@@ -11,8 +11,13 @@ public sealed class FirstPersonInputGateSystem : EntitySystem
 
     private FirstPersonUIController Controller => _ui.GetUIController<FirstPersonUIController>();
 
-    public bool BlocksMouseRotator(EntityUid uid)
+    public bool IsFirstPersonActive(EntityUid uid)
     {
         return Controller.Enabled && _player.LocalEntity == uid;
+    }
+
+    public bool BlocksMouseRotator(EntityUid uid)
+    {
+        return IsFirstPersonActive(uid);
     }
 }

@@ -2,14 +2,18 @@ using System;
 using System.Numerics;
 using Content.Shared.E3D;
 using Content.Shared.E3D.Components;
+using Content.Shared.Movement.Systems;
+using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.Input;
+using Robust.Client.Player;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.CustomControls;
 using Robust.Shared.IoC;
 using Robust.Shared.Map;
 using Robust.Shared.Maths;
+using Robust.Shared.Input;
 using Robust.Shared.Timing;
 
 namespace Content.Client.E3D.FirstPerson;
@@ -18,19 +22,26 @@ public sealed class FirstPersonViewControl : Control, IViewportControl
 {
     private const float DefaultMouseSensitivity = 0.16f;
     private const float DefaultMaxPitchDegrees = 70f;
-    private const float DefaultCursorTurnSpeedDegrees = 220f;
-    private const float DefaultCursorTurnDeadZoneFraction = 0.08f;
 
     [Dependency] private readonly IEyeManager _eyeManager = default!;
+    [Dependency] private readonly IClyde _clyde = default!;
     [Dependency] private readonly IEntitySystemManager _entitySystems = default!;
     [Dependency] private readonly IInputManager _input = default!;
+    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private readonly IPlayerManager _player = default!;
     [Dependency] private readonly IUserInterfaceManager _uiManager = default!;
 
     private readonly FirstPersonCameraController _camera = new();
+    private MoveButtons _fpvSourceButtons;
+    private MoveButtons _fpvEmittedButtons;
+    private int _lastForwardSource;
+    private int _lastStrafeSource;
 
     private FirstPersonSceneBuilderSystem SceneBuilder => _entitySystems.GetEntitySystem<FirstPersonSceneBuilderSystem>();
     private FirstPersonInteractionSystem Interaction => _entitySystems.GetEntitySystem<FirstPersonInteractionSystem>();
+    private InputSystem InputSystem => _entitySystems.GetEntitySystem<InputSystem>();
     private FirstPersonRenderPipelineSystem RenderPipeline => _entitySystems.GetEntitySystem<FirstPersonRenderPipelineSystem>();
+    private SharedTransformSystem TransformSystem => _entitySystems.GetEntitySystem<SharedTransformSystem>();
 
     public float FovDegrees { get; set; } = FirstPersonViewDefaults.DefaultFovDegrees;
     public float MaxDistance { get; set; } = FirstPersonViewDefaults.DefaultMaxDistance;
@@ -40,8 +51,6 @@ public sealed class FirstPersonViewControl : Control, IViewportControl
     public float MouseSensitivity { get; set; } = DefaultMouseSensitivity;
     public bool InvertPitch { get; set; }
     public float MaxPitchDegrees { get; set; } = DefaultMaxPitchDegrees;
-    public float CursorTurnSpeedDegrees { get; set; } = DefaultCursorTurnSpeedDegrees;
-    public float CursorTurnDeadZoneFraction { get; set; } = DefaultCursorTurnDeadZoneFraction;
     public int ColumnStep { get; set; } = FirstPersonViewDefaults.DefaultColumnStep;
     public bool FloorEnabled { get; set; } = FirstPersonViewDefaults.DefaultFloorEnabled;
     public bool BillboardEnabled { get; set; } = FirstPersonViewDefaults.DefaultBillboardEnabled;
@@ -100,6 +109,9 @@ public sealed class FirstPersonViewControl : Control, IViewportControl
         if (args.Handled)
             return;
 
+        if (HandleFirstPersonMovementInput(args, true))
+            return;
+
         _input.ViewportKeyEvent(this, args);
     }
 
@@ -108,6 +120,9 @@ public sealed class FirstPersonViewControl : Control, IViewportControl
         base.KeyBindUp(args);
 
         if (args.Handled)
+            return;
+
+        if (HandleFirstPersonMovementInput(args, false))
             return;
 
         _input.ViewportKeyEvent(this, args);
@@ -127,6 +142,9 @@ public sealed class FirstPersonViewControl : Control, IViewportControl
             PitchEnabled,
             MaxPitchDegrees,
             _eyeManager.CurrentEye.Rotation);
+
+        if (_fpvSourceButtons != MoveButtons.None)
+            UpdateFirstPersonMovement(args.GlobalPixelPosition);
     }
 
     protected override void VisibilityChanged(bool newVisible)
@@ -140,37 +158,29 @@ public sealed class FirstPersonViewControl : Control, IViewportControl
         }
         else
         {
+            ReleaseFirstPersonMovement();
             Interaction.Clear();
         }
+
+        UpdateRelativeMouseMode();
     }
 
-    protected override void FrameUpdate(FrameEventArgs args)
+    protected override void KeyboardFocusEntered()
     {
-        base.FrameUpdate(args);
+        base.KeyboardFocusEntered();
+        UpdateRelativeMouseMode();
+    }
 
-        if (!Visible || !HasKeyboardFocus() || !_input.MouseScreenPosition.IsValid)
-            return;
+    protected override void KeyboardFocusExited()
+    {
+        base.KeyboardFocusExited();
+        ReleaseFirstPersonMovement();
+        UpdateRelativeMouseMode();
+    }
 
-        var localMouse = _input.MouseScreenPosition.Position - GlobalPixelPosition;
-        var size = (Vector2) PixelSize;
-        if (size.X <= 1f || size.Y <= 1f)
-            return;
-
-        var center = size / 2f;
-        var offset = localMouse - center;
-        var normalized = new Vector2(
-            offset.X / MathF.Max(1f, center.X),
-            offset.Y / MathF.Max(1f, center.Y));
-
-        _camera.UpdateFromCursorTurn(
-            normalized,
-            CursorTurnDeadZoneFraction,
-            CursorTurnSpeedDegrees,
-            args.DeltaSeconds,
-            InvertPitch,
-            PitchEnabled,
-            MaxPitchDegrees,
-            _eyeManager.CurrentEye.Rotation);
+    private void UpdateRelativeMouseMode()
+    {
+        _clyde.SetRelativeMouseMode(Visible && HasKeyboardFocus());
     }
 
     protected override void Draw(DrawingHandleScreen handle)
@@ -205,5 +215,137 @@ public sealed class FirstPersonViewControl : Control, IViewportControl
     public Matrix3x2 GetLocalToScreenMatrix()
     {
         return Matrix3Helpers.CreateTransform(GlobalPixelPosition, 0, Vector2.One);
+    }
+
+    private bool HandleFirstPersonMovementInput(GUIBoundKeyEventArgs args, bool pressed)
+    {
+        var sourceBit = MoveButtons.None;
+
+        if (args.Function == EngineKeyFunctions.MoveUp)
+            sourceBit = MoveButtons.Up;
+        else if (args.Function == EngineKeyFunctions.MoveDown)
+            sourceBit = MoveButtons.Down;
+        else if (args.Function == EngineKeyFunctions.MoveLeft)
+            sourceBit = MoveButtons.Left;
+        else if (args.Function == EngineKeyFunctions.MoveRight)
+            sourceBit = MoveButtons.Right;
+
+        if (sourceBit == MoveButtons.None)
+            return false;
+
+        if (pressed)
+            _fpvSourceButtons |= sourceBit;
+        else
+            _fpvSourceButtons &= ~sourceBit;
+
+        switch (sourceBit)
+        {
+            case MoveButtons.Up:
+                _lastForwardSource = pressed ? 1 : (_fpvSourceButtons & MoveButtons.Down) != 0 ? -1 : 0;
+                break;
+            case MoveButtons.Down:
+                _lastForwardSource = pressed ? -1 : (_fpvSourceButtons & MoveButtons.Up) != 0 ? 1 : 0;
+                break;
+            case MoveButtons.Left:
+                _lastStrafeSource = pressed ? -1 : (_fpvSourceButtons & MoveButtons.Right) != 0 ? 1 : 0;
+                break;
+            case MoveButtons.Right:
+                _lastStrafeSource = pressed ? 1 : (_fpvSourceButtons & MoveButtons.Left) != 0 ? -1 : 0;
+                break;
+        }
+
+        UpdateFirstPersonMovement(args.PointerLocation);
+        args.Handle();
+        return true;
+    }
+
+    private void UpdateFirstPersonMovement(ScreenCoordinates pointerLocation)
+    {
+        var targetButtons = CalculateViewRelativeButtons(_fpvSourceButtons);
+        var changed = _fpvEmittedButtons ^ targetButtons;
+
+        SendMovementButtonDelta(changed, targetButtons, MoveButtons.Up, EngineKeyFunctions.MoveUp, pointerLocation);
+        SendMovementButtonDelta(changed, targetButtons, MoveButtons.Down, EngineKeyFunctions.MoveDown, pointerLocation);
+        SendMovementButtonDelta(changed, targetButtons, MoveButtons.Left, EngineKeyFunctions.MoveLeft, pointerLocation);
+        SendMovementButtonDelta(changed, targetButtons, MoveButtons.Right, EngineKeyFunctions.MoveRight, pointerLocation);
+
+        _fpvEmittedButtons = targetButtons;
+    }
+
+    private MoveButtons CalculateViewRelativeButtons(MoveButtons sourceButtons)
+    {
+        var leftHeld = (sourceButtons & MoveButtons.Left) != 0;
+        var rightHeld = (sourceButtons & MoveButtons.Right) != 0;
+        var upHeld = (sourceButtons & MoveButtons.Up) != 0;
+        var downHeld = (sourceButtons & MoveButtons.Down) != 0;
+
+        var strafe = leftHeld == rightHeld
+            ? (leftHeld ? _lastStrafeSource : 0)
+            : leftHeld ? -1 : 1;
+
+        var forward = upHeld == downHeld
+            ? (upHeld ? _lastForwardSource : 0)
+            : upHeld ? 1 : -1;
+
+        if (strafe == 0 && forward == 0)
+            return MoveButtons.None;
+
+        var adjustedYaw = LookYaw - Angle.FromDegrees(45f);
+        var forwardDir = -adjustedYaw.ToWorldVec().GetDir().ToIntVec();
+        var rightDir = new Vector2i(forwardDir.Y, -forwardDir.X);
+        var dir = forwardDir * forward + rightDir * strafe;
+
+        var result = MoveButtons.None;
+
+        if (dir.Y > 0)
+            result |= MoveButtons.Up;
+        else if (dir.Y < 0)
+            result |= MoveButtons.Down;
+
+        if (dir.X > 0)
+            result |= MoveButtons.Right;
+        else if (dir.X < 0)
+            result |= MoveButtons.Left;
+
+        return result;
+    }
+
+    private void SendMovementButtonDelta(
+        MoveButtons changed,
+        MoveButtons targetButtons,
+        MoveButtons bit,
+        BoundKeyFunction function,
+        ScreenCoordinates pointerLocation)
+    {
+        if ((changed & bit) == 0)
+            return;
+
+        if (_player.LocalEntity is not { } player)
+            return;
+
+        var funcId = _input.NetworkBindMap.KeyFunctionID(function);
+        var coords = TransformSystem.ToCoordinates(player, TransformSystem.GetMapCoordinates(player));
+        var state = (targetButtons & bit) != 0 ? BoundKeyState.Down : BoundKeyState.Up;
+        var message = new ClientFullInputCmdMessage(
+            _timing.CurTick,
+            _timing.TickFraction,
+            funcId,
+            coords,
+            pointerLocation,
+            state,
+            EntityUid.Invalid);
+
+        InputSystem.HandleInputCommand(_player.LocalSession, function, message);
+    }
+
+    private void ReleaseFirstPersonMovement()
+    {
+        if (_fpvSourceButtons == MoveButtons.None && _fpvEmittedButtons == MoveButtons.None)
+            return;
+
+        _fpvSourceButtons = MoveButtons.None;
+        _lastForwardSource = 0;
+        _lastStrafeSource = 0;
+        UpdateFirstPersonMovement(ScreenCoordinates.Invalid);
     }
 }

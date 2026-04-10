@@ -26,6 +26,7 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
     [Dependency] private readonly EntityLookupSystem _lookup = default!;
     [Dependency] private readonly IMapManager _mapManager = default!;
     [Dependency] private readonly IResourceCache _resources = default!;
+    [Dependency] private readonly SpriteSystem _sprites = default!;
     [Dependency] private readonly ITileDefinitionManager _tileDefs = default!;
     [Dependency] private readonly SharedMapSystem _map = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
@@ -124,7 +125,7 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
             if (!_resolver.IsSpriteRenderable(sprite))
                 continue;
 
-            var world = _transform.GetMapCoordinates(uid, xform).Position;
+            var world = GetRenderableWorldPosition(uid, xform, sprite, Vector2.Zero);
             var rel = world - camera.EyePos;
             var distanceSquared = rel.LengthSquared();
             if (distanceSquared <= 0.0025f || distanceSquared > maxDistanceSquared)
@@ -150,7 +151,7 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
             for (var i = 1; i < _billboardLayers.Count; i++)
                 combinedBounds = combinedBounds.Union(_billboardLayers[i].Bounds);
 
-            world += resolved.WorldOffset;
+            world = GetRenderableWorldPosition(uid, xform, sprite, resolved.WorldOffset);
             rel = world - camera.EyePos;
             var forwardDepth = Vector2.Dot(rel, camera.Yaw.ToVec());
             if (forwardDepth <= 0.05f || forwardDepth > camera.MaxDistance)
@@ -197,26 +198,15 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
                 new Vector2(screenX - projectedWidth / 2f, top),
                 new Vector2(projectedWidth, projectedHeight));
 
-            var leftIndex = (int) Math.Clamp(MathF.Floor(rect.Left), 0, depthBuffer.Length - 1);
-            var rightIndex = (int) Math.Clamp(MathF.Ceiling(rect.Right), 0, depthBuffer.Length - 1);
-            var occluded = false;
-            for (var i = leftIndex; i <= rightIndex && i < depthBuffer.Length; i++)
-            {
-                if (depthBuffer[i] > 0f &&
-                    forwardDepth > depthBuffer[i] + resolved.DepthBias)
-                {
-                    occluded = true;
-                    break;
-                }
-            }
-
-            if (occluded)
+            if (!TryGetVisibleBillboardSpan(rect, forwardDepth, resolved.DepthBias, depthBuffer, out var visibleLeft, out var visibleRight))
                 continue;
 
             var sortDepth = forwardDepth;
             output.Add(new FpvBillboard(
                 uid,
                 rect,
+                visibleLeft,
+                visibleRight,
                 forwardDepth,
                 sortDepth,
                 sprite.DrawDepth,
@@ -239,7 +229,7 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
 
             return a.Entity.CompareTo(b.Entity);
         });
-        if (output.Count > camera.MaxBillboards)
+        if (camera.MaxBillboards > 0 && output.Count > camera.MaxBillboards)
             output.RemoveRange(camera.MaxBillboards, output.Count - camera.MaxBillboards);
     }
 
@@ -267,7 +257,7 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
             if (!_resolver.IsSpriteRenderable(sprite) || !_resolver.TryResolve(uid, out var resolved) || resolved.Archetype != E3DArchetype.DecalLike)
                 continue;
 
-            var world = _transform.GetMapCoordinates(uid, xform).Position + resolved.WorldOffset;
+            var world = GetRenderableWorldPosition(uid, xform, sprite, resolved.WorldOffset);
             var face = GetBillboardFace(world, camera.EyePos, _transform.GetWorldRotation(xform));
             if (!_resolver.TryGetBillboardVisual(uid, face, out var texture, out var bounds, out var tint) || texture == null)
                 continue;
@@ -343,9 +333,12 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
 
     public Angle GetRayAngle(FpvCameraState camera, float xPx, int widthPx)
     {
-        var t = (xPx + 0.5f) / widthPx;
-        var radians = MathF.PI * (camera.FovDegrees / 180f);
-        return camera.Yaw + new Angle((t - 0.5f) * radians);
+        if (widthPx <= 0)
+            return camera.Yaw;
+
+        var projectionPlane = GetProjectionPlaneDistance(widthPx, camera.FovDegrees);
+        var centeredX = xPx - widthPx / 2f;
+        return camera.Yaw + new Angle(MathF.Atan2(centeredX, projectionPlane));
     }
 
     public float GetProjectionPlaneDistance(float screenWidth, float fovDegrees)
@@ -493,7 +486,7 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
             if (resolved.Archetype is E3DArchetype.GasOverlay or E3DArchetype.DecalLike or E3DArchetype.Floor)
                 continue;
 
-            var world = _transform.GetMapCoordinates(uid, xform).Position + resolved.WorldOffset;
+            var world = GetRenderableWorldPosition(uid, xform, CompOrNull<SpriteComponent>(uid), resolved.WorldOffset);
             var rel = world - camera.EyePos;
             var depth = Vector2.Dot(rel, camera.Yaw.ToVec());
             if (depth <= 0.05f || depth > bestDistance)
@@ -511,6 +504,51 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
 
         entity = best;
         return entity != null;
+    }
+
+    private Vector2 GetRenderableWorldPosition(EntityUid uid, TransformComponent xform, SpriteComponent? sprite, Vector2 worldOffset)
+    {
+        var world = sprite != null && _resolver.IsSpriteRenderable(sprite)
+            ? _sprites.GetSpriteWorldPosition((uid, sprite, xform))
+            : _transform.GetMapCoordinates(uid, xform).Position;
+
+        return world + worldOffset;
+    }
+
+    private static bool TryGetVisibleBillboardSpan(UIBox2 rect, float depth, float depthBias, float[] depthBuffer, out float visibleLeft, out float visibleRight)
+    {
+        visibleLeft = rect.Left;
+        visibleRight = rect.Right;
+
+        if (rect.Width <= 0f)
+            return false;
+
+        if (depthBuffer.Length == 0)
+            return true;
+
+        var leftIndex = (int) Math.Clamp(MathF.Floor(rect.Left), 0, depthBuffer.Length - 1);
+        var rightIndex = (int) Math.Clamp(MathF.Ceiling(rect.Right) - 1f, 0, depthBuffer.Length - 1);
+        var firstVisible = -1;
+        var lastVisible = -1;
+
+        for (var i = leftIndex; i <= rightIndex; i++)
+        {
+            var occluderDepth = depthBuffer[i];
+            if (occluderDepth > 0f && depth > occluderDepth + depthBias)
+                continue;
+
+            if (firstVisible == -1)
+                firstVisible = i;
+
+            lastVisible = i;
+        }
+
+        if (firstVisible == -1 || lastVisible == -1)
+            return false;
+
+        visibleLeft = MathF.Max(rect.Left, firstVisible);
+        visibleRight = MathF.Min(rect.Right, lastVisible + 1f);
+        return visibleRight - visibleLeft > 0.5f;
     }
 
     private static Direction GetBillboardFace(Vector2 world, Vector2 eyePos, Angle worldRotation)

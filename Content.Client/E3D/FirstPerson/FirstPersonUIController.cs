@@ -40,6 +40,7 @@ public sealed class FirstPersonUIController : UIController, IOnStateEntered<Game
         UIManager.RootControl.RemoveChild(_control);
         _control.Dispose();
         _control = null;
+        _clyde.SetRelativeMouseMode(false);
         _clyde.SetCursor(null);
         _hiddenCursor?.Dispose();
         _hiddenCursor = null;
@@ -73,6 +74,7 @@ public sealed class FirstPersonUIController : UIController, IOnStateEntered<Game
     {
         if (!Enabled)
         {
+            _clyde.SetRelativeMouseMode(false);
             _clyde.SetCursor(null);
             return;
         }

@@ -73,30 +73,4 @@ internal sealed class FirstPersonCameraController
         ApplyYawDelta(relativeMotion.X * mouseSensitivity, eyeRotation);
         ApplyPitchDelta(relativeMotion.Y * mouseSensitivity * (invertPitch ? -1f : 1f), pitchEnabled, maxPitchDegrees);
     }
-
-    public void UpdateFromCursorTurn(Vector2 normalizedOffset, float deadZoneFraction, float turnSpeedDegrees, float deltaSeconds, bool invertPitch, bool pitchEnabled, float maxPitchDegrees, Angle eyeRotation)
-    {
-        var deadZone = Math.Clamp(deadZoneFraction, 0f, 0.95f);
-        var yawInput = GetCursorTurnInput(normalizedOffset.X, deadZone);
-        var pitchInput = GetCursorTurnInput(normalizedOffset.Y, deadZone);
-
-        if (MathF.Abs(yawInput) > 0.0001f)
-            ApplyYawDelta(yawInput * turnSpeedDegrees * deltaSeconds, eyeRotation);
-
-        if (MathF.Abs(pitchInput) > 0.0001f)
-        {
-            var pitchSign = invertPitch ? -1f : 1f;
-            ApplyPitchDelta(pitchInput * turnSpeedDegrees * 0.65f * deltaSeconds * pitchSign, pitchEnabled, maxPitchDegrees);
-        }
-    }
-
-    private static float GetCursorTurnInput(float value, float deadZone)
-    {
-        var abs = MathF.Abs(value);
-        if (abs <= deadZone)
-            return 0f;
-
-        var scaled = (abs - deadZone) / MathF.Max(0.0001f, 1f - deadZone);
-        return MathF.Sign(value) * Math.Clamp(scaled, 0f, 1f);
-    }
 }
