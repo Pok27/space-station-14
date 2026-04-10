@@ -19,7 +19,6 @@ public sealed class FirstPersonFloorCacheSystem : EntitySystem
     [Dependency] private readonly SharedMapSystem _map = default!;
 
     private readonly Dictionary<(EntityUid GridUid, Vector2i Indices), CachedFloorTile?> _tileCache = new();
-    private readonly object _tileCacheLock = new();
 
     public override void Initialize()
     {
@@ -29,12 +28,9 @@ public sealed class FirstPersonFloorCacheSystem : EntitySystem
 
     private void OnTileChanged(ref TileChangedEvent args)
     {
-        lock (_tileCacheLock)
+        foreach (var change in args.Changes)
         {
-            foreach (var change in args.Changes)
-            {
-                _tileCache.Remove((args.Entity.Owner, change.GridIndices));
-            }
+            _tileCache.Remove((args.Entity.Owner, change.GridIndices));
         }
     }
 
@@ -68,27 +64,24 @@ public sealed class FirstPersonFloorCacheSystem : EntitySystem
 
     private CachedFloorTile? GetOrCreateTile(EntityUid gridUid, MapGridComponent grid, Vector2i indices)
     {
-        lock (_tileCacheLock)
-        {
-            if (_tileCache.TryGetValue((gridUid, indices), out var cached))
-                return cached;
-
-            if (!_map.TryGetTileRef(gridUid, grid, indices, out var tileRef))
-                return _tileCache[(gridUid, indices)] = null;
-
-            var def = (ContentTileDefinition) _tileDefs[tileRef.Tile.TypeId];
-            if (def.Sprite == null)
-                return _tileCache[(gridUid, indices)] = null;
-
-            var texture = _resources.GetTexture(def.Sprite.Value);
-            var tileSize = texture.Height;
-            var variant = Math.Clamp(tileRef.Tile.Variant, 0, Math.Max(0, def.Variants - 1));
-            var region = new UIBox2(variant * tileSize, 0, (variant + 1) * tileSize, tileSize);
-
-            cached = new CachedFloorTile(texture, region, tileRef.Tile.RotationMirroring);
-            _tileCache[(gridUid, indices)] = cached;
+        if (_tileCache.TryGetValue((gridUid, indices), out var cached))
             return cached;
-        }
+
+        if (!_map.TryGetTileRef(gridUid, grid, indices, out var tileRef))
+            return _tileCache[(gridUid, indices)] = null;
+
+        var def = (ContentTileDefinition) _tileDefs[tileRef.Tile.TypeId];
+        if (def.Sprite == null)
+            return _tileCache[(gridUid, indices)] = null;
+
+        var texture = _resources.GetTexture(def.Sprite.Value);
+        var tileSize = texture.Height;
+        var variant = Math.Clamp(tileRef.Tile.Variant, 0, Math.Max(0, def.Variants - 1));
+        var region = new UIBox2(variant * tileSize, 0, (variant + 1) * tileSize, tileSize);
+
+        cached = new CachedFloorTile(texture, region, tileRef.Tile.RotationMirroring);
+        _tileCache[(gridUid, indices)] = cached;
+        return cached;
     }
 
     private static void ApplyTileRotationMirroring(byte rotationMirroring, ref float fracX, ref float fracY)

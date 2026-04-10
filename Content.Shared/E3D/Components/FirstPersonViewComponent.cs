@@ -53,7 +53,7 @@ public static class FirstPersonViewDefaults
     public const bool DefaultPitchEnabled = true;
     public const float DefaultInteractionDistance = 2.5f;
     public const int DefaultColumnStep = 2;
-    public const bool DefaultFloorEnabled = true;
+    public const bool DefaultFloorEnabled = false;
     public const bool DefaultBillboardEnabled = true;
     public const FirstPersonLightingMode DefaultLightingMode = FirstPersonLightingMode.DistanceFog;
     public const FirstPersonQualityPreset DefaultQualityPreset = FirstPersonQualityPreset.Balanced;

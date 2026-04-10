@@ -255,12 +255,7 @@ public sealed class E3DArchetypeResolverSystem : EntitySystem
         }
 
         if (depth is (int) DrawDepth.Doors or (int) DrawDepth.BlastDoors or (int) DrawDepth.Overdoors)
-        {
-            if (IsWallPhysics(uid) || HasComp<OccluderComponent>(uid))
-                return E3DArchetype.Door;
-
-            return Transform(uid).Anchored ? E3DArchetype.Billboard : E3DArchetype.Item;
-        }
+            return E3DArchetype.Door;
 
         if (depth is (int) DrawDepth.Items)
             return E3DArchetype.Item;

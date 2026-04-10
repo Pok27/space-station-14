@@ -28,6 +28,9 @@ public sealed class FirstPersonViewSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<LocalPlayerAttachedEvent>(OnLocalAttached);
         SubscribeLocalEvent<LocalPlayerDetachedEvent>(OnLocalDetached);
+
+        SubscribeLocalEvent<FirstPersonViewComponent, ComponentStartup>(OnFpvStartup);
+        SubscribeLocalEvent<FirstPersonViewComponent, ComponentShutdown>(OnFpvShutdown);
     }
 
     private FirstPersonUIController Controller => _ui.GetUIController<FirstPersonUIController>();
@@ -40,6 +43,21 @@ public sealed class FirstPersonViewSystem : EntitySystem
     private void OnLocalDetached(LocalPlayerDetachedEvent args)
     {
         Controller.SetEnabled(false);
+        _systems.GetEntitySystem<FirstPersonInteractionSystem>().Clear();
+        _lastApplied = null;
+        _lastSentYaw = null;
+    }
+
+    private void OnFpvStartup(Entity<FirstPersonViewComponent> ent, ref ComponentStartup args)
+    {
+        if (ent.Owner == _player.LocalEntity)
+            ApplySettings(ent.Comp);
+    }
+
+    private void OnFpvShutdown(Entity<FirstPersonViewComponent> ent, ref ComponentShutdown args)
+    {
+        if (ent.Owner == _player.LocalEntity)
+            Controller.SetEnabled(false);
         _systems.GetEntitySystem<FirstPersonInteractionSystem>().Clear();
         _lastApplied = null;
         _lastSentYaw = null;

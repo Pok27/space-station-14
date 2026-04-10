@@ -30,8 +30,7 @@ public readonly record struct FpvRayHit(
     Vector2 HitPos,
     float Distance,
     bool VerticalSide,
-    Direction WallFace,
-    bool FogOccluded = false);
+    Direction WallFace);
 
 public readonly record struct FpvSurfaceSpan(
     int ScreenX,
@@ -80,13 +79,6 @@ public readonly record struct FpvInteractionHit(
     EntityUid? Target,
     MapCoordinates Coordinates,
     float Distance);
-
-public readonly record struct FpvProjectedInteractionCandidate(
-    EntityUid Entity,
-    MapCoordinates Coordinates,
-    float Distance,
-    int DrawDepth,
-    uint RenderOrder);
 
 public readonly record struct FpvFloorSample(
     Texture Texture,
