@@ -2,7 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using Content.Shared.ActionBlocker;
 using Content.Shared.CCVar;
-using Content.Shared.E3D.Components;
 using Content.Shared.Friction;
 using Content.Shared.Gravity;
 using Content.Shared.Inventory;
@@ -262,7 +261,7 @@ public abstract partial class SharedMoverController : VirtualController
             var walkSpeed = moveSpeedComponent?.WeightlessWalkSpeed ?? MovementSpeedModifierComponent.DefaultBaseWalkSpeed;
             var sprintSpeed = moveSpeedComponent?.WeightlessSprintSpeed ?? MovementSpeedModifierComponent.DefaultBaseSprintSpeed;
 
-            wishDir = AssertValidWish(uid, mover, walkSpeed, sprintSpeed);
+            wishDir = AssertValidWish(mover, walkSpeed, sprintSpeed);
 
             var ev = new CanWeightlessMoveEvent(uid);
             RaiseLocalEvent(uid, ref ev, true);
@@ -300,7 +299,7 @@ public abstract partial class SharedMoverController : VirtualController
             var walkSpeed = moveSpeedComponent?.CurrentWalkSpeed ?? MovementSpeedModifierComponent.DefaultBaseWalkSpeed;
             var sprintSpeed = moveSpeedComponent?.CurrentSprintSpeed ?? MovementSpeedModifierComponent.DefaultBaseSprintSpeed;
 
-            wishDir = AssertValidWish(uid, mover, walkSpeed, sprintSpeed);
+            wishDir = AssertValidWish(mover, walkSpeed, sprintSpeed);
 
             if (wishDir != Vector2.Zero)
             {
@@ -638,14 +637,14 @@ public abstract partial class SharedMoverController : VirtualController
         return sound != null;
     }
 
-    private Vector2 AssertValidWish(EntityUid uid, InputMoverComponent mover, float walkSpeed, float sprintSpeed)
+    private Vector2 AssertValidWish(InputMoverComponent mover, float walkSpeed, float sprintSpeed)
     {
         var (walkDir, sprintDir) = GetVelocityInput(mover);
 
         var total = walkDir * walkSpeed + sprintDir * sprintSpeed;
 
         var parentRotation = GetParentGridAngle(mover);
-        var wishDir = (_relativeMovement || HasComp<FirstPersonViewComponent>(uid)) ? parentRotation.RotateVec(total) : total;
+        var wishDir = _relativeMovement ? parentRotation.RotateVec(total) : total;
 
         DebugTools.Assert(MathHelper.CloseToPercent(total.Length(), wishDir.Length()));
 
