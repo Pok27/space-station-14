@@ -93,10 +93,43 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
             return true;
         }
 
-        if (!hasWallHit)
+        if (!hasWallHit || wallHit.FogOccluded)
             return false;
 
         hit = new FpvInteractionHit(wallHit.HitEntity, new MapCoordinates(wallHit.HitPos, camera.MapId), wallHit.Distance);
+        return true;
+    }
+
+    public bool TryGetInteractionPoint(EntityUid uid, MapId mapId, out MapCoordinates coordinates, out float distance)
+    {
+        coordinates = default;
+        distance = 0f;
+
+        if (!TryComp(uid, out TransformComponent? xform) ||
+            xform.MapID != mapId ||
+            !_resolver.TryResolve(uid, out var resolved))
+        {
+            return false;
+        }
+
+        TryComp(uid, out SpriteComponent? sprite);
+        var fixtureBounds = TryGetFixtureBounds(uid, out var fixtureBox) ? (Box2?) fixtureBox : null;
+        var world = GetRenderableWorldPosition(uid, xform, sprite, resolved.WorldOffset, fixtureBounds);
+        coordinates = new MapCoordinates(world, mapId);
+        distance = (world - _eye.CurrentEye.Position.Position).Length();
+        return true;
+    }
+
+    public bool TryGetInteractionDrawOrder(EntityUid uid, out int drawDepth, out uint renderOrder)
+    {
+        drawDepth = 0;
+        renderOrder = 0;
+
+        if (!TryComp(uid, out SpriteComponent? sprite))
+            return false;
+
+        drawDepth = sprite.DrawDepth;
+        renderOrder = sprite.RenderOrder;
         return true;
     }
 
@@ -125,7 +158,8 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
             if (!_resolver.IsSpriteRenderable(sprite))
                 continue;
 
-            var world = GetRenderableWorldPosition(uid, xform, sprite, Vector2.Zero);
+            var fixtureBounds = TryGetFixtureBounds(uid, out var fixtureBox) ? (Box2?) fixtureBox : null;
+            var world = GetRenderableWorldPosition(uid, xform, sprite, Vector2.Zero, fixtureBounds);
             var rel = world - camera.EyePos;
             var distanceSquared = rel.LengthSquared();
             if (distanceSquared <= 0.0025f || distanceSquared > maxDistanceSquared)
@@ -151,7 +185,7 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
             for (var i = 1; i < _billboardLayers.Count; i++)
                 combinedBounds = combinedBounds.Union(_billboardLayers[i].Bounds);
 
-            world = GetRenderableWorldPosition(uid, xform, sprite, resolved.WorldOffset);
+            world = GetRenderableWorldPosition(uid, xform, sprite, resolved.WorldOffset, fixtureBounds);
             rel = world - camera.EyePos;
             var forwardDepth = Vector2.Dot(rel, camera.Yaw.ToVec());
             if (forwardDepth <= 0.05f || forwardDepth > camera.MaxDistance)
@@ -159,9 +193,6 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
 
             var sideDepth = Vector2.Dot(rel, right.ToVec());
             var screenX = screenWidth / 2f + sideDepth / forwardDepth * projectionPlane;
-            Box2? fixtureBounds = resolved.PreferFixtureBounds && TryGetFixtureBounds(uid, out var fixtureBox)
-                ? fixtureBox
-                : null;
             var spriteWidth = MathF.Max(0.12f, combinedBounds.Width * 0.95f);
             var spriteHeight = MathF.Max(0.12f, combinedBounds.Height * 0.95f);
             if (resolved.Archetype == E3DArchetype.Mob && resolved.Height > spriteHeight)
@@ -170,12 +201,8 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
                 spriteHeight *= scale;
                 spriteWidth *= scale;
             }
-            var fixtureWidth = fixtureBounds?.Width ?? spriteWidth;
-            var fixtureHeight = fixtureBounds?.Height ?? spriteHeight;
-            var worldWidth = resolved.PreferFixtureBounds && spriteWidth > 0.85f
-                ? MathF.Max(0.45f, MathF.Min(spriteWidth, MathF.Max(fixtureWidth, spriteWidth * 0.72f)))
-                : spriteWidth;
-            var worldHeight = MathF.Max(spriteHeight, fixtureHeight);
+            var worldWidth = spriteWidth;
+            var worldHeight = spriteHeight;
 
             var projectedHeight = MathF.Max(2f, projectionPlane * worldHeight / forwardDepth);
             var projectedWidth = MathF.Max(2f, projectionPlane * worldWidth / forwardDepth);
@@ -257,7 +284,8 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
             if (!_resolver.IsSpriteRenderable(sprite) || !_resolver.TryResolve(uid, out var resolved) || resolved.Archetype != E3DArchetype.DecalLike)
                 continue;
 
-            var world = GetRenderableWorldPosition(uid, xform, sprite, resolved.WorldOffset);
+            var fixtureBounds = TryGetFixtureBounds(uid, out var fixtureBox) ? (Box2?) fixtureBox : null;
+            var world = GetRenderableWorldPosition(uid, xform, sprite, resolved.WorldOffset, fixtureBounds);
             var face = GetBillboardFace(world, camera.EyePos, _transform.GetWorldRotation(xform));
             if (!_resolver.TryGetBillboardVisual(uid, face, out var texture, out var bounds, out var tint) || texture == null)
                 continue;
@@ -323,12 +351,17 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
         if (camera.LightingMode == FirstPersonLightingMode.Unlit)
             return color;
 
-        var fogColor = camera.LightingMode == FirstPersonLightingMode.Ambient
-            ? new Color(24, 24, 28)
-            : new Color(18, 20, 28);
+        var fogColor = GetFogColor(camera);
         var factor = Math.Clamp(distance / MathF.Max(0.001f, camera.MaxDistance), 0f, 1f);
         factor = camera.LightingMode == FirstPersonLightingMode.Ambient ? factor * 0.65f : factor * 0.85f;
         return new Color(Vector4.Lerp(color.RGBA, fogColor.RGBA, factor));
+    }
+
+    public Color GetFogColor(FpvCameraState camera)
+    {
+        return camera.LightingMode == FirstPersonLightingMode.Ambient
+            ? new Color(24, 24, 28)
+            : new Color(18, 20, 28);
     }
 
     public Angle GetRayAngle(FpvCameraState camera, float xPx, int widthPx)
@@ -415,8 +448,7 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
                 return false;
 
             var tile = new Vector2i(tileX, tileY);
-            if (!_map.TryGetTileRef(gridUid, grid, tile, out _))
-                return false;
+            _map.TryGetTileRef(gridUid, grid, tile, out _);
 
             if (!TryGetSurfaceInTile(gridUid, grid, tile, skipTransparent, out var wallEntity))
                 continue;
@@ -486,14 +518,15 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
             if (resolved.Archetype is E3DArchetype.GasOverlay or E3DArchetype.DecalLike or E3DArchetype.Floor)
                 continue;
 
-            var world = GetRenderableWorldPosition(uid, xform, CompOrNull<SpriteComponent>(uid), resolved.WorldOffset);
+            var fixtureBounds = TryGetFixtureBounds(uid, out var fixtureBox) ? (Box2?) fixtureBox : null;
+            var world = GetRenderableWorldPosition(uid, xform, CompOrNull<SpriteComponent>(uid), resolved.WorldOffset, fixtureBounds);
             var rel = world - camera.EyePos;
             var depth = Vector2.Dot(rel, camera.Yaw.ToVec());
             if (depth <= 0.05f || depth > bestDistance)
                 continue;
 
             var side = MathF.Abs(Vector2.Dot(rel, (camera.Yaw + Angle.FromDegrees(90)).ToVec()));
-            var width = MathF.Max(0.2f, resolved.Width * 0.5f);
+            var width = MathF.Max(0.2f, (fixtureBounds?.Width ?? resolved.Width) * 0.5f);
             if (side > width)
                 continue;
 
@@ -506,11 +539,13 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
         return entity != null;
     }
 
-    private Vector2 GetRenderableWorldPosition(EntityUid uid, TransformComponent xform, SpriteComponent? sprite, Vector2 worldOffset)
+    private Vector2 GetRenderableWorldPosition(EntityUid uid, TransformComponent xform, SpriteComponent? sprite, Vector2 worldOffset, Box2? fixtureBounds = null)
     {
-        var world = sprite != null && _resolver.IsSpriteRenderable(sprite)
-            ? _sprites.GetSpriteWorldPosition((uid, sprite, xform))
-            : _transform.GetMapCoordinates(uid, xform).Position;
+        var world = fixtureBounds != null
+            ? _transform.GetMapCoordinates(uid, xform).Position + fixtureBounds.Value.Center
+            : sprite != null && _resolver.IsSpriteRenderable(sprite)
+                ? _sprites.GetSpriteWorldPosition((uid, sprite, xform))
+                : _transform.GetMapCoordinates(uid, xform).Position;
 
         return world + worldOffset;
     }

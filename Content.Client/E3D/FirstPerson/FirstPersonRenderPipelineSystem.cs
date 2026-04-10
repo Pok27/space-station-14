@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using Content.Client.Parallax;
 using Content.Shared.E3D;
 using DrawDepth = Content.Shared.DrawDepth.DrawDepth;
 using Robust.Client.GameObjects;
@@ -9,32 +10,36 @@ using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Maths;
 using Robust.Shared.Threading;
+using Robust.Shared.Timing;
 
 namespace Content.Client.E3D.FirstPerson;
 
 public sealed class FirstPersonRenderPipelineSystem : EntitySystem
 {
-    private const float MinSurfaceRenderDistance = 0.35f;
+    private const float MinSurfaceRenderDistance = 0.08f;
     private const float MinCorrectedDistance = 0.05f;
     private const float NearSurfaceSofteningDistance = 0.9f;
-    private const float NearSurfaceSofteningStrength = 0.24f;
-    private const float MaxSurfaceScreenHeightMultiplier = 1.2f;
+    private const float NearSurfaceSofteningStrength = 0.08f;
+    private const float MaxSurfaceScreenHeightMultiplier = 4f;
     private const float MinLayerBoundsSizeSquared = 0.0001f;
     private const float MinRelativeLengthSquared = 0.0001f;
     private const float MinNonZero = 0.0001f;
     private const float HorizonEpsilon = 0.01f;
     private const float OcclusionEpsilon = 0.01f;
     private const float SurfaceVerticalShade = 0.92f;
+    private const float SurfaceFloorOverlapPixels = 1.25f;
     private const float TransparentSurfaceAlpha = 0.6f;
     private const float TransparentBillboardAlpha = 0.75f;
     private const float CrosshairAlpha = 0.7f;
     private const int CrosshairHalfLengthPx = 6;
     private const int CrosshairHalfThicknessPx = 1;
-    private static readonly Color BackgroundTopColor = new(30, 35, 45);
-    private static readonly Color BackgroundBottomColor = new(18, 16, 14);
+    private static readonly Color BackgroundTopColor = new(0, 0, 0);
+    private static readonly Color BackgroundBottomColor = new(0, 0, 0);
 
     [Dependency] private readonly FirstPersonFloorCacheSystem _floorCache = default!;
     [Dependency] private readonly FirstPersonInteractionSystem _interaction = default!;
+    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private readonly ParallaxSystem _parallaxSystem = default!;
     [Dependency] private readonly FirstPersonSceneBuilderSystem _sceneBuilder = default!;
     [Dependency] private readonly E3DArchetypeResolverSystem _resolver = default!;
     [Dependency] private readonly IParallelManager _parallel = default!;
@@ -42,6 +47,7 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
     private readonly List<FpvBillboard> _billboards = new();
     private readonly List<FpvVisualLayer> _billboardLayers = new();
     private readonly List<FpvFloorDecal> _floorDecals = new();
+    private readonly List<FloorRowDescriptor> _floorRows = new();
     private readonly List<FpvVisualLayer> _surfaceLayers = new();
     private readonly List<TransparentSurfaceDraw> _transparentSurfaces = new();
     private readonly List<AlphaDraw> _alphaDraws = new();
@@ -60,6 +66,12 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
     private float[] _surfaceOpaqueCorrectedDist = Array.Empty<float>();
     private float[] _surfaceOpaqueRenderDist = Array.Empty<float>();
     private float[] _surfaceOccluderDist = Array.Empty<float>();
+    private FloorRowDescriptor[] _floorRowBuffer = Array.Empty<FloorRowDescriptor>();
+    private bool[] _floorSampleValid = Array.Empty<bool>();
+    private Texture?[] _floorSampleTexture = Array.Empty<Texture?>();
+    private UIBox2[] _floorSampleRegion = Array.Empty<UIBox2>();
+    private Color[] _floorSampleColor = Array.Empty<Color>();
+    private Vector2[] _floorSampleWorld = Array.Empty<Vector2>();
 
     public void DrawFrame(FirstPersonViewControl control, DrawingHandleScreen handle, FpvCameraState camera, float horizon)
     {
@@ -85,7 +97,7 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
         _sceneBuilder.CollectFloorDecals(camera, _depthBuffer, width, _floorDecals);
         DrawFloor(handle, camera, width, height, horizon);
         DrawAlphaPass(handle, camera, width, (int) height);
-        PublishInteractionHit(camera);
+        PublishInteractionHit(camera, width, (int) height);
 
         if (control.DrawCrosshair)
             DrawCrosshairGlyph(handle, sizePx.X / 2f, sizePx.Y / 2f);
@@ -140,8 +152,9 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
         var plane = (camera.Yaw + Angle.FromDegrees(90f)).ToVec() * MathF.Tan(halfFov);
         var rayLeft = dir - plane;
         var rayRight = dir + plane;
-        var logicalColumns = Math.Max(1, width);
+        var logicalColumns = GetLogicalFloorColumnCount(camera, width);
         var invLogicalColumns = 1f / logicalColumns;
+        _floorRows.Clear();
 
         for (var y = Math.Max(0, (int) MathF.Ceiling(horizon)); y < height;)
         {
@@ -161,48 +174,81 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
 
             var yStep = rowDistance switch
             {
-                > 12f => 6,
-                > 8f => 5,
-                > 5f => 4,
+                > 8f => 7,
+                > 6f => 6,
+                > 4f => 5,
+                > 2.5f => 4,
                 _ => 3
             };
 
             var stepVec = rowDistance * (rayRight - rayLeft) * invLogicalColumns;
             var world = camera.EyePos + rayLeft * rowDistance;
-
-            for (var x = 0; x < logicalColumns; x++)
-            {
-                var minDepth = _depthBuffer[x];
-                if (minDepth > 0f && rowDistance >= minDepth - OcclusionEpsilon)
-                {
-                    world += stepVec;
-                    continue;
-                }
-
-                if (_floorCache.TryGetFloorSample(new MapCoordinates(world, camera.MapId), world, out var floorSample))
-                {
-                    var sample = GetFloorSampleRegion(floorSample, rowDistance);
-                    var color = _sceneBuilder.ApplyDistanceFog(Color.White, rowDistance, camera);
-                    handle.DrawTextureRectRegion(
-                        floorSample.Texture,
-                        UIBox2.FromDimensions(new Vector2(x, y), new Vector2(1, yStep)),
-                        sample,
-                        color);
-
-                    if (TryGetFloorDecalSample(world, out var decalTexture, out var decalRegion, out var decalColor))
-                    {
-                        handle.DrawTextureRectRegion(
-                            decalTexture,
-                            UIBox2.FromDimensions(new Vector2(x, y), new Vector2(1, yStep)),
-                            decalRegion,
-                            decalColor);
-                    }
-                }
-
-                world += stepVec;
-            }
-
+            _floorRows.Add(new FloorRowDescriptor(y, yStep, rowDistance, world, stepVec));
             y += yStep;
+        }
+
+        if (_floorRows.Count == 0)
+            return;
+
+        EnsureFloorPrepassBuffers(_floorRows.Count, logicalColumns);
+        _floorRows.CopyTo(_floorRowBuffer, 0);
+        var sampleCount = _floorRows.Count * logicalColumns;
+        var parallaxLayers = _parallaxSystem.GetParallaxLayers(camera.MapId);
+        var realTime = _timing.RealTime;
+        var job = new FloorPrepassJob
+        {
+            Camera = camera,
+            SceneBuilder = _sceneBuilder,
+            FloorCache = _floorCache,
+            ParallaxLayers = parallaxLayers,
+            RealTime = _timing.RealTime,
+            DepthBuffer = _depthBuffer,
+            Width = width,
+            LogicalColumns = logicalColumns,
+            Rows = _floorRowBuffer,
+            SampleValid = _floorSampleValid,
+            SampleTexture = _floorSampleTexture,
+            SampleRegion = _floorSampleRegion,
+            SampleColor = _floorSampleColor,
+            SampleWorld = _floorSampleWorld
+        };
+        _parallel.ProcessNow(job, sampleCount);
+
+        for (var rowIndex = 0; rowIndex < _floorRows.Count; rowIndex++)
+        {
+            var row = _floorRows[rowIndex];
+            for (var column = 0; column < logicalColumns; column++)
+            {
+                var bandLeft = (int) MathF.Floor(column * width / (float) logicalColumns);
+                var bandRight = Math.Max(bandLeft + 1, (int) MathF.Ceiling((column + 1) * width / (float) logicalColumns));
+                var bandWidth = Math.Max(1, bandRight - bandLeft);
+                var sampleIndex = rowIndex * logicalColumns + column;
+                var dest = UIBox2.FromDimensions(new Vector2(bandLeft, row.ScreenY), new Vector2(bandWidth, row.ScreenHeight));
+                var world = row.WorldStart + row.StepVec * column;
+                var depthStart = Math.Clamp(bandLeft, 0, Math.Max(0, _depthBuffer.Length - 1));
+                var depthEnd = Math.Clamp(bandRight - 1, 0, Math.Max(0, _depthBuffer.Length - 1));
+                var minDepth = float.PositiveInfinity;
+                for (var i = depthStart; i <= depthEnd; i++)
+                    minDepth = MathF.Min(minDepth, _depthBuffer[i]);
+
+                if (minDepth > 0f && row.Distance >= minDepth - OcclusionEpsilon)
+                    continue;
+
+                if (TryGetParallaxFloorSample(parallaxLayers, camera, world, realTime, out var parallaxSample))
+                {
+                    handle.DrawTextureRectRegion(
+                        parallaxSample.Texture,
+                        dest,
+                        GetFloorSampleRegion(parallaxSample, row.Distance),
+                        _sceneBuilder.ApplyDistanceFog(Color.White, row.Distance, camera));
+                }
+
+                if (_floorSampleValid[sampleIndex] && _floorSampleTexture[sampleIndex] != null)
+                    handle.DrawTextureRectRegion(_floorSampleTexture[sampleIndex]!, dest, _floorSampleRegion[sampleIndex], _floorSampleColor[sampleIndex]);
+
+                if (TryGetFloorDecalSample(world, out var decalTexture, out var decalRegion, out var decalColor))
+                    handle.DrawTextureRectRegion(decalTexture, dest, decalRegion, decalColor);
+            }
         }
     }
 
@@ -214,9 +260,8 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
         var texY = variantRegion.Top + (1f - floorSample.FracY) * variantRegion.Height;
         var sampleSize = distance switch
         {
-            > 10f => 4f,
-            > 6f => 3f,
-            > 3.5f => 2f,
+            > 8f => 2f,
+            > 4f => 1f,
             _ => 1f
         };
 
@@ -225,6 +270,53 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
         texX = Math.Clamp(texX, variantRegion.Left, variantRegion.Right - sampleSize);
         texY = Math.Clamp(texY, variantRegion.Top, variantRegion.Bottom - sampleSize);
         return new UIBox2(texX, texY, texX + sampleSize, texY + sampleSize);
+    }
+
+    private static bool TryGetParallaxFloorSample(ParallaxLayerPrepared[] parallaxLayers, FpvCameraState camera, Vector2 world, TimeSpan realTime, out FpvFloorSample sample)
+    {
+        sample = default;
+
+        for (var i = 0; i < parallaxLayers.Length; i++)
+        {
+            var layer = parallaxLayers[i];
+            if (!layer.Config.Tiled)
+                continue;
+
+            var texture = layer.Texture;
+            var scale = layer.Config.Scale;
+            if (texture.Width <= 0 || texture.Height <= 0 || scale.X <= 0f || scale.Y <= 0f)
+                continue;
+
+            var sizeWorld = new Vector2(
+                texture.Width / (float) EyeManager.PixelsPerMeter * scale.X,
+                texture.Height / (float) EyeManager.PixelsPerMeter * scale.Y);
+
+            if (sizeWorld.X <= MinNonZero || sizeWorld.Y <= MinNonZero)
+                continue;
+
+            var home = layer.Config.WorldHomePosition;
+            var scrolled = layer.Config.Scrolling * (float) realTime.TotalSeconds;
+            var origin = (camera.EyePos - home) * layer.Config.Slowness;
+            origin += home;
+            origin += layer.Config.WorldAdjustPosition;
+            origin += scrolled;
+            origin -= sizeWorld / 2f;
+
+            var local = world - origin;
+            var fracX = local.X / sizeWorld.X;
+            var fracY = local.Y / sizeWorld.Y;
+            fracX -= MathF.Floor(fracX);
+            fracY -= MathF.Floor(fracY);
+
+            sample = new FpvFloorSample(
+                texture,
+                new UIBox2(0f, 0f, texture.Width, texture.Height),
+                fracX,
+                fracY);
+            return true;
+        }
+
+        return false;
     }
 
     private static int GetLogicalSurfaceColumnCount(FpvCameraState camera, int width)
@@ -252,6 +344,22 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
             FirstPersonQualityPreset.Balanced => configuredStep,
             _ => Math.Min(8, configuredStep * 2),
         };
+    }
+
+    private static int GetLogicalFloorColumnCount(FpvCameraState camera, int width)
+    {
+        if (width <= 1)
+            return 1;
+
+        var columnStep = camera.QualityPreset switch
+        {
+            FirstPersonQualityPreset.High => Math.Max(1, camera.ColumnStep),
+            FirstPersonQualityPreset.Balanced => Math.Max(2, camera.ColumnStep * 2),
+            _ => Math.Max(3, camera.ColumnStep * 3),
+        };
+
+        var columns = (int) MathF.Ceiling(width / (float) columnStep);
+        return Math.Clamp(columns, 48, width);
     }
 
     private static float GetSurfaceRenderDistance(float correctedDist)
@@ -301,7 +409,7 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
             var bandWidth = _surfaceBandWidth[column];
             if (!_surfaceHasHit[column])
             {
-                FillDepthBuffer(width, bandLeft, bandWidth, camera.MaxDistance);
+                FillDepthBuffer(width, bandLeft, bandWidth, 0f);
                 continue;
             }
 
@@ -341,8 +449,19 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
         bool forceOpaque,
         bool deferToAlpha)
     {
-        var lineHeight = MathF.Min(height * MaxSurfaceScreenHeightMultiplier, projectionPlane * resolved.Height / renderDist);
-        var top = horizon - lineHeight / 2f - projectionPlane * resolved.EyeOffset / renderDist;
+        if (hit.FogOccluded)
+        {
+            return;
+        }
+
+        // Geometry must be projected from true corrected distance, otherwise
+        // near-wall softening pulls wall bottoms upward and "cuts" them.
+        var projectionDist = MathF.Max(MinCorrectedDistance, correctedDist);
+        var lineHeight = MathF.Min(height * MaxSurfaceScreenHeightMultiplier, projectionPlane * resolved.Height / projectionDist) + SurfaceFloorOverlapPixels;
+        // Anchor world surfaces to the floor plane instead of centering around horizon.
+        // This prevents "half-cut" walls when eye height is not exactly half wall height.
+        var groundY = horizon + projectionPlane * camera.EyeHeight / projectionDist;
+        var top = groundY - lineHeight - projectionPlane * resolved.EyeOffset / projectionDist;
         var color = _sceneBuilder.ApplyDistanceFog(Color.White, hit.Distance, camera);
         if (hit.VerticalSide)
             color = new Color(color.R * SurfaceVerticalShade, color.G * SurfaceVerticalShade, color.B * SurfaceVerticalShade, color.A);
@@ -353,7 +472,7 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
         if (TryComp(hit.HitEntity, out SpriteComponent? sprite))
             surfaceDrawDepth = sprite.DrawDepth;
 
-        _resolver.GetVisibleLayers(hit.HitEntity, hit.WallFace, _surfaceLayers, false);
+        _resolver.GetVisibleLayers(hit.HitEntity, Direction.Invalid, _surfaceLayers, false);
         if (_surfaceLayers.Count > 0)
         {
             var combinedBounds = _surfaceLayers[0].Bounds;
@@ -547,9 +666,10 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
         return false;
     }
 
-    private void PublishInteractionHit(FpvCameraState camera)
+    private void PublishInteractionHit(FpvCameraState camera, int width, int height)
     {
-        if (_sceneBuilder.TryCastInteractionRay(camera, out var hit))
+        if (TryGetProjectedInteractionHit(camera, width, height, out var hit) ||
+            _sceneBuilder.TryCastInteractionRay(camera, out hit))
             _interaction.SetInteractionHit(hit);
         else
             _interaction.Clear();
@@ -599,11 +719,84 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
         _surfaceOccluderDist = new float[logicalColumns];
     }
 
+    private void EnsureFloorPrepassBuffers(int rowCount, int logicalColumns)
+    {
+        if (_floorRowBuffer.Length < rowCount)
+            _floorRowBuffer = new FloorRowDescriptor[rowCount];
+
+        var sampleCount = rowCount * logicalColumns;
+        if (_floorSampleValid.Length >= sampleCount)
+            return;
+
+        _floorSampleValid = new bool[sampleCount];
+        _floorSampleTexture = new Texture?[sampleCount];
+        _floorSampleRegion = new UIBox2[sampleCount];
+        _floorSampleColor = new Color[sampleCount];
+        _floorSampleWorld = new Vector2[sampleCount];
+    }
+
     private void FillDepthBuffer(int width, int start, int step, float value)
     {
         var end = Math.Min(width, start + step);
         for (var i = start; i < end; i++)
             _depthBuffer[i] = value;
+    }
+
+    private bool TryGetProjectedInteractionHit(FpvCameraState camera, int width, int height, out FpvInteractionHit hit)
+    {
+        hit = default;
+        if (_billboards.Count == 0)
+            return false;
+
+        var centerX = width * 0.5f;
+        var centerY = height * 0.5f;
+        FpvProjectedInteractionCandidate? bestCandidate = null;
+
+        foreach (var billboard in _billboards)
+        {
+            if (centerX < billboard.VisibleLeft || centerX > billboard.VisibleRight)
+                continue;
+
+            if (centerY < billboard.ScreenRect.Top || centerY > billboard.ScreenRect.Bottom)
+                continue;
+
+            if (!_sceneBuilder.TryGetInteractionPoint(billboard.Entity, camera.MapId, out var coords, out var distance) ||
+                distance > camera.InteractionDistance)
+            {
+                continue;
+            }
+
+            if (!_sceneBuilder.TryGetInteractionDrawOrder(billboard.Entity, out var drawDepth, out var renderOrder))
+                continue;
+
+            var candidate = new FpvProjectedInteractionCandidate(billboard.Entity, coords, distance, drawDepth, renderOrder);
+            if (bestCandidate == null || CompareInteractionCandidates(candidate, bestCandidate.Value) < 0)
+                bestCandidate = candidate;
+        }
+
+        if (bestCandidate == null)
+            return false;
+
+        var chosen = bestCandidate.Value;
+        hit = new FpvInteractionHit(chosen.Entity, chosen.Coordinates, chosen.Distance);
+        return true;
+    }
+
+    private static int CompareInteractionCandidates(FpvProjectedInteractionCandidate x, FpvProjectedInteractionCandidate y)
+    {
+        var distanceCmp = x.Distance.CompareTo(y.Distance);
+        if (distanceCmp != 0)
+            return distanceCmp;
+
+        var drawDepthCmp = y.DrawDepth.CompareTo(x.DrawDepth);
+        if (drawDepthCmp != 0)
+            return drawDepthCmp;
+
+        var renderOrderCmp = y.RenderOrder.CompareTo(x.RenderOrder);
+        if (renderOrderCmp != 0)
+            return renderOrderCmp;
+
+        return x.Entity.CompareTo(y.Entity);
     }
 
     private readonly record struct SurfaceCastJob : IParallelRobustJob
@@ -643,23 +836,36 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
 
             HasOpaque[index] = false;
 
-            if (!SceneBuilder.TryCastSurfaceRay(Camera, sampleX, Width, out var hit) ||
-                !Resolver.TryResolve(hit.HitEntity, out var resolved))
+            if (!SceneBuilder.TryCastSurfaceRay(Camera, sampleX, Width, out var hit))
             {
                 HasHit[index] = false;
-                OccluderDist[index] = Camera.MaxDistance;
+                OccluderDist[index] = 0f;
                 return;
             }
 
             var rayAngle = SceneBuilder.GetRayAngle(Camera, sampleX, Width);
             RayAngle[index] = rayAngle;
             Hit[index] = hit;
-            Resolved[index] = resolved;
             HasHit[index] = true;
 
             var correctedDist = MathF.Max(MinCorrectedDistance, hit.Distance * (float) Math.Cos((rayAngle - Camera.Yaw).Theta));
             CorrectedDist[index] = correctedDist;
             RenderDist[index] = GetSurfaceRenderDistance(correctedDist);
+
+            if (hit.FogOccluded)
+            {
+                OccluderDist[index] = correctedDist;
+                return;
+            }
+
+            if (!Resolver.TryResolve(hit.HitEntity, out var resolved))
+            {
+                HasHit[index] = false;
+                OccluderDist[index] = 0f;
+                return;
+            }
+
+            Resolved[index] = resolved;
 
             if (!resolved.Transparent)
             {
@@ -667,27 +873,138 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
                 return;
             }
 
-            if (SceneBuilder.TryCastOpaqueSurfaceRay(Camera, sampleX, Width, out var opaqueHit) &&
-                Resolver.TryResolve(opaqueHit.HitEntity, out var opaqueResolved))
+            if (SceneBuilder.TryCastOpaqueSurfaceRay(Camera, sampleX, Width, out var opaqueHit))
             {
-                HasOpaque[index] = true;
-                OpaqueHit[index] = opaqueHit;
-                OpaqueResolved[index] = opaqueResolved;
                 var opaqueDist = MathF.Max(MinCorrectedDistance, opaqueHit.Distance * (float) Math.Cos((rayAngle - Camera.Yaw).Theta));
-                OpaqueCorrectedDist[index] = opaqueDist;
-                OpaqueRenderDist[index] = GetSurfaceRenderDistance(opaqueDist);
-                OccluderDist[index] = opaqueDist;
+                if (opaqueHit.FogOccluded)
+                {
+                    OccluderDist[index] = opaqueDist;
+                    return;
+                }
+
+                if (Resolver.TryResolve(opaqueHit.HitEntity, out var opaqueResolved))
+                {
+                    HasOpaque[index] = true;
+                    OpaqueHit[index] = opaqueHit;
+                    OpaqueResolved[index] = opaqueResolved;
+                    OpaqueCorrectedDist[index] = opaqueDist;
+                    OpaqueRenderDist[index] = GetSurfaceRenderDistance(opaqueDist);
+                    OccluderDist[index] = opaqueDist;
+                    return;
+                }
             }
-            else
+
+            OccluderDist[index] = Camera.MaxDistance;
+        }
+    }
+
+    private readonly record struct FloorPrepassJob : IParallelRobustJob
+    {
+        public int BatchSize => 64;
+
+        public required FpvCameraState Camera { get; init; }
+        public required FirstPersonSceneBuilderSystem SceneBuilder { get; init; }
+        public required FirstPersonFloorCacheSystem FloorCache { get; init; }
+        public required ParallaxLayerPrepared[] ParallaxLayers { get; init; }
+        public required TimeSpan RealTime { get; init; }
+        public required float[] DepthBuffer { get; init; }
+        public required int Width { get; init; }
+        public required int LogicalColumns { get; init; }
+        public required FloorRowDescriptor[] Rows { get; init; }
+        public required bool[] SampleValid { get; init; }
+        public required Texture?[] SampleTexture { get; init; }
+        public required UIBox2[] SampleRegion { get; init; }
+        public required Color[] SampleColor { get; init; }
+        public required Vector2[] SampleWorld { get; init; }
+
+        public void Execute(int index)
+        {
+            SampleValid[index] = false;
+            SampleTexture[index] = null;
+
+            var rowIndex = index / LogicalColumns;
+            var column = index % LogicalColumns;
+            if ((uint) rowIndex >= (uint) Rows.Length)
+                return;
+
+            var row = Rows[rowIndex];
+            var bandLeft = (int) MathF.Floor(column * Width / (float) LogicalColumns);
+            var bandRight = Math.Max(bandLeft + 1, (int) MathF.Ceiling((column + 1) * Width / (float) LogicalColumns));
+            var bandWidth = Math.Max(1, bandRight - bandLeft);
+            var depthIndex = Math.Clamp(bandLeft + bandWidth / 2, 0, Math.Max(0, DepthBuffer.Length - 1));
+            var minDepth = DepthBuffer[depthIndex];
+
+            if (minDepth > 0f && row.Distance >= minDepth - OcclusionEpsilon)
+                return;
+
+            var world = row.WorldStart + row.StepVec * column;
+            FpvFloorSample floorSample;
+            if (!FloorCache.TryGetFloorSample(new MapCoordinates(world, Camera.MapId), world, out floorSample) &&
+                !TryGetParallaxFloorSample(world, out floorSample))
             {
-                OccluderDist[index] = Camera.MaxDistance;
+                return;
             }
+
+            SampleValid[index] = true;
+            SampleTexture[index] = floorSample.Texture;
+            SampleRegion[index] = GetFloorSampleRegion(floorSample, row.Distance);
+            SampleColor[index] = SceneBuilder.ApplyDistanceFog(Color.White, row.Distance, Camera);
+            SampleWorld[index] = world;
+        }
+
+        private bool TryGetParallaxFloorSample(Vector2 world, out FpvFloorSample sample)
+        {
+            sample = default;
+
+            for (var i = 0; i < ParallaxLayers.Length; i++)
+            {
+                var layer = ParallaxLayers[i];
+                if (!layer.Config.Tiled)
+                    continue;
+
+                var texture = layer.Texture;
+                var scale = layer.Config.Scale;
+                if (texture.Width <= 0 || texture.Height <= 0 || scale.X <= 0f || scale.Y <= 0f)
+                    continue;
+
+                var sizeWorld = new Vector2(
+                    texture.Width / (float) EyeManager.PixelsPerMeter * scale.X,
+                    texture.Height / (float) EyeManager.PixelsPerMeter * scale.Y);
+
+                if (sizeWorld.X <= MinNonZero || sizeWorld.Y <= MinNonZero)
+                    continue;
+
+                var home = layer.Config.WorldHomePosition;
+                var scrolled = layer.Config.Scrolling * (float) RealTime.TotalSeconds;
+                var origin = (Camera.EyePos - home) * layer.Config.Slowness;
+                origin += home;
+                origin += layer.Config.WorldAdjustPosition;
+                origin += scrolled;
+                origin -= sizeWorld / 2f;
+
+                var local = world - origin;
+                var fracX = local.X / sizeWorld.X;
+                var fracY = local.Y / sizeWorld.Y;
+                fracX -= MathF.Floor(fracX);
+                fracY -= MathF.Floor(fracY);
+
+                sample = new FpvFloorSample(
+                    texture,
+                    new UIBox2(0f, 0f, texture.Width, texture.Height),
+                    fracX,
+                    fracY);
+                return true;
+            }
+
+            return false;
         }
     }
 
     private readonly record struct TransparentSurfaceDraw(Texture? Texture, UIBox2 Rect, UIBox2? Region, Color Color, float Depth, int DrawDepth);
 
     private readonly record struct AlphaDraw(float Depth, int DrawDepth, AlphaDrawKind Kind, int Index);
+
+    private readonly record struct FloorRowDescriptor(int ScreenY, int ScreenHeight, float Distance, Vector2 WorldStart, Vector2 StepVec);
 
     private enum AlphaDrawKind
     {
