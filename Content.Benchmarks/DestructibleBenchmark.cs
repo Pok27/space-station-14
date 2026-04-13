@@ -1,5 +1,6 @@
-﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Content.IntegrationTests;
 using Content.IntegrationTests.Pair;
@@ -70,7 +71,7 @@ public class DestructibleBenchmark
     {
         ProgramShared.PathOffset = "../../../../";
         PoolManager.Startup();
-        _pair = await PoolManager.GetServerClient();
+        _pair = await PoolManager.GetServerClient(testContext: new ExternalTestContext("Benchmark", StreamWriter.Null));
         var server = _pair.Server;
 
         _entMan = server.ResolveDependency<IEntityManager>();
