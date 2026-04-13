@@ -2,9 +2,7 @@ using Content.Shared.Administration.Logs;
 using Content.Shared.Damage.Components;
 using Content.Shared.Database;
 using Content.Shared.Interaction;
-using Content.Shared.Tools.Components;
 using Content.Shared.Tools.Systems;
-using ItemToggleComponent = Content.Shared.Item.ItemToggle.Components.ItemToggleComponent;
 
 namespace Content.Shared.Damage.Systems;
 
@@ -26,25 +24,11 @@ public sealed class DamageOnToolInteractSystem : EntitySystem
         if (args.Handled)
             return;
 
-        if (!TryComp<ItemToggleComponent>(args.Used, out var itemToggle))
-            return;
-
-        if (ent.Comp.WeldingDamage is { } weldingDamage
-            && TryComp(args.Used, out WelderComponent? welder)
-            && itemToggle.Activated
-            && !welder.TankSafe)
+        foreach (var (quality, damage) in ent.Comp.Damage)
         {
-            if (_damageableSystem.TryChangeDamage(args.Target, weldingDamage, out var dmg, origin: args.User))
-            {
-                _adminLogger.Add(LogType.Damaged,
-                    $"{ToPrettyString(args.User):user} used {ToPrettyString(args.Used):used} as a welder to deal {dmg.GetTotal():damage} damage to {ToPrettyString(args.Target):target}");
-            }
+            if (!_toolSystem.HasQuality(args.Used, quality))
+                continue;
 
-            args.Handled = true;
-        }
-        else if (ent.Comp.DefaultDamage is { } damage
-            && _toolSystem.HasQuality(args.Used, ent.Comp.Tools))
-        {
             if (_damageableSystem.TryChangeDamage(args.Target, damage, out var dmg, origin: args.User))
             {
                 _adminLogger.Add(LogType.Damaged,
@@ -52,6 +36,7 @@ public sealed class DamageOnToolInteractSystem : EntitySystem
             }
 
             args.Handled = true;
+            break;
         }
     }
 }

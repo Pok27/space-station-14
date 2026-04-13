@@ -21,6 +21,6 @@ public sealed class DamageOnHitSystem : EntitySystem
     private void DamageItem(Entity<DamageOnHitComponent> ent, ref MeleeHitEvent args)
     {
         if (args.HitEntities.Any())
-            _damageableSystem.TryChangeDamage(ent.Owner, ent.Comp.Damage, ent.Comp.IgnoreResistances);
+            _damageableSystem.TryChangeDamage(ent.Owner, ent.Comp.Damage, ent.Comp.IgnoreResistances, origin: args.User);
     }
 }

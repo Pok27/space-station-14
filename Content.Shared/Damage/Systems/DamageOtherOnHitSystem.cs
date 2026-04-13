@@ -8,6 +8,7 @@ using Content.Shared.Effects;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Throwing;
 using Content.Shared.Weapons.Ranged.Systems;
+using Robust.Shared.Network;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Player;
 
@@ -21,6 +22,7 @@ public sealed class DamageOtherOnHitSystem : EntitySystem
     [Dependency] private readonly SharedCameraRecoilSystem _sharedCameraRecoil = default!;
     [Dependency] private readonly SharedColorFlashEffectSystem _color = default!;
     [Dependency] private readonly SharedGunSystem _guns = default!;
+    [Dependency] private readonly INetManager _netManager = default!;
 
     public override void Initialize()
     {
@@ -46,10 +48,14 @@ public sealed class DamageOtherOnHitSystem : EntitySystem
 
     private void OnDoHit(Entity<DamageOtherOnHitComponent> ent, ref ThrowDoHitEvent args)
     {
+        // Thrown collisions are not predicted.
+        if (_netManager.IsClient)
+            return;
+
         if (TerminatingOrDeleted(args.Target))
             return;
 
-        var dmg = _damageable.ChangeDamage(args.Target, ent.Comp.Damage * _damageable.UniversalThrownDamageModifier, ent.Comp.IgnoreResistances, origin: args.Component.Thrower);
+        var dmg = _damageable.ChangeDamage(args.Target, ent.Comp.Damage * _damageable.UniversalThrownDamageModifier, ent.Comp.IgnoreResistances, origin: ent.Owner);
 
         // Log damage only for mobs. Useful for when people throw spears at each other, but also avoids log-spam when explosions send glass shards flying.
         if (HasComp<MobStateComponent>(args.Target))
