@@ -1,8 +1,5 @@
 using Content.Shared.E3D.Components;
 using Content.Shared.Movement.Components;
-using Robust.Shared.GameObjects;
-using Robust.Shared.Maths;
-using Robust.Shared.Player;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared.E3D.Systems;

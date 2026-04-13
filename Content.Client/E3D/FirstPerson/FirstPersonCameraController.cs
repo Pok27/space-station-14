@@ -1,6 +1,4 @@
-using System;
 using System.Numerics;
-using Robust.Shared.Maths;
 
 namespace Content.Client.E3D.FirstPerson;
 
@@ -64,7 +62,7 @@ internal sealed class FirstPersonCameraController
     public float GetPitchOffsetPixels(float height, float maxPitchDegrees)
     {
         var maxPitch = MathF.Max(1f, maxPitchDegrees);
-        var normalized = Math.Clamp((float) (_lookPitch.Degrees / maxPitch), -1f, 1f);
+        var normalized = Math.Clamp((float)(_lookPitch.Degrees / maxPitch), -1f, 1f);
         return -normalized * height * 0.35f;
     }
 

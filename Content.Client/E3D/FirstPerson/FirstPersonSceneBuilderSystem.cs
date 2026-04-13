@@ -1,19 +1,12 @@
-using System;
-using System.Collections.Generic;
 using System.Numerics;
 using Content.Client.Resources;
-using Content.Shared.Doors.Components;
 using Content.Shared.E3D;
-using Content.Shared.E3D.Components;
 using Content.Shared.Maps;
-using Content.Shared.Physics;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
-using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
-using Robust.Shared.Maths;
 using Robust.Shared.Physics;
 using PhysicsTransform = Robust.Shared.Physics.Transform;
 
@@ -202,7 +195,7 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
             if (screenX + projectedWidth < 0f || screenX - projectedWidth > screenWidth)
                 continue;
 
-            var horizon = screenHeight / 2f - (float) (camera.Pitch.Degrees / 70f) * screenHeight * 0.35f;
+            var horizon = screenHeight / 2f - (float)(camera.Pitch.Degrees / 70f) * screenHeight * 0.35f;
             var groundY = horizon + projectionPlane * camera.EyeHeight / MathF.Max(0.05f, forwardDepth);
             var verticalOffset = projectionPlane * resolved.EyeOffset / MathF.Max(0.05f, forwardDepth);
             var floorAnchored = resolved.FloorAnchored || resolved.Archetype == E3DArchetype.Mob;
@@ -280,8 +273,8 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
         }
 
         scored.Sort(static (a, b) => a.Priority.CompareTo(b.Priority));
-        foreach (var entry in scored)
-            output.Add(entry.Uid);
+        foreach (var (uid, _) in scored)
+            output.Add(uid);
 
         if (output.Count == 0)
             output.Add(hit.HitEntity);
@@ -341,7 +334,7 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
             if (screenX < -32f || screenX > screenWidth + 32f)
                 continue;
 
-            var depthIndex = (int) Math.Clamp(screenX, 0f, depthBuffer.Length - 1);
+            var depthIndex = (int)Math.Clamp(screenX, 0f, depthBuffer.Length - 1);
             var visibleDepth = depthBuffer.Length > 0 ? depthBuffer[depthIndex] : 0f;
             if (visibleDepth > 0f && forwardDepth > visibleDepth - 0.05f)
                 continue;
@@ -363,7 +356,7 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
     public Texture? TryGetFloorTexture(TileRef tile, out UIBox2 textureRegion)
     {
         textureRegion = default;
-        var def = (ContentTileDefinition) _tileDefs[tile.Tile.TypeId];
+        var def = (ContentTileDefinition)_tileDefs[tile.Tile.TypeId];
         if (def.Sprite == null)
             return null;
 
@@ -479,7 +472,6 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
         hit = default;
 
         var worldRot = _transform.GetWorldRotation(gridUid);
-        float tEnter;
 
         var localOrigin = _map.WorldToLocal(gridUid, grid, camera.EyePos);
         var localAhead = _map.WorldToLocal(gridUid, grid, camera.EyePos + worldDirUnit);
@@ -489,7 +481,7 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
 
         localDir = Vector2.Normalize(localDir);
 
-        if (!TryRaySegmentIntersectAabb(localOrigin, localDir, camera.MaxDistance, grid.LocalAABB, out tEnter, out var tExit))
+        if (!TryRaySegmentIntersectAabb(localOrigin, localDir, camera.MaxDistance, grid.LocalAABB, out var tEnter, out var tExit))
             return false;
 
         var tStart = MathF.Max(0f, tEnter);
@@ -498,8 +490,8 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
 
         var rayStart = localOrigin + localDir * tStart;
         var tileSize = grid.TileSize;
-        var tileX = (int) MathF.Floor(rayStart.X / tileSize);
-        var tileY = (int) MathF.Floor(rayStart.Y / tileSize);
+        var tileX = (int)MathF.Floor(rayStart.X / tileSize);
+        var tileY = (int)MathF.Floor(rayStart.Y / tileSize);
         var stepX = localDir.X >= 0f ? 1 : -1;
         var stepY = localDir.Y >= 0f ? 1 : -1;
         var deltaDistX = localDir.X == 0f ? float.PositiveInfinity : MathF.Abs(tileSize / localDir.X);
@@ -512,7 +504,7 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
         while (true)
         {
             var sideDelta = sideDistX - sideDistY;
-            var verticalSide = sideDelta < -DdaSideEpsilon || (MathF.Abs(sideDelta) <= DdaSideEpsilon && stepX > 0);
+            var verticalSide = sideDelta < -DdaSideEpsilon || MathF.Abs(sideDelta) <= DdaSideEpsilon && stepX > 0;
             float distFromRayStart;
 
             if (verticalSide)
@@ -596,10 +588,9 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
     private bool TryGetSurfaceInTile(EntityUid gridUid, MapGridComponent grid, Vector2i tile, bool skipTransparent, out EntityUid wallEntity)
     {
         wallEntity = default;
-        TileSurfaceCacheEntry cached;
         lock (_tileSurfaceCacheLock)
         {
-            if (_tileSurfaceCache.TryGetValue((gridUid, tile, skipTransparent), out cached))
+            if (_tileSurfaceCache.TryGetValue((gridUid, tile, skipTransparent), out var cached))
             {
                 var frameAge = _frameId - cached.FrameId;
                 if (frameAge <= TileSurfaceCacheFrameTtl)
@@ -722,8 +713,8 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
         if (depthBuffer.Length == 0)
             return true;
 
-        var leftIndex = (int) Math.Clamp(MathF.Floor(rect.Left), 0, depthBuffer.Length - 1);
-        var rightIndex = (int) Math.Clamp(MathF.Ceiling(rect.Right) - 1f, 0, depthBuffer.Length - 1);
+        var leftIndex = (int)Math.Clamp(MathF.Floor(rect.Left), 0, depthBuffer.Length - 1);
+        var rightIndex = (int)Math.Clamp(MathF.Ceiling(rect.Right) - 1f, 0, depthBuffer.Length - 1);
         var firstVisible = -1;
         var lastVisible = -1;
 

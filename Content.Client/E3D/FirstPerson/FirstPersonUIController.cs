@@ -1,12 +1,8 @@
 using Content.Client.Gameplay;
 using Content.Client.UserInterface.Controls;
 using Robust.Client.Graphics;
-using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controllers;
-using Robust.Client.UserInterface.Controls;
 using System.Diagnostics.CodeAnalysis;
-using Robust.Shared.IoC;
-using Robust.Shared.Maths;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 

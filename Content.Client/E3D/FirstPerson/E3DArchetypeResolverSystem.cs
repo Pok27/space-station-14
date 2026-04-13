@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Numerics;
 using Content.Shared.Administration.Components;
 using Content.Shared.Delivery;
@@ -13,8 +12,6 @@ using Content.Shared.Tag;
 using Content.Shared.Wall;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
-using Robust.Shared.GameObjects;
-using Robust.Shared.Maths;
 using Robust.Shared.Physics.Components;
 using DrawDepth = Content.Shared.DrawDepth.DrawDepth;
 
@@ -51,9 +48,9 @@ public sealed class E3DArchetypeResolverSystem : EntitySystem
         if (!transparent && TryComp(uid, out PhysicsComponent? physics))
         {
             var layer = physics.CollisionLayer;
-            var isGlassLayer = (layer & (int) CollisionGroup.GlassLayer) != 0 ||
-                               (layer & (int) CollisionGroup.GlassAirlockLayer) != 0;
-            var isOpaque = (layer & (int) CollisionGroup.Opaque) != 0;
+            var isGlassLayer = (layer & (int)CollisionGroup.GlassLayer) != 0 ||
+                               (layer & (int)CollisionGroup.GlassAirlockLayer) != 0;
+            var isOpaque = (layer & (int)CollisionGroup.Opaque) != 0;
             if (isGlassLayer && !isOpaque)
             {
                 transparent = true;
@@ -229,21 +226,21 @@ public sealed class E3DArchetypeResolverSystem : EntitySystem
             return E3DArchetype.DecalLike;
 
         var depth = sprite?.DrawDepth ?? Robust.Shared.GameObjects.DrawDepth.Default;
-        if (depth is (int) DrawDepth.LowFloors or
-            (int) DrawDepth.BelowFloor or
-            (int) DrawDepth.FloorTiles or
-            (int) DrawDepth.Puddles or
-            (int) DrawDepth.ThinWire or
-            (int) DrawDepth.ThickWire or
-            (int) DrawDepth.ThinPipe or
-            (int) DrawDepth.ThinPipeAlt1 or
-            (int) DrawDepth.ThinPipeAlt2 or
-            (int) DrawDepth.ThickPipe)
+        if (depth is (int)DrawDepth.LowFloors or
+            (int)DrawDepth.BelowFloor or
+            (int)DrawDepth.FloorTiles or
+            (int)DrawDepth.Puddles or
+            (int)DrawDepth.ThinWire or
+            (int)DrawDepth.ThickWire or
+            (int)DrawDepth.ThinPipe or
+            (int)DrawDepth.ThinPipeAlt1 or
+            (int)DrawDepth.ThinPipeAlt2 or
+            (int)DrawDepth.ThickPipe)
         {
             return E3DArchetype.DecalLike;
         }
 
-        if (depth == (int) DrawDepth.Walls)
+        if (depth == (int)DrawDepth.Walls)
         {
             if (TryResolveGrilleArchetype(uid))
                 return E3DArchetype.Grille;
@@ -251,10 +248,10 @@ public sealed class E3DArchetypeResolverSystem : EntitySystem
             return E3DArchetype.Wall;
         }
 
-        if (depth is (int) DrawDepth.Overdoors or (int) DrawDepth.LargeObjects)
+        if (depth is (int)DrawDepth.Overdoors or (int)DrawDepth.LargeObjects)
             return E3DArchetype.Billboard;
 
-        if (depth == (int) DrawDepth.WallTops)
+        if (depth == (int)DrawDepth.WallTops)
         {
             if (TryComp(uid, out OccluderComponent? _) || IsWallPhysics(uid))
                 return E3DArchetype.Frame;
@@ -262,16 +259,16 @@ public sealed class E3DArchetypeResolverSystem : EntitySystem
             return E3DArchetype.Wallmount;
         }
 
-        if (depth is (int) DrawDepth.Doors or (int) DrawDepth.BlastDoors or (int) DrawDepth.Overdoors)
+        if (depth is (int)DrawDepth.Doors or (int)DrawDepth.BlastDoors or (int)DrawDepth.Overdoors)
             return E3DArchetype.Door;
 
-        if (depth is (int) DrawDepth.Items)
+        if (depth is (int)DrawDepth.Items)
             return E3DArchetype.Item;
 
-        if (depth is (int) DrawDepth.Mobs or (int) DrawDepth.SmallMobs or (int) DrawDepth.DeadMobs)
+        if (depth is (int)DrawDepth.Mobs or (int)DrawDepth.SmallMobs or (int)DrawDepth.DeadMobs)
             return E3DArchetype.Mob;
 
-        if (depth is (int) DrawDepth.WallMountedItems)
+        if (depth is (int)DrawDepth.WallMountedItems)
             return E3DArchetype.Wallmount;
 
         return Transform(uid).Anchored ? E3DArchetype.Billboard : E3DArchetype.Item;
@@ -403,8 +400,8 @@ public sealed class E3DArchetypeResolverSystem : EntitySystem
             return false;
 
         var layer = physics.CollisionLayer;
-        var glass = (layer & (int) CollisionGroup.GlassLayer) != 0;
-        var opaque = (layer & (int) CollisionGroup.Opaque) != 0;
+        var glass = (layer & (int)CollisionGroup.GlassLayer) != 0;
+        var opaque = (layer & (int)CollisionGroup.Opaque) != 0;
         if (!glass || opaque)
             return false;
 
@@ -417,9 +414,9 @@ public sealed class E3DArchetypeResolverSystem : EntitySystem
             return false;
 
         var layer = physics.CollisionLayer;
-        return (layer & (int) CollisionGroup.WallLayer) != 0 ||
-               (layer & (int) CollisionGroup.SpecialWallLayer) != 0 ||
-               (layer & (int) CollisionGroup.FullTileLayer) != 0;
+        return (layer & (int)CollisionGroup.WallLayer) != 0 ||
+               (layer & (int)CollisionGroup.SpecialWallLayer) != 0 ||
+               (layer & (int)CollisionGroup.FullTileLayer) != 0;
     }
 }
 

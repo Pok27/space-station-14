@@ -1,6 +1,5 @@
 using Robust.Client.Player;
 using Robust.Client.UserInterface;
-using Robust.Shared.GameObjects;
 
 namespace Content.Client.E3D.FirstPerson;
 

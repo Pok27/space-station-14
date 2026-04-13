@@ -1,17 +1,13 @@
-using System;
-using System.Collections.Generic;
 using System.Numerics;
 using Content.Client.Parallax;
 using Content.Client.Parallax.Managers;
 using Content.Shared.E3D;
-using DrawDepth = Content.Shared.DrawDepth.DrawDepth;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
-using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
-using Robust.Shared.Maths;
 using Robust.Shared.Threading;
 using Robust.Shared.Timing;
+using DrawDepth = Content.Shared.DrawDepth.DrawDepth;
 
 namespace Content.Client.E3D.FirstPerson;
 
@@ -53,21 +49,21 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
     private readonly List<TransparentSurfaceDraw> _transparentSurfaces = new();
     private readonly List<AlphaDraw> _alphaDraws = new();
     private readonly List<EntityUid> _tileSurfaceEntities = new();
-    private float[] _depthBuffer = Array.Empty<float>();
-    private int[] _surfaceBandLeft = Array.Empty<int>();
-    private int[] _surfaceBandWidth = Array.Empty<int>();
-    private Angle[] _surfaceRayAngle = Array.Empty<Angle>();
-    private bool[] _surfaceHasHit = Array.Empty<bool>();
-    private bool[] _surfaceHasOpaque = Array.Empty<bool>();
-    private FpvRayHit[] _surfaceHit = Array.Empty<FpvRayHit>();
-    private FpvRayHit[] _surfaceOpaqueHit = Array.Empty<FpvRayHit>();
-    private ResolvedE3DRenderable[] _surfaceResolved = Array.Empty<ResolvedE3DRenderable>();
-    private ResolvedE3DRenderable[] _surfaceOpaqueResolved = Array.Empty<ResolvedE3DRenderable>();
-    private float[] _surfaceCorrectedDist = Array.Empty<float>();
-    private float[] _surfaceRenderDist = Array.Empty<float>();
-    private float[] _surfaceOpaqueCorrectedDist = Array.Empty<float>();
-    private float[] _surfaceOpaqueRenderDist = Array.Empty<float>();
-    private float[] _surfaceOccluderDist = Array.Empty<float>();
+    private float[] _depthBuffer = [];
+    private int[] _surfaceBandLeft = [];
+    private int[] _surfaceBandWidth = [];
+    private Angle[] _surfaceRayAngle = [];
+    private bool[] _surfaceHasHit = [];
+    private bool[] _surfaceHasOpaque = [];
+    private FpvRayHit[] _surfaceHit = [];
+    private FpvRayHit[] _surfaceOpaqueHit = [];
+    private ResolvedE3DRenderable[] _surfaceResolved = [];
+    private ResolvedE3DRenderable[] _surfaceOpaqueResolved = [];
+    private float[] _surfaceCorrectedDist = [];
+    private float[] _surfaceRenderDist = [];
+    private float[] _surfaceOpaqueCorrectedDist = [];
+    private float[] _surfaceOpaqueRenderDist = [];
+    private float[] _surfaceOccluderDist = [];
 
     public void DrawFrame(FirstPersonViewControl control, DrawingHandleScreen handle, FpvCameraState camera, float horizon)
     {
@@ -77,7 +73,7 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
             return;
         }
 
-        var sizePx = (Vector2) control.PixelSize;
+        var sizePx = (Vector2)control.PixelSize;
         if (sizePx.X <= 1 || sizePx.Y <= 1)
         {
             _interaction.Clear();
@@ -94,7 +90,7 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
         _sceneBuilder.CollectFloorDecals(camera, _depthBuffer, width, _floorDecals);
         BuildFloorDecalBins();
         DrawFloor(handle, camera, width, height, horizon);
-        DrawAlphaPass(handle, camera, width, (int) height);
+        DrawAlphaPass(handle, camera, width, (int)height);
         PublishInteractionHit(camera);
 
         if (control.DrawCrosshair)
@@ -120,7 +116,7 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
     {
         var rel = map - camera.EyePos;
         if (rel.LengthSquared() <= MinRelativeLengthSquared)
-            return control.GlobalPixelPosition + (Vector2) control.PixelSize / 2f;
+            return control.GlobalPixelPosition + (Vector2)control.PixelSize / 2f;
 
         var forwardDepth = Vector2.Dot(rel, camera.Yaw.ToVec());
         var sideDepth = Vector2.Dot(rel, (camera.Yaw + Angle.FromDegrees(90f)).ToVec());
@@ -157,7 +153,7 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
         var maxFloorDistance = camera.MaxDistance + FloorFadeDistance;
         var floorLookup = default(FirstPersonFloorCacheSystem.FloorSampleLookup);
 
-        for (var y = Math.Max(0, (int) MathF.Ceiling(horizon)); y < height;)
+        for (var y = Math.Max(0, (int)MathF.Ceiling(horizon)); y < height;)
         {
             var p = y - horizon;
             if (p <= HorizonEpsilon)
@@ -286,7 +282,7 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
             return;
 
         var ppm = EyeManager.PixelsPerMeter;
-        var time = (float) _timing.RealTime.TotalSeconds;
+        var time = (float)_timing.RealTime.TotalSeconds;
         foreach (var layer in layers)
         {
             var texture = layer.Texture;
@@ -307,8 +303,8 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
 
             if (layer.Config.Tiled)
             {
-                var startX = MathF.Floor((-originPx.X) / sizePxLayer.X) * sizePxLayer.X + originPx.X;
-                var startY = MathF.Floor((-originPx.Y) / sizePxLayer.Y) * sizePxLayer.Y + originPx.Y;
+                var startX = MathF.Floor(-originPx.X / sizePxLayer.X) * sizePxLayer.X + originPx.X;
+                var startY = MathF.Floor(-originPx.Y / sizePxLayer.Y) * sizePxLayer.Y + originPx.Y;
                 for (var x = startX; x < sizePx.X; x += sizePxLayer.X)
                 {
                     for (var y = startY; y < sizePx.Y; y += sizePxLayer.Y)
@@ -336,7 +332,7 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
             return Math.Clamp(camera.LogicalColumns, 48, width);
 
         var columnStep = GetSurfaceColumnStep(camera);
-        var columns = (int) MathF.Ceiling(width / (float) columnStep);
+        var columns = (int)MathF.Ceiling(width / (float)columnStep);
         return Math.Clamp(columns, 48, width);
     }
 
@@ -437,7 +433,6 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
         if (hit.VerticalSide)
             color = new Color(color.R * SurfaceVerticalShade, color.G * SurfaceVerticalShade, color.B * SurfaceVerticalShade, color.A);
 
-        var transparent = !forceOpaque && resolved.Transparent;
         var wallRect = UIBox2.FromDimensions(new Vector2(bandLeft, slice.Top), new Vector2(bandWidth, slice.Height));
 
         _sceneBuilder.GetOrderedTileSurfaceEntities(hit, _tileSurfaceEntities);
@@ -448,7 +443,7 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
                 continue;
 
             var surfaceTransparent = !forceOpaque && surfaceResolved.Transparent;
-            var surfaceDrawDepth = (int) DrawDepth.Walls;
+            var surfaceDrawDepth = (int)DrawDepth.Walls;
             if (TryComp(surfaceUid, out SpriteComponent? surfaceSprite))
                 surfaceDrawDepth = surfaceSprite.DrawDepth;
 
@@ -490,7 +485,7 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
     private UIBox2 GetSurfaceTextureRegionFull(Texture texture, FpvRayHit hit)
     {
         var frac = GetHitTextureFraction(hit);
-        var texX = Math.Clamp(MathF.Floor(frac * (float) texture.Width), 0f, (float) texture.Width - 1f);
+        var texX = Math.Clamp(MathF.Floor(frac * (float)texture.Width), 0f, (float)texture.Width - 1f);
         return new UIBox2(texX, 0f, texX + 1f, texture.Height);
     }
 
@@ -526,10 +521,10 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
         var width = MathF.Max(MinNonZero, combinedBounds.Width);
         var height = MathF.Max(MinNonZero, combinedBounds.Height);
 
-        var left = combinedRect.Left + ((layerBounds.Left - combinedBounds.Left) / width) * combinedRect.Width;
-        var right = combinedRect.Left + ((layerBounds.Right - combinedBounds.Left) / width) * combinedRect.Width;
-        var top = combinedRect.Top + ((combinedBounds.Top - layerBounds.Top) / height) * combinedRect.Height;
-        var bottom = combinedRect.Top + ((combinedBounds.Top - layerBounds.Bottom) / height) * combinedRect.Height;
+        var left = combinedRect.Left + (layerBounds.Left - combinedBounds.Left) / width * combinedRect.Width;
+        var right = combinedRect.Left + (layerBounds.Right - combinedBounds.Left) / width * combinedRect.Width;
+        var top = combinedRect.Top + (combinedBounds.Top - layerBounds.Top) / height * combinedRect.Height;
+        var bottom = combinedRect.Top + (combinedBounds.Top - layerBounds.Bottom) / height * combinedRect.Height;
 
         return new UIBox2(left, top, right, bottom);
     }
@@ -648,10 +643,10 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
             var extent = MathF.Max(halfWidth, halfDepth);
             var min = decal.WorldPosition - new Vector2(extent, extent);
             var max = decal.WorldPosition + new Vector2(extent, extent);
-            var minBinX = (int) MathF.Floor(min.X / FloorDecalBinSize);
-            var maxBinX = (int) MathF.Floor(max.X / FloorDecalBinSize);
-            var minBinY = (int) MathF.Floor(min.Y / FloorDecalBinSize);
-            var maxBinY = (int) MathF.Floor(max.Y / FloorDecalBinSize);
+            var minBinX = (int)MathF.Floor(min.X / FloorDecalBinSize);
+            var maxBinX = (int)MathF.Floor(max.X / FloorDecalBinSize);
+            var minBinY = (int)MathF.Floor(min.Y / FloorDecalBinSize);
+            var maxBinY = (int)MathF.Floor(max.Y / FloorDecalBinSize);
 
             for (var x = minBinX; x <= maxBinX; x++)
             {
@@ -676,8 +671,8 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
         region = null;
         color = Color.White;
 
-        var binX = (int) MathF.Floor(world.X / FloorDecalBinSize);
-        var binY = (int) MathF.Floor(world.Y / FloorDecalBinSize);
+        var binX = (int)MathF.Floor(world.X / FloorDecalBinSize);
+        var binY = (int)MathF.Floor(world.Y / FloorDecalBinSize);
         if (!_floorDecalBins.TryGetValue(new Vector2i(binX, binY), out var indices))
             return false;
 
@@ -685,8 +680,8 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
         {
             var decal = _floorDecals[index];
             var local = world - decal.WorldPosition;
-            var cos = MathF.Cos((float) -decal.Rotation.Theta);
-            var sin = MathF.Sin((float) -decal.Rotation.Theta);
+            var cos = MathF.Cos((float)-decal.Rotation.Theta);
+            var sin = MathF.Sin((float)-decal.Rotation.Theta);
             var rotated = new Vector2(
                 local.X * cos - local.Y * sin,
                 local.X * sin + local.Y * cos);
@@ -698,8 +693,8 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
 
             var u = Math.Clamp((rotated.X + halfWidth) / MathF.Max(MinNonZero, decal.WorldWidth), 0f, 1f);
             var v = Math.Clamp(1f - (rotated.Y + halfDepth) / MathF.Max(MinNonZero, decal.WorldDepth), 0f, 1f);
-            var texX = Math.Clamp(MathF.Floor(u * (float) decal.Texture.Width), 0f, (float) decal.Texture.Width - 1f);
-            var texY = Math.Clamp(MathF.Floor(v * (float) decal.Texture.Height), 0f, (float) decal.Texture.Height - 1f);
+            var texX = Math.Clamp(MathF.Floor(u * (float)decal.Texture.Width), 0f, (float)decal.Texture.Width - 1f);
+            var texY = Math.Clamp(MathF.Floor(v * (float)decal.Texture.Height), 0f, (float)decal.Texture.Height - 1f);
             texture = decal.Texture;
             region = new UIBox2(texX, texY, texX + 1f, texY + 1f);
             color = decal.Color;
@@ -808,8 +803,8 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
 
         public void Execute(int index)
         {
-            var bandLeft = (int) MathF.Floor(index * Width / (float) LogicalColumns);
-            var bandRight = Math.Max(bandLeft + 1, (int) MathF.Ceiling((index + 1) * Width / (float) LogicalColumns));
+            var bandLeft = (int)MathF.Floor(index * Width / (float)LogicalColumns);
+            var bandRight = Math.Max(bandLeft + 1, (int)MathF.Ceiling((index + 1) * Width / (float)LogicalColumns));
             var bandWidth = Math.Max(1, bandRight - bandLeft);
             var sampleX = bandLeft + bandWidth * 0.5f;
 
@@ -832,7 +827,7 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
             Resolved[index] = resolved;
             HasHit[index] = true;
 
-            var correctedDist = MathF.Max(MinCorrectedDistance, hit.Distance * (float) Math.Cos((rayAngle - Camera.Yaw).Theta));
+            var correctedDist = MathF.Max(MinCorrectedDistance, hit.Distance * (float)Math.Cos((rayAngle - Camera.Yaw).Theta));
             CorrectedDist[index] = correctedDist;
             RenderDist[index] = GetSurfaceRenderDistance(correctedDist);
 
@@ -848,7 +843,7 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
                 HasOpaque[index] = true;
                 OpaqueHit[index] = opaqueHit;
                 OpaqueResolved[index] = opaqueResolved;
-                var opaqueDist = MathF.Max(MinCorrectedDistance, opaqueHit.Distance * (float) Math.Cos((rayAngle - Camera.Yaw).Theta));
+                var opaqueDist = MathF.Max(MinCorrectedDistance, opaqueHit.Distance * (float)Math.Cos((rayAngle - Camera.Yaw).Theta));
                 OpaqueCorrectedDist[index] = opaqueDist;
                 OpaqueRenderDist[index] = GetSurfaceRenderDistance(opaqueDist);
                 OccluderDist[index] = opaqueDist;
@@ -871,7 +866,7 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
 
     private record struct FloorSpanState(int X, int Width, FloorDrawPoint Point)
     {
-        public bool CanExtend(FloorDrawPoint point)
+        public readonly bool CanExtend(FloorDrawPoint point)
         {
             if (!ReferenceEquals(Point.Texture, point.Texture))
                 return false;

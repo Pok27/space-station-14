@@ -1,8 +1,6 @@
-using Content.Client.E3D.FirstPerson;
 using Content.Shared.Administration;
 using Robust.Client.UserInterface;
 using Robust.Shared.Console;
-using Robust.Shared.IoC;
 
 namespace Content.Client.E3D.FirstPerson.Commands;
 

@@ -1,4 +1,3 @@
-using System;
 using System.Numerics;
 using Content.Shared.E3D;
 using Content.Shared.E3D.Components;
@@ -8,11 +7,8 @@ using Robust.Client.Graphics;
 using Robust.Client.Input;
 using Robust.Client.Player;
 using Robust.Client.UserInterface;
-using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.CustomControls;
-using Robust.Shared.IoC;
 using Robust.Shared.Map;
-using Robust.Shared.Maths;
 using Robust.Shared.Input;
 using Robust.Shared.Timing;
 

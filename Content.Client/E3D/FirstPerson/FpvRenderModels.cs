@@ -1,9 +1,7 @@
 using System.Numerics;
 using Content.Shared.E3D;
 using Robust.Client.Graphics;
-using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
-using Robust.Shared.Maths;
 
 namespace Content.Client.E3D.FirstPerson;
 

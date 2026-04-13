@@ -1,13 +1,10 @@
 using System.Numerics;
-using System.Collections.Generic;
 using Content.Client.Resources;
 using Content.Shared.Maps;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
-using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
-using Robust.Shared.Maths;
 
 namespace Content.Client.E3D.FirstPerson;
 
@@ -18,7 +15,7 @@ public sealed class FirstPersonFloorCacheSystem : EntitySystem
     [Dependency] private readonly ITileDefinitionManager _tileDefs = default!;
     [Dependency] private readonly SharedMapSystem _map = default!;
 
-    private readonly Dictionary<(EntityUid GridUid, Vector2i Indices), CachedFloorTile?> _tileCache = new();
+    private readonly Dictionary<(EntityUid GridUid, Vector2i Indices), CachedFloorTile?> _tileCache = [];
 
     public override void Initialize()
     {
@@ -42,8 +39,6 @@ public sealed class FirstPersonFloorCacheSystem : EntitySystem
 
     public bool TryGetFloorSample(MapId mapId, Vector2 world, ref FloorSampleLookup lookup, out FpvFloorSample sample)
     {
-        sample = default;
-
         if (lookup.TryGetCached(this, mapId, world, out sample))
             return true;
 
@@ -76,7 +71,7 @@ public sealed class FirstPersonFloorCacheSystem : EntitySystem
         if (!_map.TryGetTileRef(gridUid, grid, indices, out var tileRef))
             return _tileCache[(gridUid, indices)] = null;
 
-        var def = (ContentTileDefinition) _tileDefs[tileRef.Tile.TypeId];
+        var def = (ContentTileDefinition)_tileDefs[tileRef.Tile.TypeId];
         if (def.Sprite == null)
             return _tileCache[(gridUid, indices)] = null;
 
@@ -141,7 +136,7 @@ public sealed class FirstPersonFloorCacheSystem : EntitySystem
             _rotationMirroring = rotationMirroring;
         }
 
-        public bool TryGetCached(FirstPersonFloorCacheSystem system, MapId mapId, Vector2 world, out FpvFloorSample sample)
+        public readonly bool TryGetCached(FirstPersonFloorCacheSystem system, MapId mapId, Vector2 world, out FpvFloorSample sample)
         {
             sample = default;
             if (!_hasCachedResult || _mapId != mapId || _gridUid == EntityUid.Invalid)
@@ -151,8 +146,8 @@ public sealed class FirstPersonFloorCacheSystem : EntitySystem
                 return false;
 
             var local = system._map.WorldToLocal(_gridUid, grid, world);
-            var tileX = (int) MathF.Floor(local.X / grid.TileSize);
-            var tileY = (int) MathF.Floor(local.Y / grid.TileSize);
+            var tileX = (int)MathF.Floor(local.X / grid.TileSize);
+            var tileY = (int)MathF.Floor(local.Y / grid.TileSize);
             if (tileX != _tileIndices.X || tileY != _tileIndices.Y)
                 return false;
 

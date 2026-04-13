@@ -2,10 +2,7 @@ using Content.Shared.E3D.Systems;
 using Content.Shared.E3D;
 using Content.Shared.E3D.Components;
 using Robust.Client.Player;
-using Robust.Shared.GameObjects;
-using Robust.Shared.GameStates;
 using Robust.Client.UserInterface;
-using Robust.Shared.Maths;
 using Robust.Shared.Player;
 
 namespace Content.Client.E3D.FirstPerson;

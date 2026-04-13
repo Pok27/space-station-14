@@ -1,5 +1,4 @@
 using Robust.Shared.Map;
-using Robust.Shared.GameObjects;
 
 namespace Content.Client.E3D.FirstPerson;
 
