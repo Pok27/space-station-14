@@ -26,13 +26,11 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
     [Dependency] private readonly SharedMapSystem _map = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
 
-    private readonly HashSet<EntityUid> _nearbyEntities = new();
-    private readonly List<EntityUid> _cachedGridUids = new();
-    private const uint TileSurfaceCacheFrameTtl = 3;
-    private const int TileSurfaceCacheHardLimit = 16_384;
-    private readonly Dictionary<(EntityUid GridUid, Vector2i Tile, bool SkipTransparent), TileSurfaceCacheEntry> _tileSurfaceCache = new();
-    private readonly object _tileSurfaceCacheLock = new();
-    private readonly List<FpvVisualLayer> _billboardLayers = new();
+    private readonly HashSet<EntityUid> _nearbyEntities = [];
+    private readonly List<EntityUid> _cachedGridUids = [];
+    private readonly Dictionary<(EntityUid GridUid, Vector2i Tile, bool SkipTransparent), EntityUid?> _tileSurfaceCache = [];
+    private readonly System.Threading.Lock _tileSurfaceCacheLock = new();
+    private readonly List<FpvVisualLayer> _billboardLayers = [];
     private MapId _cachedNearbyMap = MapId.Nullspace;
     private Vector2 _cachedNearbyEye;
     private float _cachedNearbyRadius = -1f;
@@ -70,7 +68,12 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
         EnsureGridCache(camera.MapId);
         _cachedNearbyRadius = -1f;
         if ((_frameId & 63) == 0)
-            PruneTileSurfaceCache();
+        {
+            lock (_tileSurfaceCacheLock)
+            {
+                _tileSurfaceCache.Clear();
+            }
+        }
     }
 
     public bool TryCastSurfaceRay(FpvCameraState camera, float xPx, int widthPx, out FpvRayHit hit)
@@ -592,12 +595,8 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
         {
             if (_tileSurfaceCache.TryGetValue((gridUid, tile, skipTransparent), out var cached))
             {
-                var frameAge = _frameId - cached.FrameId;
-                if (frameAge <= TileSurfaceCacheFrameTtl)
-                {
-                    wallEntity = cached.Entity ?? default;
-                    return cached.Entity != null;
-                }
+                wallEntity = cached ?? default;
+                return cached != null;
             }
         }
 
@@ -628,30 +627,9 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
         var found = bestPriority > 0;
         lock (_tileSurfaceCacheLock)
         {
-            _tileSurfaceCache[key] = new TileSurfaceCacheEntry(found ? wallEntity : null, _frameId);
+            _tileSurfaceCache[key] = found ? wallEntity : null;
         }
         return found;
-    }
-
-    private void PruneTileSurfaceCache()
-    {
-        lock (_tileSurfaceCacheLock)
-        {
-            if (_tileSurfaceCache.Count <= TileSurfaceCacheHardLimit)
-                return;
-
-            var remove = new List<(EntityUid GridUid, Vector2i Tile, bool SkipTransparent)>();
-            foreach (var (key, value) in _tileSurfaceCache)
-            {
-                if (_frameId - value.FrameId > TileSurfaceCacheFrameTtl)
-                    remove.Add(key);
-            }
-
-            foreach (var key in remove)
-            {
-                _tileSurfaceCache.Remove(key);
-            }
-        }
     }
 
     private bool TryFindInteractableEntity(FpvCameraState camera, float maxDistance, out EntityUid? entity, out Vector2 coordinates)
@@ -782,6 +760,4 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
             _tileSurfaceCache.Clear();
         }
     }
-
-    private readonly record struct TileSurfaceCacheEntry(EntityUid? Entity, uint FrameId);
 }
