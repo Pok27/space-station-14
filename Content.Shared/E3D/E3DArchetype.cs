@@ -18,5 +18,6 @@ public enum E3DArchetype : byte
     Frame,
     OccluderOnly,
     DecalLike,
+    Grille,
 }
 

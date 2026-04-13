@@ -63,7 +63,7 @@ public sealed class E3DArchetypeResolverSystem : EntitySystem
 
         var defaultHeight = archetype switch
         {
-            E3DArchetype.Wall or E3DArchetype.SmoothWall or E3DArchetype.Edge or E3DArchetype.OccluderOnly => 1.8f,
+            E3DArchetype.Wall or E3DArchetype.SmoothWall or E3DArchetype.Edge or E3DArchetype.OccluderOnly or E3DArchetype.Grille => 1.8f,
             E3DArchetype.Door => 1.8f,
             E3DArchetype.Window or E3DArchetype.Frame => 1.6f,
             E3DArchetype.Mob => 1.45f,
@@ -244,7 +244,15 @@ public sealed class E3DArchetypeResolverSystem : EntitySystem
         }
 
         if (depth == (int) DrawDepth.Walls)
+        {
+            if (TryResolveGrilleArchetype(uid))
+                return E3DArchetype.Grille;
+
             return E3DArchetype.Wall;
+        }
+
+        if (depth is (int) DrawDepth.Overdoors or (int) DrawDepth.LargeObjects)
+            return E3DArchetype.Billboard;
 
         if (depth == (int) DrawDepth.WallTops)
         {
@@ -357,7 +365,7 @@ public sealed class E3DArchetypeResolverSystem : EntitySystem
         {
             E3DArchetype.Wall or E3DArchetype.SmoothWall or E3DArchetype.Edge or E3DArchetype.OccluderOnly => true,
             E3DArchetype.Door => IsClosedDoor(uid),
-            E3DArchetype.Window or E3DArchetype.Frame => false,
+            E3DArchetype.Window or E3DArchetype.Frame or E3DArchetype.Grille => false,
             _ => false
         };
     }
@@ -370,6 +378,7 @@ public sealed class E3DArchetypeResolverSystem : EntitySystem
         return archetype switch
         {
             E3DArchetype.Wall or E3DArchetype.SmoothWall or E3DArchetype.Edge or E3DArchetype.OccluderOnly => true,
+            E3DArchetype.Grille => false,
             _ => false
         };
     }
@@ -379,10 +388,27 @@ public sealed class E3DArchetypeResolverSystem : EntitySystem
         return archetype switch
         {
             E3DArchetype.Door or E3DArchetype.Window => E3DSpriteMode.Directional,
-            E3DArchetype.Wall or E3DArchetype.SmoothWall or E3DArchetype.Edge or E3DArchetype.Frame => E3DSpriteMode.WallFace,
+            E3DArchetype.Wall or E3DArchetype.SmoothWall or E3DArchetype.Edge or E3DArchetype.Frame or E3DArchetype.Grille => E3DSpriteMode.WallFace,
             E3DArchetype.Billboard or E3DArchetype.Item or E3DArchetype.Mob or E3DArchetype.Table or E3DArchetype.Wallmount or E3DArchetype.DecalLike => E3DSpriteMode.Billboard,
             _ => E3DSpriteMode.Auto
         };
+    }
+
+    private bool TryResolveGrilleArchetype(EntityUid uid)
+    {
+        if (_tags.HasTag(uid, WallTag))
+            return false;
+
+        if (!TryComp(uid, out PhysicsComponent? physics))
+            return false;
+
+        var layer = physics.CollisionLayer;
+        var glass = (layer & (int) CollisionGroup.GlassLayer) != 0;
+        var opaque = (layer & (int) CollisionGroup.Opaque) != 0;
+        if (!glass || opaque)
+            return false;
+
+        return !IsWallPhysics(uid);
     }
 
     private bool IsWallPhysics(EntityUid uid)

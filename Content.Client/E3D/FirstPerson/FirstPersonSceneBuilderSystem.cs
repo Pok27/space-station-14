@@ -21,6 +21,8 @@ namespace Content.Client.E3D.FirstPerson;
 
 public sealed class FirstPersonSceneBuilderSystem : EntitySystem
 {
+    private const float DdaSideEpsilon = 0.0001f;
+
     [Dependency] private readonly E3DArchetypeResolverSystem _resolver = default!;
     [Dependency] private readonly IEyeManager _eye = default!;
     [Dependency] private readonly EntityLookupSystem _lookup = default!;
@@ -32,7 +34,17 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
     [Dependency] private readonly SharedTransformSystem _transform = default!;
 
     private readonly HashSet<EntityUid> _nearbyEntities = new();
+    private readonly List<EntityUid> _cachedGridUids = new();
+    private const uint TileSurfaceCacheFrameTtl = 3;
+    private const int TileSurfaceCacheHardLimit = 16_384;
+    private readonly Dictionary<(EntityUid GridUid, Vector2i Tile, bool SkipTransparent), TileSurfaceCacheEntry> _tileSurfaceCache = new();
+    private readonly object _tileSurfaceCacheLock = new();
     private readonly List<FpvVisualLayer> _billboardLayers = new();
+    private MapId _cachedNearbyMap = MapId.Nullspace;
+    private Vector2 _cachedNearbyEye;
+    private float _cachedNearbyRadius = -1f;
+    private MapId _cachedGridMap = MapId.Nullspace;
+    private uint _frameId;
 
     public SharedTransformSystem TransformSystem => _transform;
     public SharedMapSystem MapSystem => _map;
@@ -57,6 +69,15 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
             control.LogicalColumns,
             control.MaxBillboards,
             control.EnableFloorPass);
+    }
+
+    public void BeginFrame(FpvCameraState camera)
+    {
+        _frameId++;
+        EnsureGridCache(camera.MapId);
+        _cachedNearbyRadius = -1f;
+        if ((_frameId & 63) == 0)
+            PruneTileSurfaceCache();
     }
 
     public bool TryCastSurfaceRay(FpvCameraState camera, float xPx, int widthPx, out FpvRayHit hit)
@@ -109,8 +130,7 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
         var projectionPlane = GetProjectionPlaneDistance(screenWidth, camera.FovDegrees);
         var right = camera.Yaw + Angle.FromDegrees(90f);
         var maxDistanceSquared = camera.MaxDistance * camera.MaxDistance;
-        _nearbyEntities.Clear();
-        _lookup.GetEntitiesInRange(camera.MapId, camera.EyePos, camera.MaxDistance + 0.75f, _nearbyEntities, LookupFlags.Uncontained | LookupFlags.Approximate);
+        EnsureNearbyEntities(camera.MapId, camera.EyePos, camera.MaxDistance + 0.75f);
 
         foreach (var uid in _nearbyEntities)
         {
@@ -134,7 +154,7 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
             if (!_resolver.TryResolve(uid, out var resolved))
                 continue;
 
-            if (resolved.Archetype is E3DArchetype.Wall or E3DArchetype.SmoothWall or E3DArchetype.Edge or E3DArchetype.OccluderOnly or E3DArchetype.Floor or E3DArchetype.DecalLike)
+            if (resolved.Archetype is E3DArchetype.Wall or E3DArchetype.SmoothWall or E3DArchetype.Edge or E3DArchetype.OccluderOnly or E3DArchetype.Floor or E3DArchetype.DecalLike or E3DArchetype.Grille)
                 continue;
 
             if (resolved.Archetype is E3DArchetype.Door or E3DArchetype.Window or E3DArchetype.Frame)
@@ -219,9 +239,9 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
 
         output.Sort(static (a, b) =>
         {
-            var depthDelta = b.SortDepth - a.SortDepth;
+            var depthDelta = a.SortDepth.CompareTo(b.SortDepth);
             if (MathF.Abs(depthDelta) > 0.05f)
-                return depthDelta > 0f ? 1 : -1;
+                return depthDelta;
 
             var drawCmp = a.DrawDepth.CompareTo(b.DrawDepth);
             if (drawCmp != 0)
@@ -233,6 +253,53 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
             output.RemoveRange(camera.MaxBillboards, output.Count - camera.MaxBillboards);
     }
 
+    public void GetOrderedTileSurfaceEntities(FpvRayHit hit, List<EntityUid> output)
+    {
+        output.Clear();
+        if (hit.HitGridUid == EntityUid.Invalid || !TryComp(hit.HitGridUid, out MapGridComponent? grid))
+        {
+            output.Add(hit.HitEntity);
+            return;
+        }
+
+        var scored = new List<(EntityUid Uid, int Priority)>();
+        var anchored = _map.GetAnchoredEntitiesEnumerator(hit.HitGridUid, grid, hit.GridTile);
+        while (anchored.MoveNext(out var ent))
+        {
+            if (!_resolver.TryResolve(ent.Value, out var resolved))
+                continue;
+
+            if (!resolved.BlocksVision && resolved.Archetype is not E3DArchetype.Window and not E3DArchetype.Frame and not E3DArchetype.Door and not E3DArchetype.Grille)
+                continue;
+
+            var p = SurfaceRayPriority(resolved.Archetype, ent.Value);
+            if (p <= 0)
+                continue;
+
+            scored.Add((ent.Value, p));
+        }
+
+        scored.Sort(static (a, b) => a.Priority.CompareTo(b.Priority));
+        foreach (var entry in scored)
+            output.Add(entry.Uid);
+
+        if (output.Count == 0)
+            output.Add(hit.HitEntity);
+    }
+
+    private int SurfaceRayPriority(E3DArchetype archetype, EntityUid uid)
+    {
+        return archetype switch
+        {
+            E3DArchetype.Door => _resolver.IsClosedDoor(uid) ? 50 : 0,
+            E3DArchetype.Window => 40,
+            E3DArchetype.Grille => 38,
+            E3DArchetype.Frame => 35,
+            E3DArchetype.Wall or E3DArchetype.SmoothWall or E3DArchetype.Edge or E3DArchetype.OccluderOnly => 30,
+            _ => 0
+        };
+    }
+
     public void CollectFloorDecals(FpvCameraState camera, float[] depthBuffer, int screenWidth, List<FpvFloorDecal> output)
     {
         output.Clear();
@@ -242,8 +309,7 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
         var projectionPlane = GetProjectionPlaneDistance(screenWidth, camera.FovDegrees);
         var right = camera.Yaw + Angle.FromDegrees(90f);
         var maxDistanceSquared = camera.MaxDistance * camera.MaxDistance;
-        _nearbyEntities.Clear();
-        _lookup.GetEntitiesInRange(camera.MapId, camera.EyePos, camera.MaxDistance + 0.75f, _nearbyEntities, LookupFlags.Uncontained | LookupFlags.Approximate);
+        EnsureNearbyEntities(camera.MapId, camera.EyePos, camera.MaxDistance + 0.75f);
 
         foreach (var uid in _nearbyEntities)
         {
@@ -367,73 +433,185 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
         return any;
     }
 
+    public Vector2 GetGridLocalHitPos(FpvRayHit hit)
+    {
+        if (hit.HitGridUid == EntityUid.Invalid)
+            return hit.HitPos;
+
+        return hit.GridLocalHitPos;
+    }
+
     private bool TryCastGridRay(FpvCameraState camera, Vector2 worldDir, bool skipTransparent, out FpvRayHit hit)
     {
         hit = default;
-
-        if (!_mapManager.TryFindGridAt(new MapCoordinates(camera.EyePos, camera.MapId), out var gridUid, out var grid))
+        if (worldDir.LengthSquared() <= 1e-8f)
             return false;
 
+        var dirUnit = Vector2.Normalize(worldDir);
+        var bestDist = float.PositiveInfinity;
+        var found = false;
+
+        EnsureGridCache(camera.MapId);
+        foreach (var gridUid in _cachedGridUids)
+        {
+            if (!TryComp(gridUid, out MapGridComponent? grid) || !TryCastGridRayOnGrid(gridUid, grid, camera, dirUnit, skipTransparent, out var candidate))
+                continue;
+
+            if (candidate.Distance >= bestDist)
+                continue;
+
+            bestDist = candidate.Distance;
+            hit = candidate;
+            found = true;
+        }
+
+        return found;
+    }
+
+    private bool TryCastGridRayOnGrid(
+        EntityUid gridUid,
+        MapGridComponent grid,
+        FpvCameraState camera,
+        Vector2 worldDirUnit,
+        bool skipTransparent,
+        out FpvRayHit hit)
+    {
+        hit = default;
+
+        var worldRot = _transform.GetWorldRotation(gridUid);
+        float tEnter;
+
         var localOrigin = _map.WorldToLocal(gridUid, grid, camera.EyePos);
-        var localAhead = _map.WorldToLocal(gridUid, grid, camera.EyePos + worldDir);
+        var localAhead = _map.WorldToLocal(gridUid, grid, camera.EyePos + worldDirUnit);
         var localDir = localAhead - localOrigin;
         if (localDir.LengthSquared() <= 0.000001f)
             return false;
 
         localDir = Vector2.Normalize(localDir);
+
+        if (!TryRaySegmentIntersectAabb(localOrigin, localDir, camera.MaxDistance, grid.LocalAABB, out tEnter, out var tExit))
+            return false;
+
+        var tStart = MathF.Max(0f, tEnter);
+        if (tStart > tExit)
+            return false;
+
+        var rayStart = localOrigin + localDir * tStart;
         var tileSize = grid.TileSize;
-        var tileX = (int) MathF.Floor(localOrigin.X / tileSize);
-        var tileY = (int) MathF.Floor(localOrigin.Y / tileSize);
+        var tileX = (int) MathF.Floor(rayStart.X / tileSize);
+        var tileY = (int) MathF.Floor(rayStart.Y / tileSize);
         var stepX = localDir.X >= 0f ? 1 : -1;
         var stepY = localDir.Y >= 0f ? 1 : -1;
         var deltaDistX = localDir.X == 0f ? float.PositiveInfinity : MathF.Abs(tileSize / localDir.X);
         var deltaDistY = localDir.Y == 0f ? float.PositiveInfinity : MathF.Abs(tileSize / localDir.Y);
         var nextBoundaryX = (tileX + (stepX > 0 ? 1 : 0)) * tileSize;
         var nextBoundaryY = (tileY + (stepY > 0 ? 1 : 0)) * tileSize;
-        var sideDistX = localDir.X == 0f ? float.PositiveInfinity : MathF.Abs((nextBoundaryX - localOrigin.X) / localDir.X);
-        var sideDistY = localDir.Y == 0f ? float.PositiveInfinity : MathF.Abs((nextBoundaryY - localOrigin.Y) / localDir.Y);
+        var sideDistX = localDir.X == 0f ? float.PositiveInfinity : MathF.Abs((nextBoundaryX - rayStart.X) / localDir.X);
+        var sideDistY = localDir.Y == 0f ? float.PositiveInfinity : MathF.Abs((nextBoundaryY - rayStart.Y) / localDir.Y);
 
         while (true)
         {
-            var verticalSide = sideDistX < sideDistY;
-            float hitDistance;
+            var sideDelta = sideDistX - sideDistY;
+            var verticalSide = sideDelta < -DdaSideEpsilon || (MathF.Abs(sideDelta) <= DdaSideEpsilon && stepX > 0);
+            float distFromRayStart;
 
             if (verticalSide)
             {
-                hitDistance = sideDistX;
+                distFromRayStart = sideDistX;
                 sideDistX += deltaDistX;
                 tileX += stepX;
             }
             else
             {
-                hitDistance = sideDistY;
+                distFromRayStart = sideDistY;
                 sideDistY += deltaDistY;
                 tileY += stepY;
             }
 
-            if (hitDistance > camera.MaxDistance)
+            var totalDist = tStart + distFromRayStart;
+            if (totalDist > camera.MaxDistance)
                 return false;
 
             var tile = new Vector2i(tileX, tileY);
             if (!_map.TryGetTileRef(gridUid, grid, tile, out _))
-                return false;
+                continue;
 
             if (!TryGetSurfaceInTile(gridUid, grid, tile, skipTransparent, out var wallEntity))
                 continue;
 
-            var localHit = localOrigin + localDir * hitDistance;
+            var localHit = localOrigin + localDir * totalDist;
             var worldHit = _map.LocalToWorld(gridUid, grid, localHit);
-            var face = verticalSide
+            var gridFace = verticalSide
                 ? (stepX > 0 ? Direction.West : Direction.East)
                 : (stepY > 0 ? Direction.South : Direction.North);
-            hit = new FpvRayHit(wallEntity, worldHit, hitDistance, verticalSide, face);
+            var worldNormal = worldRot.RotateVec(gridFace.ToVec());
+            var worldFace = Angle.FromWorldVec(worldNormal).GetCardinalDir();
+            hit = new FpvRayHit(wallEntity, worldHit, totalDist, verticalSide, worldFace, gridUid, new Vector2i(tileX, tileY), localHit, gridFace, worldNormal);
             return true;
         }
+    }
+
+    private static bool TryRaySegmentIntersectAabb(Vector2 origin, Vector2 dir, float maxT, Box2 box, out float tEnter, out float tExit)
+    {
+        tEnter = 0f;
+        tExit = maxT;
+
+        if (dir.X is > -1e-6f and < 1e-6f)
+        {
+            if (origin.X < box.Left || origin.X > box.Right)
+                return false;
+        }
+        else
+        {
+            var inv = 1f / dir.X;
+            var t1 = (box.Left - origin.X) * inv;
+            var t2 = (box.Right - origin.X) * inv;
+            if (t1 > t2)
+                (t1, t2) = (t2, t1);
+
+            tEnter = MathF.Max(tEnter, t1);
+            tExit = MathF.Min(tExit, t2);
+        }
+
+        if (dir.Y is > -1e-6f and < 1e-6f)
+        {
+            if (origin.Y < box.Bottom || origin.Y > box.Top)
+                return false;
+        }
+        else
+        {
+            var inv = 1f / dir.Y;
+            var t1 = (box.Bottom - origin.Y) * inv;
+            var t2 = (box.Top - origin.Y) * inv;
+            if (t1 > t2)
+                (t1, t2) = (t2, t1);
+
+            tEnter = MathF.Max(tEnter, t1);
+            tExit = MathF.Min(tExit, t2);
+        }
+
+        return tEnter <= tExit && tExit >= 0f;
     }
 
     private bool TryGetSurfaceInTile(EntityUid gridUid, MapGridComponent grid, Vector2i tile, bool skipTransparent, out EntityUid wallEntity)
     {
         wallEntity = default;
+        TileSurfaceCacheEntry cached;
+        lock (_tileSurfaceCacheLock)
+        {
+            if (_tileSurfaceCache.TryGetValue((gridUid, tile, skipTransparent), out cached))
+            {
+                var frameAge = _frameId - cached.FrameId;
+                if (frameAge <= TileSurfaceCacheFrameTtl)
+                {
+                    wallEntity = cached.Entity ?? default;
+                    return cached.Entity != null;
+                }
+            }
+        }
+
+        var key = (gridUid, tile, skipTransparent);
+
         var bestPriority = 0;
         var anchored = _map.GetAnchoredEntitiesEnumerator(gridUid, grid, tile);
         while (anchored.MoveNext(out var ent))
@@ -444,17 +622,10 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
             if (skipTransparent && resolved.Transparent)
                 continue;
 
-            if (!resolved.BlocksVision && resolved.Archetype is not E3DArchetype.Window and not E3DArchetype.Frame and not E3DArchetype.Door)
+            if (!resolved.BlocksVision && resolved.Archetype is not E3DArchetype.Window and not E3DArchetype.Frame and not E3DArchetype.Door and not E3DArchetype.Grille)
                 continue;
 
-            var priority = resolved.Archetype switch
-            {
-                E3DArchetype.Door => _resolver.IsClosedDoor(ent.Value) ? 50 : 0,
-                E3DArchetype.Window => 40,
-                E3DArchetype.Frame => 35,
-                E3DArchetype.Wall or E3DArchetype.SmoothWall or E3DArchetype.Edge or E3DArchetype.OccluderOnly => 30,
-                _ => 0
-            };
+            var priority = SurfaceRayPriority(resolved.Archetype, ent.Value);
 
             if (priority <= bestPriority)
                 continue;
@@ -463,7 +634,33 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
             wallEntity = ent.Value;
         }
 
-        return bestPriority > 0;
+        var found = bestPriority > 0;
+        lock (_tileSurfaceCacheLock)
+        {
+            _tileSurfaceCache[key] = new TileSurfaceCacheEntry(found ? wallEntity : null, _frameId);
+        }
+        return found;
+    }
+
+    private void PruneTileSurfaceCache()
+    {
+        lock (_tileSurfaceCacheLock)
+        {
+            if (_tileSurfaceCache.Count <= TileSurfaceCacheHardLimit)
+                return;
+
+            var remove = new List<(EntityUid GridUid, Vector2i Tile, bool SkipTransparent)>();
+            foreach (var (key, value) in _tileSurfaceCache)
+            {
+                if (_frameId - value.FrameId > TileSurfaceCacheFrameTtl)
+                    remove.Add(key);
+            }
+
+            foreach (var key in remove)
+            {
+                _tileSurfaceCache.Remove(key);
+            }
+        }
     }
 
     private bool TryFindInteractableEntity(FpvCameraState camera, float maxDistance, out EntityUid? entity, out Vector2 coordinates)
@@ -473,8 +670,7 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
         EntityUid? best = null;
         var bestDistance = maxDistance;
 
-        _nearbyEntities.Clear();
-        _lookup.GetEntitiesInRange(camera.MapId, camera.EyePos, maxDistance + 0.75f, _nearbyEntities, LookupFlags.Uncontained | LookupFlags.Approximate);
+        EnsureNearbyEntities(camera.MapId, camera.EyePos, maxDistance + 0.75f);
         foreach (var uid in _nearbyEntities)
         {
             if (!TryComp(uid, out TransformComponent? xform))
@@ -493,7 +689,7 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
                 continue;
 
             var side = MathF.Abs(Vector2.Dot(rel, (camera.Yaw + Angle.FromDegrees(90)).ToVec()));
-            var width = MathF.Max(0.2f, resolved.Width * 0.5f);
+            var width = MathF.Max(0.35f, resolved.Width);
             if (side > width)
                 continue;
 
@@ -561,4 +757,40 @@ public sealed class FirstPersonSceneBuilderSystem : EntitySystem
         var relative = angleToCamera - worldRotation;
         return relative.GetDir();
     }
+
+    private void EnsureNearbyEntities(MapId mapId, Vector2 eyePos, float radius)
+    {
+        if (_cachedNearbyMap == mapId &&
+            _cachedNearbyRadius >= radius &&
+            (eyePos - _cachedNearbyEye).LengthSquared() <= 0.0025f)
+        {
+            return;
+        }
+
+        _nearbyEntities.Clear();
+        _lookup.GetEntitiesInRange(mapId, eyePos, radius, _nearbyEntities, LookupFlags.Uncontained | LookupFlags.Approximate);
+        _cachedNearbyMap = mapId;
+        _cachedNearbyEye = eyePos;
+        _cachedNearbyRadius = radius;
+    }
+
+    private void EnsureGridCache(MapId mapId)
+    {
+        if (_cachedGridMap == mapId)
+            return;
+
+        _cachedGridUids.Clear();
+        foreach (var gridEnt in _mapManager.GetAllGrids(mapId))
+        {
+            _cachedGridUids.Add(gridEnt.Owner);
+        }
+
+        _cachedGridMap = mapId;
+        lock (_tileSurfaceCacheLock)
+        {
+            _tileSurfaceCache.Clear();
+        }
+    }
+
+    private readonly record struct TileSurfaceCacheEntry(EntityUid? Entity, uint FrameId);
 }

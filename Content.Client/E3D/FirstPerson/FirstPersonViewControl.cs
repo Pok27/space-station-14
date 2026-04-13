@@ -34,8 +34,6 @@ public sealed class FirstPersonViewControl : Control, IViewportControl
     private readonly FirstPersonCameraController _camera = new();
     private MoveButtons _fpvSourceButtons;
     private MoveButtons _fpvEmittedButtons;
-    private int _lastForwardSource;
-    private int _lastStrafeSource;
 
     private FirstPersonSceneBuilderSystem SceneBuilder => _entitySystems.GetEntitySystem<FirstPersonSceneBuilderSystem>();
     private FirstPersonInteractionSystem Interaction => _entitySystems.GetEntitySystem<FirstPersonInteractionSystem>();
@@ -85,6 +83,17 @@ public sealed class FirstPersonViewControl : Control, IViewportControl
     public void ResetLookYawToEye()
     {
         _camera.ResetYaw(_eyeManager.CurrentEye.Rotation);
+    }
+
+    public void SyncLookYawFromMob()
+    {
+        if (_player.LocalEntity is not { } mob)
+        {
+            ResetLookYawToEye();
+            return;
+        }
+
+        _camera.ResetYaw(TransformSystem.GetWorldRotation(mob));
     }
 
     public void ResetLookPitch()
@@ -154,7 +163,7 @@ public sealed class FirstPersonViewControl : Control, IViewportControl
         if (newVisible)
         {
             GrabKeyboardFocus();
-            ResetLookYawToEye();
+            SyncLookYawFromMob();
         }
         else
         {
@@ -180,7 +189,7 @@ public sealed class FirstPersonViewControl : Control, IViewportControl
 
     private void UpdateRelativeMouseMode()
     {
-        _clyde.SetRelativeMouseMode(Visible && HasKeyboardFocus());
+
     }
 
     protected override void Draw(DrawingHandleScreen handle)
@@ -238,22 +247,6 @@ public sealed class FirstPersonViewControl : Control, IViewportControl
         else
             _fpvSourceButtons &= ~sourceBit;
 
-        switch (sourceBit)
-        {
-            case MoveButtons.Up:
-                _lastForwardSource = pressed ? 1 : (_fpvSourceButtons & MoveButtons.Down) != 0 ? -1 : 0;
-                break;
-            case MoveButtons.Down:
-                _lastForwardSource = pressed ? -1 : (_fpvSourceButtons & MoveButtons.Up) != 0 ? 1 : 0;
-                break;
-            case MoveButtons.Left:
-                _lastStrafeSource = pressed ? -1 : (_fpvSourceButtons & MoveButtons.Right) != 0 ? 1 : 0;
-                break;
-            case MoveButtons.Right:
-                _lastStrafeSource = pressed ? 1 : (_fpvSourceButtons & MoveButtons.Left) != 0 ? -1 : 0;
-                break;
-        }
-
         UpdateFirstPersonMovement(args.PointerLocation);
         args.Handle();
         return true;
@@ -279,13 +272,9 @@ public sealed class FirstPersonViewControl : Control, IViewportControl
         var upHeld = (sourceButtons & MoveButtons.Up) != 0;
         var downHeld = (sourceButtons & MoveButtons.Down) != 0;
 
-        var strafe = leftHeld == rightHeld
-            ? (leftHeld ? _lastStrafeSource : 0)
-            : leftHeld ? -1 : 1;
+        var strafe = leftHeld == rightHeld ? 0 : leftHeld ? -1 : 1;
 
-        var forward = upHeld == downHeld
-            ? (upHeld ? _lastForwardSource : 0)
-            : upHeld ? 1 : -1;
+        var forward = upHeld == downHeld ? 0 : upHeld ? 1 : -1;
 
         if (strafe == 0 && forward == 0)
             return MoveButtons.None;
@@ -344,8 +333,6 @@ public sealed class FirstPersonViewControl : Control, IViewportControl
             return;
 
         _fpvSourceButtons = MoveButtons.None;
-        _lastForwardSource = 0;
-        _lastStrafeSource = 0;
         UpdateFirstPersonMovement(ScreenCoordinates.Invalid);
     }
 }

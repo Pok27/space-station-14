@@ -30,7 +30,12 @@ public readonly record struct FpvRayHit(
     Vector2 HitPos,
     float Distance,
     bool VerticalSide,
-    Direction WallFace);
+    Direction WallFace,
+    EntityUid HitGridUid,
+    Vector2i GridTile,
+    Vector2 GridLocalHitPos,
+    Direction GridLocalFace,
+    Vector2 WorldNormal);
 
 public readonly record struct FpvSurfaceSpan(
     int ScreenX,

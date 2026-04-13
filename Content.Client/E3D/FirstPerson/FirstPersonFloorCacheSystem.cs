@@ -36,29 +36,35 @@ public sealed class FirstPersonFloorCacheSystem : EntitySystem
 
     public bool TryGetFloorSample(MapCoordinates coordinates, Vector2 world, out FpvFloorSample sample)
     {
+        var lookup = default(FloorSampleLookup);
+        return TryGetFloorSample(coordinates.MapId, world, ref lookup, out sample);
+    }
+
+    public bool TryGetFloorSample(MapId mapId, Vector2 world, ref FloorSampleLookup lookup, out FpvFloorSample sample)
+    {
         sample = default;
 
+        if (lookup.TryGetCached(this, mapId, world, out sample))
+            return true;
+
+        var coordinates = new MapCoordinates(world, mapId);
         if (!_mapManager.TryFindGridAt(coordinates, out var gridUid, out var grid))
+        {
+            lookup.Reset();
             return false;
+        }
 
         var indices = _map.TileIndicesFor(gridUid, grid, coordinates);
         var tile = GetOrCreateTile(gridUid, grid, indices);
         if (tile == null)
+        {
+            lookup.Update(mapId, gridUid, indices, false, default!, default, 0);
             return false;
+        }
 
         var local = _map.WorldToLocal(gridUid, grid, world);
-        var cellX = local.X / grid.TileSize;
-        var cellY = local.Y / grid.TileSize;
-        var fracX = cellX - MathF.Floor(cellX);
-        var fracY = cellY - MathF.Floor(cellY);
-        ApplyTileRotationMirroring(tile.Value.RotationMirroring, ref fracX, ref fracY);
-
-        sample = new FpvFloorSample(
-            tile.Value.Texture,
-            tile.Value.TextureRegion,
-            fracX,
-            fracY);
-
+        sample = BuildSample(grid.TileSize, local, tile.Value);
+        lookup.Update(mapId, gridUid, indices, true, tile.Value.Texture, tile.Value.TextureRegion, tile.Value.RotationMirroring);
         return true;
     }
 
@@ -92,6 +98,80 @@ public sealed class FirstPersonFloorCacheSystem : EntitySystem
         var rotation = rotationMirroring % 4;
         for (var i = 0; i < rotation; i++)
             (fracX, fracY) = (fracY, 1f - fracX);
+    }
+
+    private static FpvFloorSample BuildSample(float tileSize, Vector2 local, CachedFloorTile tile)
+    {
+        var cellX = local.X / tileSize;
+        var cellY = local.Y / tileSize;
+        var fracX = cellX - MathF.Floor(cellX);
+        var fracY = cellY - MathF.Floor(cellY);
+        ApplyTileRotationMirroring(tile.RotationMirroring, ref fracX, ref fracY);
+
+        return new FpvFloorSample(tile.Texture, tile.TextureRegion, fracX, fracY);
+    }
+
+    public struct FloorSampleLookup
+    {
+        private MapId _mapId;
+        private EntityUid _gridUid;
+        private Vector2i _tileIndices;
+        private Texture _texture;
+        private UIBox2 _region;
+        private byte _rotationMirroring;
+        private bool _hasCachedResult;
+        private bool _hasTile;
+
+        public void Reset()
+        {
+            _gridUid = EntityUid.Invalid;
+            _hasCachedResult = false;
+            _hasTile = false;
+        }
+
+        public void Update(MapId mapId, EntityUid gridUid, Vector2i tileIndices, bool hasTile, Texture texture, UIBox2 region, byte rotationMirroring)
+        {
+            _mapId = mapId;
+            _gridUid = gridUid;
+            _tileIndices = tileIndices;
+            _hasCachedResult = true;
+            _hasTile = hasTile;
+            _texture = texture;
+            _region = region;
+            _rotationMirroring = rotationMirroring;
+        }
+
+        public bool TryGetCached(FirstPersonFloorCacheSystem system, MapId mapId, Vector2 world, out FpvFloorSample sample)
+        {
+            sample = default;
+            if (!_hasCachedResult || _mapId != mapId || _gridUid == EntityUid.Invalid)
+                return false;
+
+            if (!system.TryComp(_gridUid, out MapGridComponent? grid))
+                return false;
+
+            var local = system._map.WorldToLocal(_gridUid, grid, world);
+            var tileX = (int) MathF.Floor(local.X / grid.TileSize);
+            var tileY = (int) MathF.Floor(local.Y / grid.TileSize);
+            if (tileX != _tileIndices.X || tileY != _tileIndices.Y)
+                return false;
+
+            if (!_hasTile)
+                return false;
+
+            sample = BuildSample(grid.TileSize, local, _texture, _region, _rotationMirroring);
+            return true;
+        }
+    }
+
+    private static FpvFloorSample BuildSample(float tileSize, Vector2 local, Texture texture, UIBox2 region, byte rotationMirroring)
+    {
+        var cellX = local.X / tileSize;
+        var cellY = local.Y / tileSize;
+        var fracX = cellX - MathF.Floor(cellX);
+        var fracY = cellY - MathF.Floor(cellY);
+        ApplyTileRotationMirroring(rotationMirroring, ref fracX, ref fracY);
+        return new FpvFloorSample(texture, region, fracX, fracY);
     }
 
     private readonly record struct CachedFloorTile(Texture Texture, UIBox2 TextureRegion, byte RotationMirroring);

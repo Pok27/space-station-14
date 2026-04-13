@@ -1,4 +1,5 @@
 using Content.Client.Gameplay;
+using Content.Client.UserInterface.Controls;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controllers;
@@ -17,6 +18,8 @@ public sealed class FirstPersonUIController : UIController, IOnStateEntered<Game
 
     private FirstPersonViewControl? _control;
     private ICursor? _hiddenCursor;
+    private bool? _mainViewportWasVisible;
+    private bool? _mainViewportAlwaysRender;
 
     public bool Enabled => _control?.Visible == true;
 
@@ -40,10 +43,10 @@ public sealed class FirstPersonUIController : UIController, IOnStateEntered<Game
         UIManager.RootControl.RemoveChild(_control);
         _control.Dispose();
         _control = null;
-        _clyde.SetRelativeMouseMode(false);
         _clyde.SetCursor(null);
         _hiddenCursor?.Dispose();
         _hiddenCursor = null;
+        RestoreMainViewportRender();
     }
 
     public void Toggle()
@@ -52,6 +55,7 @@ public sealed class FirstPersonUIController : UIController, IOnStateEntered<Game
             return;
 
         _control.Visible = !_control.Visible;
+        UpdateMainViewportRender();
         UpdateCursor();
     }
 
@@ -61,6 +65,7 @@ public sealed class FirstPersonUIController : UIController, IOnStateEntered<Game
             return;
 
         _control.Visible = enabled;
+        UpdateMainViewportRender();
         UpdateCursor();
     }
 
@@ -74,13 +79,46 @@ public sealed class FirstPersonUIController : UIController, IOnStateEntered<Game
     {
         if (!Enabled)
         {
-            _clyde.SetRelativeMouseMode(false);
             _clyde.SetCursor(null);
             return;
         }
 
         _hiddenCursor ??= CreateHiddenCursor();
         _clyde.SetCursor(_hiddenCursor);
+    }
+
+    private void UpdateMainViewportRender()
+    {
+        var viewport = UIManager.ActiveScreen?.GetWidget<MainViewport>();
+        if (viewport == null)
+            return;
+
+        if (Enabled)
+        {
+            _mainViewportWasVisible ??= viewport.Visible;
+            _mainViewportAlwaysRender ??= viewport.Viewport.AlwaysRender;
+            viewport.Viewport.AlwaysRender = false;
+            viewport.Visible = false;
+            return;
+        }
+
+        RestoreMainViewportRender();
+    }
+
+    private void RestoreMainViewportRender()
+    {
+        var viewport = UIManager.ActiveScreen?.GetWidget<MainViewport>();
+        if (viewport == null)
+            return;
+
+        if (_mainViewportAlwaysRender.HasValue)
+            viewport.Viewport.AlwaysRender = _mainViewportAlwaysRender.Value;
+
+        if (_mainViewportWasVisible.HasValue)
+            viewport.Visible = _mainViewportWasVisible.Value;
+
+        _mainViewportAlwaysRender = null;
+        _mainViewportWasVisible = null;
     }
 
     private ICursor CreateHiddenCursor()

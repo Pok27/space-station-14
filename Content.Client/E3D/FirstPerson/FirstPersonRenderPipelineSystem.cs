@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using Content.Client.Parallax;
+using Content.Client.Parallax.Managers;
 using Content.Shared.E3D;
 using DrawDepth = Content.Shared.DrawDepth.DrawDepth;
 using Robust.Client.GameObjects;
@@ -9,42 +11,48 @@ using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Maths;
 using Robust.Shared.Threading;
+using Robust.Shared.Timing;
 
 namespace Content.Client.E3D.FirstPerson;
 
 public sealed class FirstPersonRenderPipelineSystem : EntitySystem
 {
-    private const float MinSurfaceRenderDistance = 0.35f;
+    private const float MinSurfaceRenderDistance = 0.05f;
     private const float MinCorrectedDistance = 0.05f;
-    private const float NearSurfaceSofteningDistance = 0.9f;
-    private const float NearSurfaceSofteningStrength = 0.24f;
-    private const float MaxSurfaceScreenHeightMultiplier = 1.2f;
+    private const float MaxSurfaceScreenHeightMultiplier = 3.5f;
     private const float MinLayerBoundsSizeSquared = 0.0001f;
     private const float MinRelativeLengthSquared = 0.0001f;
     private const float MinNonZero = 0.0001f;
     private const float HorizonEpsilon = 0.01f;
     private const float OcclusionEpsilon = 0.01f;
+    private const float FloorFadeDistance = 1.25f;
+    private const float FloorDecalBinSize = 1f;
     private const float SurfaceVerticalShade = 0.92f;
     private const float TransparentSurfaceAlpha = 0.6f;
     private const float TransparentBillboardAlpha = 0.75f;
     private const float CrosshairAlpha = 0.7f;
     private const int CrosshairHalfLengthPx = 6;
     private const int CrosshairHalfThicknessPx = 1;
-    private static readonly Color BackgroundTopColor = new(30, 35, 45);
-    private static readonly Color BackgroundBottomColor = new(18, 16, 14);
+    private static readonly Color BackgroundTopColor = new(0, 0, 0);
+    private static readonly Color BackgroundBottomColor = new(0, 0, 0);
 
     [Dependency] private readonly FirstPersonFloorCacheSystem _floorCache = default!;
     [Dependency] private readonly FirstPersonInteractionSystem _interaction = default!;
     [Dependency] private readonly FirstPersonSceneBuilderSystem _sceneBuilder = default!;
     [Dependency] private readonly E3DArchetypeResolverSystem _resolver = default!;
     [Dependency] private readonly IParallelManager _parallel = default!;
+    [Dependency] private readonly ParallaxSystem _parallax = default!;
+    [Dependency] private readonly IParallaxManager _parallaxManager = default!;
+    [Dependency] private readonly IGameTiming _timing = default!;
 
     private readonly List<FpvBillboard> _billboards = new();
     private readonly List<FpvVisualLayer> _billboardLayers = new();
     private readonly List<FpvFloorDecal> _floorDecals = new();
+    private readonly Dictionary<Vector2i, List<int>> _floorDecalBins = new();
     private readonly List<FpvVisualLayer> _surfaceLayers = new();
     private readonly List<TransparentSurfaceDraw> _transparentSurfaces = new();
     private readonly List<AlphaDraw> _alphaDraws = new();
+    private readonly List<EntityUid> _tileSurfaceEntities = new();
     private float[] _depthBuffer = Array.Empty<float>();
     private int[] _surfaceBandLeft = Array.Empty<int>();
     private int[] _surfaceBandWidth = Array.Empty<int>();
@@ -79,10 +87,12 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
         var width = control.PixelSize.X;
         var height = sizePx.Y;
         EnsureDepthBuffer(width);
+        _sceneBuilder.BeginFrame(camera);
 
-        DrawBackground(handle, sizePx, horizon);
+        DrawBackground(handle, sizePx, horizon, camera);
         DrawSurfaces(handle, camera, width, height, horizon);
         _sceneBuilder.CollectFloorDecals(camera, _depthBuffer, width, _floorDecals);
+        BuildFloorDecalBins();
         DrawFloor(handle, camera, width, height, horizon);
         DrawAlphaPass(handle, camera, width, (int) height);
         PublishInteractionHit(camera);
@@ -120,13 +130,16 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
         return new Vector2(x, y) + control.GlobalPixelPosition;
     }
 
-    private void DrawBackground(DrawingHandleScreen handle, Vector2 sizePx, float horizon)
+    private void DrawBackground(DrawingHandleScreen handle, Vector2 sizePx, float horizon, FpvCameraState camera)
     {
+        DrawParallaxBackground(handle, sizePx, camera);
         var topHeight = Math.Clamp(horizon, 0f, sizePx.Y);
+        var bottomHeight = Math.Max(0f, sizePx.Y - topHeight);
+
         handle.DrawRect(UIBox2.FromDimensions(Vector2.Zero, new Vector2(sizePx.X, topHeight)), BackgroundTopColor);
         handle.DrawRect(
-            UIBox2.FromDimensions(new Vector2(0f, topHeight), new Vector2(sizePx.X, Math.Max(0f, sizePx.Y - topHeight))),
-            BackgroundBottomColor);
+            UIBox2.FromDimensions(new Vector2(0f, topHeight), new Vector2(sizePx.X, bottomHeight)),
+            BackgroundBottomColor.WithAlpha(0.35f));
     }
 
     private void DrawFloor(DrawingHandleScreen handle, FpvCameraState camera, int width, float height, float horizon)
@@ -140,8 +153,9 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
         var plane = (camera.Yaw + Angle.FromDegrees(90f)).ToVec() * MathF.Tan(halfFov);
         var rayLeft = dir - plane;
         var rayRight = dir + plane;
-        var logicalColumns = Math.Max(1, width);
-        var invLogicalColumns = 1f / logicalColumns;
+        var invWidth = 1f / Math.Max(1, width);
+        var maxFloorDistance = camera.MaxDistance + FloorFadeDistance;
+        var floorLookup = default(FirstPersonFloorCacheSystem.FloorSampleLookup);
 
         for (var y = Math.Max(0, (int) MathF.Ceiling(horizon)); y < height;)
         {
@@ -153,78 +167,161 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
             }
 
             var rowDistance = camera.EyeHeight * projectionPlane / p;
-            if (rowDistance > camera.MaxDistance)
+            if (rowDistance > maxFloorDistance)
             {
                 y += 4;
                 continue;
             }
 
-            var yStep = rowDistance switch
-            {
-                > 12f => 6,
-                > 8f => 5,
-                > 5f => 4,
-                _ => 3
-            };
+            var yStep = 1;
 
-            var stepVec = rowDistance * (rayRight - rayLeft) * invLogicalColumns;
+            var alpha = rowDistance <= camera.MaxDistance
+                ? 1f
+                : Math.Clamp(1f - (rowDistance - camera.MaxDistance) / FloorFadeDistance, 0f, 1f);
+
+            if (alpha <= 0f)
+            {
+                y += yStep;
+                continue;
+            }
+
+            var stepVec = rowDistance * (rayRight - rayLeft) * invWidth;
             var world = camera.EyePos + rayLeft * rowDistance;
+            var hasSpan = false;
+            var span = default(FloorSpanState);
 
-            for (var x = 0; x < logicalColumns; x++)
+            for (var x = 0; x < width; x++)
             {
-                var minDepth = _depthBuffer[x];
+                var minDepth = GetConservativeDepth(x, width);
                 if (minDepth > 0f && rowDistance >= minDepth - OcclusionEpsilon)
                 {
+                    if (hasSpan)
+                    {
+                        FlushFloorSpan(handle, span, y, yStep);
+                        hasSpan = false;
+                    }
+
                     world += stepVec;
                     continue;
                 }
 
-                if (_floorCache.TryGetFloorSample(new MapCoordinates(world, camera.MapId), world, out var floorSample))
+                if (_floorCache.TryGetFloorSample(camera.MapId, world, ref floorLookup, out var floorSample))
                 {
-                    var sample = GetFloorSampleRegion(floorSample, rowDistance);
-                    var color = _sceneBuilder.ApplyDistanceFog(Color.White, rowDistance, camera);
-                    handle.DrawTextureRectRegion(
-                        floorSample.Texture,
-                        UIBox2.FromDimensions(new Vector2(x, y), new Vector2(1, yStep)),
-                        sample,
-                        color);
+                    var sample = GetFloorSampleRegion(floorSample);
+                    var color = _sceneBuilder.ApplyDistanceFog(Color.White, rowDistance, camera).WithAlpha(alpha);
+                    var hasDecal = TryGetFloorDecalSample(world, out var decalTexture, out var decalRegion, out var decalColor);
+                    if (hasDecal)
+                        decalColor = decalColor.WithAlpha(decalColor.A * alpha);
 
-                    if (TryGetFloorDecalSample(world, out var decalTexture, out var decalRegion, out var decalColor))
+                    var point = new FloorDrawPoint(
+                        floorSample.Texture,
+                        sample,
+                        color,
+                        hasDecal,
+                        decalTexture,
+                        decalRegion,
+                        decalColor);
+                    if (hasSpan && span.CanExtend(point))
                     {
-                        handle.DrawTextureRectRegion(
-                            decalTexture,
-                            UIBox2.FromDimensions(new Vector2(x, y), new Vector2(1, yStep)),
-                            decalRegion,
-                            decalColor);
+                        span.Width++;
                     }
+                    else
+                    {
+                        if (hasSpan)
+                            FlushFloorSpan(handle, span, y, yStep);
+
+                        span = new FloorSpanState(x, 1, point);
+                        hasSpan = true;
+                    }
+                }
+                else if (hasSpan)
+                {
+                    FlushFloorSpan(handle, span, y, yStep);
+                    hasSpan = false;
                 }
 
                 world += stepVec;
             }
 
+            if (hasSpan)
+                FlushFloorSpan(handle, span, y, yStep);
+
             y += yStep;
         }
     }
 
-    private static UIBox2 GetFloorSampleRegion(FpvFloorSample floorSample, float distance)
+    private static UIBox2 GetFloorSampleRegion(FpvFloorSample floorSample)
     {
         var variantRegion = floorSample.TextureRegion;
         var tilePixels = variantRegion.Width;
-        var texX = variantRegion.Left + floorSample.FracX * tilePixels;
-        var texY = variantRegion.Top + (1f - floorSample.FracY) * variantRegion.Height;
-        var sampleSize = distance switch
-        {
-            > 10f => 4f,
-            > 6f => 3f,
-            > 3.5f => 2f,
-            _ => 1f
-        };
+        var texX = MathF.Floor(variantRegion.Left + floorSample.FracX * tilePixels);
+        var texY = MathF.Floor(variantRegion.Top + (1f - floorSample.FracY) * variantRegion.Height);
+        texX = Math.Clamp(texX, variantRegion.Left, variantRegion.Right - 1f);
+        texY = Math.Clamp(texY, variantRegion.Top, variantRegion.Bottom - 1f);
+        return new UIBox2(texX, texY, texX + 1f, texY + 1f);
+    }
 
-        texX = MathF.Floor(texX / sampleSize) * sampleSize;
-        texY = MathF.Floor(texY / sampleSize) * sampleSize;
-        texX = Math.Clamp(texX, variantRegion.Left, variantRegion.Right - sampleSize);
-        texY = Math.Clamp(texY, variantRegion.Top, variantRegion.Bottom - sampleSize);
-        return new UIBox2(texX, texY, texX + sampleSize, texY + sampleSize);
+    private float GetConservativeDepth(int x, int width)
+    {
+        var minDepth = _depthBuffer[x];
+        if (x > 0)
+            minDepth = MathF.Min(minDepth, _depthBuffer[x - 1]);
+        if (x + 1 < width)
+            minDepth = MathF.Min(minDepth, _depthBuffer[x + 1]);
+        return minDepth;
+    }
+
+    private static void FlushFloorSpan(DrawingHandleScreen handle, FloorSpanState span, int y, int yStep)
+    {
+        var rect = UIBox2.FromDimensions(new Vector2(span.X, y), new Vector2(span.Width, yStep));
+        handle.DrawTextureRectRegion(span.Point.Texture, rect, span.Point.Region, span.Point.Color);
+        if (span.Point.HasDecal && span.Point.DecalTexture != null && span.Point.DecalRegion.HasValue)
+            handle.DrawTextureRectRegion(span.Point.DecalTexture, rect, span.Point.DecalRegion.Value, span.Point.DecalColor);
+    }
+
+    private void DrawParallaxBackground(DrawingHandleScreen handle, Vector2 sizePx, FpvCameraState camera)
+    {
+        var layers = _parallax.GetParallaxLayers(camera.MapId);
+        if (layers.Length == 0)
+            return;
+
+        var ppm = EyeManager.PixelsPerMeter;
+        var time = (float) _timing.RealTime.TotalSeconds;
+        foreach (var layer in layers)
+        {
+            var texture = layer.Texture;
+            var scale = layer.Config.Scale;
+            var size = texture.Size / ppm * new Vector2(MathF.Max(0.01f, scale.X), MathF.Max(0.01f, scale.Y));
+            var home = layer.Config.WorldHomePosition + _parallaxManager.ParallaxAnchor;
+            var scrolled = layer.Config.Scrolling * time;
+
+            var originBL = (camera.EyePos - home) * layer.Config.Slowness + scrolled;
+            originBL += home;
+            originBL += layer.Config.WorldAdjustPosition;
+            originBL -= size / 2f;
+
+            var sizePxLayer = new Vector2(
+                MathF.Max(1f, size.X * ppm),
+                MathF.Max(1f, size.Y * ppm));
+            var originPx = new Vector2(originBL.X * ppm, -originBL.Y * ppm);
+
+            if (layer.Config.Tiled)
+            {
+                var startX = MathF.Floor((-originPx.X) / sizePxLayer.X) * sizePxLayer.X + originPx.X;
+                var startY = MathF.Floor((-originPx.Y) / sizePxLayer.Y) * sizePxLayer.Y + originPx.Y;
+                for (var x = startX; x < sizePx.X; x += sizePxLayer.X)
+                {
+                    for (var y = startY; y < sizePx.Y; y += sizePxLayer.Y)
+                    {
+                        handle.DrawTextureRect(texture, UIBox2.FromDimensions(new Vector2(x, y), sizePxLayer), Color.White);
+                    }
+                }
+            }
+            else
+            {
+                handle.DrawTextureRect(texture, UIBox2.FromDimensions(originPx, sizePxLayer), Color.White);
+            }
+        }
     }
 
     private static int GetLogicalSurfaceColumnCount(FpvCameraState camera, int width)
@@ -248,21 +345,15 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
         var configuredStep = Math.Clamp(camera.ColumnStep, 1, 8);
         return camera.QualityPreset switch
         {
-            FirstPersonQualityPreset.High => Math.Max(1, configuredStep / 2),
-            FirstPersonQualityPreset.Balanced => configuredStep,
+            FirstPersonQualityPreset.High => 1,
+            FirstPersonQualityPreset.Balanced => 1,
             _ => Math.Min(8, configuredStep * 2),
         };
     }
 
     private static float GetSurfaceRenderDistance(float correctedDist)
     {
-        var clamped = MathF.Max(MinCorrectedDistance, correctedDist);
-        if (clamped >= NearSurfaceSofteningDistance)
-            return MathF.Max(MinSurfaceRenderDistance, clamped);
-
-        var t = 1f - clamped / NearSurfaceSofteningDistance;
-        var softened = clamped + t * t * NearSurfaceSofteningStrength;
-        return MathF.Max(MinSurfaceRenderDistance, softened);
+        return MathF.Max(MinSurfaceRenderDistance, correctedDist);
     }
 
     private void DrawSurfaces(DrawingHandleScreen handle, FpvCameraState camera, int width, float height, float horizon)
@@ -341,61 +432,93 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
         bool forceOpaque,
         bool deferToAlpha)
     {
-        var lineHeight = MathF.Min(height * MaxSurfaceScreenHeightMultiplier, projectionPlane * resolved.Height / renderDist);
-        var top = horizon - lineHeight / 2f - projectionPlane * resolved.EyeOffset / renderDist;
+        var slice = CalculateWallSlice(camera, projectionPlane, height, horizon, resolved, correctedDist);
         var color = _sceneBuilder.ApplyDistanceFog(Color.White, hit.Distance, camera);
         if (hit.VerticalSide)
             color = new Color(color.R * SurfaceVerticalShade, color.G * SurfaceVerticalShade, color.B * SurfaceVerticalShade, color.A);
 
         var transparent = !forceOpaque && resolved.Transparent;
-        var wallRect = UIBox2.FromDimensions(new Vector2(bandLeft, top), new Vector2(bandWidth, lineHeight));
-        var surfaceDrawDepth = (int) DrawDepth.Walls;
-        if (TryComp(hit.HitEntity, out SpriteComponent? sprite))
-            surfaceDrawDepth = sprite.DrawDepth;
+        var wallRect = UIBox2.FromDimensions(new Vector2(bandLeft, slice.Top), new Vector2(bandWidth, slice.Height));
 
-        _resolver.GetVisibleLayers(hit.HitEntity, hit.WallFace, _surfaceLayers, false);
-        if (_surfaceLayers.Count > 0)
+        _sceneBuilder.GetOrderedTileSurfaceEntities(hit, _tileSurfaceEntities);
+        var stackIndex = 0;
+        foreach (var surfaceUid in _tileSurfaceEntities)
         {
-            var combinedBounds = _surfaceLayers[0].Bounds;
-            for (var i = 1; i < _surfaceLayers.Count; i++)
-                combinedBounds = combinedBounds.Union(_surfaceLayers[i].Bounds);
+            if (!_resolver.TryResolve(surfaceUid, out var surfaceResolved))
+                continue;
 
-            var useLayerBounds = resolved.SpriteMode == E3DSpriteMode.Billboard;
-            foreach (var layer in _surfaceLayers)
+            var surfaceTransparent = !forceOpaque && surfaceResolved.Transparent;
+            var surfaceDrawDepth = (int) DrawDepth.Walls;
+            if (TryComp(surfaceUid, out SpriteComponent? surfaceSprite))
+                surfaceDrawDepth = surfaceSprite.DrawDepth;
+
+            var depthBias = stackIndex * 0.0008f;
+            stackIndex++;
+
+            var face = GetSurfaceFaceForEntity(surfaceUid, hit);
+            _resolver.GetVisibleLayers(surfaceUid, face, _surfaceLayers, false);
+            if (_surfaceLayers.Count > 0)
             {
-                var layerColor = new Color(color.RGBA * layer.Color.RGBA).WithAlpha(transparent ? TransparentSurfaceAlpha : 1f);
-                var layerRect = useLayerBounds ? GetLayerScreenRect(wallRect, combinedBounds, layer.Bounds) : wallRect;
-                var region = GetSurfaceTextureRegion(layer.Texture, hit);
-                if (transparent || deferToAlpha)
-                    _transparentSurfaces.Add(new TransparentSurfaceDraw(layer.Texture, layerRect, region, layerColor, correctedDist, surfaceDrawDepth));
-                else
-                    handle.DrawTextureRectRegion(layer.Texture, layerRect, region, layerColor);
+                var combinedBounds = _surfaceLayers[0].Bounds;
+                for (var i = 1; i < _surfaceLayers.Count; i++)
+                    combinedBounds = combinedBounds.Union(_surfaceLayers[i].Bounds);
+
+                var useLayerBounds = surfaceResolved.SpriteMode is E3DSpriteMode.Billboard or E3DSpriteMode.Directional;
+                foreach (var layer in _surfaceLayers)
+                {
+                    var layerColor = new Color(color.RGBA * layer.Color.RGBA).WithAlpha(surfaceTransparent ? TransparentSurfaceAlpha : 1f);
+                    var layerRect = useLayerBounds ? GetLayerScreenRect(wallRect, combinedBounds, layer.Bounds) : wallRect;
+                    var region = GetSurfaceTextureRegionFull(layer.Texture, hit);
+                    var depthKey = correctedDist + depthBias;
+                    if (surfaceTransparent || deferToAlpha)
+                        _transparentSurfaces.Add(new TransparentSurfaceDraw(layer.Texture, layerRect, region, layerColor, depthKey, surfaceDrawDepth));
+                    else
+                        handle.DrawTextureRectRegion(layer.Texture, layerRect, region, layerColor);
+                }
             }
-        }
-        else
-        {
-            var fallback = color.WithAlpha(transparent ? TransparentSurfaceAlpha : 1f);
-            if (transparent || deferToAlpha)
-                _transparentSurfaces.Add(new TransparentSurfaceDraw(null, wallRect, null, fallback, correctedDist, surfaceDrawDepth));
             else
-                handle.DrawRect(wallRect, fallback);
+            {
+                var fallback = color.WithAlpha(surfaceTransparent ? TransparentSurfaceAlpha : 1f);
+                if (surfaceTransparent || deferToAlpha)
+                    _transparentSurfaces.Add(new TransparentSurfaceDraw(null, wallRect, null, fallback, correctedDist + depthBias, surfaceDrawDepth));
+                else
+                    handle.DrawRect(wallRect, fallback);
+            }
         }
     }
 
-    private static UIBox2 GetSurfaceTextureRegion(Texture texture, FpvRayHit hit)
+    private UIBox2 GetSurfaceTextureRegionFull(Texture texture, FpvRayHit hit)
     {
         var frac = GetHitTextureFraction(hit);
         var texX = Math.Clamp(MathF.Floor(frac * (float) texture.Width), 0f, (float) texture.Width - 1f);
         return new UIBox2(texX, 0f, texX + 1f, texture.Height);
     }
 
-    private static float GetHitTextureFraction(FpvRayHit hit)
+    private float GetHitTextureFraction(FpvRayHit hit)
     {
+        var local = hit.GridLocalHitPos;
         var frac = hit.VerticalSide
-            ? hit.HitPos.Y - MathF.Floor(hit.HitPos.Y)
-            : hit.HitPos.X - MathF.Floor(hit.HitPos.X);
+            ? local.Y - MathF.Floor(local.Y)
+            : local.X - MathF.Floor(local.X);
 
         return Math.Clamp(frac, 0f, 0.999f);
+    }
+
+    private static WallSliceProjection CalculateWallSlice(
+        FpvCameraState camera,
+        float projectionPlane,
+        float screenHeight,
+        float horizon,
+        ResolvedE3DRenderable resolved,
+        float correctedDist)
+    {
+        var perpDist = MathF.Max(MinCorrectedDistance, correctedDist);
+        var wallHeightPx = projectionPlane * resolved.Height / perpDist;
+        wallHeightPx = MathF.Min(screenHeight * MaxSurfaceScreenHeightMultiplier, wallHeightPx);
+
+        var bottom = horizon + projectionPlane * (camera.EyeHeight - resolved.EyeOffset) / perpDist;
+        var top = bottom - wallHeightPx;
+        return new WallSliceProjection(top, wallHeightPx, perpDist);
     }
 
     private static UIBox2 GetLayerScreenRect(UIBox2 combinedRect, Box2 combinedBounds, Box2 layerBounds)
@@ -514,14 +637,53 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
         }
     }
 
-    private bool TryGetFloorDecalSample(Vector2 world, out Texture texture, out UIBox2 region, out Color color)
+    private void BuildFloorDecalBins()
     {
-        texture = default!;
-        region = default;
+        _floorDecalBins.Clear();
+        for (var i = 0; i < _floorDecals.Count; i++)
+        {
+            var decal = _floorDecals[i];
+            var halfWidth = decal.WorldWidth * 0.5f;
+            var halfDepth = decal.WorldDepth * 0.5f;
+            var extent = MathF.Max(halfWidth, halfDepth);
+            var min = decal.WorldPosition - new Vector2(extent, extent);
+            var max = decal.WorldPosition + new Vector2(extent, extent);
+            var minBinX = (int) MathF.Floor(min.X / FloorDecalBinSize);
+            var maxBinX = (int) MathF.Floor(max.X / FloorDecalBinSize);
+            var minBinY = (int) MathF.Floor(min.Y / FloorDecalBinSize);
+            var maxBinY = (int) MathF.Floor(max.Y / FloorDecalBinSize);
+
+            for (var x = minBinX; x <= maxBinX; x++)
+            {
+                for (var y = minBinY; y <= maxBinY; y++)
+                {
+                    var key = new Vector2i(x, y);
+                    if (!_floorDecalBins.TryGetValue(key, out var list))
+                    {
+                        list = new List<int>(2);
+                        _floorDecalBins[key] = list;
+                    }
+
+                    list.Add(i);
+                }
+            }
+        }
+    }
+
+    private bool TryGetFloorDecalSample(Vector2 world, out Texture? texture, out UIBox2? region, out Color color)
+    {
+        texture = null;
+        region = null;
         color = Color.White;
 
-        foreach (var decal in _floorDecals)
+        var binX = (int) MathF.Floor(world.X / FloorDecalBinSize);
+        var binY = (int) MathF.Floor(world.Y / FloorDecalBinSize);
+        if (!_floorDecalBins.TryGetValue(new Vector2i(binX, binY), out var indices))
+            return false;
+
+        foreach (var index in indices)
         {
+            var decal = _floorDecals[index];
             var local = world - decal.WorldPosition;
             var cos = MathF.Cos((float) -decal.Rotation.Theta);
             var sin = MathF.Sin((float) -decal.Rotation.Theta);
@@ -539,12 +701,25 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
             var texX = Math.Clamp(MathF.Floor(u * (float) decal.Texture.Width), 0f, (float) decal.Texture.Width - 1f);
             var texY = Math.Clamp(MathF.Floor(v * (float) decal.Texture.Height), 0f, (float) decal.Texture.Height - 1f);
             texture = decal.Texture;
-            region = new UIBox2(texX, texY, texX + 1, texY + 1);
+            region = new UIBox2(texX, texY, texX + 1f, texY + 1f);
             color = decal.Color;
             return true;
         }
 
         return false;
+    }
+
+    private Direction GetSurfaceFaceForEntity(EntityUid uid, FpvRayHit hit)
+    {
+        if (hit.WorldNormal.LengthSquared() <= MinRelativeLengthSquared)
+            return hit.WallFace;
+
+        var worldRot = _sceneBuilder.TransformSystem.GetWorldRotation(uid);
+        var localNormal = (-worldRot).RotateVec(hit.WorldNormal);
+        if (localNormal.LengthSquared() <= MinRelativeLengthSquared)
+            return hit.WallFace;
+
+        return Angle.FromWorldVec(localNormal).GetCardinalDir();
     }
 
     private void PublishInteractionHit(FpvCameraState camera)
@@ -685,9 +860,42 @@ public sealed class FirstPersonRenderPipelineSystem : EntitySystem
         }
     }
 
+    private readonly record struct FloorDrawPoint(
+        Texture Texture,
+        UIBox2 Region,
+        Color Color,
+        bool HasDecal,
+        Texture? DecalTexture,
+        UIBox2? DecalRegion,
+        Color DecalColor);
+
+    private record struct FloorSpanState(int X, int Width, FloorDrawPoint Point)
+    {
+        public bool CanExtend(FloorDrawPoint point)
+        {
+            if (!ReferenceEquals(Point.Texture, point.Texture))
+                return false;
+
+            if (!Point.Region.Equals(point.Region) || !Point.Color.Equals(point.Color))
+                return false;
+
+            if (Point.HasDecal != point.HasDecal)
+                return false;
+
+            if (!Point.HasDecal)
+                return true;
+
+            if (!ReferenceEquals(Point.DecalTexture, point.DecalTexture))
+                return false;
+
+            return Point.DecalRegion.Equals(point.DecalRegion) && Point.DecalColor.Equals(point.DecalColor);
+        }
+    }
+
     private readonly record struct TransparentSurfaceDraw(Texture? Texture, UIBox2 Rect, UIBox2? Region, Color Color, float Depth, int DrawDepth);
 
     private readonly record struct AlphaDraw(float Depth, int DrawDepth, AlphaDrawKind Kind, int Index);
+    private readonly record struct WallSliceProjection(float Top, float Height, float PerpDist);
 
     private enum AlphaDrawKind
     {
