@@ -1,7 +1,7 @@
 namespace Content.Server.Atmos.Components;
 
 /// <summary>
-/// Makes the entity immune to barotrauma while this component is present.
+/// Marker component for entities that should permanently receive pressure immunity as a status effect.
 /// </summary>
 [RegisterComponent]
 public sealed partial class PressureImmunityComponent : Component;

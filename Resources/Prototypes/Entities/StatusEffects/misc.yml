@@ -69,7 +69,7 @@
   id: StatusEffectPressureImmunity
   name: pressure immunity
   components:
-  - type: PressureImmunity
+  - type: PressureImmunityStatusEffect
 
 # Blurs your vision and makes you randomly fall asleep
 - type: entity

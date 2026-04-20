@@ -9,6 +9,7 @@ using Content.Shared.Database;
 using Content.Shared.FixedPoint;
 using Content.Shared.Inventory;
 using Content.Shared.Inventory.Events;
+using Content.Shared.StatusEffectNew;
 using Robust.Shared.Containers;
 
 namespace Content.Server.Atmos.EntitySystems
@@ -20,6 +21,7 @@ namespace Content.Server.Atmos.EntitySystems
         [Dependency] private readonly AlertsSystem _alertsSystem = default!;
         [Dependency] private readonly IAdminLogManager _adminLogger= default!;
         [Dependency] private readonly InventorySystem _inventorySystem = default!;
+        [Dependency] private readonly StatusEffectsSystem _statusEffects = default!;
 
         private const float UpdateTimer = 1f;
         private float _timer;
@@ -30,25 +32,18 @@ namespace Content.Server.Atmos.EntitySystems
             SubscribeLocalEvent<PressureProtectionComponent, GotUnequippedEvent>(OnPressureProtectionUnequipped);
             SubscribeLocalEvent<PressureProtectionComponent, ComponentInit>(OnUpdateResistance);
             SubscribeLocalEvent<PressureProtectionComponent, ComponentRemove>(OnUpdateResistance);
-
-            SubscribeLocalEvent<PressureImmunityComponent, ComponentInit>(OnPressureImmuneInit);
-            SubscribeLocalEvent<PressureImmunityComponent, ComponentRemove>(OnPressureImmuneRemove);
+            SubscribeLocalEvent<PressureImmunityComponent, ComponentInit>(OnPressureImmunityInit);
+            SubscribeLocalEvent<PressureImmunityComponent, ComponentShutdown>(OnPressureImmunityShutdown);
         }
 
-        private void OnPressureImmuneInit(EntityUid uid, PressureImmunityComponent pressureImmunity, ComponentInit args)
+        private void OnPressureImmunityInit(Entity<PressureImmunityComponent> ent, ref ComponentInit args)
         {
-            if (TryComp<BarotraumaComponent>(uid, out var barotrauma))
-            {
-                barotrauma.HasImmunity = true;
-            }
+            _statusEffects.TrySetStatusEffectDuration(ent, "StatusEffectPressureImmunity");
         }
 
-        private void OnPressureImmuneRemove(EntityUid uid, PressureImmunityComponent pressureImmunity, ComponentRemove args)
+        private void OnPressureImmunityShutdown(Entity<PressureImmunityComponent> ent, ref ComponentShutdown args)
         {
-            if (TryComp<BarotraumaComponent>(uid, out var barotrauma))
-            {
-                barotrauma.HasImmunity = false;
-            }
+            _statusEffects.TryRemoveStatusEffect(ent, "StatusEffectPressureImmunity");
         }
 
         /// <summary>
