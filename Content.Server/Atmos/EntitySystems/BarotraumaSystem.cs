@@ -144,7 +144,7 @@ namespace Content.Server.Atmos.EntitySystems
         /// </summary>
         public float GetFeltLowPressure(EntityUid uid, BarotraumaComponent barotrauma, float environmentPressure)
         {
-            if (barotrauma.HasImmunity)
+            if (IsPressureImmune(uid))
             {
                 return Atmospherics.OneAtmosphere;
             }
@@ -158,13 +158,20 @@ namespace Content.Server.Atmos.EntitySystems
         /// </summary>
         public float GetFeltHighPressure(EntityUid uid, BarotraumaComponent barotrauma, float environmentPressure)
         {
-            if (barotrauma.HasImmunity)
+            if (IsPressureImmune(uid))
             {
                 return Atmospherics.OneAtmosphere;
             }
 
             var modified = (environmentPressure + barotrauma.HighPressureModifier) * (barotrauma.HighPressureMultiplier);
             return Math.Max(modified, Atmospherics.OneAtmosphere);
+        }
+
+        private bool IsPressureImmune(EntityUid uid)
+        {
+            var ev = new GetPressureImmunityEvent();
+            RaiseLocalEvent(uid, ref ev);
+            return ev.Handled && ev.IsImmune;
         }
 
         public bool TryGetPressureProtectionValues(
