@@ -343,11 +343,10 @@
   metabolisms:
     Bloodstream:
       effects:
-      - !type:GenericStatusEffect
-        key: Muted
-        component: Muted
-        type: Add
-        time: 10
+        - !type:ModifyStatusEffect
+          effectProto: StatusEffectMuted
+          type: Add
+          time: 10
 
 - type: reagent
   id: NorepinephricAcid

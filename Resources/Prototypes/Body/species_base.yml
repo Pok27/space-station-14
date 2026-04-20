@@ -71,14 +71,13 @@
       - !type:WashCreamPie
   - type: StatusEffects
     allowed:
-    - Electrocution
-    - RatvarianLanguage
-    - PressureImmunity
-    - Muted
-    - TemporaryBlindness
-    - Pacified
-    - Flashed
-    - Adrenaline
+      - Electrocution
+      - RatvarianLanguage
+      - PressureImmunity
+      - TemporaryBlindness
+      - Pacified
+      - Flashed
+      - Adrenaline
   - type: Identity
   - type: IdExaminable
   - type: Internals

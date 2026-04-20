@@ -63,6 +63,16 @@
   - type: StunnedStatusEffect
   - type: KnockdownStatusEffect
 
+# Prevents speaking and vocal emotes.
+- type: entity
+  parent: MobStatusEffectDebuff
+  id: StatusEffectMuted
+  name: muted
+  components:
+  - type: StatusEffectAlert
+    alert: Muted
+  - type: Muted
+
 # Blurs your vision and makes you randomly fall asleep
 - type: entity
   parent: MobStatusEffectDebuff
