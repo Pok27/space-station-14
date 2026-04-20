@@ -3,9 +3,12 @@ using Content.Shared.Atmos;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Atmos.EntitySystems;
 using Content.Shared.Cargo;
+using Content.Shared.Hands.Components;
+using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Popups;
 using Content.Shared.Throwing;
 using JetBrains.Annotations;
+using Robust.Shared.Maths;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Random;
 
@@ -16,9 +19,10 @@ public sealed class GasTankSystem : SharedGasTankSystem
 {
     [Dependency] private readonly AtmosphereSystem _atmosphereSystem = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private readonly SharedHandsSystem _hands = default!;
+    [Dependency] private readonly SharedPhysicsSystem _physics = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly SharedTransformSystem _xform = default!;
-    [Dependency] private readonly SharedPhysicsSystem _physics = default!;
     [Dependency] private readonly ThrowingSystem _throwing = default!;
 
     private const float MinimumSoundValvePressure = 10.0f;
@@ -56,6 +60,11 @@ public sealed class GasTankSystem : SharedGasTankSystem
 
         Atmos.React(entity.Comp.Air, entity.Comp);
 
+        // Update and network internal pressure for client UI, but only while the tank in hands.
+        if (TryComp<HandsComponent>(Transform(entity.Owner).ParentUid, out var hands)
+            && _hands.IsHolding((Transform(entity.Owner).ParentUid, hands), entity.Owner))
+            SyncPressure(entity);
+
         if ((entity.Comp.IsConnected || entity.Comp.ReleaseValveOpen) && UI.IsUiOpen(entity.Owner, SharedGasTankUiKey.Key))
             UpdateUserInterface(entity);
     }
@@ -63,11 +72,12 @@ public sealed class GasTankSystem : SharedGasTankSystem
     public override void UpdateUserInterface(Entity<GasTankComponent> ent)
     {
         var (owner, component) = ent;
+        SyncPressure(ent);
         UI.SetUiState(owner,
             SharedGasTankUiKey.Key,
             new GasTankBoundUserInterfaceState
             {
-                TankPressure = component.Air.Pressure
+                TankPressure = component.InternalPressure
             });
     }
 

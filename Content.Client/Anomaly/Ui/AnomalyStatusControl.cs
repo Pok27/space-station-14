@@ -33,7 +33,7 @@ public sealed class AnomalyStatusControl : PollingItemStatusControl<AnomalyStatu
     protected override Data PollData()
     {
         if (_itemSlots.GetItemOrNull(_parent.Owner, _parent.Comp.CoreSlotId) is { } coreEnt
-            && _entityManager.TryGetComponent(coreEnt, out AnomalyCoreComponent? core))
+            && _entityManager.TryGetComponent<AnomalyCoreComponent>(coreEnt, out var core))
         {
             return new Data(true, core.IsDecayed, core.Charge);
         }

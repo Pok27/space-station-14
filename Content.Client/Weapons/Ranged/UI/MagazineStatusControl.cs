@@ -29,8 +29,7 @@ public sealed class MagazineStatusControl : PollingItemStatusControl<MagazineSta
 
     protected override Data PollData()
     {
-        // Try to get ballistic ammo provider component
-        if (!_entityManager.TryGetComponent(_parent.Owner, out BallisticAmmoProviderComponent? ammoProvider))
+        if (!_entityManager.TryGetComponent<BallisticAmmoProviderComponent>(_parent.Owner, out var ammoProvider))
             return default;
 
         var currentRounds = ammoProvider.Count;

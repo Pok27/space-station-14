@@ -41,7 +41,7 @@ public sealed class BatteryStatusControl : PollingItemStatusControl<BatteryStatu
     protected override Data PollData()
     {
         // Do not add battery status to guns that already show an ammo counter.
-        if (_entityManager.TryGetComponent(_parent, out AmmoCounterComponent? _))
+        if (_entityManager.HasComponent<AmmoCounterComponent>(_parent))
             return default;
 
         // Battery charge level.
@@ -51,9 +51,9 @@ public sealed class BatteryStatusControl : PollingItemStatusControl<BatteryStatu
 
         // On/off state.
         bool? toggleState = null;
-        if (_entityManager.TryGetComponent(_parent, out ItemToggleComponent? toggle))
+        if (_entityManager.TryGetComponent<ItemToggleComponent>(_parent, out var toggle))
             toggleState = toggle.Activated;
-        else if (_entityManager.TryGetComponent(_parent, out PowerCellDrawComponent? powerDraw))
+        else if (_entityManager.TryGetComponent<PowerCellDrawComponent>(_parent, out var powerDraw))
             toggleState = powerDraw.Enabled;
 
         return new Data(chargePercent, toggleState);

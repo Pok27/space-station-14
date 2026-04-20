@@ -33,8 +33,7 @@ public sealed class ChargeStatusControl : PollingItemStatusControl<ChargeStatusC
 
     protected override Data PollData()
     {
-        // Try to get limited charges component
-        if (!_entityManager.TryGetComponent(_parent.Owner, out LimitedChargesComponent? charges))
+        if (!_entityManager.TryGetComponent<LimitedChargesComponent>(_parent.Owner, out var charges))
             return default;
 
         var currentCharges = _chargesSystem.GetCurrentCharges((_parent.Owner, charges, null));
@@ -42,7 +41,7 @@ public sealed class ChargeStatusControl : PollingItemStatusControl<ChargeStatusC
 
         TimeSpan? nextRecharge = null;
         if (_parent.Comp.ShowRechargeTimer &&
-            _entityManager.TryGetComponent(_parent.Owner, out AutoRechargeComponent? autoRecharge))
+            _entityManager.TryGetComponent<AutoRechargeComponent>(_parent.Owner, out var autoRecharge))
         {
             var nextRechargeTime = _chargesSystem.GetNextRechargeTime((_parent.Owner, charges, autoRecharge));
             if (nextRechargeTime > TimeSpan.Zero)
