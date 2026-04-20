@@ -16,6 +16,8 @@ namespace Content.Server.Atmos.EntitySystems
 {
     public sealed class BarotraumaSystem : EntitySystem
     {
+        public static readonly EntProtoId PressureImmunityEffect = "StatusEffectPressureImmunity";
+
         [Dependency] private readonly AtmosphereSystem _atmosphereSystem = default!;
         [Dependency] private readonly DamageableSystem _damageableSystem = default!;
         [Dependency] private readonly AlertsSystem _alertsSystem = default!;
@@ -32,18 +34,19 @@ namespace Content.Server.Atmos.EntitySystems
             SubscribeLocalEvent<PressureProtectionComponent, GotUnequippedEvent>(OnPressureProtectionUnequipped);
             SubscribeLocalEvent<PressureProtectionComponent, ComponentInit>(OnUpdateResistance);
             SubscribeLocalEvent<PressureProtectionComponent, ComponentRemove>(OnUpdateResistance);
+
             SubscribeLocalEvent<PressureImmunityComponent, ComponentInit>(OnPressureImmunityInit);
             SubscribeLocalEvent<PressureImmunityComponent, ComponentShutdown>(OnPressureImmunityShutdown);
         }
 
         private void OnPressureImmunityInit(Entity<PressureImmunityComponent> ent, ref ComponentInit args)
         {
-            _statusEffects.TrySetStatusEffectDuration(ent, "StatusEffectPressureImmunity");
+            _statusEffects.TrySetStatusEffectDuration(ent, PressureImmunityEffect);
         }
 
         private void OnPressureImmunityShutdown(Entity<PressureImmunityComponent> ent, ref ComponentShutdown args)
         {
-            _statusEffects.TryRemoveStatusEffect(ent, "StatusEffectPressureImmunity");
+            _statusEffects.TryRemoveStatusEffect(ent, PressureImmunityEffect);
         }
 
         /// <summary>
