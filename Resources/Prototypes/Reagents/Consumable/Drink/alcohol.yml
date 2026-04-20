@@ -1541,10 +1541,10 @@
   metabolisms:
     Digestion:
       effects:
-        - !type:ModifyStatusEffect
-          effectProto: StatusEffectMuted
-        - !type:SatiateThirst
-          factor: 2
+      - !type:ModifyStatusEffect
+        effectProto: StatusEffectMuted
+      - !type:SatiateThirst
+        factor: 2
 
 - type: reagent
   id: Singulo
@@ -2051,10 +2051,10 @@
       metabolites:
         Ethanol: 0.14
       effects:
-        - !type:ModifyStatusEffect
-          effectProto: StatusEffectMuted
-        - !type:SatiateThirst
-          factor: 2
+      - !type:ModifyStatusEffect
+        effectProto: StatusEffectMuted
+      - !type:SatiateThirst
+        factor: 2
 
 - type: reagent
   id: Mimosa

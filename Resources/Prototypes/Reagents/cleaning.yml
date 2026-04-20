@@ -121,8 +121,8 @@
         type: Add
     Digestion:
       effects:
-        - !type:ModifyStatusEffect
-          effectProto: StatusEffectMuted
-          time: 5
+      - !type:ModifyStatusEffect
+        effectProto: StatusEffectMuted
+        time: 5
   footstepSound:
     collection: FootstepSlime
