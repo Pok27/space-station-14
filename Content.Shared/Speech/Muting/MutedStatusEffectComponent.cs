@@ -7,7 +7,14 @@ namespace Content.Shared.Speech.Muting;
 public sealed partial class MutedStatusEffectComponent : Component
 {
     /// <summary>
-    /// Prototype ID of the muted status effect entity.
+    /// Popup shown when speech is blocked.
     /// </summary>
-    public const string StatusEffectPrototype = "StatusEffectMuted";
+    [DataField]
+    public string SpeakPopup = "speech-muted";
+
+    /// <summary>
+    /// Popup shown when screaming is blocked.
+    /// </summary>
+    [DataField]
+    public string ScreamPopup = "speech-muted";
 }

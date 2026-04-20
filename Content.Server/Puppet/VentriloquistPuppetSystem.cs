@@ -6,11 +6,14 @@ using Content.Shared.Interaction.Events;
 using Content.Shared.Puppet;
 using Content.Shared.Speech.Muting;
 using Content.Shared.StatusEffectNew;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server.Puppet
 {
     public sealed class VentriloquistPuppetSystem : SharedVentriloquistPuppetSystem
     {
+        public static readonly EntProtoId MutedEffect = "StatusEffectMuted";
+
         [Dependency] private readonly PopupSystem _popupSystem = default!;
         [Dependency] private readonly StatusEffectsSystem _statusEffects = default!;
 
@@ -36,7 +39,7 @@ namespace Content.Server.Puppet
             // TODO disable dummy when the user dies or cannot interact.
             // Then again, this is all quite cursed code, so maybe its a cursed ventriloquist puppet.
 
-            if (!_statusEffects.TryRemoveStatusEffect(uid, MutedStatusEffectComponent.StatusEffectPrototype))
+            if (!_statusEffects.TryRemoveStatusEffect(uid, MutedEffect))
             {
                 _popupSystem.PopupEntity(Loc.GetString("ventriloquist-puppet-remove-hand"), uid, args.User);
                 MuteDummy(uid, component);
@@ -64,7 +67,7 @@ namespace Content.Server.Puppet
         /// </summary>
         private void OnDropped(EntityUid uid, VentriloquistPuppetComponent component, DroppedEvent args)
         {
-            if (_statusEffects.HasStatusEffect(uid, MutedStatusEffectComponent.StatusEffectPrototype))
+            if (_statusEffects.HasStatusEffect(uid, MutedEffect))
                 return;
 
             _popupSystem.PopupEntity(Loc.GetString("ventriloquist-puppet-remove-hand"), uid, args.User);
@@ -76,7 +79,7 @@ namespace Content.Server.Puppet
         /// </summary>
         private void OnUnequippedHand(EntityUid uid, VentriloquistPuppetComponent component, GotUnequippedHandEvent args)
         {
-            if (_statusEffects.HasStatusEffect(uid, MutedStatusEffectComponent.StatusEffectPrototype))
+            if (_statusEffects.HasStatusEffect(uid, MutedEffect))
                 return;
 
             _popupSystem.PopupEntity(Loc.GetString("ventriloquist-puppet-remove-hand"), uid, args.User);
@@ -89,7 +92,12 @@ namespace Content.Server.Puppet
         private void MuteDummy(EntityUid uid, VentriloquistPuppetComponent component)
         {
             _popupSystem.PopupEntity(Loc.GetString("ventriloquist-puppet-removed-hand"), uid, uid);
-            _statusEffects.TrySetStatusEffectDuration(uid, MutedStatusEffectComponent.StatusEffectPrototype);
+            if (_statusEffects.TrySetStatusEffectDuration(uid, MutedEffect, out var status)
+                && TryComp<MutedStatusEffectComponent>(status, out var muted))
+            {
+                muted.SpeakPopup = "ventriloquist-puppet-cant-speak";
+                Dirty(status.Value, muted);
+            }
             RemComp<CombatModeComponent>(uid);
             RemComp<GhostTakeoverAvailableComponent>(uid);
         }

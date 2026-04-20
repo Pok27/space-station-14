@@ -1,12 +1,11 @@
-using Content.Server.Popups;
 using Content.Server.Speech.EntitySystems;
-using Content.Shared.Abilities.Mime;
 using Content.Shared.Chat;
 using Content.Shared.Chat.Prototypes;
-using Content.Shared.Puppet;
+using Content.Shared.Popups;
 using Content.Shared.Speech;
 using Content.Shared.Speech.Muting;
 using Content.Shared.StatusEffectNew;
+using Content.Shared.StatusEffectNew.Components;
 
 namespace Content.Server.Speech.Muting;
 
@@ -15,7 +14,7 @@ namespace Content.Server.Speech.Muting;
 /// </summary>
 public sealed class MutedStatusEffectSystem : EntitySystem
 {
-    [Dependency] private readonly PopupSystem _popupSystem = default!;
+    [Dependency] private readonly SharedPopupSystem _popup = default!;
 
     /// <inheritdoc />
     public override void Initialize()
@@ -25,7 +24,7 @@ public sealed class MutedStatusEffectSystem : EntitySystem
         SubscribeLocalEvent<MutedStatusEffectComponent, StatusEffectRelayedEvent<ScreamActionEvent>>(OnScreamAction, before: new[] { typeof(VocalSystem) });
     }
 
-    private void OnEmote(EntityUid uid, MutedStatusEffectComponent component, ref StatusEffectRelayedEvent<EmoteEvent> args)
+    private void OnEmote(Entity<MutedStatusEffectComponent> ent, ref StatusEffectRelayedEvent<EmoteEvent> args)
     {
         if (args.Args.Handled)
             return;
@@ -39,27 +38,26 @@ public sealed class MutedStatusEffectSystem : EntitySystem
         }
     }
 
-    private void OnScreamAction(EntityUid uid, MutedStatusEffectComponent component, ref StatusEffectRelayedEvent<ScreamActionEvent> args)
+    private void OnScreamAction(Entity<MutedStatusEffectComponent> ent, ref StatusEffectRelayedEvent<ScreamActionEvent> args)
     {
         if (args.Args.Handled)
             return;
 
-        if (HasComp<MimePowersComponent>(uid))
-            _popupSystem.PopupEntity(Loc.GetString("mime-cant-speak"), uid, uid);
-        else
-            _popupSystem.PopupEntity(Loc.GetString("speech-muted"), uid, uid);
+        if (!TryComp<StatusEffectComponent>(ent, out var statusEffect))
+            return;
 
+        if (statusEffect.AppliedTo is not { } target)
+            return;
+
+        _popup.PopupEntity(Loc.GetString(ent.Comp.ScreamPopup), target, target);
         args.Args.Handled = true;
     }
 
-    private void OnSpeakAttempt(EntityUid uid, MutedStatusEffectComponent component, ref StatusEffectRelayedEvent<SpeakAttemptEvent> args)
+    private void OnSpeakAttempt(Entity<MutedStatusEffectComponent> ent, ref StatusEffectRelayedEvent<SpeakAttemptEvent> args)
     {
-        if (HasComp<MimePowersComponent>(uid))
-            _popupSystem.PopupEntity(Loc.GetString("mime-cant-speak"), uid, uid);
-        else if (HasComp<VentriloquistPuppetComponent>(uid))
-            _popupSystem.PopupEntity(Loc.GetString("ventriloquist-puppet-cant-speak"), uid, uid);
-        else
-            _popupSystem.PopupEntity(Loc.GetString("speech-muted"), uid, uid);
+        var target = args.Args.Uid;
+
+        _popup.PopupEntity(Loc.GetString(ent.Comp.SpeakPopup), target, target);
 
         args.Args.Cancel();
     }

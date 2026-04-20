@@ -11,12 +11,15 @@ using Content.Shared.Speech.Muting;
 using Content.Shared.StatusEffectNew;
 using Robust.Shared.Containers;
 using Robust.Shared.Map;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.Shared.Abilities.Mime;
 
 public sealed class MimePowersSystem : EntitySystem
 {
+    public static readonly EntProtoId MutedEffect = "StatusEffectMuted";
+
     [Dependency] private readonly SharedPopupSystem _popupSystem = default!;
     [Dependency] private readonly SharedActionsSystem _actionsSystem = default!;
     [Dependency] private readonly AlertsSystem _alertsSystem = default!;
@@ -60,7 +63,13 @@ public sealed class MimePowersSystem : EntitySystem
 
     private void OnComponentInit(Entity<MimePowersComponent> ent, ref ComponentInit args)
     {
-        _statusEffects.TrySetStatusEffectDuration(ent, MutedStatusEffectComponent.StatusEffectPrototype);
+        if (_statusEffects.TrySetStatusEffectDuration(ent, MutedEffect, out var status)
+            && TryComp<MutedStatusEffectComponent>(status, out var muted))
+        {
+            muted.SpeakPopup = "mime-cant-speak";
+            muted.ScreamPopup = "mime-cant-speak";
+            Dirty(status.Value, muted);
+        }
 
         if (ent.Comp.PreventWriting)
         {
@@ -147,7 +156,7 @@ public sealed class MimePowersSystem : EntitySystem
         mimePowers.VowBroken = true;
         mimePowers.VowRepentTime = _timing.CurTime + mimePowers.VowCooldown;
         Dirty(uid, mimePowers);
-        _statusEffects.TryRemoveStatusEffect(uid, MutedStatusEffectComponent.StatusEffectPrototype);
+        _statusEffects.TryRemoveStatusEffect(uid, MutedEffect);
         if (mimePowers.PreventWriting)
             RemComp<BlockWritingComponent>(uid);
 
@@ -174,7 +183,13 @@ public sealed class MimePowersSystem : EntitySystem
         mimePowers.ReadyToRepent = false;
         mimePowers.VowBroken = false;
         Dirty(uid, mimePowers);
-        _statusEffects.TrySetStatusEffectDuration(uid, MutedStatusEffectComponent.StatusEffectPrototype);
+        if (_statusEffects.TrySetStatusEffectDuration(uid, MutedEffect, out var status)
+            && TryComp<MutedStatusEffectComponent>(status, out var muted))
+        {
+            muted.SpeakPopup = "mime-cant-speak";
+            muted.ScreamPopup = "mime-cant-speak";
+            Dirty(status.Value, muted);
+        }
         if (mimePowers.PreventWriting)
         {
             EnsureComp<BlockWritingComponent>(uid, out var illiterateComponent);
