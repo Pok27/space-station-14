@@ -1,9 +1,7 @@
-using Robust.Shared.GameStates;
-
 namespace Content.Shared.Speech.Muting;
 
 /// <summary>
-/// Prevents an entity from speaking, screaming, and producing vocal emotes.
+/// Marker component for entities that should permanently receive the muted status effect.
 /// </summary>
-[RegisterComponent, NetworkedComponent]
+[RegisterComponent]
 public sealed partial class MutedComponent : Component;

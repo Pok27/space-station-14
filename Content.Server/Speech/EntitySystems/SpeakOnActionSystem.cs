@@ -5,6 +5,7 @@ using Content.Shared.Speech;
 using Content.Shared.Speech.Components;
 using Content.Shared.Speech.EntitySystems;
 using Content.Shared.Speech.Muting;
+using Content.Shared.StatusEffectNew;
 
 namespace Content.Server.Speech.EntitySystems;
 
@@ -15,6 +16,7 @@ namespace Content.Server.Speech.EntitySystems;
 public sealed class SpeakOnActionSystem : SharedSpeakOnActionSystem
 {
     [Dependency] private readonly ChatSystem _chat = default!;
+    [Dependency] private readonly StatusEffectsSystem _statusEffects = default!;
 
     public override void Initialize()
     {
@@ -28,7 +30,7 @@ public sealed class SpeakOnActionSystem : SharedSpeakOnActionSystem
         var user = args.Performer;
 
         // If we can't speak, we can't speak
-        if (!HasComp<SpeechComponent>(user) || HasComp<MutedComponent>(user))
+        if (!HasComp<SpeechComponent>(user) || _statusEffects.HasEffectComp<MutedStatusEffectComponent>(user))
             return;
 
         if (string.IsNullOrWhiteSpace(ent.Comp.Sentence))

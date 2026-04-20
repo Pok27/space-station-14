@@ -8,6 +8,7 @@ using Content.Shared.Maps;
 using Content.Shared.Paper;
 using Content.Shared.Physics;
 using Content.Shared.Speech.Muting;
+using Content.Shared.StatusEffectNew;
 using Robust.Shared.Containers;
 using Robust.Shared.Map;
 using Robust.Shared.Timing;
@@ -19,6 +20,7 @@ public sealed class MimePowersSystem : EntitySystem
     [Dependency] private readonly SharedPopupSystem _popupSystem = default!;
     [Dependency] private readonly SharedActionsSystem _actionsSystem = default!;
     [Dependency] private readonly AlertsSystem _alertsSystem = default!;
+    [Dependency] private readonly StatusEffectsSystem _statusEffects = default!;
     [Dependency] private readonly TurfSystem _turf = default!;
     [Dependency] private readonly IMapManager _mapMan = default!;
     [Dependency] private readonly SharedContainerSystem _container = default!;
@@ -58,7 +60,7 @@ public sealed class MimePowersSystem : EntitySystem
 
     private void OnComponentInit(Entity<MimePowersComponent> ent, ref ComponentInit args)
     {
-        EnsureComp<MutedComponent>(ent);
+        _statusEffects.TrySetStatusEffectDuration(ent, MutedStatusEffectComponent.StatusEffectPrototype);
 
         if (ent.Comp.PreventWriting)
         {
@@ -145,7 +147,7 @@ public sealed class MimePowersSystem : EntitySystem
         mimePowers.VowBroken = true;
         mimePowers.VowRepentTime = _timing.CurTime + mimePowers.VowCooldown;
         Dirty(uid, mimePowers);
-        RemComp<MutedComponent>(uid);
+        _statusEffects.TryRemoveStatusEffect(uid, MutedStatusEffectComponent.StatusEffectPrototype);
         if (mimePowers.PreventWriting)
             RemComp<BlockWritingComponent>(uid);
 
@@ -172,7 +174,7 @@ public sealed class MimePowersSystem : EntitySystem
         mimePowers.ReadyToRepent = false;
         mimePowers.VowBroken = false;
         Dirty(uid, mimePowers);
-        AddComp<MutedComponent>(uid);
+        _statusEffects.TrySetStatusEffectDuration(uid, MutedStatusEffectComponent.StatusEffectPrototype);
         if (mimePowers.PreventWriting)
         {
             EnsureComp<BlockWritingComponent>(uid, out var illiterateComponent);
