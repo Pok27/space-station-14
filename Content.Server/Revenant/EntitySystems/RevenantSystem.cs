@@ -1,6 +1,7 @@
 using System.Numerics;
 using Content.Server.Actions;
 using Content.Server.Atmos.EntitySystems;
+using Content.Server.Eye.EntitySystems;
 using Content.Server.GameTicking;
 using Content.Server.Store.Systems;
 using Content.Shared.Alert;
@@ -44,6 +45,7 @@ public sealed partial class RevenantSystem : EntitySystem
     [Dependency] private readonly SharedStunSystem _stun = default!;
     [Dependency] private readonly StoreSystem _store = default!;
     [Dependency] private readonly TagSystem _tag = default!;
+    [Dependency] private readonly VisibilityModifierStatusSystem _visibilityModifiers = default!;
     [Dependency] private readonly VisibilitySystem _visibility = default!;
     [Dependency] private readonly TurfSystem _turf = default!;
     public override void Initialize()
@@ -188,6 +190,7 @@ public sealed partial class RevenantSystem : EntitySystem
                 _visibility.RemoveLayer((uid, vis), (int) VisibilityFlags.Normal, false);
             }
             _visibility.RefreshVisibility(uid, vis);
+            _visibilityModifiers.CaptureCurrentVisibilityAsBaseline((uid, vis));
         }
     }
 

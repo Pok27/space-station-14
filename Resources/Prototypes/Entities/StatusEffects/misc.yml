@@ -105,3 +105,8 @@
     walkSpeedModifier: 0.66
     sprintSpeedModifier: 0.66
   - type: CorporealStatusEffect
+  - type: VisibilityModifierStatus
+    addVisibility:
+    - Normal
+    removeVisibility:
+    - Ghost
