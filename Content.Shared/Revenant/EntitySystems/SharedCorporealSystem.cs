@@ -1,7 +1,6 @@
 using Content.Shared.Physics;
 using Robust.Shared.Physics;
 using System.Linq;
-using Content.Shared.Movement.Systems;
 using Content.Shared.Revenant.Components;
 using Content.Shared.StatusEffectNew;
 using Robust.Shared.Physics.Systems;
@@ -19,8 +18,8 @@ public abstract class SharedCorporealSystem : EntitySystem
     public static readonly EntProtoId CorporealStatusEffect = "StatusEffectCorporeal";
 
     [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-    [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
     [Dependency] private readonly SharedPhysicsSystem _physics = default!;
+    [Dependency] private readonly StatusEffectsSystem _statusEffects = default!;
 
     public override void Initialize()
     {
@@ -28,14 +27,6 @@ public abstract class SharedCorporealSystem : EntitySystem
 
         SubscribeLocalEvent<CorporealStatusEffectComponent, StatusEffectAppliedEvent>(OnApplied);
         SubscribeLocalEvent<CorporealStatusEffectComponent, StatusEffectRemovedEvent>(OnRemoved);
-        SubscribeLocalEvent<CorporealStatusEffectComponent, StatusEffectRelayedEvent<RefreshMovementSpeedModifiersEvent>>(OnRefresh);
-    }
-
-    private void OnRefresh(
-        Entity<CorporealStatusEffectComponent> ent,
-        ref StatusEffectRelayedEvent<RefreshMovementSpeedModifiersEvent> args)
-    {
-        args.Args.ModifySpeed(ent.Comp.MovementSpeedDebuff, ent.Comp.MovementSpeedDebuff);
     }
 
     public virtual void OnApplied(Entity<CorporealStatusEffectComponent> ent, ref StatusEffectAppliedEvent args)
@@ -46,10 +37,9 @@ public abstract class SharedCorporealSystem : EntitySystem
         {
             var fixture = fixtures.Fixtures.First();
 
-            _physics.SetCollisionMask(args.Target, fixture.Key, fixture.Value, (int) (CollisionGroup.SmallMobMask | CollisionGroup.GhostImpassable), fixtures);
-            _physics.SetCollisionLayer(args.Target, fixture.Key, fixture.Value, (int) CollisionGroup.SmallMobLayer, fixtures);
+            _physics.SetCollisionMask(args.Target, fixture.Key, fixture.Value, ent.Comp.CollisionMask, fixtures);
+            _physics.SetCollisionLayer(args.Target, fixture.Key, fixture.Value, ent.Comp.CollisionLayer, fixtures);
         }
-        _movement.RefreshMovementSpeedModifiers(args.Target);
     }
 
     public virtual void OnRemoved(Entity<CorporealStatusEffectComponent> ent, ref StatusEffectRemovedEvent args)
@@ -60,10 +50,8 @@ public abstract class SharedCorporealSystem : EntitySystem
         {
             var fixture = fixtures.Fixtures.First();
 
-            _physics.SetCollisionMask(args.Target, fixture.Key, fixture.Value, (int) CollisionGroup.GhostImpassable, fixtures);
+            _physics.SetCollisionMask(args.Target, fixture.Key, fixture.Value, (int)CollisionGroup.GhostImpassable, fixtures);
             _physics.SetCollisionLayer(args.Target, fixture.Key, fixture.Value, 0, fixtures);
         }
-
-        _movement.RefreshMovementSpeedModifiers(args.Target);
     }
 }

@@ -95,10 +95,13 @@
 
 # Makes a revenant corporeal and vulnerable
 - type: entity
-  parent: MobStatusEffectDebuff
+  parent: StatusEffectBase
   id: StatusEffectCorporeal
   name: corporeal
   components:
   - type: StatusEffectAlert
     alert: Corporeal
+  - type: MovementModStatusEffect
+    walkSpeedModifier: 0.66
+    sprintSpeedModifier: 0.66
   - type: CorporealStatusEffect
