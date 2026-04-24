@@ -9,9 +9,7 @@ using Content.Shared.Database;
 using Content.Shared.FixedPoint;
 using Content.Shared.Inventory;
 using Content.Shared.Inventory.Events;
-using Content.Shared.StatusEffectNew;
 using Robust.Shared.Containers;
-using Robust.Shared.Prototypes;
 
 namespace Content.Server.Atmos.EntitySystems
 {
@@ -20,9 +18,8 @@ namespace Content.Server.Atmos.EntitySystems
         [Dependency] private readonly AtmosphereSystem _atmosphereSystem = default!;
         [Dependency] private readonly DamageableSystem _damageableSystem = default!;
         [Dependency] private readonly AlertsSystem _alertsSystem = default!;
-        [Dependency] private readonly IAdminLogManager _adminLogger= default!;
+        [Dependency] private readonly IAdminLogManager _adminLogger = default!;
         [Dependency] private readonly InventorySystem _inventorySystem = default!;
-        [Dependency] private readonly StatusEffectsSystem _statusEffects = default!;
 
         private const float UpdateTimer = 1f;
         private float _timer;
@@ -158,6 +155,9 @@ namespace Content.Server.Atmos.EntitySystems
             return Math.Max(modified, Atmospherics.OneAtmosphere);
         }
 
+        /// <summary>
+        /// Refreshes whether the entity is immune to pressure damage.
+        /// </summary>
         public void RefreshPressureImmunity(EntityUid uid, BarotraumaComponent? barotrauma = null)
         {
             if (!Resolve(uid, ref barotrauma, false))
