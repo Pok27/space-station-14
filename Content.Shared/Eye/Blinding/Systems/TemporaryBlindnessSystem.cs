@@ -1,12 +1,13 @@
 using Content.Shared.Eye.Blinding.Components;
-using Content.Shared.StatusEffect;
+using Content.Shared.Flash;
+using Content.Shared.StatusEffectNew;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared.Eye.Blinding.Systems;
 
 public sealed class TemporaryBlindnessSystem : EntitySystem
 {
-    public static readonly ProtoId<StatusEffectPrototype> BlindingStatusEffect = "TemporaryBlindness";
+    public static readonly EntProtoId BlindingStatusEffect = "StatusEffectTemporaryBlindness";
 
     [Dependency] private readonly BlindableSystem _blindableSystem = default!;
 
@@ -14,24 +15,33 @@ public sealed class TemporaryBlindnessSystem : EntitySystem
     {
         base.Initialize();
 
-        SubscribeLocalEvent<TemporaryBlindnessComponent, ComponentStartup>(OnStartup);
-        SubscribeLocalEvent<TemporaryBlindnessComponent, ComponentShutdown>(OnShutdown);
-        SubscribeLocalEvent<TemporaryBlindnessComponent, CanSeeAttemptEvent>(OnBlindTrySee);
+        SubscribeLocalEvent<TemporaryBlindnessStatusEffectComponent, StatusEffectAppliedEvent>(OnApplied);
+        SubscribeLocalEvent<TemporaryBlindnessStatusEffectComponent, StatusEffectRemovedEvent>(OnRemoved);
+        SubscribeLocalEvent<TemporaryBlindnessStatusEffectComponent, StatusEffectRelayedEvent<CanSeeAttemptEvent>>(OnBlindTrySee);
+        SubscribeLocalEvent<TemporaryBlindnessStatusEffectComponent, StatusEffectRelayedEvent<FlashAttemptEvent>>(OnFlashAttempt);
     }
 
-    private void OnStartup(EntityUid uid, TemporaryBlindnessComponent component, ComponentStartup args)
+    private void OnApplied(Entity<TemporaryBlindnessStatusEffectComponent> ent, ref StatusEffectAppliedEvent args)
     {
-        _blindableSystem.UpdateIsBlind(uid);
+        _blindableSystem.UpdateIsBlind(args.Target);
     }
 
-    private void OnShutdown(EntityUid uid, TemporaryBlindnessComponent component, ComponentShutdown args)
+    private void OnRemoved(Entity<TemporaryBlindnessStatusEffectComponent> ent, ref StatusEffectRemovedEvent args)
     {
-        _blindableSystem.UpdateIsBlind(uid);
+        _blindableSystem.UpdateIsBlind(args.Target);
     }
 
-    private void OnBlindTrySee(EntityUid uid, TemporaryBlindnessComponent component, CanSeeAttemptEvent args)
+    private void OnBlindTrySee(Entity<TemporaryBlindnessStatusEffectComponent> ent, ref StatusEffectRelayedEvent<CanSeeAttemptEvent> args)
     {
-        if (component.LifeStage <= ComponentLifeStage.Running)
-            args.Cancel();
+        var ev = args.Args;
+        ev.Cancel();
+        args.Args = ev;
+    }
+
+    private void OnFlashAttempt(Entity<TemporaryBlindnessStatusEffectComponent> ent, ref StatusEffectRelayedEvent<FlashAttemptEvent> args)
+    {
+        var ev = args.Args;
+        ev.Cancelled = true;
+        args.Args = ev;
     }
 }
