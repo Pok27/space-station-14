@@ -77,14 +77,12 @@
 - type: entity
   parent: StatusEffectMutedBase
   id: StatusEffectMuted
-  name: muted
   components:
   - type: CloneableStatusEffect
 
 - type: entity
   parent: StatusEffectMutedBase
   id: StatusEffectMimeMuted
-  name: muted
   components:
   - type: MutedStatusEffect
     speakPopup: mime-cant-speak
@@ -93,7 +91,6 @@
 - type: entity
   parent: StatusEffectMutedBase
   id: StatusEffectVentriloquistPuppetMuted
-  name: muted
   components:
   - type: MutedStatusEffect
     speakPopup: ventriloquist-puppet-cant-speak

@@ -65,7 +65,7 @@
   components:
   - type: PermanentStatusEffects
     statusEffects:
-    - StatusEffectTraitMuted
+    - StatusEffectMuted
 
 - type: trait
   id: Paracusia
