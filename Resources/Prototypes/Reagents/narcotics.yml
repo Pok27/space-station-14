@@ -389,7 +389,7 @@
         probability: 0.03
         #If anyone wants to add a light dimming or grayscale effect when under 20u, be my guest
       - !type:ModifyStatusEffect
-        effectProto: StatusEffectTemporaryBlindness
+        effectProto: StatusEffectBlindness
         type: Add
         conditions:
         - !type:ReagentCondition
@@ -442,7 +442,7 @@
         emote: Cough
         probability: 0.08
       - !type:ModifyStatusEffect
-        effectProto: StatusEffectTemporaryBlindness
+        effectProto: StatusEffectBlindness
         type: Add
         conditions:
         - !type:ReagentCondition

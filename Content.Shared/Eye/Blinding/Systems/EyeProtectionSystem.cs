@@ -55,9 +55,9 @@ namespace Content.Shared.Eye.Blinding.Systems
             // how much damage they already accumulated.
             _blindingSystem.AdjustEyeDamage((args.User, blindable), 1);
             var statusTimeSpan = TimeSpan.FromSeconds(time * MathF.Sqrt(blindable.EyeDamage));
-            _statusEffectsSystem.TryAddStatusEffectDuration(args.User, TemporaryBlindnessSystem.BlindingStatusEffect,
-                statusTimeSpan);
+            _statusEffectsSystem.TryAddStatusEffectDuration(args.User, BlindnessSystem.BlindingStatusEffect, statusTimeSpan);
         }
+
         private void OnWelderToggled(EntityUid uid, RequiresEyeProtectionComponent component, ItemToggledEvent args)
         {
             component.Toggled = args.Activated;

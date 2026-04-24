@@ -96,7 +96,7 @@
 # Prevents the target from seeing
 - type: entity
   parent: MobStatusEffectDebuff
-  id: StatusEffectTemporaryBlindness
+  id: StatusEffectBlindness
   name: temporary blindness
   components:
   - type: StatusEffect
@@ -104,4 +104,4 @@
       components:
       - MobState
       - Blindable
-  - type: TemporaryBlindnessStatusEffect
+  - type: BlindnessStatusEffect
