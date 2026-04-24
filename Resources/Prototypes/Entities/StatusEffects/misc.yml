@@ -92,3 +92,13 @@
   parent: [ StatusEffectWoozy, StatusEffectSlurred ]
   id: StatusEffectDrunk
   name: drunk
+
+# Makes a revenant corporeal and vulnerable
+- type: entity
+  parent: MobStatusEffectDebuff
+  id: StatusEffectCorporeal
+  name: corporeal
+  components:
+  - type: StatusEffectAlert
+    alert: Corporeal
+  - type: CorporealStatusEffect

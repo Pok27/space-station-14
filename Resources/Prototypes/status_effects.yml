@@ -38,10 +38,6 @@
   alert: Muted
 
 - type: statusEffect
-  id: Corporeal
-  alert: Corporeal
-
-- type: statusEffect
   id: TemporaryBlindness
 
 - type: statusEffect

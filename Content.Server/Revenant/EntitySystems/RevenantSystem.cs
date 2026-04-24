@@ -16,6 +16,7 @@ using Content.Shared.Physics;
 using Content.Shared.Popups;
 using Content.Shared.Revenant;
 using Content.Shared.Revenant.Components;
+using Content.Shared.Revenant.EntitySystems;
 using Content.Shared.StatusEffect;
 using Content.Shared.Store.Components;
 using Content.Shared.Stunnable;
@@ -37,7 +38,7 @@ public sealed partial class RevenantSystem : EntitySystem
     [Dependency] private readonly PhysicsSystem _physics = default!;
     [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
     [Dependency] private readonly SharedEyeSystem _eye = default!;
-    [Dependency] private readonly StatusEffectsSystem _statusEffects = default!;
+    [Dependency] private readonly Content.Shared.StatusEffectNew.StatusEffectsSystem _newStatusEffects = default!;
     [Dependency] private readonly SharedInteractionSystem _interact = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly SharedStunSystem _stun = default!;
@@ -111,7 +112,7 @@ public sealed partial class RevenantSystem : EntitySystem
 
     private void OnDamage(EntityUid uid, RevenantComponent component, DamageChangedEvent args)
     {
-        if (!HasComp<CorporealComponent>(uid) || args.DamageDelta == null)
+        if (!_newStatusEffects.HasStatusEffect(uid, SharedCorporealSystem.CorporealStatusEffect) || args.DamageDelta == null)
             return;
 
         var essenceDamage = args.DamageDelta.GetTotal().Float() * component.DamageToEssenceCoefficient * -1;
@@ -165,7 +166,7 @@ public sealed partial class RevenantSystem : EntitySystem
 
         ChangeEssenceAmount(uid, -abilityCost, component, false);
 
-        _statusEffects.TryAddStatusEffect<CorporealComponent>(uid, "Corporeal", TimeSpan.FromSeconds(debuffs.Y), false);
+        _newStatusEffects.TryAddStatusEffectDuration(uid, SharedCorporealSystem.CorporealStatusEffect, TimeSpan.FromSeconds(debuffs.Y));
         _stun.TryAddStunDuration(uid, TimeSpan.FromSeconds(debuffs.X));
 
         return true;
