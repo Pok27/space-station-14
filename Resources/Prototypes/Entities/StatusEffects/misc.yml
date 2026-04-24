@@ -92,3 +92,11 @@
   parent: [ StatusEffectWoozy, StatusEffectSlurred ]
   id: StatusEffectDrunk
   name: drunk
+
+# Caused by electric shocks
+- type: entity
+  parent: MobStatusEffectDebuff
+  id: StatusEffectElectrocuted
+  name: electrocuted
+  components:
+  - type: ElectrocutedStatusEffect

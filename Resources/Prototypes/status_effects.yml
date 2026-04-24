@@ -22,9 +22,6 @@
   id: AllCaps
 
 - type: statusEffect
-  id: Electrocution
-
-- type: statusEffect
   id: Drunk
 
 - type: statusEffect
