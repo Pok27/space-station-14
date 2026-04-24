@@ -17,8 +17,6 @@ namespace Content.Server.Atmos.EntitySystems
 {
     public sealed class BarotraumaSystem : EntitySystem
     {
-        public static readonly EntProtoId PressureImmunityEffect = "StatusEffectPressureImmunity";
-
         [Dependency] private readonly AtmosphereSystem _atmosphereSystem = default!;
         [Dependency] private readonly DamageableSystem _damageableSystem = default!;
         [Dependency] private readonly AlertsSystem _alertsSystem = default!;
@@ -31,23 +29,16 @@ namespace Content.Server.Atmos.EntitySystems
 
         public override void Initialize()
         {
+            SubscribeLocalEvent<BarotraumaComponent, ComponentInit>(OnBarotraumaInit);
             SubscribeLocalEvent<PressureProtectionComponent, GotEquippedEvent>(OnPressureProtectionEquipped);
             SubscribeLocalEvent<PressureProtectionComponent, GotUnequippedEvent>(OnPressureProtectionUnequipped);
             SubscribeLocalEvent<PressureProtectionComponent, ComponentInit>(OnUpdateResistance);
             SubscribeLocalEvent<PressureProtectionComponent, ComponentRemove>(OnUpdateResistance);
-
-            SubscribeLocalEvent<PressureImmunityComponent, ComponentInit>(OnPressureImmunityInit);
-            SubscribeLocalEvent<PressureImmunityComponent, ComponentShutdown>(OnPressureImmunityShutdown);
         }
 
-        private void OnPressureImmunityInit(Entity<PressureImmunityComponent> ent, ref ComponentInit args)
+        private void OnBarotraumaInit(Entity<BarotraumaComponent> ent, ref ComponentInit args)
         {
-            _statusEffects.TrySetStatusEffectDuration(ent, PressureImmunityEffect);
-        }
-
-        private void OnPressureImmunityShutdown(Entity<PressureImmunityComponent> ent, ref ComponentShutdown args)
-        {
-            _statusEffects.TryRemoveStatusEffect(ent, PressureImmunityEffect);
+            RefreshPressureImmunity(ent, ent.Comp);
         }
 
         /// <summary>
@@ -144,7 +135,7 @@ namespace Content.Server.Atmos.EntitySystems
         /// </summary>
         public float GetFeltLowPressure(EntityUid uid, BarotraumaComponent barotrauma, float environmentPressure)
         {
-            if (IsPressureImmune(uid))
+            if (barotrauma.HasImmunity)
             {
                 return Atmospherics.OneAtmosphere;
             }
@@ -158,7 +149,7 @@ namespace Content.Server.Atmos.EntitySystems
         /// </summary>
         public float GetFeltHighPressure(EntityUid uid, BarotraumaComponent barotrauma, float environmentPressure)
         {
-            if (IsPressureImmune(uid))
+            if (barotrauma.HasImmunity)
             {
                 return Atmospherics.OneAtmosphere;
             }
@@ -167,11 +158,14 @@ namespace Content.Server.Atmos.EntitySystems
             return Math.Max(modified, Atmospherics.OneAtmosphere);
         }
 
-        private bool IsPressureImmune(EntityUid uid)
+        public void RefreshPressureImmunity(EntityUid uid, BarotraumaComponent? barotrauma = null)
         {
-            var ev = new GetPressureImmunityEvent();
+            if (!Resolve(uid, ref barotrauma, false))
+                return;
+
+            var ev = new RefreshPressureImmunityEvent();
             RaiseLocalEvent(uid, ref ev);
-            return ev.Handled && ev.IsImmune;
+            barotrauma.HasImmunity = ev.IsImmune;
         }
 
         public bool TryGetPressureProtectionValues(
