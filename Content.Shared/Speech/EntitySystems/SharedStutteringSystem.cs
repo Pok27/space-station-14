@@ -4,7 +4,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared.Speech.EntitySystems;
 
-public abstract class SharedStutteringSystem : StatusEffectAccentSystem<StutteringAccentComponent>
+public abstract class SharedStutteringSystem : RelayAccentSystem<StutteringAccentComponent>
 {
     public static readonly EntProtoId Stuttering = "StatusEffectStutter";
 

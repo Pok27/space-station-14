@@ -4,7 +4,7 @@ using Robust.Shared.Random;
 
 namespace Content.Server.Speech.EntitySystems;
 
-public sealed class OwOAccentSystem : StatusEffectAccentSystem<OwOAccentComponent>
+public sealed class OwOAccentSystem : RelayAccentSystem<OwOAccentComponent>
 {
     [Dependency] private readonly IRobustRandom _random = default!;
 
@@ -17,7 +17,7 @@ public sealed class OwOAccentSystem : StatusEffectAccentSystem<OwOAccentComponen
             { "you", "wu" },
         };
 
-    protected override string AccentuateInternal(EntityUid uid, OwOAccentComponent comp, string message)
+    public string Accentuate(string message)
     {
         foreach (var (word, repl) in SpecialWords)
         {
@@ -27,5 +27,10 @@ public sealed class OwOAccentSystem : StatusEffectAccentSystem<OwOAccentComponen
         return message.Replace("!", _random.Pick(Faces))
             .Replace("r", "w").Replace("R", "W")
             .Replace("l", "w").Replace("L", "W");
+    }
+
+    protected override string AccentuateInternal(EntityUid uid, OwOAccentComponent comp, string message)
+    {
+        return Accentuate(message);
     }
 }

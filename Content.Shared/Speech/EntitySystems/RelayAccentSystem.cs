@@ -4,9 +4,9 @@ using Content.Shared.StatusEffectNew;
 namespace Content.Shared.Speech.EntitySystems;
 
 /// <summary>
-/// Base system for accents that should apply both directly and when relayed through status effects.
+/// Base system for accents that should apply both directly and when relayed through other entities.
 /// </summary>
-public abstract class StatusEffectAccentSystem<TComponent> : EntitySystem
+public abstract class RelayAccentSystem<TComponent> : EntitySystem
     where TComponent : Component
 {
     /// <inheritdoc />
@@ -19,7 +19,7 @@ public abstract class StatusEffectAccentSystem<TComponent> : EntitySystem
     /// <summary>
     /// Applies the accent transformation to the provided message.
     /// </summary>
-    public string Accentuate(EntityUid uid, TComponent comp, string message)
+    protected string Accentuate(EntityUid uid, TComponent comp, string message)
     {
         return AccentuateInternal(uid, comp, message);
     }

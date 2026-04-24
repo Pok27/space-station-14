@@ -4,7 +4,7 @@ using Robust.Shared.Random;
 
 namespace Content.Server.Speech.EntitySystems;
 
-public sealed class BarkAccentSystem : StatusEffectAccentSystem<BarkAccentComponent>
+public sealed class BarkAccentSystem : RelayAccentSystem<BarkAccentComponent>
 {
     [Dependency] private readonly IRobustRandom _random = default!;
 

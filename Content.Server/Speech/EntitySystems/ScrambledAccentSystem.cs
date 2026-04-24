@@ -6,7 +6,7 @@ using Robust.Shared.Random;
 
 namespace Content.Server.Speech.EntitySystems;
 
-public sealed class ScrambledAccentSystem : StatusEffectAccentSystem<ScrambledAccentComponent>
+public sealed class ScrambledAccentSystem : RelayAccentSystem<ScrambledAccentComponent>
 {
     private static readonly Regex RegexLoneI = new(@"(?<=\ )i(?=[\ \.\?]|$)");
 
