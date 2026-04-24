@@ -4,7 +4,6 @@ using Content.Shared.CombatMode;
 using Content.Shared.Hands;
 using Content.Shared.Interaction.Events;
 using Content.Shared.Puppet;
-using Content.Shared.Speech.Muting;
 using Content.Shared.StatusEffectNew;
 using Robust.Shared.Prototypes;
 
@@ -12,7 +11,7 @@ namespace Content.Server.Puppet
 {
     public sealed class VentriloquistPuppetSystem : SharedVentriloquistPuppetSystem
     {
-        public static readonly EntProtoId MutedEffect = "StatusEffectMuted";
+        public static readonly EntProtoId MutedEffect = "StatusEffectVentriloquistPuppetMuted";
 
         [Dependency] private readonly PopupSystem _popupSystem = default!;
         [Dependency] private readonly StatusEffectsSystem _statusEffects = default!;
@@ -92,12 +91,7 @@ namespace Content.Server.Puppet
         private void MuteDummy(EntityUid uid, VentriloquistPuppetComponent component)
         {
             _popupSystem.PopupEntity(Loc.GetString("ventriloquist-puppet-removed-hand"), uid, uid);
-            if (_statusEffects.TrySetStatusEffectDuration(uid, MutedEffect, out var status)
-                && TryComp<MutedStatusEffectComponent>(status, out var muted))
-            {
-                muted.SpeakPopup = "ventriloquist-puppet-cant-speak";
-                Dirty(status.Value, muted);
-            }
+            _statusEffects.TrySetStatusEffectDuration(uid, MutedEffect);
             RemComp<CombatModeComponent>(uid);
             RemComp<GhostTakeoverAvailableComponent>(uid);
         }

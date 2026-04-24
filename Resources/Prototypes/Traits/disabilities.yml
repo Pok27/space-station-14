@@ -63,7 +63,9 @@
     components:
       - BorgChassis
   components:
-    - type: Muted
+  - type: PermanentStatusEffects
+    statusEffects:
+    - StatusEffectTraitMuted
 
 - type: trait
   id: Paracusia

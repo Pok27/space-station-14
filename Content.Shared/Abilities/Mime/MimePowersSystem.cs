@@ -7,7 +7,6 @@ using Content.Shared.IdentityManagement;
 using Content.Shared.Maps;
 using Content.Shared.Paper;
 using Content.Shared.Physics;
-using Content.Shared.Speech.Muting;
 using Content.Shared.StatusEffectNew;
 using Robust.Shared.Containers;
 using Robust.Shared.Map;
@@ -18,7 +17,7 @@ namespace Content.Shared.Abilities.Mime;
 
 public sealed class MimePowersSystem : EntitySystem
 {
-    public static readonly EntProtoId MutedEffect = "StatusEffectMuted";
+    public static readonly EntProtoId MutedEffect = "StatusEffectMimeMuted";
 
     [Dependency] private readonly SharedPopupSystem _popupSystem = default!;
     [Dependency] private readonly SharedActionsSystem _actionsSystem = default!;
@@ -33,7 +32,7 @@ public sealed class MimePowersSystem : EntitySystem
     {
         base.Initialize();
 
-        SubscribeLocalEvent<MimePowersComponent, ComponentInit>(OnComponentInit);
+        SubscribeLocalEvent<MimePowersComponent, ComponentStartup>(OnComponentStartup);
         SubscribeLocalEvent<MimePowersComponent, ComponentShutdown>(OnComponentShutdown);
         SubscribeLocalEvent<MimePowersComponent, InvisibleWallActionEvent>(OnInvisibleWall);
 
@@ -61,15 +60,10 @@ public sealed class MimePowersSystem : EntitySystem
         }
     }
 
-    private void OnComponentInit(Entity<MimePowersComponent> ent, ref ComponentInit args)
+    private void OnComponentStartup(Entity<MimePowersComponent> ent, ref ComponentStartup args)
     {
-        if (_statusEffects.TrySetStatusEffectDuration(ent, MutedEffect, out var status)
-            && TryComp<MutedStatusEffectComponent>(status, out var muted))
-        {
-            muted.SpeakPopup = "mime-cant-speak";
-            muted.ScreamPopup = "mime-cant-speak";
-            Dirty(status.Value, muted);
-        }
+        if (!ent.Comp.VowBroken)
+            _statusEffects.TrySetStatusEffectDuration(ent, MutedEffect);
 
         if (ent.Comp.PreventWriting)
         {
@@ -84,6 +78,7 @@ public sealed class MimePowersSystem : EntitySystem
 
     private void OnComponentShutdown(Entity<MimePowersComponent> ent, ref ComponentShutdown args)
     {
+        _statusEffects.TryRemoveStatusEffect(ent, MutedEffect);
         _actionsSystem.RemoveAction(ent.Owner, ent.Comp.InvisibleWallActionEntity);
     }
 
@@ -183,13 +178,7 @@ public sealed class MimePowersSystem : EntitySystem
         mimePowers.ReadyToRepent = false;
         mimePowers.VowBroken = false;
         Dirty(uid, mimePowers);
-        if (_statusEffects.TrySetStatusEffectDuration(uid, MutedEffect, out var status)
-            && TryComp<MutedStatusEffectComponent>(status, out var muted))
-        {
-            muted.SpeakPopup = "mime-cant-speak";
-            muted.ScreamPopup = "mime-cant-speak";
-            Dirty(status.Value, muted);
-        }
+        _statusEffects.TrySetStatusEffectDuration(uid, MutedEffect);
         if (mimePowers.PreventWriting)
         {
             EnsureComp<BlockWritingComponent>(uid, out var illiterateComponent);
