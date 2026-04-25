@@ -11,103 +11,41 @@ namespace Content.Server.Eye.EntitySystems;
 public sealed class VisibilityModifierStatusSystem : EntitySystem
 {
     [Dependency] private readonly VisibilitySystem _visibility = default!;
-    [Dependency] private readonly StatusEffectsSystem _statusEffects = default!;
 
     /// <inheritdoc />
     public override void Initialize()
     {
         SubscribeLocalEvent<VisibilityModifierStatusComponent, StatusEffectAppliedEvent>(OnStatusApplied);
         SubscribeLocalEvent<VisibilityModifierStatusComponent, StatusEffectRemovedEvent>(OnStatusRemoved);
+        SubscribeLocalEvent<VisibilityModifierStatusComponent, StatusEffectRelayedEvent<RefreshVisibilityModifiersEvent>>(OnRefreshVisibilityModifiers);
     }
 
     private void OnStatusApplied(Entity<VisibilityModifierStatusComponent> ent, ref StatusEffectAppliedEvent args)
     {
-        RefreshVisibilityModifiers((args.Target, null), skipEffect: ent.Owner);
+        _visibility.RefreshVisibility(args.Target);
     }
 
     private void OnStatusRemoved(Entity<VisibilityModifierStatusComponent> ent, ref StatusEffectRemovedEvent args)
     {
-        RefreshVisibilityModifiers((args.Target, null), extraEffect: ent.Comp);
+        _visibility.RefreshVisibility(args.Target);
     }
 
-    /// <summary>
-    /// Recomputes the entity's visibility layers from all active visibility-modifying status effects.
-    /// </summary>
-    public void RefreshVisibilityModifiers(
-        Entity<VisibilityComponent?> ent,
-        EntityUid? skipEffect = null,
-        VisibilityModifierStatusComponent? extraEffect = null)
+    private void OnRefreshVisibilityModifiers(
+        Entity<VisibilityModifierStatusComponent> ent,
+        ref StatusEffectRelayedEvent<RefreshVisibilityModifiersEvent> args)
     {
-        if (!Resolve(ent, ref ent.Comp, false))
-            return;
+        var ev = args.Args;
 
-        var currentModifiers = GetVisibilityModifiers(ent.Owner, skipEffect, extraEffect);
-        var newModifiers = GetVisibilityModifiers(ent.Owner);
-
-        var baseLayer = (ushort) ((ent.Comp.Layer & ~currentModifiers.AddLayers) | currentModifiers.RemoveLayers);
-        var newLayer = (ushort) ((baseLayer & ~newModifiers.RemoveLayers) | newModifiers.AddLayers);
-        if (newLayer == ent.Comp.Layer)
-            return;
-
-        _visibility.SetLayer(ent, newLayer, false);
-        _visibility.RefreshVisibility(ent.Owner, ent.Comp);
-    }
-
-    /// <summary>
-    /// Treats the entity's current visibility as the new baseline, then reapplies active status modifiers.
-    /// </summary>
-    public void CaptureCurrentVisibilityAsBaseline(
-        Entity<VisibilityComponent?> ent)
-    {
-        if (!Resolve(ent, ref ent.Comp, false))
-            return;
-
-        var modifiers = GetVisibilityModifiers(ent.Owner);
-        var newLayer = (ushort) ((ent.Comp.Layer & ~modifiers.RemoveLayers) | modifiers.AddLayers);
-        if (newLayer == ent.Comp.Layer)
-            return;
-
-        _visibility.SetLayer(ent, newLayer, false);
-        _visibility.RefreshVisibility(ent.Owner, ent.Comp);
-    }
-
-    private VisibilityModifiers GetVisibilityModifiers(
-        EntityUid uid,
-        EntityUid? skipEffect = null,
-        VisibilityModifierStatusComponent? extraEffect = null)
-    {
-        var modifiers = new VisibilityModifiers();
-
-        foreach (var (effectUid, _, effect) in _statusEffects.EnumerateStatusEffects<VisibilityModifierStatusComponent>((uid, null)))
+        foreach (var layer in ent.Comp.AddVisibility)
         {
-            if (skipEffect != null && effectUid == skipEffect.Value)
-                continue;
-
-            modifiers.Include(effect);
+            ev.AddLayer((ushort) layer);
         }
 
-        if (extraEffect != null)
-            modifiers.Include(extraEffect);
-
-        return modifiers;
-    }
-
-    private struct VisibilityModifiers
-    {
-        public ushort AddLayers;
-        public ushort RemoveLayers;
-
-        public void Include(VisibilityModifierStatusComponent effect)
+        foreach (var layer in ent.Comp.RemoveVisibility)
         {
-            foreach (var layer in effect.AddVisibility)
-            {
-                AddLayers |= (ushort) layer;
-            }
-
-            foreach (var layer in effect.RemoveVisibility)
-            {
-                RemoveLayers |= (ushort) layer;
-            }
+            ev.RemoveLayer((ushort) layer);
         }
+
+        args.Args = ev;
     }
 }
