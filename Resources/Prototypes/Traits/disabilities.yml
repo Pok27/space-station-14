@@ -62,8 +62,8 @@
   blacklist:
     components:
       - BorgChassis
-  components:
-  - type: PermanentStatusEffects
+  specials:
+  - !type:ApplyStatusEffectSpecial
     statusEffects:
     - StatusEffectMuted
 
