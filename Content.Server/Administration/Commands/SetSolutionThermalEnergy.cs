@@ -28,18 +28,18 @@ namespace Content.Server.Administration.Commands
                 return;
             }
 
-            if (!_entManager.TryGetComponent(uid, out SolutionContainerManagerComponent? man))
-            {
-                shell.WriteLine(Loc.GetString("cmd-setsolutionthermalenergy-no-solutions"));
-                return;
-            }
-
             var solutionContainerSystem = _entManager.System<SharedSolutionContainerSystem>();
-            if (!solutionContainerSystem.TryGetSolution((uid.Value, man), args[1], out var solutionEnt, out var solution))
+            if (!solutionContainerSystem.TryGetSolution(uid.Value, args[1], out var solutionEnt, out var solution))
             {
-                var validSolutions = string.Join(", ", solutionContainerSystem.EnumerateSolutions((uid.Value, man)).Select(s => s.Name));
+                var solutions = solutionContainerSystem.EnumerateSolutions(uid.Value).ToArray();
+                if (!solutions.Any())
+                {
+                    shell.WriteLine(Loc.GetString("cmd-setsolutionthermalenergy-no-solutions"));
+                    return;
+                }
+
+                var validSolutions = string.Join(", ", solutions.Select(s => s.Name));
                 shell.WriteLine(Loc.GetString("cmd-setsolutionthermalenergy-no-solution", ("solution", args[1])));
-                shell.WriteLine(validSolutions);
                 return;
             }
 
