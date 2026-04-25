@@ -65,6 +65,7 @@
         volume: -4
     unwrapTrash: ParcelWrapTrash
   - type: Damageable
+  - type: Injurable
     damageContainer: Inorganic
   - type: Destructible
     thresholds:
