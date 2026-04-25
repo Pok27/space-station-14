@@ -8,7 +8,6 @@ using Content.Shared.Cloning.Events;
 using Content.Shared.Database;
 using Content.Shared.Humanoid;
 using Content.Shared.IdentityManagement;
-using Content.Shared.Inventory;
 using Content.Shared.Implants;
 using Content.Shared.Implants.Components;
 using Content.Shared.Inventory;
