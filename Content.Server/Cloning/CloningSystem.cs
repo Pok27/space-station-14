@@ -7,12 +7,13 @@ using Content.Shared.Cloning;
 using Content.Shared.Cloning.Events;
 using Content.Shared.Database;
 using Content.Shared.Humanoid;
+using Content.Shared.IdentityManagement;
+using Content.Shared.Inventory;
 using Content.Shared.Implants;
 using Content.Shared.Implants.Components;
 using Content.Shared.Inventory;
 using Content.Shared.NameModifier.EntitySystems;
 using Content.Shared.StatusEffect;
-using Content.Shared.StatusEffectNew.Components;
 using Content.Shared.Storage;
 using Content.Shared.Storage.EntitySystems;
 using Content.Shared.Whitelist;
@@ -34,11 +35,13 @@ public sealed partial class CloningSystem : SharedCloningSystem
     [Dependency] private readonly SharedSubdermalImplantSystem _subdermalImplant = default!;
     [Dependency] private readonly SharedVisualBodySystem _visualBody = default!;
     [Dependency] private readonly NameModifierSystem _nameMod = default!;
-    [Dependency] private readonly Shared.StatusEffectNew.StatusEffectsSystem _statusEffects = default!; //TODO: This system has to support both the old and new status effect systems, until the old is able to be fully removed.
-    [Dependency] private readonly EntityQuery<CloneableStatusEffectComponent> _cloneableEffectQuery = default!;
+    [Dependency] private readonly IdentitySystem _identity = default!;
 
-    /// <inheritdoc/>
-    public override bool TryCloning(EntityUid original, MapCoordinates? coords, ProtoId<CloningSettingsPrototype> settingsId, [NotNullWhen(true)] out EntityUid? clone)
+    public override bool TryCloning(
+        EntityUid original,
+        MapCoordinates? coords,
+        ProtoId<CloningSettingsPrototype> settingsId,
+        [NotNullWhen(true)] out EntityUid? clone)
     {
         clone = null;
         if (!_prototype.Resolve(settingsId, out var settings))
@@ -50,10 +53,13 @@ public sealed partial class CloningSystem : SharedCloningSystem
         if (!_prototype.Resolve(humanoid.Species, out var speciesPrototype))
             return false; // invalid species
 
-        var attemptEv = new CloningAttemptEvent(settings);
-        RaiseLocalEvent(original, ref attemptEv);
-        if (attemptEv.Cancelled && !settings.ForceCloning)
-            return false; // cannot clone, for example due to the unrevivable trait
+        if (!settings.ForceCloning)
+        {
+            var attemptEv = new CloningAttemptEvent(settings);
+            RaiseLocalEvent(original, ref attemptEv);
+            if (attemptEv.Cancelled)
+                return false; // cannot clone, for example due to the unrevivable trait
+        }
 
         clone = coords == null ? Spawn(speciesPrototype.Prototype) : Spawn(speciesPrototype.Prototype, coords.Value);
         _visualBody.CopyAppearanceFrom(original, clone.Value);
@@ -80,13 +86,17 @@ public sealed partial class CloningSystem : SharedCloningSystem
         var originalName = _nameMod.GetBaseName(original);
 
         // Set the clone's name. The raised events will also adjust their PDA and ID card names.
-        _metaData.SetEntityName(clone.Value, originalName);
+        _metaData.SetEntityName(clone.Value, originalName, raiseEvents: settings.RaiseEntityRenamedEvent);
+        _identity.QueueIdentityUpdate(clone.Value); // We have to manually refresh the identity in case we did not raise events.
 
         _adminLogger.Add(LogType.Chat, LogImpact.Medium, $"The body of {original:player} was cloned as {clone.Value:player}");
         return true;
     }
 
-    public override void CloneComponents(EntityUid original, EntityUid clone, ProtoId<CloningSettingsPrototype> settings)
+    public override void CloneComponents(
+        EntityUid original,
+        EntityUid clone,
+        ProtoId<CloningSettingsPrototype> settings)
     {
         if (!_prototype.Resolve(settings, out var proto))
             return;
@@ -94,7 +104,10 @@ public sealed partial class CloningSystem : SharedCloningSystem
         CloneComponents(original, clone, proto);
     }
 
-    public override void CloneComponents(EntityUid original, EntityUid clone, CloningSettingsPrototype settings)
+    public override void CloneComponents(
+        EntityUid original,
+        EntityUid clone,
+        CloningSettingsPrototype settings)
     {
         var componentsToCopy = settings.Components;
         var componentsToEvent = settings.EventComponents;
@@ -140,7 +153,12 @@ public sealed partial class CloningSystem : SharedCloningSystem
         RaiseLocalEvent(original, ref cloningEv); // used for datafields that cannot be directly copied using CopyComp
     }
 
-    public override void CopyEquipment(Entity<InventoryComponent?> original, Entity<InventoryComponent?> clone, SlotFlags slotFlags, EntityWhitelist? whitelist = null, EntityWhitelist? blacklist = null)
+    public override void CopyEquipment(
+        Entity<InventoryComponent?> original,
+        Entity<InventoryComponent?> clone,
+        SlotFlags slotFlags,
+        EntityWhitelist? whitelist = null,
+        EntityWhitelist? blacklist = null)
     {
         if (!Resolve(original, ref original.Comp) || !Resolve(clone, ref clone.Comp))
             return;
@@ -158,7 +176,11 @@ public sealed partial class CloningSystem : SharedCloningSystem
         }
     }
 
-    public override EntityUid? CopyItem(EntityUid original, EntityCoordinates coords, EntityWhitelist? whitelist = null, EntityWhitelist? blacklist = null)
+    public override EntityUid? CopyItem(
+        EntityUid original,
+        EntityCoordinates coords,
+        EntityWhitelist? whitelist = null,
+        EntityWhitelist? blacklist = null)
     {
         // we use a whitelist and blacklist to be sure to exclude any problematic entities
         if (!_whitelist.CheckBoth(original, blacklist, whitelist))
@@ -194,7 +216,11 @@ public sealed partial class CloningSystem : SharedCloningSystem
         return spawned;
     }
 
-    public override void CopyStorage(Entity<StorageComponent?> original, Entity<StorageComponent?> target, EntityWhitelist? whitelist = null, EntityWhitelist? blacklist = null)
+    public override void CopyStorage(
+        Entity<StorageComponent?> original,
+        Entity<StorageComponent?> target,
+        EntityWhitelist? whitelist = null,
+        EntityWhitelist? blacklist = null)
     {
         if (!Resolve(original, ref original.Comp, false) || !Resolve(target, ref target.Comp, false))
             return;
@@ -213,7 +239,12 @@ public sealed partial class CloningSystem : SharedCloningSystem
         }
     }
 
-    public override void CopyImplants(Entity<ImplantedComponent?> original, EntityUid target, bool copyStorage = false, EntityWhitelist? whitelist = null, EntityWhitelist? blacklist = null)
+    public override void CopyImplants(
+        Entity<ImplantedComponent?> original,
+        EntityUid target,
+        bool copyStorage = false,
+        EntityWhitelist? whitelist = null,
+        EntityWhitelist? blacklist = null)
     {
         if (!Resolve(original, ref original.Comp, false))
             return; // they don't have any implants to copy!
@@ -239,24 +270,6 @@ public sealed partial class CloningSystem : SharedCloningSystem
 
             if (copyStorage)
                 CopyStorage(originalImplant, targetImplant.Value, whitelist, blacklist); // only needed for storage implants
-        }
-
-    }
-
-    public override void CopyStatusEffects(Entity<StatusEffectContainerComponent?> original, Entity<StatusEffectContainerComponent?> target)
-    {
-        foreach (var effect in _statusEffects.EnumerateStatusEffects(original, _cloneableEffectQuery))
-        {
-            //We are not interested in temporary effects, only permanent ones.
-            if (effect.Comp1.EndEffectTime is not null)
-                continue;
-
-            var effectProto = Prototype(effect);
-
-            if (effectProto is null)
-                continue;
-
-            _statusEffects.TrySetStatusEffectDuration(target, effectProto);
         }
     }
 }
