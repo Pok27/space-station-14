@@ -31,7 +31,8 @@ public sealed partial class SpillBehavior : EntitySystem, IThresholdBehavior
         var coordinates = Transform(owner).Coordinates;
 
         // Spill the solution that was drained/split
-        if (_solutionContainer.TryGetSolution(owner, Solution, out _, out var solution))
+        // TODO: ??? Top 10 reasons for solution entity prototypes right here bruh.
+        if (Solution != null && _solutionContainer.TryGetSolution(owner, Solution, out _, out var solution))
             _puddle.TrySplashSpillAt(owner, coordinates, solution, out _, false, cause);
         else
             _puddle.TrySplashSpillAt(owner, coordinates, out _, out _, false, cause);
