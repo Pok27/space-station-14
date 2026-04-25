@@ -14,6 +14,7 @@ using Content.Shared.Tools;
 using Content.Shared.Tools.Components;
 using Content.Shared.Tools.Systems;
 using Content.Shared.UserInterface;
+using Content.Shared.Rejuvenate;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
@@ -40,7 +41,7 @@ public abstract class SharedWiresSystem : EntitySystem
     [Dependency] private readonly SharedInteractionSystem _interaction = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly SharedToolSystem _tool = default!;
-    [Dependency] private readonly SharedUserInterfaceSystem _uiSystem = default!;
+    [Dependency] protected readonly SharedUserInterfaceSystem UI = default!;
 
     private static readonly ProtoId<ToolQualityPrototype> CuttingQuality = "Cutting";
     private static readonly ProtoId<ToolQualityPrototype> PulsingQuality = "Pulsing";
@@ -63,12 +64,14 @@ public abstract class SharedWiresSystem : EntitySystem
         SubscribeLocalEvent<WiresComponent, TimedWireEvent>(OnTimedWire);
         SubscribeLocalEvent<WiresComponent, PowerChangedEvent>(OnWiresPowered);
         SubscribeLocalEvent<WiresComponent, WireDoAfterEvent>(OnDoAfter);
+        SubscribeLocalEvent<WiresComponent, RejuvenateEvent>(OnRejuvenate);
         SubscribeLocalEvent<WiresPanelSecurityComponent, WiresPanelSecurityEvent>(SetWiresPanelSecurity);
 
         SubscribeLocalEvent<WiresPanelComponent, ComponentStartup>(OnStartup);
         SubscribeLocalEvent<WiresPanelComponent, WirePanelDoAfterEvent>(OnPanelDoAfter);
         SubscribeLocalEvent<WiresPanelComponent, InteractUsingEvent>(OnInteractUsing);
         SubscribeLocalEvent<WiresPanelComponent, ExaminedEvent>(OnExamine);
+        SubscribeLocalEvent<WiresPanelComponent, GetVerbsEvent<AlternativeVerb>>(OnGetVerbs);
 
         SubscribeLocalEvent<ActivatableUIRequiresPanelComponent, ActivatableUIOpenAttemptEvent>(OnAttemptOpenActivatableUI);
         SubscribeLocalEvent<ActivatableUIRequiresPanelComponent, PanelChangedEvent>(OnActivatableUIPanelChanged);
@@ -437,7 +440,7 @@ public abstract class SharedWiresSystem : EntitySystem
         {
             if (TryComp(args.User, out ActorComponent? actor))
             {
-                _uiSystem.OpenUi(ent.Owner, WiresUiKey.Key, actor.PlayerSession);
+                UI.OpenUi(ent.Owner, WiresUiKey.Key, actor.PlayerSession);
                 args.Handled = true;
             }
         }
@@ -448,7 +451,22 @@ public abstract class SharedWiresSystem : EntitySystem
         if (args.Open)
             return;
 
-        _uiSystem.CloseUi(ent.Owner, WiresUiKey.Key);
+        UI.CloseUi(ent.Owner, WiresUiKey.Key);
+    }
+
+    private void OnRejuvenate(Entity<WiresComponent> ent, ref RejuvenateEvent args)
+    {
+        foreach (var wire in ent.Comp.WiresList)
+        {
+            // Rejuvenate has no user so we mend as the entity having the wire.
+            if (wire.Action == null || wire.Action.Mend(ent, wire))
+            {
+                wire.IsCut = false;
+            }
+        }
+
+        // If we don't update the interface wires will be desynced on client.
+        UpdateUserInterface(ent.Owner, ent.Comp);
     }
     #endregion
 
@@ -483,7 +501,7 @@ public abstract class SharedWiresSystem : EntitySystem
 
         statuses.Sort((a, b) => a.position.CompareTo(b.position));
 
-        _uiSystem.SetUiState((ent.Owner, ui),
+        UI.SetUiState((ent.Owner, ui),
             WiresUiKey.Key,
             new WiresBoundUserInterfaceState(
             [.. clientList],
@@ -493,9 +511,14 @@ public abstract class SharedWiresSystem : EntitySystem
             ent.Comp.WireSeed));
     }
 
+    public void OpenUserInterface(EntityUid uid, EntityUid actor)
+    {
+        UI.OpenUi(uid, WiresUiKey.Key, actor);
+    }
+
     public void OpenUserInterface(EntityUid uid, ICommonSession player)
     {
-        _uiSystem.OpenUi(uid, WiresUiKey.Key, player);
+        UI.OpenUi(uid, WiresUiKey.Key, player);
     }
 
     /// <summary>
@@ -539,7 +562,7 @@ public abstract class SharedWiresSystem : EntitySystem
 
         if (!args.WiresAccessible)
         {
-            _uiSystem.CloseUi(uid, WiresUiKey.Key);
+            UI.CloseUi(uid, WiresUiKey.Key);
         }
     }
 
