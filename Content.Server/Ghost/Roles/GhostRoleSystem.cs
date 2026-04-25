@@ -171,7 +171,7 @@ public sealed class GhostRoleSystem : SharedGhostRoleSystem
         }
     }
 
-    public void UpdateAllEui()
+    public override void UpdateAllEui()
     {
         foreach (var eui in _openUis.Values)
         {
@@ -669,9 +669,9 @@ public sealed class GhostRoleSystem : SharedGhostRoleSystem
             roles.Add(new GhostRoleInfo
             {
                 Identifier = id,
-                Name = Loc.GetString(role.RoleName),
-                Description = Loc.GetString(role.RoleDescription),
-                Rules = Loc.GetString(role.RoleRules),
+                Name = role.RoleName,
+                Description = role.RoleDescription,
+                Rules = role.RoleRules,
                 RolePrototypes = (jobs, antags),
                 Kind = kind,
                 RafflePlayerCount = rafflePlayerCount,

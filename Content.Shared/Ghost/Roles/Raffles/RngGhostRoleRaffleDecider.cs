@@ -17,7 +17,7 @@ public sealed partial class RngGhostRoleRaffleDecider : IGhostRoleRaffleDecider
         var random = IoCManager.Resolve<IRobustRandom>();
         var net = IoCManager.Resolve<INetManager>();
 
-        // No prediction random.
+        // Client must not pick winners.
         if (net.IsClient)
             return;
 
