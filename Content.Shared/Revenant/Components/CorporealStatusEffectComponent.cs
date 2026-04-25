@@ -20,4 +20,16 @@ public sealed partial class CorporealStatusEffectComponent : Component
     /// </summary>
     [DataField]
     public int CollisionLayer = (int)CollisionGroup.SmallMobLayer;
+
+    /// <summary>
+    /// The collision mask restored when the corporeal effect ends.
+    /// </summary>
+    [DataField]
+    public int RemovedCollisionMask = (int)CollisionGroup.GhostImpassable;
+
+    /// <summary>
+    /// The collision layer restored when the corporeal effect ends.
+    /// </summary>
+    [DataField]
+    public int RemovedCollisionLayer = 0;
 }

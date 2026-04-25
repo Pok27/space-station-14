@@ -49,8 +49,8 @@ public abstract class SharedCorporealSystem : EntitySystem
         {
             var fixture = fixtures.Fixtures.First();
 
-            _physics.SetCollisionMask(args.Target, fixture.Key, fixture.Value, (int)CollisionGroup.GhostImpassable, fixtures);
-            _physics.SetCollisionLayer(args.Target, fixture.Key, fixture.Value, 0, fixtures);
+            _physics.SetCollisionMask(args.Target, fixture.Key, fixture.Value, ent.Comp.RemovedCollisionMask, fixtures);
+            _physics.SetCollisionLayer(args.Target, fixture.Key, fixture.Value, ent.Comp.RemovedCollisionLayer, fixtures);
         }
     }
 }
