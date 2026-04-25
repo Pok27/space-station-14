@@ -10,11 +10,12 @@ using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction;
 using Content.Shared.Popups;
 using Content.Shared.Power;
+using Content.Shared.Rejuvenate;
 using Content.Shared.Tools;
 using Content.Shared.Tools.Components;
 using Content.Shared.Tools.Systems;
 using Content.Shared.UserInterface;
-using Content.Shared.Rejuvenate;
+using Content.Shared.Verbs;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
@@ -22,6 +23,7 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
 using Robust.Shared.Timing;
+using Robust.Shared.Utility;
 
 namespace Content.Shared.Wires;
 
@@ -41,7 +43,7 @@ public abstract class SharedWiresSystem : EntitySystem
     [Dependency] private readonly SharedInteractionSystem _interaction = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly SharedToolSystem _tool = default!;
-    [Dependency] protected readonly SharedUserInterfaceSystem UI = default!;
+    [Dependency] protected readonly SharedUserInterfaceSystem _ui = default!;
 
     private static readonly ProtoId<ToolQualityPrototype> CuttingQuality = "Cutting";
     private static readonly ProtoId<ToolQualityPrototype> PulsingQuality = "Pulsing";
@@ -143,6 +145,22 @@ public abstract class SharedWiresSystem : EntitySystem
                 }
             }
         }
+    }
+
+    private void OnGetVerbs(Entity<WiresPanelComponent> ent, ref GetVerbsEvent<AlternativeVerb> args)
+    {
+        if (!IsPanelOpen(ent.Owner))
+            return;
+
+        var actor = args.User;
+        var verb = new AlternativeVerb
+        {
+            Text = Loc.GetString("wires-panel-verb-view-panel"),
+            Icon = new SpriteSpecifier.Texture(new ResPath("/Textures/Interface/VerbIcons/screwdriver.png")),
+            Act = () => OpenUserInterface(ent, actor),
+        };
+
+        args.Verbs.Add(verb);
     }
 
     public void ChangePanelVisibility(Entity<WiresPanelComponent> ent, bool visible)
@@ -440,7 +458,7 @@ public abstract class SharedWiresSystem : EntitySystem
         {
             if (TryComp(args.User, out ActorComponent? actor))
             {
-                UI.OpenUi(ent.Owner, WiresUiKey.Key, actor.PlayerSession);
+                _ui.OpenUi(ent.Owner, WiresUiKey.Key, actor.PlayerSession);
                 args.Handled = true;
             }
         }
@@ -451,7 +469,7 @@ public abstract class SharedWiresSystem : EntitySystem
         if (args.Open)
             return;
 
-        UI.CloseUi(ent.Owner, WiresUiKey.Key);
+        _ui.CloseUi(ent.Owner, WiresUiKey.Key);
     }
 
     private void OnRejuvenate(Entity<WiresComponent> ent, ref RejuvenateEvent args)
@@ -466,7 +484,7 @@ public abstract class SharedWiresSystem : EntitySystem
         }
 
         // If we don't update the interface wires will be desynced on client.
-        UpdateUserInterface(ent.Owner, ent.Comp);
+        UpdateUserInterface(ent.Owner);
     }
     #endregion
 
@@ -501,7 +519,7 @@ public abstract class SharedWiresSystem : EntitySystem
 
         statuses.Sort((a, b) => a.position.CompareTo(b.position));
 
-        UI.SetUiState((ent.Owner, ui),
+        _ui.SetUiState((ent.Owner, ui),
             WiresUiKey.Key,
             new WiresBoundUserInterfaceState(
             [.. clientList],
@@ -513,12 +531,12 @@ public abstract class SharedWiresSystem : EntitySystem
 
     public void OpenUserInterface(EntityUid uid, EntityUid actor)
     {
-        UI.OpenUi(uid, WiresUiKey.Key, actor);
+        _ui.OpenUi(uid, WiresUiKey.Key, actor);
     }
 
     public void OpenUserInterface(EntityUid uid, ICommonSession player)
     {
-        UI.OpenUi(uid, WiresUiKey.Key, player);
+        _ui.OpenUi(uid, WiresUiKey.Key, player);
     }
 
     /// <summary>
@@ -562,7 +580,7 @@ public abstract class SharedWiresSystem : EntitySystem
 
         if (!args.WiresAccessible)
         {
-            UI.CloseUi(uid, WiresUiKey.Key);
+            _ui.CloseUi(uid, WiresUiKey.Key);
         }
     }
 
