@@ -8,11 +8,31 @@ namespace Content.Shared.Speech.EntitySystems;
 /// </summary>
 public abstract class RelayAccentSystem<T> : EntitySystem where T : Component
 {
+    /// <summary>
+    /// Systems this accent should run before for direct speech accenting.
+    /// </summary>
+    protected virtual Type[]? AccentBefore => null;
+
+    /// <summary>
+    /// Systems this accent should run after for direct speech accenting.
+    /// </summary>
+    protected virtual Type[]? AccentAfter => null;
+
+    /// <summary>
+    /// Systems this accent should run before for relayed speech accenting.
+    /// </summary>
+    protected virtual Type[]? RelayAccentBefore => AccentBefore;
+
+    /// <summary>
+    /// Systems this accent should run after for relayed speech accenting.
+    /// </summary>
+    protected virtual Type[]? RelayAccentAfter => AccentAfter;
+
     /// <inheritdoc />
     public override void Initialize()
     {
-        SubscribeLocalEvent<T, AccentGetEvent>(OnAccent);
-        SubscribeLocalEvent<T, StatusEffectRelayedEvent<AccentGetEvent>>(OnAccentRelayed);
+        SubscribeLocalEvent<T, AccentGetEvent>(OnAccent, before: AccentBefore, after: AccentAfter);
+        SubscribeLocalEvent<T, StatusEffectRelayedEvent<AccentGetEvent>>(OnAccentRelayed, before: RelayAccentBefore, after: RelayAccentAfter);
     }
 
     /// <summary>
