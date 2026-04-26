@@ -179,7 +179,7 @@ public sealed class ChangelingDevourSystem : EntitySystem
         _adminLogger.Add(LogType.Action, LogImpact.Medium, $"{ToPrettyString(ent.Owner):player} successfully devoured {ToPrettyString(target):player}'s identity");
 
         // A unique identity is separate from whether we have actually devoured this target before.
-        var uniqueIdentity = !IsUniqueDevour(ent.Owner);
+        var uniqueIdentity = !IsUniqueDevour(ent.Owner, target);
         var firstTimeDevoured = !HasPreviouslyDevoured(ent.Owner, target);
 
         // Even if not unique, target is supposed to give us an identity if it is not currently in our identity list.
