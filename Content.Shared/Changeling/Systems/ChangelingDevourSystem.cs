@@ -5,7 +5,6 @@ using Content.Shared.Armor;
 using Content.Shared.Atmos.Rotting;
 using Content.Shared.Changeling.Components;
 using Content.Shared.Store;
-using Content.Shared.Store.Components;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Database;
 using Content.Shared.DoAfter;
@@ -14,6 +13,7 @@ using Content.Shared.IdentityManagement;
 using Content.Shared.Inventory;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Popups;
+using Content.Shared.Store.Components;
 using Content.Shared.Whitelist;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Network;
@@ -39,7 +39,6 @@ public sealed class ChangelingDevourSystem : EntitySystem
         base.Initialize();
 
         SubscribeLocalEvent<ChangelingDevourComponent, MapInitEvent>(OnMapInit);
-        SubscribeLocalEvent<ChangelingDevourComponent, ChangelingDevouredEvent>(OnDevouredEntity);
         SubscribeLocalEvent<ChangelingDevourComponent, ChangelingDevourActionEvent>(OnDevourAction);
         SubscribeLocalEvent<ChangelingDevourComponent, ChangelingDevourWindupDoAfterEvent>(OnDevourWindup);
         SubscribeLocalEvent<ChangelingDevourComponent, ChangelingDevourConsumeDoAfterEvent>(OnDevourConsume);
@@ -57,13 +56,6 @@ public sealed class ChangelingDevourSystem : EntitySystem
         {
             _actionsSystem.RemoveAction(ent.Owner, ent.Comp.ChangelingDevourActionEntity);
         }
-    }
-
-    private void OnDevouredEntity(Entity<ChangelingDevourComponent> ent, ref ChangelingDevouredEvent args)
-    {
-        // Grants the DNA reward associated with a successful unique devour.
-        if (args.FirstTimeDevoured && TryComp<StoreComponent>(ent, out var store))
-            _store.TryAddCurrency(ent.Comp.DevourDnaReward, ent.Owner, store);
     }
 
     // The action was used.
@@ -179,17 +171,23 @@ public sealed class ChangelingDevourSystem : EntitySystem
         _adminLogger.Add(LogType.Action, LogImpact.Medium, $"{ToPrettyString(ent.Owner):player} successfully devoured {ToPrettyString(target):player}'s identity");
 
         // A unique identity is separate from whether we have actually devoured this target before.
-        var uniqueIdentity = !IsUniqueDevour(ent.Owner, target);
-        var firstTimeDevoured = !HasPreviouslyDevoured(ent.Owner, target);
+        var uniqueIdentity = IsUniqueDevour(ent.Owner, target);
+        var willGrantDna = WillDevourGrantDna(ent.Owner, target);
 
         // Even if not unique, target is supposed to give us an identity if it is not currently in our identity list.
         var becomesIdentity = !HasIdentity(ent.Owner, target);
 
-        var ev = new ChangelingDevouredEvent(ent.Owner, target, becomesIdentity, uniqueIdentity, firstTimeDevoured);
+        var ev = new ChangelingDevouredEvent(ent.Owner, target, becomesIdentity, uniqueIdentity, willGrantDna);
         RaiseLocalEvent(ent, ref ev, true); // We broadcast the event to allow relevant objectives to update.
 
-        var devouredEv = new ChangelingGotDevouredEvent(ent.Owner, target, becomesIdentity, uniqueIdentity, firstTimeDevoured);
+        var devouredEv = new ChangelingGotDevouredEvent(ent.Owner, target, becomesIdentity, uniqueIdentity, willGrantDna);
         RaiseLocalEvent(target, ref devouredEv); // Don't broadcast this one, all neccessary data is in the previous event already. Just use that one if a broadcast is needed.
+
+        EnsureComp<RecentlyDevouredComponent>(target);
+
+        // Grants the DNA reward associated with a successful unique devour.
+        if (willGrantDna && TryComp<StoreComponent>(ent, out var store))
+            _store.TryAddCurrency(ent.Comp.DevourDnaReward, ent.Owner, store);
     }
 
     /// <summary>
@@ -201,14 +199,6 @@ public sealed class ChangelingDevourSystem : EntitySystem
             return false;
 
         return changeling.Comp.ConsumedIdentities.FirstOrDefault(data => data.Original == devoured && data.Identity != null) != null;
-    }
-
-    /// <summary>
-    /// Has this entity been devoured by a changeling already before getting revived?
-    /// </summary>
-    public bool WasDevouredRecently(EntityUid entity)
-    {
-        return HasComp<RecentlyDevouredComponent>(entity);
     }
 
     /// <summary>
@@ -229,7 +219,7 @@ public sealed class ChangelingDevourSystem : EntitySystem
             return false;
         }
 
-        if (WasDevouredRecently(victim))
+        if (HasComp<RecentlyDevouredComponent>(victim))
         {
             if (showPopup)
                 _popupSystem.PopupClient(Loc.GetString("changeling-devour-attempt-failed-devoured-recently"), changeling.Owner, changeling.Owner, PopupType.Medium);
@@ -284,30 +274,35 @@ public sealed class ChangelingDevourSystem : EntitySystem
     }
 
     /// <summary>
-    /// Checks whether devouring this target would provide a unique identity for this changeling.
+    /// Checks whether devouring this target has never been devoured by the changeling before.
     /// </summary>
     /// <param name="ent">The changeling.</param>
     /// <param name="devoured">The target entity.</param>
-    /// <returns>True if this target would provide a unique identity, False otherwise.</returns>
+    /// <returns>True if the target was never devoured before, otherwise False.</returns>
     public bool IsUniqueDevour(Entity<ChangelingIdentityComponent?> ent, EntityUid devoured)
     {
         if (!Resolve(ent, ref ent.Comp, false))
             return false;
 
-        return _changelingIdentitySystem.TryGetDataFromOriginal(ent, devoured, out _);
+        return !_changelingIdentitySystem.TryGetDataFromOriginal(ent, devoured, out _);
     }
 
     /// <summary>
-    /// Checks whether this changeling has devoured this exact target entity before.
+    /// Checks whether devouring this entity will grant DNA to the changeling.
     /// </summary>
     /// <param name="ent">The changeling.</param>
     /// <param name="devoured">The target entity.</param>
-    /// <returns>True if this target entity was previously devoured by this changeling, False otherwise.</returns>
-    public bool HasPreviouslyDevoured(Entity<ChangelingIdentityComponent?> ent, EntityUid devoured)
+    /// <returns>True if this target entity has granted the changeling DNA before, False otherwise.</returns>
+    public bool WillDevourGrantDna(Entity<ChangelingIdentityComponent?> ent, EntityUid devoured)
     {
         if (!Resolve(ent, ref ent.Comp, false))
             return false;
 
-        return TryComp<ChangelingDevouredComponent>(devoured, out var devouredComp) && devouredComp.DevouredBy.Contains(ent.Owner);
+        // This target was never devoured, so obviously it can grant us DNA.
+        if (!_changelingIdentitySystem.TryGetDataFromOriginal(ent, devoured, out var data))
+            return true;
+
+        // If the entity was Devoured, it means it already granted DNA, so we return False.
+        return !data.GrantedDna;
     }
 }

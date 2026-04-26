@@ -20,7 +20,7 @@ public sealed class ChangelingObjectiveSystem : EntitySystem
 
     private void OnChangelingDevoured(ref ChangelingDevouredEvent args)
     {
-        if (!args.UniqueIdentity)
+        if (!args.Unique)
             return;
 
         if (!_mind.TryGetObjectiveComp<ChangelingUniqueIdentityConditionComponent>(args.Changeling, out var obj))

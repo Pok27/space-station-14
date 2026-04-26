@@ -43,10 +43,15 @@ public abstract class SharedChangelingIdentitySystem : EntitySystem
     private void OnDevouredEntity(Entity<ChangelingIdentityComponent> ent, ref ChangelingDevouredEvent args)
     {
         if (args.ObtainedIdentity)
+        {
             CloneToPausedMap(ent, args.Devoured);
+            AddDevouredReference(ent, args.Devoured);
+        }
 
-        AddDevouredReference(ent, args.Devoured);
-        MarkRecentlyDevoured(args.Devoured);
+        if (args.GrantedDna && TryGetDataFromOriginal(ent.AsNullable(), args.Devoured, out var data))
+        {
+            data.GrantedDna = true;
+        }
     }
 
     private void OnPlayerAttached(Entity<ChangelingIdentityComponent> ent, ref PlayerAttachedEvent args)
@@ -68,6 +73,7 @@ public abstract class SharedChangelingIdentitySystem : EntitySystem
             return;
 
         data.Starting = true;
+        data.GrantedDna = true; // I have no idea how you're supposed to ever get DNA from yourself, but just in case.
 
         ent.Comp.CurrentIdentity = data.Identity;
     }
@@ -220,18 +226,9 @@ public abstract class SharedChangelingIdentitySystem : EntitySystem
     public void AddDevouredReference(Entity<ChangelingIdentityComponent> ent, EntityUid target)
     {
         var targetDevoured = EnsureComp<ChangelingDevouredComponent>(target);
-        if (!targetDevoured.DevouredBy.Add(ent.Owner))
-            return;
+        targetDevoured.DevouredBy.Add(ent.Owner);
 
         Dirty(target, targetDevoured);
-    }
-
-    /// <summary>
-    /// Marks that an entity was devoured recently and cannot be devoured again until revived.
-    /// </summary>
-    public void MarkRecentlyDevoured(EntityUid target)
-    {
-        EnsureComp<RecentlyDevouredComponent>(target);
     }
 
     /// <summary>
@@ -249,6 +246,12 @@ public abstract class SharedChangelingIdentitySystem : EntitySystem
 
         foreach (var dropped in toDrop)
         {
+            if (TryComp<ChangelingDevouredComponent>(dropped.Original, out var devoured))
+            {
+                if (devoured.DevouredBy.Remove(ent))
+                    Dirty(dropped.Original.Value, devoured);
+            }
+
             dropped.Identity = null;
         }
 
@@ -343,10 +346,10 @@ public abstract class SharedChangelingIdentitySystem : EntitySystem
     {
         data.Identity = identity;
         data.Original = original;
-        data.OriginalName = Name(identity);
+        data.OriginalName = Name(original);
 
         var foundMind = _mind.TryGetMind(original, out var mindId, out _);
-        data.OriginalMind = mindId;
+        data.OriginalMind = foundMind ? mindId : null;
 
         if (foundMind)
         {
