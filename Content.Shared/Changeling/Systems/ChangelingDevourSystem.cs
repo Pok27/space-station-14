@@ -4,6 +4,8 @@ using Content.Shared.Administration.Logs;
 using Content.Shared.Armor;
 using Content.Shared.Atmos.Rotting;
 using Content.Shared.Changeling.Components;
+using Content.Shared.Store;
+using Content.Shared.Store.Components;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Database;
 using Content.Shared.DoAfter;
@@ -20,22 +22,24 @@ namespace Content.Shared.Changeling.Systems;
 
 public sealed class ChangelingDevourSystem : EntitySystem
 {
+    [Dependency] private readonly DamageableSystem _damageable = default!;
+    [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
     [Dependency] private readonly INetManager _net = default!;
+    [Dependency] private readonly ISharedAdminLogManager _adminLogger = default!;
+    [Dependency] private readonly MobStateSystem _mobState = default!;
+    [Dependency] private readonly SharedActionsSystem _actionsSystem = default!;
+    [Dependency] private readonly SharedAudioSystem _audio = default!;
+    [Dependency] private readonly SharedChangelingIdentitySystem _changelingIdentitySystem = default!;
     [Dependency] private readonly SharedDoAfterSystem _doAfterSystem = default!;
     [Dependency] private readonly SharedPopupSystem _popupSystem = default!;
-    [Dependency] private readonly SharedActionsSystem _actionsSystem = default!;
-    [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly SharedChangelingIdentitySystem _changelingIdentitySystem = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly ISharedAdminLogManager _adminLogger = default!;
+    [Dependency] private readonly SharedStoreSystem _store = default!;
 
     public override void Initialize()
     {
         base.Initialize();
 
         SubscribeLocalEvent<ChangelingDevourComponent, MapInitEvent>(OnMapInit);
+        SubscribeLocalEvent<ChangelingDevourComponent, ChangelingDevouredEvent>(OnDevouredEntity);
         SubscribeLocalEvent<ChangelingDevourComponent, ChangelingDevourActionEvent>(OnDevourAction);
         SubscribeLocalEvent<ChangelingDevourComponent, ChangelingDevourWindupDoAfterEvent>(OnDevourWindup);
         SubscribeLocalEvent<ChangelingDevourComponent, ChangelingDevourConsumeDoAfterEvent>(OnDevourConsume);
@@ -53,6 +57,13 @@ public sealed class ChangelingDevourSystem : EntitySystem
         {
             _actionsSystem.RemoveAction(ent.Owner, ent.Comp.ChangelingDevourActionEntity);
         }
+    }
+
+    private void OnDevouredEntity(Entity<ChangelingDevourComponent> ent, ref ChangelingDevouredEvent args)
+    {
+        // Grants the DNA reward associated with a successful unique devour.
+        if (args.FirstTimeDevoured && TryComp<StoreComponent>(ent, out var store))
+            _store.TryAddCurrency(ent.Comp.DevourDnaReward, ent.Owner, store);
     }
 
     // The action was used.
@@ -167,16 +178,17 @@ public sealed class ChangelingDevourSystem : EntitySystem
 
         _adminLogger.Add(LogType.Action, LogImpact.Medium, $"{ToPrettyString(ent.Owner):player} successfully devoured {ToPrettyString(target):player}'s identity");
 
-        // If this entity has never been devoured before, it counts as unique.
-        var unique = !_changelingIdentitySystem.TryGetDataFromOriginal(ent.Owner, target, out _);
+        // A unique identity is separate from whether we have actually devoured this target before.
+        var uniqueIdentity = !_changelingIdentitySystem.TryGetDataFromOriginal(ent.Owner, target, out _);
+        var firstTimeDevoured = !HasPreviouslyDevoured(ent.Owner, target);
 
         // Even if not unique, target is supposed to give us an identity if it is not currently in our identity list.
         var becomesIdentity = !HasIdentity(ent.Owner, target);
 
-        var ev = new ChangelingDevouredEvent(ent.Owner, target, becomesIdentity, unique);
+        var ev = new ChangelingDevouredEvent(ent.Owner, target, becomesIdentity, uniqueIdentity, firstTimeDevoured);
         RaiseLocalEvent(ent, ref ev, true); // We broadcast the event to allow relevant objectives to update.
 
-        var devouredEv = new ChangelingGotDevouredEvent(ent.Owner, target, becomesIdentity, unique);
+        var devouredEv = new ChangelingGotDevouredEvent(ent.Owner, target, becomesIdentity, uniqueIdentity, firstTimeDevoured);
         RaiseLocalEvent(target, ref devouredEv); // Don't broadcast this one, all neccessary data is in the previous event already. Just use that one if a broadcast is needed.
     }
 
@@ -194,12 +206,9 @@ public sealed class ChangelingDevourSystem : EntitySystem
     /// <summary>
     /// Has this entity been devoured by a changeling already before getting revived?
     /// </summary>
-    public bool WasDevouredRecently(Entity<ChangelingDevouredComponent?> entity)
+    public bool WasDevouredRecently(EntityUid entity)
     {
-        if (!Resolve(entity, ref entity.Comp, false))
-            return false;
-
-        return entity.Comp.Recent;
+        return HasComp<RecentlyDevouredComponent>(entity);
     }
 
     /// <summary>
@@ -280,11 +289,11 @@ public sealed class ChangelingDevourSystem : EntitySystem
     /// <param name="ent">The changeling.</param>
     /// <param name="devoured">The target entity.</param>
     /// <returns>True if target was previously devoured, False otherwise.</returns>
-    public bool IsUniqueDevour(Entity<ChangelingIdentityComponent?> ent, EntityUid devoured)
+    public bool HasPreviouslyDevoured(Entity<ChangelingIdentityComponent?> ent, EntityUid devoured)
     {
         if (!Resolve(ent, ref ent.Comp, false))
             return false;
 
-        return _changelingIdentitySystem.TryGetDataFromOriginal(ent, devoured, out _);
+        return TryComp<ChangelingDevouredComponent>(devoured, out var devouredComp) && devouredComp.DevouredBy.Contains(ent.Owner);
     }
 }

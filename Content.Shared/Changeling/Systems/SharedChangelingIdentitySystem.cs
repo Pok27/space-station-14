@@ -2,12 +2,9 @@
 using System.Linq;
 using Content.Shared.Changeling.Components;
 using Content.Shared.Cloning;
-using Content.Shared.FixedPoint;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
 using Content.Shared.Roles.Jobs;
-using Content.Shared.Store;
-using Content.Shared.Store.Components;
 using Robust.Shared.GameStates;
 using Robust.Shared.Map;
 using Robust.Shared.Network;
@@ -25,7 +22,6 @@ public abstract class SharedChangelingIdentitySystem : EntitySystem
     [Dependency] private readonly SharedPvsOverrideSystem _pvsOverrideSystem = default!;
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly SharedJobSystem _job = default!;
-    [Dependency] private readonly SharedStoreSystem _store = default!;
 
     public MapId? PausedMapId;
 
@@ -41,32 +37,16 @@ public abstract class SharedChangelingIdentitySystem : EntitySystem
         SubscribeLocalEvent<ChangelingStoredIdentityComponent, ComponentRemove>(OnStoredRemove);
 
         SubscribeLocalEvent<ChangelingDevouredComponent, ComponentShutdown>(OnDevouredShutdown);
-        SubscribeLocalEvent<ChangelingDevouredComponent, MobStateChangedEvent>(OnDevouredMobState);
+        SubscribeLocalEvent<RecentlyDevouredComponent, MobStateChangedEvent>(OnRecentlyDevouredMobState);
     }
 
     private void OnDevouredEntity(Entity<ChangelingIdentityComponent> ent, ref ChangelingDevouredEvent args)
     {
-        // We're not supposed to be given an identity.
-        if (!args.ObtainedIdentity)
-            return;
+        if (args.ObtainedIdentity)
+            AddIdentity(ent, args.Devoured);
 
-        CloneToPausedMap(ent, args.Devoured);
-
-        // We add a reference to ourselves to prevent repeated identity gain.
-        var targetDevoured = EnsureComp<ChangelingDevouredComponent>(args.Devoured);
-        targetDevoured.DevouredBy.Add(ent.Owner);
-        targetDevoured.Recent = true;
-        Dirty(args.Devoured, targetDevoured);
-        Dirty(ent);
-
-        // Grants DNA currency reward for devouring.
-        if (args.Unique && TryComp<ChangelingDevourComponent>(ent, out var devour) && TryComp<StoreComponent>(ent, out var store))
-        {
-            _store.TryAddCurrency(new Dictionary<string, FixedPoint2>
-            {
-                { devour.DnaCurrencyPrototype, devour.DevourDnaReward }
-            }, ent.Owner, store);
-        }
+        AddDevouredReference(ent, args.Devoured);
+        MarkRecentlyDevoured(args.Devoured);
     }
 
     private void OnPlayerAttached(Entity<ChangelingIdentityComponent> ent, ref PlayerAttachedEvent args)
@@ -113,14 +93,13 @@ public abstract class SharedChangelingIdentitySystem : EntitySystem
         }
     }
 
-    private void OnDevouredMobState(Entity<ChangelingDevouredComponent> ent, ref MobStateChangedEvent args)
+    private void OnRecentlyDevouredMobState(Entity<RecentlyDevouredComponent> ent, ref MobStateChangedEvent args)
     {
-        // Once we are revived the body is no longer "recent".
+        // Once we are revived the body is no longer recently devoured.
         if (args.NewMobState != MobState.Alive)
             return;
 
-        ent.Comp.Recent = false;
-        Dirty(ent);
+        RemCompDeferred<RecentlyDevouredComponent>(ent);
     }
 
     private void OnStoredRemove(Entity<ChangelingStoredIdentityComponent> ent, ref ComponentRemove args)
@@ -236,6 +215,34 @@ public abstract class SharedChangelingIdentitySystem : EntitySystem
     }
 
     /// <summary>
+    /// Adds the given entity as an available identity for the changeling.
+    /// </summary>
+    public EntityUid? AddIdentity(Entity<ChangelingIdentityComponent> ent, EntityUid target)
+    {
+        return CloneToPausedMap(ent, target);
+    }
+
+    /// <summary>
+    /// Marks that the changeling has successfully devoured the target.
+    /// </summary>
+    public void AddDevouredReference(Entity<ChangelingIdentityComponent> ent, EntityUid target)
+    {
+        var targetDevoured = EnsureComp<ChangelingDevouredComponent>(target);
+        if (!targetDevoured.DevouredBy.Add(ent.Owner))
+            return;
+
+        Dirty(target, targetDevoured);
+    }
+
+    /// <summary>
+    /// Marks that an entity was devoured recently and cannot be devoured again until revived.
+    /// </summary>
+    public void MarkRecentlyDevoured(EntityUid target)
+    {
+        EnsureComp<RecentlyDevouredComponent>(target);
+    }
+
+    /// <summary>
     /// Drop a stored identity from the changeling's storage.
     /// </summary>
     public void DropStoredIdentity(Entity<ChangelingIdentityComponent?> ent, EntityUid identity)
@@ -250,12 +257,6 @@ public abstract class SharedChangelingIdentitySystem : EntitySystem
 
         foreach (var dropped in toDrop)
         {
-            if (TryComp<ChangelingDevouredComponent>(dropped.Original, out var devoured))
-            {
-                if (devoured.DevouredBy.Remove(ent))
-                    Dirty(dropped.Original.Value, devoured);
-            }
-
             dropped.Identity = null;
         }
 
