@@ -43,7 +43,7 @@ public abstract class SharedChangelingIdentitySystem : EntitySystem
     private void OnDevouredEntity(Entity<ChangelingIdentityComponent> ent, ref ChangelingDevouredEvent args)
     {
         if (args.ObtainedIdentity)
-            AddIdentity(ent, args.Devoured);
+            CloneToPausedMap(ent, args.Devoured);
 
         AddDevouredReference(ent, args.Devoured);
         MarkRecentlyDevoured(args.Devoured);
@@ -212,14 +212,6 @@ public abstract class SharedChangelingIdentitySystem : EntitySystem
         Dirty(ent);
 
         return clone;
-    }
-
-    /// <summary>
-    /// Adds the given entity as an available identity for the changeling.
-    /// </summary>
-    public EntityUid? AddIdentity(Entity<ChangelingIdentityComponent> ent, EntityUid target)
-    {
-        return CloneToPausedMap(ent, target);
     }
 
     /// <summary>
