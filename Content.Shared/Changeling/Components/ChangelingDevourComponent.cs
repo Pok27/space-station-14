@@ -1,6 +1,8 @@
 using Content.Shared.Changeling.Systems;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
+using Content.Shared.FixedPoint;
+using Content.Shared.Store;
 using Content.Shared.Whitelist;
 using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
@@ -124,6 +126,18 @@ public sealed partial class ChangelingDevourComponent : Component
     /// </summary>
     [DataField, AutoNetworkedField]
     public float DevourPreventionPercentageThreshold = 0.1f;
+
+    /// <summary>
+    /// DNA awarded for successfully devouring a new identity.
+    /// </summary>
+    [DataField, AutoNetworkedField]
+    public FixedPoint2 DevourDnaReward = 15;
+
+    /// <summary>
+    /// Store currency used for changeling ability purchases.
+    /// </summary>
+    [DataField, AutoNetworkedField]
+    public ProtoId<CurrencyPrototype> DnaCurrencyPrototype = "ChangelingDNA";
 
     public override bool SendOnlyToOwner => true;
 }

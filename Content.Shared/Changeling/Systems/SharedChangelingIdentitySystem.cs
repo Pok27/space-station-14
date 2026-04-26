@@ -2,9 +2,12 @@
 using System.Linq;
 using Content.Shared.Changeling.Components;
 using Content.Shared.Cloning;
+using Content.Shared.FixedPoint;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
 using Content.Shared.Roles.Jobs;
+using Content.Shared.Store;
+using Content.Shared.Store.Components;
 using Robust.Shared.GameStates;
 using Robust.Shared.Map;
 using Robust.Shared.Network;
@@ -22,6 +25,7 @@ public abstract class SharedChangelingIdentitySystem : EntitySystem
     [Dependency] private readonly SharedPvsOverrideSystem _pvsOverrideSystem = default!;
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly SharedJobSystem _job = default!;
+    [Dependency] private readonly SharedStoreSystem _store = default!;
 
     public MapId? PausedMapId;
 
@@ -54,6 +58,15 @@ public abstract class SharedChangelingIdentitySystem : EntitySystem
         targetDevoured.Recent = true;
         Dirty(args.Devoured, targetDevoured);
         Dirty(ent);
+
+        // Grants DNA currency reward for devouring.
+        if (args.Unique && TryComp<ChangelingDevourComponent>(ent, out var devour) && TryComp<StoreComponent>(ent, out var store))
+        {
+            _store.TryAddCurrency(new Dictionary<string, FixedPoint2>
+            {
+                { devour.DnaCurrencyPrototype, devour.DevourDnaReward }
+            }, ent.Owner, store);
+        }
     }
 
     private void OnPlayerAttached(Entity<ChangelingIdentityComponent> ent, ref PlayerAttachedEvent args)
