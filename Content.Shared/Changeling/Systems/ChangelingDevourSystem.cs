@@ -179,7 +179,7 @@ public sealed class ChangelingDevourSystem : EntitySystem
         _adminLogger.Add(LogType.Action, LogImpact.Medium, $"{ToPrettyString(ent.Owner):player} successfully devoured {ToPrettyString(target):player}'s identity");
 
         // A unique identity is separate from whether we have actually devoured this target before.
-        var uniqueIdentity = !_changelingIdentitySystem.TryGetDataFromOriginal(ent.Owner, target, out _);
+        var uniqueIdentity = !IsUniqueDevour(ent.Owner);
         var firstTimeDevoured = !HasPreviouslyDevoured(ent.Owner, target);
 
         // Even if not unique, target is supposed to give us an identity if it is not currently in our identity list.
@@ -284,11 +284,25 @@ public sealed class ChangelingDevourSystem : EntitySystem
     }
 
     /// <summary>
-    /// Checks whether this changeling has devoured the target entity at any point before.
+    /// Checks whether devouring this target would provide a unique identity for this changeling.
     /// </summary>
     /// <param name="ent">The changeling.</param>
     /// <param name="devoured">The target entity.</param>
-    /// <returns>True if target was previously devoured, False otherwise.</returns>
+    /// <returns>True if this target would provide a unique identity, False otherwise.</returns>
+    public bool IsUniqueDevour(Entity<ChangelingIdentityComponent?> ent, EntityUid devoured)
+    {
+        if (!Resolve(ent, ref ent.Comp, false))
+            return false;
+
+        return _changelingIdentitySystem.TryGetDataFromOriginal(ent, devoured, out _);
+    }
+
+    /// <summary>
+    /// Checks whether this changeling has devoured this exact target entity before.
+    /// </summary>
+    /// <param name="ent">The changeling.</param>
+    /// <param name="devoured">The target entity.</param>
+    /// <returns>True if this target entity was previously devoured by this changeling, False otherwise.</returns>
     public bool HasPreviouslyDevoured(Entity<ChangelingIdentityComponent?> ent, EntityUid devoured)
     {
         if (!Resolve(ent, ref ent.Comp, false))
