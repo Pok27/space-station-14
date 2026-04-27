@@ -41,7 +41,7 @@ public sealed partial class ChangelingIdentityComponent : Component
     /// Maximum number of stored disguises, excluding the changeling's starting identity.
     /// </summary>
     [DataField]
-    public int MaxStoredDisguises = 3;
+    public int MaxStoredDisguises = 4;
 
     public override bool SendOnlyToOwner => true;
 }
