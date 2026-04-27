@@ -429,7 +429,7 @@
     state: pda-mime
   - type: PermanentStatusEffects # for random sentience event
     statusEffects:
-    - StatusEffectMuted
+    - TraitStatusEffectMuted
 
 - type: entity
   name: chaplain PDA

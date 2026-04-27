@@ -65,7 +65,7 @@
   specials:
   - !type:ApplyStatusEffectSpecial
     statusEffects:
-    - StatusEffectMuted
+    - TraitStatusEffectMuted
 
 - type: trait
   id: Paracusia
