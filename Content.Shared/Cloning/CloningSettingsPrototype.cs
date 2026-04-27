@@ -57,6 +57,18 @@ public sealed partial class CloningSettingsPrototype : IPrototype, IInheritingPr
     public bool CopyStatusEffects = true;
 
     /// <summary>
+    /// Whitelist for status effect entities allowed to be copied.
+    /// </summary>
+    [DataField]
+    public EntityWhitelist? StatusEffectWhitelist;
+
+    /// <summary>
+    /// Blacklist for status effect entities allowed to be copied.
+    /// </summary>
+    [DataField]
+    public EntityWhitelist? StatusEffectBlacklist;
+
+    /// <summary>
     /// Should the event for renaming the clone be raised?
     /// This will also set the clone's id card and PDA name if they have one equipped.
     /// </summary>

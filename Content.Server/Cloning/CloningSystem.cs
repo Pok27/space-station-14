@@ -83,7 +83,7 @@ public sealed partial class CloningSystem : SharedCloningSystem
 
         // Copy permanent status effects
         if (settings.CopyStatusEffects)
-            CopyStatusEffects(original, clone.Value);
+            CopyStatusEffects(original, clone.Value, settings.StatusEffectWhitelist, settings.StatusEffectBlacklist);
 
         var originalName = _nameMod.GetBaseName(original);
 

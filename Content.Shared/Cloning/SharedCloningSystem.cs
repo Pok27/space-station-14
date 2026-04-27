@@ -13,6 +13,7 @@ public abstract partial class SharedCloningSystem : EntitySystem
 {
     [Dependency] private readonly Shared.StatusEffectNew.StatusEffectsSystem _statusEffects = default!; //TODO: This system has to support both the old and new status effect systems, until the old is able to be fully removed.
     [Dependency] private readonly EntityQuery<CloneableStatusEffectComponent> _cloneableEffectQuery = default!;
+    [Dependency] private readonly EntityWhitelistSystem _whitelist = default!;
 
     /// <summary>
     /// Spawns a clone of the given humanoid mob at the specified location or in nullspace.
@@ -118,12 +119,19 @@ public abstract partial class SharedCloningSystem : EntitySystem
     /// <summary>
     /// Scans all permanent status effects applied to the original entity and transfers them to the clone.
     /// </summary>
-    public void CopyStatusEffects(Entity<StatusEffectContainerComponent?> original, Entity<StatusEffectContainerComponent?> target)
+    public void CopyStatusEffects(
+        Entity<StatusEffectContainerComponent?> original,
+        Entity<StatusEffectContainerComponent?> target,
+        EntityWhitelist? whitelist = null,
+        EntityWhitelist? blacklist = null)
     {
         foreach (var effect in _statusEffects.EnumerateStatusEffects(original, _cloneableEffectQuery))
         {
             // We are not interested in temporary effects, only permanent ones.
             if (effect.Comp1.EndEffectTime is not null)
+                continue;
+
+            if (!_whitelist.CheckBoth(effect.Owner, blacklist, whitelist))
                 continue;
 
             var effectProto = Prototype(effect);
