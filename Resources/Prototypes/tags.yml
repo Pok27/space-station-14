@@ -1371,7 +1371,6 @@
 - type: Tag
   id: Structure # # Targeting whitelist: HandLabeler
 
-
 - type: Tag
   id: StunImmune # Tagged mob entity cannot gain the stunned status effect. Blacklist on StatusEffectStunned.
 
