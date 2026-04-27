@@ -72,10 +72,11 @@
   - BibleUser
   - CommandStaff
   - MindShield
-  - MimePowers
   - SpaceNinja
   - Thieving
+  eventComponents:
   - ActionGrant
+  - MimePowers
   - Store
   - VoiceMask
 
@@ -87,9 +88,10 @@
   - Revolutionary
   - NukeOperative
   # Changeling
-  - ChangelingIdentity
-  - ChangelingDevour
   - ChangelingFleshClothingAbility
+  eventComponents:
+  - ChangelingDevour
+  - ChangelingIdentity
   - ChangelingTransform
 
 - type: cloningSettings

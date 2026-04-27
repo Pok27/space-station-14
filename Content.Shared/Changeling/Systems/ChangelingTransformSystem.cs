@@ -8,6 +8,7 @@ using Content.Shared.DoAfter;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Popups;
 using Content.Shared.Storage;
+using Content.Shared.Cloning.Events;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Containers;
 using Robust.Shared.Network;
@@ -43,6 +44,7 @@ public sealed partial class ChangelingTransformSystem : EntitySystem
         SubscribeLocalEvent<ChangelingTransformComponent, ChangelingTransformIdentityDropMessage>(OnTransformDrop);
         SubscribeLocalEvent<ChangelingTransformComponent, ChangelingTransformDoAfterEvent>(OnSuccessfulTransform);
         SubscribeLocalEvent<ChangelingTransformComponent, ComponentShutdown>(OnShutdown);
+        SubscribeLocalEvent<ChangelingTransformComponent, CloningEvent>(OnClone);
 
         // Components that need special handling outside of cloning.
         SubscribeLocalEvent<StorageComponent, BeforeChangelingTransformEvent>(StorageBeforeTransform);
@@ -50,11 +52,23 @@ public sealed partial class ChangelingTransformSystem : EntitySystem
 
     private void OnMapInit(Entity<ChangelingTransformComponent> ent, ref MapInitEvent init)
     {
-        ent.Comp.ChangelingTransformActionEntity = null;
         _actions.AddAction(ent, ref ent.Comp.ChangelingTransformActionEntity, ent.Comp.ChangelingTransformAction);
 
         var userInterfaceComp = EnsureComp<UserInterfaceComponent>(ent);
         _ui.SetUi((ent, userInterfaceComp), ChangelingTransformUiKey.Key, new InterfaceData(ChangelingBuiXmlGeneratedName));
+    }
+
+    private void OnClone(Entity<ChangelingTransformComponent> ent, ref CloningEvent args)
+    {
+        if (!args.Settings.EventComponents.Contains(Factory.GetRegistration(ent.Comp.GetType()).Name))
+            return;
+
+        var cloneComp = Factory.GetComponent<ChangelingTransformComponent>();
+        cloneComp.ChangelingTransformAction = ent.Comp.ChangelingTransformAction;
+        cloneComp.TransformWindup = ent.Comp.TransformWindup;
+        cloneComp.TransformAttemptNoise = ent.Comp.TransformAttemptNoise;
+        cloneComp.TransformCloningSettings = ent.Comp.TransformCloningSettings;
+        AddComp(args.CloneUid, cloneComp, true);
     }
 
     private void OnShutdown(Entity<ChangelingTransformComponent> ent, ref ComponentShutdown args)
