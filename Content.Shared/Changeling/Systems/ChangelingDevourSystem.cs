@@ -44,6 +44,7 @@ public sealed class ChangelingDevourSystem : EntitySystem
 
     private void OnMapInit(Entity<ChangelingDevourComponent> ent, ref MapInitEvent args)
     {
+        ent.Comp.ChangelingDevourActionEntity = null;
         _actionsSystem.AddAction(ent, ref ent.Comp.ChangelingDevourActionEntity, ent.Comp.ChangelingDevourAction);
     }
 

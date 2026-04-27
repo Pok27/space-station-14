@@ -68,6 +68,7 @@ public sealed class MimePowersSystem : EntitySystem
         }
 
         _alertsSystem.ShowAlert(ent.Owner, ent.Comp.VowAlert);
+        ent.Comp.InvisibleWallActionEntity = null;
         _actionsSystem.AddAction(ent, ref ent.Comp.InvisibleWallActionEntity, ent.Comp.InvisibleWallAction);
     }
 

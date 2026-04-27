@@ -75,6 +75,9 @@
   - MimePowers
   - SpaceNinja
   - Thieving
+  - ActionGrant
+  - Store
+  - VoiceMask
 
 # antag roles
 - type: cloningSettings
@@ -83,6 +86,11 @@
   - HeadRevolutionary
   - Revolutionary
   - NukeOperative
+  # Changeling
+  - ChangelingIdentity
+  - ChangelingDevour
+  - ChangelingFleshClothingAbility
+  - ChangelingTransform
 
 - type: cloningSettings
   abstract: true

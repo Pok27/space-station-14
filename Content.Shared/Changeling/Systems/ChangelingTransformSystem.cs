@@ -50,6 +50,7 @@ public sealed partial class ChangelingTransformSystem : EntitySystem
 
     private void OnMapInit(Entity<ChangelingTransformComponent> ent, ref MapInitEvent init)
     {
+        ent.Comp.ChangelingTransformActionEntity = null;
         _actions.AddAction(ent, ref ent.Comp.ChangelingTransformActionEntity, ent.Comp.ChangelingTransformAction);
 
         var userInterfaceComp = EnsureComp<UserInterfaceComponent>(ent);
