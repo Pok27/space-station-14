@@ -37,6 +37,12 @@ public sealed partial class ChangelingIdentityComponent : Component
     [DataField]
     public ProtoId<CloningSettingsPrototype> IdentityCloningSettings = "ChangelingCloningSettings";
 
+    /// <summary>
+    /// Maximum number of stored disguises, excluding the changeling's starting identity.
+    /// </summary>
+    [DataField]
+    public int MaxStoredDisguises = 3;
+
     public override bool SendOnlyToOwner => true;
 }
 

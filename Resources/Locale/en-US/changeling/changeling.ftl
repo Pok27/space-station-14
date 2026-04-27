@@ -9,6 +9,7 @@ changeling-devour-attempt-failed-devoured-recently = This body is too mangled to
 changeling-devour-attempt-failed-not-dead = This body yet lives! We cannot consume it alive!
 changeling-devour-attempt-failed-rotting = This corpse has only rotted biomass.
 changeling-devour-attempt-failed-protected = This victim's biomass is protected by armor!
+changeling-devour-attempt-failed-no-space = We have exceeded the maximum number of disguises!
 
 changeling-devour-begin-windup-self = Our uncanny mouth reveals itself with otherworldly hunger.
 changeling-devour-begin-windup-others = { CAPITALIZE(POSS-ADJ($user)) } uncanny mouth reveals itself with otherworldly hunger.
