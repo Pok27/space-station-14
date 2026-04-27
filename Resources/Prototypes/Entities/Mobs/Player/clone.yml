@@ -119,7 +119,7 @@
   id: ChangelingCloningSettings
   parent: [Body, BaseEquipmentBlacklist]
   statusEffectBlacklist:
-    tags:
+    components:
     - StatusEffectDebuff
   components:
   # These are already part of the base species prototype that is spawned for the clone,

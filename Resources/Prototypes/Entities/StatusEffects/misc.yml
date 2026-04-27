@@ -26,9 +26,7 @@
   id: MobStatusEffectDebuff
   abstract: true
   components:
-  - type: Tag
-    tags:
-    - StatusEffectDebuff
+  - type: StatusEffectDebuff
   - type: RejuvenateRemovedStatusEffect
 
 - type: entity
