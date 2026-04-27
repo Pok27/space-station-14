@@ -76,6 +76,10 @@
 
 - type: entity
   parent: StatusEffectMutedBase
+  id: StatusEffectMuted
+
+- type: entity
+  parent: StatusEffectMutedBase
   id: StatusEffectMimeMuted
   components:
   - type: MutedStatusEffect
