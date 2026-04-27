@@ -307,7 +307,7 @@ public abstract class SharedChangelingIdentitySystem : EntitySystem
         if (!Resolve(ent, ref ent.Comp, false))
             return false;
 
-        return ent.Comp.ConsumedIdentities.Count(data => data is { Starting: false, Identity: not null }) < ent.Comp.MaxStoredDisguises;
+        return ent.Comp.ConsumedIdentities.Count(data => data.Identity != null) < ent.Comp.MaxStoredDisguises;
     }
 
     /// <summary>
