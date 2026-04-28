@@ -56,3 +56,48 @@
   - !type:ListingLimitedStockCondition
     stock: 1
   productAction: ActionChangelingBiodegrade
+
+- type: listing
+  id: ChangelingMuteSting
+  name: changeling-catalog-mute-sting-name
+  description: changeling-catalog-mute-sting-desc
+  icon: { sprite: /Textures/Interface/Actions/changeling2.rsi, state: biodegrade }
+  applyToMob: true
+  cost:
+    ChangelingDNA: 10
+  categories:
+  - ChangelingAbilities
+  conditions:
+  - !type:ListingLimitedStockCondition
+    stock: 1
+  productAction: ActionChangelingMuteSting
+
+- type: listing
+  id: ChangelingBlindSting
+  name: changeling-catalog-blind-sting-name
+  description: changeling-catalog-blind-sting-desc
+  icon: { sprite: /Textures/Interface/Actions/changeling2.rsi, state: biodegrade }
+  applyToMob: true
+  cost:
+    ChangelingDNA: 10
+  categories:
+  - ChangelingAbilities
+  conditions:
+  - !type:ListingLimitedStockCondition
+    stock: 1
+  productAction: ActionChangelingBlindSting
+
+- type: listing
+  id: ChangelingHallucinationSting
+  name: changeling-catalog-hallucination-sting-name
+  description: changeling-catalog-hallucination-sting-desc
+  icon: { sprite: /Textures/Interface/Actions/changeling2.rsi, state: biodegrade }
+  applyToMob: true
+  cost:
+    ChangelingDNA: 10
+  categories:
+  - ChangelingAbilities
+  conditions:
+  - !type:ListingLimitedStockCondition
+    stock: 1
+  productAction: ActionChangelingHallucinationSting
