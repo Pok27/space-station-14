@@ -350,6 +350,25 @@
         time: 10
 
 - type: reagent
+  id: StealthMuteToxin
+  name: reagent-name-mute-toxin
+  group: Narcotics
+  desc: reagent-desc-mute-toxin
+  physicalDesc: reagent-physical-desc-syrupy
+  contrabandSeverity: Syndicate
+  color: "#000000"
+  boilingPoint: 255.0
+  meltingPoint: 36.0
+  metabolisms:
+    Bloodstream:
+      effects:
+      - !type:GenericStatusEffect
+        key: StealthMuted
+        component: Muted
+        type: Add
+        time: 5
+
+- type: reagent
   id: NorepinephricAcid
   name: reagent-name-norepinephric-acid
   group: Narcotics

@@ -63,7 +63,7 @@
   - type: ChangelingStingAbility
     injectSolution:
       reagents:
-      - ReagentId: MuteToxin
+      - ReagentId: StealthMuteToxin
         Quantity: 5
 
 - type: entity
@@ -94,6 +94,7 @@
       - ReagentId: NorepinephricAcid
         Quantity: 25
 
+# TODO: It's almost useless right now because of the hallucinations
 - type: entity
   parent: BaseAction
   id: ActionChangelingHallucinationSting

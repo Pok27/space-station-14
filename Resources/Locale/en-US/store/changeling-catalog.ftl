@@ -14,7 +14,7 @@ changeling-catalog-mute-sting-name = Mute Sting
 changeling-catalog-mute-sting-desc = Grow a silent stinger that injects mute toxin. The victim usually realizes it only when they try to speak.
 
 changeling-catalog-blind-sting-name = Blind Sting
-changeling-catalog-blind-sting-desc = Grow a silent stinger that injects a blinding compound. The effect ramps up shortly after the sting lands.
+changeling-catalog-blind-sting-desc = Grow a silent stinger that injects a blinding compound.
 
 changeling-catalog-hallucination-sting-name = Hallucination Sting
 changeling-catalog-hallucination-sting-desc = Grow a silent stinger that injects mindbreaker toxin, leaving the victim disoriented and hallucinating.
