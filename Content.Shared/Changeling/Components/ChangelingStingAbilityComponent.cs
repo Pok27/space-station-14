@@ -11,6 +11,12 @@ namespace Content.Shared.Changeling.Components;
 public sealed partial class ChangelingStingAbilityComponent : Component
 {
     /// <summary>
+    /// Whether the sting can only be used on living targets.
+    /// </summary>
+    [DataField]
+    public bool RequireAlive = true;
+
+    /// <summary>
     /// The reagents to inject into the target.
     /// </summary>
     [DataField(required: true)]

@@ -78,7 +78,13 @@ public sealed partial class ChangelingAbilitySystem : EntitySystem
 
     private void OnStingAction(Entity<ChangelingStingAbilityComponent> ent, ref ChangelingStingActionEvent args)
     {
-        if (_mobState.IsDead(args.Target) || !HasComp<BloodstreamComponent>(args.Target))
+        if (ent.Comp.RequireAlive && _mobState.IsDead(args.Target))
+        {
+            _popup.PopupClient(Loc.GetString("changeling-sting-attempt-failed-dead"), args.Performer, args.Performer);
+            return;
+        }
+
+        if (!HasComp<BloodstreamComponent>(args.Target))
             return;
 
         var beforeInject = new TargetBeforeInjectEvent(args.Performer, args.Performer, args.Target);
@@ -87,7 +93,6 @@ public sealed partial class ChangelingAbilitySystem : EntitySystem
         if (beforeInject.Cancelled)
         {
             _popup.PopupClient(Loc.GetString("injector-component-blocked-user"), args.Performer, args.Performer);
-            args.Handled = true;
             return;
         }
 

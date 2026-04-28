@@ -42,6 +42,7 @@ changeling-biodegrade-used-popup = {CAPITALIZE(THE($user))} vomits acid over {PO
 changeling-biodegrade-used-popup-self = We vomit acid over our {$restraint}!
 
 # sting
+changeling-sting-attempt-failed-dead = It has to be alive so we can get stung.
 changeling-sting-used-popup-self = We sting {THE($target)}.
 
 # other
