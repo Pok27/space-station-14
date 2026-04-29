@@ -87,17 +87,33 @@
     stock: 1
   productAction: ActionChangelingBlindSting
 
+# TODO: The effect of ActionChangelingHallucinationSting does not match the description
+# - type: listing
+#   id: ChangelingHallucinationSting
+#   name: changeling-catalog-hallucination-sting-name
+#   description: changeling-catalog-hallucination-sting-desc
+#   icon: { sprite: /Textures/Interface/Actions/changeling2.rsi, state: biodegrade }
+#   applyToMob: true
+#   cost:
+#     ChangelingDNA: 5
+#   categories:
+#   - ChangelingStoreStealth
+#   conditions:
+#   - !type:ListingLimitedStockCondition
+#     stock: 1
+#   productAction: ActionChangelingHallucinationSting
+
 - type: listing
-  id: ChangelingHallucinationSting
-  name: changeling-catalog-hallucination-sting-name
-  description: changeling-catalog-hallucination-sting-desc
+  id: ChangelingNeurodepressantSting
+  name: changeling-catalog-neurodepressant-sting-name
+  description: changeling-catalog-neurodepressant-sting-desc
   icon: { sprite: /Textures/Interface/Actions/changeling2.rsi, state: biodegrade }
   applyToMob: true
   cost:
-    ChangelingDNA: 5
+    ChangelingDNA: 10
   categories:
   - ChangelingStoreStealth
   conditions:
   - !type:ListingLimitedStockCondition
     stock: 1
-  productAction: ActionChangelingHallucinationSting
+  productAction: ActionChangelingNeurodepressantSting

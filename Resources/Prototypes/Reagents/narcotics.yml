@@ -330,6 +330,108 @@
         time: 9
         delay: 5
 
+# TODO: random/disorderly behavior replaced with shock.
+- type: reagent
+  id: Neurodepressant
+  name: reagent-name-neurodepressant
+  group: Narcotics
+  desc: reagent-desc-neurodepressant
+  physicalDesc: reagent-physical-desc-syrupy
+  contrabandSeverity: Syndicate
+  color: "#8C9187"
+  metabolisms:
+    Bloodstream:
+      metabolismRate: 0.2
+      effects:
+      - !type:ModifyStatusEffect
+        conditions:
+        - !type:ReagentCondition
+          reagent: Neurodepressant
+          max: 10
+        effectProto: StatusEffectDrowsiness
+        time: 3
+        type: Update
+      - !type:PopupMessage
+        conditions:
+        - !type:ReagentCondition
+          reagent: Neurodepressant
+          max: 10
+        type: Local
+        messages: [ "effect-neurodepressant-light-dizzy" ]
+        probability: 0.20
+      - !type:Electrocute
+        electrocuteTime: 2
+        probability: 0.05
+
+      # 10u+
+      - !type:ModifyStatusEffect
+        conditions:
+        - !type:ReagentCondition
+          reagent: Neurodepressant
+          min: 10
+          max: 20
+        effectProto: StatusEffectDrowsiness
+        time: 8
+        type: Update
+      - !type:PopupMessage
+        conditions:
+        - !type:ReagentCondition
+          reagent: Neurodepressant
+          min: 10
+          max: 20
+        visualType: Medium
+        type: Local
+        messages:
+        - effect-neurodepressant-heavy-dizzy
+        - effect-neurodepressant-vision-fuzzy
+        probability: 0.35
+
+      # 20u+
+      - !type:ModifyStatusEffect
+        conditions:
+        - !type:ReagentCondition
+          reagent: Neurodepressant
+          min: 20
+        effectProto: StatusEffectDrowsiness
+        time: 8
+        type: Update
+      - !type:MovementSpeedModifier
+        conditions:
+        - !type:ReagentCondition
+          reagent: Neurodepressant
+          min: 20
+        walkSpeedModifier: 0.85
+        sprintSpeedModifier: 0.85
+        time: 2
+        probability: 0.15
+      - !type:PopupMessage
+        conditions:
+        - !type:ReagentCondition
+          reagent: Neurodepressant
+          max: 20
+        visualType: MediumCaution
+        type: Local
+        messages:
+        - effect-neurodepressant-spinning
+        - effect-neurodepressant-numb-limbs
+        - generic-reagent-effect-sick
+        probability: 0.25
+      - !type:ModifyStatusEffect
+        conditions:
+        - !type:ReagentCondition
+          reagent: Neurodepressant
+          min: 20
+        effectProto: StatusEffectStunned
+        time: 3
+        probability: 0.025
+      - !type:Electrocute
+        conditions:
+        - !type:ReagentCondition
+          reagent: Neurodepressant
+          min: 20
+        electrocuteTime: 4
+        probability: 0.15
+
 - type: reagent
   id: MuteToxin
   name: reagent-name-mute-toxin

@@ -18,3 +18,6 @@ changeling-catalog-blind-sting-desc = Grow a silent stinger that injects a blind
 
 changeling-catalog-hallucination-sting-name = Hallucination Sting
 changeling-catalog-hallucination-sting-desc = Grow a silent stinger that injects mindbreaker toxin, leaving the victim disoriented and hallucinating.
+
+changeling-catalog-neurodepressant-sting-name = Neurodepressant Sting
+changeling-catalog-neurodepressant-sting-desc = Grow a silent stinger that injects a sedative, leaving the victim drowsy and sluggish.
