@@ -61,7 +61,7 @@
   id: ChangelingMuteSting
   name: changeling-catalog-mute-sting-name
   description: changeling-catalog-mute-sting-desc
-  icon: { sprite: /Textures/Interface/Actions/changeling2.rsi, state: biodegrade }
+  icon: { sprite: /Textures/Interface/Actions/changeling2.rsi, state: mute_sting }
   applyToMob: true
   cost:
     ChangelingDNA: 10
@@ -76,7 +76,7 @@
   id: ChangelingBlindSting
   name: changeling-catalog-blind-sting-name
   description: changeling-catalog-blind-sting-desc
-  icon: { sprite: /Textures/Interface/Actions/changeling2.rsi, state: biodegrade }
+  icon: { sprite: /Textures/Interface/Actions/changeling2.rsi, state: blind_sting }
   applyToMob: true
   cost:
     ChangelingDNA: 15
@@ -92,7 +92,7 @@
 #   id: ChangelingHallucinationSting
 #   name: changeling-catalog-hallucination-sting-name
 #   description: changeling-catalog-hallucination-sting-desc
-#   icon: { sprite: /Textures/Interface/Actions/changeling2.rsi, state: biodegrade }
+#   icon: { sprite: /Textures/Interface/Actions/changeling2.rsi, state: hallucination_sting }
 #   applyToMob: true
 #   cost:
 #     ChangelingDNA: 5
@@ -107,7 +107,7 @@
   id: ChangelingNeurodepressantSting
   name: changeling-catalog-neurodepressant-sting-name
   description: changeling-catalog-neurodepressant-sting-desc
-  icon: { sprite: /Textures/Interface/Actions/changeling2.rsi, state: biodegrade }
+  icon: { sprite: /Textures/Interface/Actions/changeling2.rsi, state: neurodepressant_sting }
   applyToMob: true
   cost:
     ChangelingDNA: 10
