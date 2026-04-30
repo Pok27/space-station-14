@@ -57,6 +57,7 @@
     stock: 1
   productAction: ActionChangelingBiodegrade
 
+- type: listing
   id: ChangelingStingDna
   name: changeling-catalog-sting-dna-name
   description: changeling-catalog-sting-dna-desc
