@@ -56,3 +56,18 @@
   - !type:ListingLimitedStockCondition
     stock: 1
   productAction: ActionChangelingBiodegrade
+
+- type: listing
+  id: ChangelingLastResort
+  name: changeling-catalog-last-resort-name
+  description: changeling-catalog-last-resort-desc
+  icon: { sprite: /Textures/Interface/Actions/changeling.rsi, state: devour }
+  applyToMob: true
+  cost:
+    ChangelingDNA: 20
+  categories:
+  - ChangelingAbilities
+  conditions:
+  - !type:ListingLimitedStockCondition
+    stock: 1
+  productAction: ActionChangelingLastResort

@@ -14,6 +14,47 @@
     balance:
       ChangelingDNA: 50
 
+- type: entity
+  parent: [ SimpleSpaceMobBase ]
+  id: MobHeadSlug
+  name: headslug
+  description: A small, slug-like creature with a large, gaping maw. It's covered in a thick, slimy mucus.
+  components:
+  - type: ChangelingSlug
+  - type: Sprite
+    drawdepth: SmallMobs
+    layers:
+    - map: ["enum.DamageStateVisualLayers.Base"]
+      state: slug
+      sprite: Mobs/Animals/headslug.rsi
+  - type: DamageStateVisuals
+    states:
+      Alive:
+        Base: slug
+      Dead:
+        Base: slug_dead
+  - type: MobThresholds
+    thresholds:
+      0: Alive
+      50: Dead
+  - type: MovementSpeedModifier
+    baseWalkSpeed: 3
+    baseSprintSpeed: 7
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeCircle
+          radius: 0.2
+        density: 15
+        mask:
+        - SmallMobMask
+        layer:
+        - SmallMobLayer
+  - type: Tag # Removes DoorBumpOpener
+    tags:
+      []
+
 - type: entity # dummy prototype for the store listing
   id: ChangelingFleshClothingAbilityStoreDummy
   categories: [ HideSpawnMenu ]
@@ -42,6 +83,6 @@
     action: ActionChangelingVoiceMimic
     isInnate: true
     changeIDName: false
-    # this is set to false as to not mess with a changeling's ability to disguise. 
+    # this is set to false as to not mess with a changeling's ability to disguise.
     accentHide: false
     titleText: changeling-voice-mimic-window-title
