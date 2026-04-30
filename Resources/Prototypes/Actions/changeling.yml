@@ -109,6 +109,8 @@
   name: "[color=red]Last Resort[/color]"
   description: We sacrifice our current body in a moment of need, violently expanding to break through obstacles and reforming as a headslug.
   components:
+  - type: ConfirmableAction
+    popup: suicide-action-popup
   - type: Action
     useDelay: 300 # TODO: chemical cost
     raiseOnAction: true
