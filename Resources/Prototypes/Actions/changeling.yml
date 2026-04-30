@@ -29,7 +29,6 @@
   - type: Action
     useDelay: 60 # TODO: Short cooldown but chemical cost
     raiseOnAction: true
-    itemIconStyle: BigAction
     checkCanInteract: false
     icon:
       sprite: Interface/Actions/changeling2.rsi
@@ -46,6 +45,7 @@
   - type: Action
     icon: { sprite : Interface/Actions/changeling.rsi, state: "devour" }
     iconOn: { sprite : Interface/Actions/changeling.rsi, state: "devour_on" }
+    itemIconStyle: BigAction
     priority: 1
   - type: TargetAction
   - type: EntityTargetAction
@@ -81,6 +81,27 @@
   - type: InstantAction
     event: !type:VoiceMaskSetNameEvent
 
+
+  id: ActionChangelingStingDna
+  name: Extract DNA
+  description: Sneakily absorb the identity of unsuspecting victims. Does not grant DNA to your store or objective progress.
+  components:
+  - type: Action
+    icon: { sprite : Interface/Actions/changeling2.rsi, state: "extract_dna_off" }
+    iconOn: { sprite : Interface/Actions/changeling2.rsi, state: "extract_dna_on" }
+    itemIconStyle: BigAction
+    priority: 1
+    useDelay: 90 # TODO: Chemical cost, maybe this could be a DoAfter action?
+    raiseOnUser: true
+  - type: TargetAction
+  - type: EntityTargetAction
+    canTargetSelf: false
+    whitelist:
+      components:
+      - MobState
+      - HumanoidProfile
+    event: !type:ChangelingStingDnaEvent
+
 - type: entity
   parent: BaseAction
   id: ActionChangelingLastResort
@@ -88,7 +109,7 @@
   description: We sacrifice our current body in a moment of need, violently expanding to break through obstacles and reforming as a headslug.
   components:
   - type: Action
-    useDelay: 300
+    useDelay: 300 # TODO: chemical cost
     raiseOnAction: true
     itemIconStyle: BigAction
     icon:

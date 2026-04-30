@@ -10,5 +10,8 @@ changeling-catalog-voice-mimic-desc = Change your vocal coords at will to imitat
 changeling-catalog-biodegrade-name = Biodegrade
 changeling-catalog-biodegrade-desc = You learn to utilize acid glands within your body to vomit acid over constraints, setting yourself free.
 
+changeling-catalog-sting-dna-name = Extract DNA
+changeling-catalog-sting-dna-desc = Learn to utilize your stinger to absorb the identity of unsuspecting victims. Does not grant DNA to your store or objective progress.
+
 changeling-catalog-last-resort-name = Last Resort
 changeling-catalog-last-resort-desc = Gib your current body and escape as a weak head slug. If you infest a corpse, you can return to a full changeling body.
