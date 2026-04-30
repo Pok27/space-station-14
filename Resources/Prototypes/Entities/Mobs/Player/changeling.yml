@@ -40,6 +40,11 @@
   - type: MovementSpeedModifier
     baseWalkSpeed: 3
     baseSprintSpeed: 7
+  - type: MeleeWeapon
+    damage:
+      types:
+        Blunt: 5
+        Structural: 15 # to destroy lockers in which bodies could be hidden
   - type: Fixtures
     fixtures:
       fix1:

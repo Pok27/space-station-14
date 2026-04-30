@@ -100,6 +100,7 @@ public sealed class ChangelingLastResortSystem : EntitySystem
         if (!_mind.TryGetMind(args.User, out var mindId, out var mind))
             return;
 
+        // TODO: delete this after adding the stasis.
         _rejuvenate.PerformRejuvenate(target);
         _mind.TransferTo(mindId, target, mind: mind);
 
