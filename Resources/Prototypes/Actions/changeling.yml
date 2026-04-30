@@ -112,6 +112,8 @@
   - type: Action
     useDelay: 300 # TODO: chemical cost
     raiseOnAction: true
+    checkCanInteract: false # You can transform if you are killed
+    checkConsciousness: false
     itemIconStyle: BigAction
     icon:
       sprite: Interface/Actions/changeling2.rsi

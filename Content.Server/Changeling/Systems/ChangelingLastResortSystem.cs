@@ -71,7 +71,7 @@ public sealed class ChangelingLastResortSystem : EntitySystem
 
     private void OnTakeOverCorpseAction(Entity<ChangelingSlugComponent> ent, ref ChangelingTakeOverCorpseActionEvent args)
     {
-        if (args.Handled || !CanTakeOver(args.Target))
+        if (args.Handled || !CanTakeOver(ent.Owner, args.Target))
             return;
 
         args.Handled = true;
@@ -97,8 +97,7 @@ public sealed class ChangelingLastResortSystem : EntitySystem
         if (args.Cancelled || args.Target is not { } target || !CanTakeOver(target))
             return;
 
-        var performer = args.User;
-        if (!_mind.TryGetMind(performer, out var mindId, out var mind))
+        if (!_mind.TryGetMind(args.User, out var mindId, out var mind))
             return;
 
         _rejuvenate.PerformRejuvenate(target);
@@ -107,12 +106,12 @@ public sealed class ChangelingLastResortSystem : EntitySystem
         if (mind.UserId is { } userId && _player.TryGetSessionById(userId, out var session))
             _antag.TryApplyAntagConfiguration<ChangelingRuleComponent>(session, target, ChangelingRule, ChangelingAntag);
 
-        QueueDel(performer);
+        QueueDel(args.User);
 
         _popup.PopupEntity(Loc.GetString("changeling-takeover-success-self"), target, target, PopupType.Large);
     }
 
-    private bool CanTakeOver(EntityUid target)
+    private bool CanTakeOver(EntityUid user, EntityUid target)
     {
         if (!HasComp<HumanoidProfileComponent>(target))
             return false;
@@ -120,7 +119,7 @@ public sealed class ChangelingLastResortSystem : EntitySystem
         if (_mobState.IsDead(target))
             return true;
 
-        _popup.PopupEntity(Loc.GetString("changeling-takeover-not-dead"), target, target, PopupType.SmallCaution);
+        _popup.PopupEntity(Loc.GetString("changeling-takeover-not-dead"), user, user);
         return false;
     }
 }
