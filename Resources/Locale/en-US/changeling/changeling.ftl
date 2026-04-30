@@ -43,8 +43,7 @@ changeling-biodegrade-used-popup = {CAPITALIZE(THE($user))} vomits acid over {PO
 changeling-biodegrade-used-popup-self = We vomit acid over our {$restraint}!
 
 # last resort
-changeling-takeover-not-dead = This body yet lives! We cannot infest it alive!
-changeling-takeover-start-self = We begin infesting the corpse.
+changeling-takeover-not-dead = This body yet lives! We cannot infest it alive.
 changeling-takeover-start-others = {CAPITALIZE(THE($user))} begins to crawl inside the corpse!
 changeling-takeover-success-self = We have successfully infested the body and assumed its form.
 

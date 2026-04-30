@@ -142,6 +142,7 @@
   copyImplants: false
   raiseEntityRenamedEvent: false
 
+
 # spawner
 - type: entity
   id: RandomCloneSpawner

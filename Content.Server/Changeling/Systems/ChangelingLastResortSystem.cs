@@ -77,28 +77,13 @@ public sealed class ChangelingLastResortSystem : EntitySystem
         args.Handled = true;
 
         _audio.PlayPvs(ent.Comp.Sound, ent.Owner);
-        _popup.PopupEntity(Loc.GetString("changeling-takeover-start-self"), ent.Owner, ent.Owner, PopupType.Medium);
-        _popup.PopupEntity(
-            Loc.GetString("changeling-takeover-start-others", ("user", ent.Owner)),
-            ent.Owner,
-            Filter.PvsExcept(ent.Owner),
-            true,
-            PopupType.MediumCaution);
+        _popup.PopupEntity(Loc.GetString("changeling-takeover-start-others", ("user", ent.Owner)), ent.Owner, PopupType.MediumCaution);
 
-        var doAfter = new DoAfterArgs(
-            EntityManager,
-            ent.Owner,
-            ent.Comp.TakeOverDuration,
-            new ChangelingTakeOverCorpseDoAfterEvent(),
-            ent,
-            target: args.Target)
+        var doAfter = new DoAfterArgs(EntityManager, ent.Owner, ent.Comp.TakeOverDuration, new ChangelingTakeOverCorpseDoAfterEvent(), ent, target: args.Target)
         {
             BreakOnDamage = true,
             BreakOnMove = true,
-            BreakOnWeightlessMove = true,
-            CancelDuplicate = true,
             DuplicateCondition = DuplicateConditions.None,
-            NeedHand = false,
             RequireCanInteract = false,
         };
 
