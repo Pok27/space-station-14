@@ -94,7 +94,7 @@ public sealed class ChangelingLastResortSystem : EntitySystem
     {
         args.Handled = true;
 
-        if (args.Cancelled || args.Target is not { } target || !CanTakeOver(target))
+        if (args.Cancelled || args.Target is not { } target || !CanTakeOver(args.User, target))
             return;
 
         if (!_mind.TryGetMind(args.User, out var mindId, out var mind))
