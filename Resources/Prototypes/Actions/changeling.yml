@@ -101,4 +101,28 @@
       components:
       - MobState
       - HumanoidProfile
+      requireAll: true
     event: !type:ChangelingStingDnaEvent
+
+- type: entity
+  parent: BaseAction
+  id: ActionChangelingTransformationSting
+  name: Transformation Sting
+  description: Temporarily transform someone into one of your stored identities.
+  components:
+  - type: Action
+    icon: { sprite : Interface/Actions/changeling.rsi, state: "transform" }
+    itemIconStyle: BigAction
+    priority: 1
+    useDelay: 90
+    raiseOnAction: true
+  - type: TargetAction
+  - type: EntityTargetAction
+    canTargetSelf: false
+    whitelist:
+      components:
+      - MobState
+      - HumanoidProfile
+      requireAll: true
+    event: !type:ChangelingTransformationStingEvent
+  - type: ChangelingTransformationStingAbility
