@@ -24,7 +24,7 @@ public sealed class HumanoidTransformStatusEffectSystem : EntitySystem
     /// Ensures forced transformation component exists on the effect, updates its target identity and
     /// reapplies the disguise if the effect is already active.
     /// </summary>
-    public void RefreshHumanoidTransformStatusEffect(EntityUid target, EntityUid effect, EntityUid targetIdentity)
+    public void RefreshHumanoidTransform(EntityUid target, EntityUid effect, EntityUid targetIdentity)
     {
         if (!TryComp<HumanoidTransformStatusEffectComponent>(effect, out var effectComp))
             return;
