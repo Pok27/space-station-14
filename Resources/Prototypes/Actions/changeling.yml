@@ -111,7 +111,7 @@
   description: Temporarily transform someone into one of your stored identities.
   components:
   - type: Action
-    icon: { sprite : Interface/Actions/changeling.rsi, state: "transform" }
+    icon: { sprite : Interface/Actions/changeling2.rsi, state: "transform_sting" }
     itemIconStyle: BigAction
     priority: 1
     useDelay: 90
