@@ -76,7 +76,7 @@ public sealed class ChangelingTransformationStingSystem : EntitySystem
         _popup.PopupEntity(Loc.GetString("changeling-sting-success", ("target", Identity.Entity(target, EntityManager))), args.Actor, args.Actor);
         _popup.PopupEntity(Loc.GetString("changeling-sting-transform-target-popup"), target, target, PopupType.MediumCaution);
 
-        _humanoidTransformEffect.RefreshHumanoidTransformStatusEffect(target, effectEnt.Value, targetIdentity.Value);
+        _humanoidTransformEffect.RefreshHumanoidTransform(target, effectEnt.Value, targetIdentity.Value);
         _actions.StartUseDelay(action);
     }
 
