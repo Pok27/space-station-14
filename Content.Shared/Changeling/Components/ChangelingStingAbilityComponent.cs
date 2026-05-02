@@ -26,7 +26,7 @@ public sealed partial class ChangelingStingAbilityComponent : Component
     /// The popup to display only to the user when the sting succeeds.
     /// </summary>
     [DataField]
-    public LocId ActivatedPopupSelf = "changeling-sting-used-popup-self";
+    public LocId ActivatedPopupSelf = "changeling-sting-success";
 }
 
 /// <summary>
