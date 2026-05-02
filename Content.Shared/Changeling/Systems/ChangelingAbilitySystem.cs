@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Shared.Actions;
 using Content.Shared.Changeling.Components;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Systems;
@@ -28,6 +29,8 @@ public sealed partial class ChangelingAbilitySystem : EntitySystem
     [Dependency] private readonly SharedBloodstreamSystem _bloodstream = default!;
     [Dependency] private readonly ReactiveSystem _reactive = default!;
     [Dependency] private readonly MobStateSystem _mobState = default!;
+    [Dependency] private readonly SharedChangelingIdentitySystem _changelingIdentity = default!;
+    [Dependency] private readonly ChangelingDevourSystem _changelingDevour = default!;
 
     public override void Initialize()
     {
@@ -35,6 +38,7 @@ public sealed partial class ChangelingAbilitySystem : EntitySystem
 
         SubscribeLocalEvent<ChangelingBiodegradeAbilityComponent, ChangelingBiodegradeActionEvent>(OnBiodegradeAction);
         SubscribeLocalEvent<ChangelingStingAbilityComponent, ChangelingStingActionEvent>(OnStingAction);
+        SubscribeLocalEvent<ChangelingIdentityComponent, ChangelingStingDnaEvent>(OnStingDna);
     }
 
     private void OnBiodegradeAction(Entity<ChangelingBiodegradeAbilityComponent> ent, ref ChangelingBiodegradeActionEvent args)
@@ -100,10 +104,27 @@ public sealed partial class ChangelingAbilitySystem : EntitySystem
         if (!_bloodstream.TryAddToBloodstream(args.Target, ent.Comp.InjectSolution))
         {
             _popup.PopupClient(Loc.GetString(ent.Comp.ActivatedPopupSelf, ("target", Identity.Entity(args.Target, EntityManager))), args.Performer, args.Performer);
-            args.Handled = true;
-            return;
         }
 
         args.Handled = true;
     }
+
+    private void OnStingDna(Entity<ChangelingIdentityComponent> ent, ref ChangelingStingDnaEvent args)
+    {
+        if (args.Target == ent.Owner)
+            return; // Can't sting yourself.
+
+        if (!_changelingDevour.CanDevour(ent.Owner, args.Target, checkDead: false, checkProtected: false))
+            return;
+
+        _popup.PopupClient(Loc.GetString("changeling-sting-success", ("target", Identity.Entity(args.Target, EntityManager))), args.Target, ent.Owner, PopupType.Medium);
+        _changelingIdentity.GrantIdentity(ent, args.Target);
+
+        args.Handled = true;
+    }
 }
+
+/// <summary>
+/// Action event for the Dna sting ability. Used to grand the changeling an identity without devouring somebody.
+/// </summary>
+public sealed partial class ChangelingStingDnaEvent : EntityTargetActionEvent;
