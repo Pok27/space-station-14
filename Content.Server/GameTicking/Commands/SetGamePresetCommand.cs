@@ -7,9 +7,9 @@ using Robust.Shared.Console;
 namespace Content.Server.GameTicking.Commands
 {
     [AdminCommand(AdminFlags.Round)]
-    public sealed class SetGamePresetCommand : LocalizedEntityCommands
+    public sealed partial class SetGamePresetCommand : LocalizedEntityCommands
     {
-        [Dependency] private readonly GameTicker _gameTicker = default!;
+        [Dependency] private GameTicker _gameTicker = default!;
 
         public override string Command => "setgamepreset";
 

@@ -6,9 +6,9 @@ using Robust.Shared.Console;
 namespace Content.Server.Fluids;
 
 [AdminCommand(AdminFlags.Debug)]
-public sealed class ShowFluidsCommand : LocalizedEntityCommands
+public sealed partial class ShowFluidsCommand : LocalizedEntityCommands
 {
-    [Dependency] private readonly PuddleDebugDebugOverlaySystem _puddleDebugDebugOverlaySystem = default!;
+    [Dependency] private PuddleDebugDebugOverlaySystem _puddleDebugDebugOverlaySystem = default!;
 
     public override string Command => "showfluids";
 

@@ -6,10 +6,10 @@ using Robust.Shared.Map;
 namespace Content.Server.Salvage;
 
 [AdminCommand(AdminFlags.Admin)]
-sealed class SalvageRulerCommand : LocalizedEntityCommands
+public sealed partial class SalvageRulerCommand : LocalizedEntityCommands
 {
-    [Dependency] private readonly IMapManager _maps = default!;
-    [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
+    [Dependency] private IMapManager _maps = default!;
+    [Dependency] private SharedTransformSystem _transformSystem = default!;
 
     public override string Command => "salvageruler";
 

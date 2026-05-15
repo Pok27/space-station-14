@@ -6,10 +6,10 @@ using Robust.Shared.Console;
 namespace Content.Server.GameTicking.Commands
 {
     [AnyCommand]
-    sealed class ObserveCommand : LocalizedEntityCommands
+    public sealed partial class ObserveCommand : LocalizedEntityCommands
     {
-        [Dependency] private readonly IAdminManager _adminManager = default!;
-        [Dependency] private readonly GameTicker _gameTicker = default!;
+        [Dependency] private IAdminManager _adminManager = default!;
+        [Dependency] private GameTicker _gameTicker = default!;
 
         public override string Command => "observe";
 

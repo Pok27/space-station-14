@@ -6,9 +6,9 @@ using Robust.Shared.Console;
 namespace Content.Server.Atmos.Commands
 {
     [AdminCommand(AdminFlags.Debug)]
-    public sealed class ListGasesCommand : LocalizedEntityCommands
+    public sealed partial class ListGasesCommand : LocalizedEntityCommands
     {
-        [Dependency] private readonly AtmosphereSystem _atmosSystem = default!;
+        [Dependency] private AtmosphereSystem _atmosSystem = default!;
 
         public override string Command => "listgases";
 

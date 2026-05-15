@@ -7,10 +7,10 @@ using Robust.Shared.Console;
 namespace Content.Server.Administration.Commands;
 
 [AnyCommand]
-public sealed class OpenUserVisibleNotesCommand : LocalizedCommands
+public sealed partial class OpenUserVisibleNotesCommand : LocalizedCommands
 {
-    [Dependency] private readonly IConfigurationManager _configuration = default!;
-    [Dependency] private readonly IAdminNotesManager _notes = default!;
+    [Dependency] private IConfigurationManager _configuration = default!;
+    [Dependency] private IAdminNotesManager _notes = default!;
 
     public override string Command => "adminremarks";
 

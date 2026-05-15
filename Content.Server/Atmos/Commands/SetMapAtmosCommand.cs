@@ -9,10 +9,10 @@ using Robust.Shared.Map;
 namespace Content.Server.Atmos.Commands;
 
 [AdminCommand(AdminFlags.Admin)]
-public sealed class AddMapAtmosCommand : LocalizedEntityCommands
+public sealed partial class AddMapAtmosCommand : LocalizedEntityCommands
 {
-    [Dependency] private readonly SharedMapSystem _map = default!;
-    [Dependency] private readonly AtmosphereSystem _atmosphere = default!;
+    [Dependency] private SharedMapSystem _map = default!;
+    [Dependency] private AtmosphereSystem _atmosphere = default!;
 
     public override string Command => "setmapatmos";
 

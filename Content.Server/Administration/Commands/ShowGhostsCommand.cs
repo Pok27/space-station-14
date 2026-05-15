@@ -6,9 +6,9 @@ using Robust.Shared.Console;
 namespace Content.Server.Administration.Commands
 {
     [AdminCommand(AdminFlags.Admin)]
-    public sealed class ShowGhostsCommand : LocalizedCommands
+    public sealed partial class ShowGhostsCommand : LocalizedCommands
     {
-        [Dependency] private readonly IEntityManager _entities = default!;
+        [Dependency] private IEntityManager _entities = default!;
 
         public override string Command => "showghosts";
 

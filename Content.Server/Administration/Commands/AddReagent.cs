@@ -13,10 +13,10 @@ namespace Content.Server.Administration.Commands
     ///     Command that allows you to edit an existing solution by adding (or removing) reagents.
     /// </summary>
     [AdminCommand(AdminFlags.Admin)]
-    public sealed class AddReagent : LocalizedCommands
+    public sealed partial class AddReagent : LocalizedCommands
     {
-        [Dependency] private readonly IEntityManager _entManager = default!;
-        [Dependency] private readonly IPrototypeManager _protomanager = default!;
+        [Dependency] private IEntityManager _entManager = default!;
+        [Dependency] private IPrototypeManager _protomanager = default!;
 
         public override string Command => "addreagent";
 

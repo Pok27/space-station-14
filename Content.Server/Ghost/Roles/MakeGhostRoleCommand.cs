@@ -7,9 +7,9 @@ using Robust.Shared.Console;
 namespace Content.Server.Ghost.Roles
 {
     [AdminCommand(AdminFlags.Admin)]
-    public sealed class MakeGhostRoleCommand : LocalizedCommands
+    public sealed partial class MakeGhostRoleCommand : LocalizedCommands
     {
-        [Dependency] private readonly IEntityManager _entManager = default!;
+        [Dependency] private IEntityManager _entManager = default!;
 
         public override string Command => "makeghostrole";
 

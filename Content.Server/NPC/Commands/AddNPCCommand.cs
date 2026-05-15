@@ -6,9 +6,9 @@ using Robust.Shared.Console;
 namespace Content.Server.NPC.Commands
 {
     [AdminCommand(AdminFlags.Fun)]
-    public sealed class AddNPCCommand : LocalizedCommands
+    public sealed partial class AddNPCCommand : LocalizedCommands
     {
-        [Dependency] private readonly IEntityManager _entities = default!;
+        [Dependency] private IEntityManager _entities = default!;
 
         public override string Command => "addnpc";
 
