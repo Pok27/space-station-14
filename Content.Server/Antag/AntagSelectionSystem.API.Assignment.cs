@@ -484,14 +484,14 @@ public sealed partial class AntagSelectionSystem
     [PublicAPI]
     public bool TryApplyAntagConfiguration<T>(ICommonSession player, EntityUid target, EntProtoId ruleProto, ProtoId<AntagSpecifierPrototype> antagProto) where T : Component
     {
-        if (!Proto.Resolve(antagProto, out _))
+        if (!ProtoMan.Resolve(antagProto, out _))
             return false;
 
         var rule = ForceGetGameRuleEnt<T>(ruleProto);
 
         foreach (var selector in rule.Comp.Antags)
         {
-            if (selector.Proto != antagProto || !Proto.Resolve(selector.Proto, out var antag))
+            if (selector.Proto != antagProto || !ProtoMan.Resolve(selector.Proto, out var antag))
                 continue;
 
             InitializeAntag(rule, antag, target, player, skipAssignmentConditions: true);
