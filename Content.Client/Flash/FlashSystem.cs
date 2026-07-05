@@ -18,15 +18,10 @@ public sealed partial class FlashSystem : SharedFlashSystem
     public override void Initialize()
     {
         base.Initialize();
-
-        SubscribeLocalEvent<FlashedStatusEffectComponent, StatusEffectAppliedEvent>(OnApplied);
-        SubscribeLocalEvent<FlashedStatusEffectComponent, StatusEffectRemovedEvent>(OnRemoved);
-        SubscribeLocalEvent<FlashedStatusEffectComponent, StatusEffectRelayedEvent<LocalPlayerAttachedEvent>>(OnPlayerAttached);
-        SubscribeLocalEvent<FlashedStatusEffectComponent, StatusEffectRelayedEvent<LocalPlayerDetachedEvent>>(OnPlayerDetached);
-
         _overlay = new();
     }
 
+    [SubscribeLocalEvent]
     private void OnApplied(Entity<FlashedStatusEffectComponent> ent, ref StatusEffectAppliedEvent args)
     {
         if (_player.LocalEntity == args.Target)
@@ -36,6 +31,7 @@ public sealed partial class FlashSystem : SharedFlashSystem
         }
     }
 
+    [SubscribeLocalEvent]
     private void OnRemoved(Entity<FlashedStatusEffectComponent> ent, ref StatusEffectRemovedEvent args)
     {
         if (_player.LocalEntity != args.Target)
@@ -49,12 +45,14 @@ public sealed partial class FlashSystem : SharedFlashSystem
         }
     }
 
+    [SubscribeLocalEvent]
     private void OnPlayerAttached(Entity<FlashedStatusEffectComponent> ent, ref StatusEffectRelayedEvent<LocalPlayerAttachedEvent> args)
     {
         _overlay.RequestScreenTexture = true;
         _overlayMan.AddOverlay(_overlay);
     }
 
+    [SubscribeLocalEvent]
     private void OnPlayerDetached(Entity<FlashedStatusEffectComponent> ent, ref StatusEffectRelayedEvent<LocalPlayerDetachedEvent> args)
     {
         if (_player.LocalEntity is null || _statusEffects.HasEffectComp<FlashedStatusEffectComponent>(_player.LocalEntity.Value))
