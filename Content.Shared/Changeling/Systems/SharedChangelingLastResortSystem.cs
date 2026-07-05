@@ -39,6 +39,9 @@ public abstract partial class SharedChangelingLastResortSystem : EntitySystem
 
         Audio.PlayPredicted(ent.Comp.Sound, args.Performer, args.Performer);
 
+        if (!_net.IsServer)
+            return; // Transfer Mind is unpredictable.
+
         var slug = PredictedSpawnAtPosition(ent.Comp.SlugPrototype, Transform(args.Performer).Coordinates);
         _mind.TransferTo(mindId, slug, mind: mind);
         _gibbing.Gib(args.Performer);

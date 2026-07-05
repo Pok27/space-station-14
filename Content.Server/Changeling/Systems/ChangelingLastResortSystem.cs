@@ -32,9 +32,8 @@ public sealed partial class ChangelingLastResortSystem : SharedChangelingLastRes
 
         args.Handled = true;
 
-        Audio.PlayPredicted(ent.Comp.Sound, ent.Owner, ent.Owner);
-        _popup.PopupPredicted(Loc.GetString("changeling-takeover-start-others", ("user", ent.Owner)),
-            ent.Owner,
+        Audio.PlayPvs(ent.Comp.Sound, ent.Owner);
+        _popup.PopupEntity(Loc.GetString("changeling-takeover-start-others", ("user", ent.Owner)),
             ent.Owner,
             PopupType.MediumCaution);
 
@@ -65,7 +64,7 @@ public sealed partial class ChangelingLastResortSystem : SharedChangelingLastRes
         if (HasComp<ChangelingIdentityComponent>(target))
         {
             if (showPopups)
-                _popup.PopupClient(Loc.GetString("changeling-takeover-is-changeling"), user, user);
+                _popup.PopupEntity(Loc.GetString("changeling-takeover-is-changeling"), user);
             return false;
         }
 
@@ -73,7 +72,7 @@ public sealed partial class ChangelingLastResortSystem : SharedChangelingLastRes
             return true;
 
         if (showPopups)
-            _popup.PopupClient(Loc.GetString("changeling-takeover-not-dead"), user, user);
+            _popup.PopupEntity(Loc.GetString("changeling-takeover-not-dead"), user);
         return false;
     }
 
