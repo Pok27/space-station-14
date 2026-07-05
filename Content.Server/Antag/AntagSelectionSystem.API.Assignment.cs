@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Server.Antag.Components;
@@ -475,30 +475,6 @@ public sealed partial class AntagSelectionSystem
         }
 
         Log.Error($"Antag Prototype {proto.ID} does not exist in {ToPrettyString(rule)}, {ruleProto}");
-    }
-
-    /// <summary>
-    /// Re-applies antag configuration from a specific game rule to an entity that is already supposed to be that antag.
-    /// </summary>
-    [PublicAPI]
-    public bool TryReapplyAntagConfiguration<T>(ICommonSession player, EntityUid target, EntProtoId ruleProto, ProtoId<AntagSpecifierPrototype> antagProto) where T : Component
-    {
-        if (!ProtoMan.Resolve(antagProto, out _))
-            return false;
-
-        var rule = ForceGetGameRuleEnt<T>(ruleProto);
-
-        foreach (var selector in rule.Comp.Antags)
-        {
-            if (selector.Proto != antagProto || !ProtoMan.Resolve(selector.Proto, out var antag))
-                continue;
-
-            InitializeAntag(rule, antag, target, player, skipAssignmentConditions: true, skipSendBriefing: true);
-            return true;
-        }
-
-        Log.Error($"Antag Prototype {antagProto} does not exist in {ToPrettyString(rule)}, {ruleProto}");
-        return false;
     }
 
     /// <summary>

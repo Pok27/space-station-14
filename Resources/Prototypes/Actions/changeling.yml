@@ -202,7 +202,7 @@
     - !type:AddReagentToBloodstream
       reagent: Cryptobiolin
       quantity: 10 # About 20s of your speech being scrambled
-      
+
 - type: entity
   parent: BaseAction
   id: ActionChangelingLastResort
@@ -212,7 +212,6 @@
   - type: ConfirmableAction
     popup: suicide-action-popup
   - type: Action
-    useDelay: 300 # TODO: chemical cost
     raiseOnAction: true
     checkCanInteract: false # You can transform if you are killed
     checkConsciousness: false
