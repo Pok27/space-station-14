@@ -1,7 +1,10 @@
 using Content.Shared.Administration.Systems;
 using Content.Shared.Changeling.Components;
 using Content.Shared.Changeling.Systems;
+using Content.Shared.DoAfter;
+using Content.Shared.Humanoid;
 using Content.Shared.Mind;
+using Content.Shared.Mobs.Systems;
 using Content.Shared.Popups;
 using Robust.Shared.Prototypes;
 
@@ -13,7 +16,66 @@ public sealed partial class ChangelingLastResortSystem : SharedChangelingLastRes
 
     [Dependency] private RejuvenateSystem _rejuvenate = default!;
     [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private SharedDoAfterSystem _doAfter = default!;
+
+    [SubscribeLocalEvent]
+    private void OnTakeOverCorpseAction(Entity<ChangelingSlugComponent> ent,
+        ref ChangelingTakeOverCorpseActionEvent args)
+    {
+        // CanTakeOver checks for the existence of ChangelingIdentityComponent on the target.
+        // As such it cannot be predicted as that component is not networked to sessions other than the owner
+        // Unless we do fucky networking magic
+        if (args.Handled || !CanTakeOver(ent.Owner, args.Target))
+            return;
+
+        args.Handled = true;
+
+        Audio.PlayPredicted(ent.Comp.Sound, ent.Owner, ent.Owner);
+        _popup.PopupPredicted(Loc.GetString("changeling-takeover-start-others", ("user", ent.Owner)),
+            ent.Owner,
+            ent.Owner,
+            PopupType.MediumCaution);
+
+        var doAfter = new DoAfterArgs(EntityManager,
+            ent.Owner,
+            ent.Comp.TakeOverDuration,
+            new ChangelingTakeOverCorpseDoAfterEvent(),
+            ent,
+            target: args.Target)
+        {
+            BreakOnDamage = true,
+            BreakOnMove = true,
+            DuplicateCondition = DuplicateConditions.None,
+            RequireCanInteract = false,
+        };
+
+        _doAfter.TryStartDoAfter(doAfter);
+    }
+
+    /// <summary>
+    /// Checks whether a changeling slug can take over the <paramref name="target"/> body.
+    /// </summary>
+    private bool CanTakeOver(EntityUid user, EntityUid target, bool showPopups = true)
+    {
+        if (!HasComp<HumanoidProfileComponent>(target))
+            return false;
+
+        if (HasComp<ChangelingIdentityComponent>(target))
+        {
+            if (showPopups)
+                _popup.PopupClient(Loc.GetString("changeling-takeover-is-changeling"), user, user);
+            return false;
+        }
+
+        if (_mobState.IsDead(target))
+            return true;
+
+        if (showPopups)
+            _popup.PopupClient(Loc.GetString("changeling-takeover-not-dead"), user, user);
+        return false;
+    }
 
     [SubscribeLocalEvent]
     private void OnTakeOverCorpseDoAfter(Entity<ChangelingSlugComponent> ent,

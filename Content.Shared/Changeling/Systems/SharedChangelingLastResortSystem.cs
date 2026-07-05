@@ -1,11 +1,7 @@
 using Content.Shared.Mind;
 using Content.Shared.Actions;
 using Content.Shared.Changeling.Components;
-using Content.Shared.DoAfter;
 using Content.Shared.Gibbing;
-using Content.Shared.Humanoid;
-using Content.Shared.Mobs.Systems;
-using Content.Shared.Popups;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Network;
 
@@ -16,11 +12,8 @@ public abstract partial class SharedChangelingLastResortSystem : EntitySystem
     [Dependency] private INetManager _net = default!;
     [Dependency] private GibbingSystem _gibbing = default!;
     [Dependency] private SharedMindSystem _mind = default!;
-    [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private SharedActionsSystem _actions = default!;
-    [Dependency] private SharedAudioSystem _audio = default!;
-    [Dependency] private SharedDoAfterSystem _doAfter = default!;
-    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] protected SharedAudioSystem Audio = default!;
 
     [SubscribeLocalEvent]
     private void OnTakeOverMapInit(Entity<ChangelingSlugComponent> ent, ref MapInitEvent args)
@@ -44,67 +37,10 @@ public abstract partial class SharedChangelingLastResortSystem : EntitySystem
 
         args.Handled = true;
 
-        _audio.PlayPredicted(ent.Comp.Sound, args.Performer, args.Performer);
+        Audio.PlayPredicted(ent.Comp.Sound, args.Performer, args.Performer);
 
-        if (!_net.IsServer)
-            return; // Transfer Mind is unpredictable.
-
-        var slug = Spawn(ent.Comp.SlugPrototype, Transform(args.Performer).Coordinates);
+        var slug = PredictedSpawnAtPosition(ent.Comp.SlugPrototype, Transform(args.Performer).Coordinates);
         _mind.TransferTo(mindId, slug, mind: mind);
         _gibbing.Gib(args.Performer);
-    }
-
-    [SubscribeLocalEvent]
-    private void OnTakeOverCorpseAction(Entity<ChangelingSlugComponent> ent,
-        ref ChangelingTakeOverCorpseActionEvent args)
-    {
-        if (args.Handled || !CanTakeOver(ent.Owner, args.Target))
-            return;
-
-        args.Handled = true;
-
-        _audio.PlayPredicted(ent.Comp.Sound, ent.Owner, ent.Owner);
-        _popup.PopupPredicted(Loc.GetString("changeling-takeover-start-others", ("user", ent.Owner)),
-            ent.Owner,
-            ent.Owner,
-            PopupType.MediumCaution);
-
-        var doAfter = new DoAfterArgs(EntityManager,
-            ent.Owner,
-            ent.Comp.TakeOverDuration,
-            new ChangelingTakeOverCorpseDoAfterEvent(),
-            ent,
-            target: args.Target)
-        {
-            BreakOnDamage = true,
-            BreakOnMove = true,
-            DuplicateCondition = DuplicateConditions.None,
-            RequireCanInteract = false,
-        };
-
-        _doAfter.TryStartDoAfter(doAfter);
-    }
-
-    /// <summary>
-    /// Checks whether a changeling slug can take over the <paramref name="target"/> body.
-    /// </summary>
-    protected bool CanTakeOver(EntityUid user, EntityUid target, bool showPopups = true)
-    {
-        if (!HasComp<HumanoidProfileComponent>(target))
-            return false;
-
-        if (HasComp<ChangelingIdentityComponent>(target))
-        {
-            if (showPopups)
-                _popup.PopupClient(Loc.GetString("changeling-takeover-is-changeling"), user, user);
-            return false;
-        }
-
-        if (_mobState.IsDead(target))
-            return true;
-
-        if (showPopups)
-            _popup.PopupClient(Loc.GetString("changeling-takeover-not-dead"), user, user);
-        return false;
     }
 }

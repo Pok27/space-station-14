@@ -25,7 +25,17 @@
   name: headslug
   description: A small, slug-like creature with a large, gaping maw. It's covered in a thick, slimy mucus.
   components:
-  - type: ChangelingSlug
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeCircle
+          radius: 0.2
+        density: 15
+        mask:
+        - SmallMobMask
+        layer:
+        - SmallMobLayer
   - type: Sprite
     drawdepth: SmallMobs
     layers:
@@ -42,25 +52,16 @@
     thresholds:
       0: Alive
       50: Dead
-  - type: MovementSpeedModifier
+  - type: MovementSpeedModifier # Slightly faster than regular mobs
     baseWalkSpeed: 3
-    baseSprintSpeed: 7
+    baseSprintSpeed: 5
   - type: MeleeWeapon
+    altDisarm: false
     damage:
       types:
         Blunt: 5
         Structural: 15 # to destroy lockers in which bodies could be hidden
-  - type: Fixtures
-    fixtures:
-      fix1:
-        shape:
-          !type:PhysShapeCircle
-          radius: 0.2
-        density: 15
-        mask:
-        - SmallMobMask
-        layer:
-        - SmallMobLayer
+  - type: ChangelingSlug
   - type: Tag # Removes DoorBumpOpener
     tags:
       []
