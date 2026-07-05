@@ -478,11 +478,10 @@ public sealed partial class AntagSelectionSystem
     }
 
     /// <summary>
-    /// Applies antag configuration from a specific game rule to an existing entity without registering
-    /// a new antag assignment in game rule state.
+    /// Re-applies antag configuration from a specific game rule to an entity that is already supposed to be that antag.
     /// </summary>
     [PublicAPI]
-    public bool TryApplyAntagConfiguration<T>(ICommonSession player, EntityUid target, EntProtoId ruleProto, ProtoId<AntagSpecifierPrototype> antagProto) where T : Component
+    public bool TryReapplyAntagConfiguration<T>(ICommonSession player, EntityUid target, EntProtoId ruleProto, ProtoId<AntagSpecifierPrototype> antagProto) where T : Component
     {
         if (!ProtoMan.Resolve(antagProto, out _))
             return false;
@@ -494,7 +493,7 @@ public sealed partial class AntagSelectionSystem
             if (selector.Proto != antagProto || !ProtoMan.Resolve(selector.Proto, out var antag))
                 continue;
 
-            InitializeAntag(rule, antag, target, player, skipAssignmentConditions: true);
+            InitializeAntag(rule, antag, target, player, skipAssignmentConditions: true, skipSendBriefing: true);
             return true;
         }
 

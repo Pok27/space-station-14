@@ -22,11 +22,6 @@ public abstract partial class SharedChangelingLastResortSystem : EntitySystem
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
 
-    public override void Initialize()
-    {
-        base.Initialize();
-    }
-
     [SubscribeLocalEvent]
     private void OnTakeOverMapInit(Entity<ChangelingSlugComponent> ent, ref MapInitEvent args)
     {
@@ -90,15 +85,26 @@ public abstract partial class SharedChangelingLastResortSystem : EntitySystem
         _doAfter.TryStartDoAfter(doAfter);
     }
 
-    protected bool CanTakeOver(EntityUid user, EntityUid target)
+    /// <summary>
+    /// Checks whether a changeling slug can take over the <paramref name="target"/> body.
+    /// </summary>
+    protected bool CanTakeOver(EntityUid user, EntityUid target, bool showPopups = true)
     {
         if (!HasComp<HumanoidProfileComponent>(target))
             return false;
 
+        if (HasComp<ChangelingIdentityComponent>(target))
+        {
+            if (showPopups)
+                _popup.PopupClient(Loc.GetString("changeling-takeover-is-changeling"), user, user);
+            return false;
+        }
+
         if (_mobState.IsDead(target))
             return true;
 
-        _popup.PopupClient(Loc.GetString("changeling-takeover-not-dead"), user, user);
+        if (showPopups)
+            _popup.PopupClient(Loc.GetString("changeling-takeover-not-dead"), user, user);
         return false;
     }
 }

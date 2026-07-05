@@ -28,7 +28,7 @@ public sealed partial class ChangelingLastResortSystem : SharedChangelingLastRes
     {
         args.Handled = true;
 
-        if (args.Cancelled || args.Target is not { } target || !CanTakeOver(args.User, target))
+        if (args.Cancelled || args.Target is not { } target || !CanTakeOver(args.User, target, showPopups: false))
             return;
 
         if (!_mind.TryGetMind(args.User, out var mindId, out var mind))
@@ -47,7 +47,7 @@ public sealed partial class ChangelingLastResortSystem : SharedChangelingLastRes
     {
         if (mind.UserId is { } userId && _player.TryGetSessionById(userId, out var session))
         {
-            _antag.TryApplyAntagConfiguration<ChangelingRuleComponent>(session,
+            _antag.TryReapplyAntagConfiguration<ChangelingRuleComponent>(session,
                 target,
                 ChangelingRule,
                 ChangelingAntag);

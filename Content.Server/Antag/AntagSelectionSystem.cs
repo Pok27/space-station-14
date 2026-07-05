@@ -773,7 +773,7 @@ public sealed partial class AntagSelectionSystem : GameRuleSystem<AntagSelection
     /// Initializes the antagonist status on the specified entity.
     /// Adds the needed components, loadouts, items, attaches the player and fires off an event.
     /// </summary>
-    private void InitializeAntag(Entity<AntagSelectionComponent> gameRule, AntagSpecifierPrototype prototype, EntityUid antag, ICommonSession player, bool skipAssignmentConditions = false)
+    private void InitializeAntag(Entity<AntagSelectionComponent> gameRule, AntagSpecifierPrototype prototype, EntityUid antag, ICommonSession player, bool skipAssignmentConditions = false, bool skipSendBriefing = false)
     {
         if (!skipAssignmentConditions)
         {
@@ -804,7 +804,7 @@ public sealed partial class AntagSelectionSystem : GameRuleSystem<AntagSelection
         Log.Debug($"Assigned {ToPrettyString(antag):target}, mind {ToPrettyString(mind):target} as antagonist: {ToPrettyString(gameRule):user}");
         _adminLogger.Add(LogType.AntagSelection, $"Assigned {ToPrettyString(antag):target}, mind {ToPrettyString(mind):target} as antagonist: {ToPrettyString(gameRule):user}");
 
-        if (!skipAssignmentConditions)
+        if (!skipSendBriefing)
             SendBriefing(player, prototype.Briefing);
 
         var afterEv = new AfterAntagEntitySelectedEvent(player, antag, gameRule, prototype);
