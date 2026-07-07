@@ -834,24 +834,6 @@ public sealed partial class AntagSelectionSystem : GameRuleSystem<AntagSelection
         args.Minds = GetAntagIdentities(ent.AsNullable()).ToList();
         args.AgentName = Loc.GetString(name);
     }
-
-    #region Public API
-    /// <summary>
-    /// Assigns components to an entity based on ID of a <see cref="AntagSpecifierPrototype"/>
-    /// </summary>
-    /// <param name="entity">The entity to gain the components</param>
-    /// <param name="antag">The prototype to use.</param>
-    [PublicAPI]
-    public void AssignAntagComponents(EntityUid entity, ProtoId<AntagSpecifierPrototype> antag)
-    {
-        // The following is where we apply components, equipment, and other changes to our antagonist entity.
-        if (!ProtoMan.Resolve(antag, out var antagPrototype))
-            return;
-
-        AssignAntagComponents(entity, antagPrototype);
-    }
-
-    #endregion
 }
 
 /// <summary>

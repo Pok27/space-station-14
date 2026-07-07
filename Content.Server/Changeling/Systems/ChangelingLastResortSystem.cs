@@ -1,3 +1,4 @@
+using Content.Server.Antag;
 using Content.Shared.Administration.Systems;
 using Content.Shared.Antag;
 using Content.Shared.Changeling.Components;
@@ -20,6 +21,7 @@ public sealed partial class ChangelingLastResortSystem : SharedChangelingLastRes
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
+    [Dependency] private AntagSelectionSystem _antag = default!;
 
     [SubscribeLocalEvent]
     private void OnTakeOverCorpseAction(Entity<ChangelingSlugComponent> ent,
@@ -100,8 +102,7 @@ public sealed partial class ChangelingLastResortSystem : SharedChangelingLastRes
         _rejuvenate.PerformRejuvenate(target);
         _mind.TransferTo(mindId, target, mind: mind);
 
-        if (ProtoMan.Resolve(ChangelingAntag, out var ling))
-            EntityManager.AddComponents(target, ling.Components);
+        _antag.AssignAntagComponents(target, ChangelingAntag);
 
         QueueDel(user);
     }
