@@ -1,7 +1,8 @@
 - type: entity
   parent: [ MobHuman, StorePresetChangeling ]
   id: MobLing
-  categories: [ HideSpawnMenu ]
+  name: Urist McLing
+  suffix: Non-Antag
   components:
   - type: ChangelingDevour
   - type: ChangelingIdentity
