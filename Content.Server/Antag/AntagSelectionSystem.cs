@@ -26,6 +26,7 @@ using Content.Shared.GameTicking.Components;
 using Content.Shared.Random.Helpers;
 using Content.Shared.Roles;
 using Content.Shared.Whitelist;
+using JetBrains.Annotations;
 using Robust.Server.Audio;
 using Robust.Server.GameObjects;
 using Robust.Server.Player;
@@ -780,7 +781,7 @@ public sealed partial class AntagSelectionSystem : GameRuleSystem<AntagSelection
             $"Game rule {ToPrettyString(gameRule)}, failed to pre-assign {player.Name} to antag {prototype.ID}");
 
         // The following is where we apply components, equipment, and other changes to our antagonist entity.
-        EntityManager.AddComponents(antag, prototype.Components);
+        AssignAntagComponents(antag, prototype);
 
         // Equip the entity's RoleLoadout and LoadoutGroup
         List<ProtoId<StartingGearPrototype>> gear = new();
@@ -806,6 +807,11 @@ public sealed partial class AntagSelectionSystem : GameRuleSystem<AntagSelection
         RaiseLocalEvent(gameRule, ref afterEv, true);
     }
 
+    private void AssignAntagComponents(EntityUid entity, AntagSpecifierPrototype antag)
+    {
+        EntityManager.AddComponents(entity, antag.Components);
+    }
+
     private void AssignMind(Entity<AntagSelectionComponent> gameRule, ProtoId<AntagSpecifierPrototype> proto, EntityUid mind, EntityUid antag)
     {
         if (gameRule.Comp.AssignedMinds.TryGetValue(proto, out var minds))
@@ -828,6 +834,24 @@ public sealed partial class AntagSelectionSystem : GameRuleSystem<AntagSelection
         args.Minds = GetAntagIdentities(ent.AsNullable()).ToList();
         args.AgentName = Loc.GetString(name);
     }
+
+    #region Public API
+    /// <summary>
+    /// Assigns components to an entity based on ID of a <see cref="AntagSpecifierPrototype"/>
+    /// </summary>
+    /// <param name="entity">The entity to gain the components</param>
+    /// <param name="antag">The prototype to use.</param>
+    [PublicAPI]
+    public void AssignAntagComponents(EntityUid entity, ProtoId<AntagSpecifierPrototype> antag)
+    {
+        // The following is where we apply components, equipment, and other changes to our antagonist entity.
+        if (!ProtoMan.Resolve(antag, out var antagPrototype))
+            return;
+
+        AssignAntagComponents(entity, antagPrototype);
+    }
+
+    #endregion
 }
 
 /// <summary>

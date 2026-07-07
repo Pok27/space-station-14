@@ -1,7 +1,6 @@
 - type: entity
-  abstract: true
-  parent: StorePresetChangeling
-  id: BaseMobLing
+  parent: [ MobHuman, StorePresetChangeling ]
+  id: MobLing
   categories: [ HideSpawnMenu ]
   components:
   - type: ChangelingDevour
@@ -13,12 +12,6 @@
   - type: Store
     balance:
       ChangelingDNA: 60
-
-- type: entity
-  parent: [ MobHuman, BaseMobLing ]
-  id: MobLing
-  name: Urist McLing
-  suffix: Non-Antag
 
 - type: entity
   parent: [ SimpleSpaceMobBase, MobNightVision ]

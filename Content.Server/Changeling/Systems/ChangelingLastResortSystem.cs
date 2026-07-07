@@ -1,4 +1,5 @@
 using Content.Shared.Administration.Systems;
+using Content.Shared.Antag;
 using Content.Shared.Changeling.Components;
 using Content.Shared.Changeling.Systems;
 using Content.Shared.DoAfter;
@@ -12,7 +13,7 @@ namespace Content.Server.Changeling.Systems;
 
 public sealed partial class ChangelingLastResortSystem : SharedChangelingLastResortSystem
 {
-    private static readonly EntProtoId BaseMobLing = "BaseMobLing";
+    private static readonly ProtoId<AntagSpecifierPrototype> ChangelingAntag = "Changeling";
 
     [Dependency] private RejuvenateSystem _rejuvenate = default!;
     [Dependency] private SharedMindSystem _mind = default!;
@@ -99,8 +100,8 @@ public sealed partial class ChangelingLastResortSystem : SharedChangelingLastRes
         _rejuvenate.PerformRejuvenate(target);
         _mind.TransferTo(mindId, target, mind: mind);
 
-        if (ProtoMan.Resolve(BaseMobLing, out var lingBase))
-            EntityManager.AddComponents(target, lingBase);
+        if (ProtoMan.Resolve(ChangelingAntag, out var ling))
+            EntityManager.AddComponents(target, ling.Components);
 
         QueueDel(user);
     }
