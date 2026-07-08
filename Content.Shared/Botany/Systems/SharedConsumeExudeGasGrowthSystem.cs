@@ -30,6 +30,7 @@ public abstract class SharedPlantConsumeExudeGasSystem : EntitySystem
 
         _mutation.CrossGasses(ref ent.Comp.ConsumeGasses, pollenData.ConsumeGasses);
         _mutation.CrossGasses(ref ent.Comp.ExudeGasses, pollenData.ExudeGasses);
+        Dirty(ent);
     }
 
     /// <summary>

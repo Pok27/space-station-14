@@ -27,8 +27,8 @@ public abstract class SharedPlantAtmosphericSystem : EntitySystem
         _mutation.CrossFloat(ref ent.Comp.HighHeatTolerance, pollenData.HighHeatTolerance);
         _mutation.CrossFloat(ref ent.Comp.LowPressureTolerance, pollenData.LowPressureTolerance);
         _mutation.CrossFloat(ref ent.Comp.HighPressureTolerance, pollenData.HighPressureTolerance);
+        Dirty(ent);
     }
-
 
     /// <summary>
     /// Adjusts minimum temperature tolerance for plant growth.

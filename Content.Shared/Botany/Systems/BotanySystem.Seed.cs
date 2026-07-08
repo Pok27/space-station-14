@@ -162,7 +162,7 @@ public sealed partial class BotanySystem : EntitySystem
         EntityUid user,
         float? healthOverride)
     {
-        var seedItem = EntityManager.PredictedSpawnAtPosition(plantData.PacketPrototype, coords);
+        var seedItem = PredictedSpawnAtPosition(plantData.PacketPrototype, coords);
         var seedComp = EnsureComp<SeedComponent>(seedItem);
         seedComp.PlantProtoId = plantProtoId;
         seedComp.PlantData = snapshot != null

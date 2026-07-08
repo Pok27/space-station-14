@@ -21,7 +21,7 @@ public sealed partial class ProduceComponent : Component
     /// Serialized snapshot of plant components.
     /// Used to create a <see cref="SeedComponent"/> when this produce has its seeds extracted.
     /// </summary>
-    [DataField, AutoNetworkedField]
+    [DataField]
     public ComponentRegistry? PlantData;
 
     /// <summary>

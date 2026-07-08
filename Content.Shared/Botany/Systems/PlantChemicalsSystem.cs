@@ -29,6 +29,7 @@ public sealed class PlantChemicalsSystem : EntitySystem
             return;
 
         _mutation.CrossChemicals(ref ent.Comp.Chemicals, pollenData.Chemicals);
+        Dirty(ent);
     }
 
     /// <summary>

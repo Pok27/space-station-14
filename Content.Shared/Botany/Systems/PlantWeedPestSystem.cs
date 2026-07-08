@@ -29,6 +29,7 @@ public sealed class PlantWeedPestSystem : EntitySystem
 
         _mutation.CrossFloat(ref ent.Comp.WeedTolerance, pollenData.WeedTolerance);
         _mutation.CrossFloat(ref ent.Comp.PestTolerance, pollenData.PestTolerance);
+        Dirty(ent);
     }
 
     private void OnPlantGrow(Entity<PlantWeedPestComponent> ent, ref OnPlantGrowEvent args)

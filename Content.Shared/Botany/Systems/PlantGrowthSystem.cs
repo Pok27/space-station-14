@@ -33,6 +33,7 @@ public sealed class PlantGrowthSystem : EntitySystem
 
         _mutation.CrossFloat(ref ent.Comp.WaterConsumption, pollenData.WaterConsumption);
         _mutation.CrossFloat(ref ent.Comp.NutrientConsumption, pollenData.NutrientConsumption);
+        Dirty(ent);
     }
 
     private void OnPlantGrow(Entity<PlantGrowthComponent> ent, ref OnPlantGrowEvent args)
