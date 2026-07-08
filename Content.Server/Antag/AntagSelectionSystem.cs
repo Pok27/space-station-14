@@ -807,11 +807,6 @@ public sealed partial class AntagSelectionSystem : GameRuleSystem<AntagSelection
         RaiseLocalEvent(gameRule, ref afterEv, true);
     }
 
-    private void AssignAntagComponents(EntityUid entity, AntagSpecifierPrototype antag)
-    {
-        EntityManager.AddComponents(entity, antag.Components);
-    }
-
     private void AssignMind(Entity<AntagSelectionComponent> gameRule, ProtoId<AntagSpecifierPrototype> proto, EntityUid mind, EntityUid antag)
     {
         if (gameRule.Comp.AssignedMinds.TryGetValue(proto, out var minds))

@@ -502,7 +502,7 @@ public sealed partial class AntagSelectionSystem
     /// Assigns components to an entity based on ID of a <see cref="AntagSpecifierPrototype"/>
     /// </summary>
     /// <param name="entity">The entity to give the components.</param>
-    /// <param name="antag">The prototype to apply the components from.</param>
+    /// <param name="antag">The prototype ID to apply the components from.</param>
     [PublicAPI]
     public void AssignAntagComponents(EntityUid entity, ProtoId<AntagSpecifierPrototype> antag)
     {
@@ -511,5 +511,16 @@ public sealed partial class AntagSelectionSystem
             return;
 
         AssignAntagComponents(entity, antagPrototype);
+    }
+
+    /// <summary>
+    /// Assigns components to an entity based on a <see cref="AntagSpecifierPrototype"/>
+    /// </summary>
+    /// <param name="entity">The entity to give the components.</param>
+    /// <param name="antag">The prototype to apply the components from.</param>
+    [PublicAPI]
+    public void AssignAntagComponents(EntityUid entity, AntagSpecifierPrototype antag)
+    {
+        EntityManager.AddComponents(entity, antag.Components);
     }
 }
