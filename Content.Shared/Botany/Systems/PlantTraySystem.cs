@@ -8,6 +8,7 @@ using Content.Shared.Examine;
 using Content.Shared.FixedPoint;
 using Content.Shared.Random.Helpers;
 using Robust.Shared.Audio.Systems;
+using Robust.Shared.Containers;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
@@ -29,6 +30,7 @@ public sealed class PlantTraySystem : EntitySystem
     {
         SubscribeLocalEvent<PlantTrayComponent, ExaminedEvent>(OnExamine);
         SubscribeLocalEvent<PlantTrayComponent, SolutionTransferredEvent>(OnSolutionTransferred);
+        SubscribeLocalEvent<PlantTrayComponent, EntRemovedFromContainerMessage>(OnEntRemoved);
     }
 
     private void OnExamine(Entity<PlantTrayComponent> ent, ref ExaminedEvent args)
@@ -43,8 +45,8 @@ public sealed class PlantTraySystem : EntitySystem
                 args.PushMarkup(Loc.GetString("tray-component-nothing-planted-message"));
                 if (TryComp<PlantDataComponent>(plantUid, out var plantData))
                 {
-                    var displayName = Loc.GetString(plantData.DisplayName);
-                    args.PushMarkup(Loc.GetString("plant-component-something-already-growing-message", ("seedName", displayName)));
+                    var name = Loc.GetString(plantData.Name);
+                    args.PushMarkup(Loc.GetString("plant-component-something-already-growing-message", ("seedName", name)));
                 }
             }
 
@@ -62,6 +64,14 @@ public sealed class PlantTraySystem : EntitySystem
     private void OnSolutionTransferred(Entity<PlantTrayComponent> ent, ref SolutionTransferredEvent args)
     {
         _audio.PlayPredicted(ent.Comp.WateringSound, ent, args.User);
+    }
+
+    // Workaround for https://github.com/space-wizards/space-station-14/pull/35314
+    private void OnEntRemoved(Entity<PlantTrayComponent> ent, ref EntRemovedFromContainerMessage args)
+    {
+        // Make sure the removed entity was our contained solution and clear our cached reference
+        if (args.Entity == ent.Comp.SoilSolution?.Owner)
+            ent.Comp.SoilSolution = null;
     }
 
     public override void Update(float frameTime)
@@ -126,7 +136,7 @@ public sealed class PlantTraySystem : EntitySystem
 
         if (TryGetPlant(ent, out var plantUid))
         {
-            if (!TryComp<WeedPestGrowthComponent>(plantUid.Value, out var weedPestGrowth))
+            if (!TryComp<PlantWeedPestComponent>(plantUid.Value, out var weedPestGrowth))
                 return;
 
             if (ent.Comp.WeedLevel > weedPestGrowth.WeedTolerance)

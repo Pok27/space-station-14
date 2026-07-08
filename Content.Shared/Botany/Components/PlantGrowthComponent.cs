@@ -7,8 +7,8 @@ namespace Content.Shared.Botany.Components;
 /// Component for basic parameters for plant growth.
 /// </summary>
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(fieldDeltas: true)]
-[Access(typeof(BasicGrowthSystem))]
-public sealed partial class BasicGrowthComponent : Component
+[Access(typeof(PlantGrowthSystem))]
+public sealed partial class PlantGrowthComponent : Component
 {
     /// <summary>
     /// Amount of water consumed per growth tick.

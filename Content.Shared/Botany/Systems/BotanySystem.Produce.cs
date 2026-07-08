@@ -5,7 +5,6 @@ using Content.Shared.EntityEffects;
 using Content.Shared.Examine;
 using Content.Shared.FixedPoint;
 using Robust.Shared.Map;
-using Robust.Shared.Network;
 using Robust.Shared.Random;
 
 namespace Content.Shared.Botany.Systems;
@@ -13,7 +12,6 @@ namespace Content.Shared.Botany.Systems;
 public sealed partial class BotanySystem
 {
     [Dependency] private readonly SharedEntityEffectsSystem _entityEffects = default!;
-    [Dependency] private readonly INetManager _net = default!;
 
     private void OnProduceExamined(Entity<ProduceComponent> ent, ref ExaminedEvent args)
     {
@@ -76,17 +74,14 @@ public sealed partial class BotanySystem
         if (!Resolve(ent.Owner, ref ent.Comp1, ref ent.Comp2, false))
             return;
 
-        // No predict RandomOffset.
-        if (_net.IsClient)
-            return;
-
         var product = _random.Pick(ent.Comp1.ProductPrototypes);
-        var entity = Spawn(product, position);
+        var entity = PredictedSpawnAtPosition(product, position);
         _randomHelper.RandomOffset(entity, 0.25f);
 
         var produce = EnsureComp<ProduceComponent>(entity);
         produce.PlantProtoId = MetaData(ent.Owner).EntityPrototype!.ID;
         produce.PlantData = ClonePlantSnapshotData(ent.Owner);
+        Dirty(entity, produce);
         ProduceGrown((entity, produce));
         _appearance.SetData(entity, ProduceVisuals.Potency, ent.Comp2.Potency);
     }

@@ -10,7 +10,7 @@ public sealed class PlantTrayVisualizerSystem : VisualizerSystem<PlantTrayVisual
 {
     [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
     [Dependency] private readonly PlantTraySystem _plantTray = default!;
-    [Dependency] private readonly WeedPestGrowthSystem _weedPestGrowth = default!;
+    [Dependency] private readonly PlantWeedPestSystem _plantWeedPest = default!;
     [Dependency] private readonly PlantHolderSystem _plantHolder = default!;
 
     public override void FrameUpdate(float frameTime)
@@ -39,7 +39,7 @@ public sealed class PlantTrayVisualizerSystem : VisualizerSystem<PlantTrayVisual
         {
             if (TryComp<PlantHolderComponent>(plantUid, out var plantHolder))
             {
-                alert |= _weedPestGrowth.GetPestThreshold(plantUid.Value)
+                alert |= _plantWeedPest.GetPestThreshold(plantUid.Value)
                          || _plantHolder.GetToxinsThreshold(plantUid.Value)
                          || plantHolder.ImproperHeat
                          || plantHolder.ImproperPressure

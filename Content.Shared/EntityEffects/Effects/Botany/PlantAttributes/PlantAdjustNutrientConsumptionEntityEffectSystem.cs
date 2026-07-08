@@ -7,17 +7,17 @@ namespace Content.Shared.EntityEffects.Effects.Botany.PlantAttributes;
 /// Entity effect that adjusts the nutrient consumption of a plant.
 /// </summary>
 /// <inheritdoc cref="EntityEffectSystem{T,TEffect}"/>
-public sealed partial class PlantAdjustNutrientConsumptionEntityEffectSystem : EntityEffectSystem<BasicGrowthComponent, PlantAdjustNutrientConsumption>
+public sealed partial class PlantAdjustNutrientConsumptionEntityEffectSystem : EntityEffectSystem<PlantGrowthComponent, PlantAdjustNutrientConsumption>
 {
-    [Dependency] private readonly BasicGrowthSystem _basicGrowth = default!;
+    [Dependency] private readonly PlantGrowthSystem _plantGrowth = default!;
     [Dependency] private readonly PlantHolderSystem _plantHolder = default!;
 
-    protected override void Effect(Entity<BasicGrowthComponent> entity, ref EntityEffectEvent<PlantAdjustNutrientConsumption> args)
+    protected override void Effect(Entity<PlantGrowthComponent> entity, ref EntityEffectEvent<PlantAdjustNutrientConsumption> args)
     {
         if (_plantHolder.IsDead(entity.Owner))
             return;
 
-        _basicGrowth.AdjustNutrientConsumption(entity.AsNullable(), args.Effect.Amount);
+        _plantGrowth.AdjustNutrientConsumption(entity.AsNullable(), args.Effect.Amount);
     }
 }
 

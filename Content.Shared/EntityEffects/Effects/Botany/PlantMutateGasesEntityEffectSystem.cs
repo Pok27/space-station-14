@@ -13,7 +13,7 @@ namespace Content.Shared.EntityEffects.Effects.Botany;
 public sealed partial class PlantMutateExudeGasesEntityEffectSystem : EntityEffectSystem<PlantComponent, PlantMutateExudeGases>
 {
     [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly SharedConsumeExudeGasGrowthSystem _consumeExudeGasGrowth = default!;
+    [Dependency] private readonly SharedPlantConsumeExudeGasSystem _plantConsumeExudeGas = default!;
     [Dependency] private readonly INetManager _net = default!;
 
     protected override void Effect(Entity<PlantComponent> entity, ref EntityEffectEvent<PlantMutateExudeGases> args)
@@ -23,7 +23,7 @@ public sealed partial class PlantMutateExudeGasesEntityEffectSystem : EntityEffe
             return;
 
         var amount = _random.NextFloat(args.Effect.MinValue, args.Effect.MaxValue);
-        _consumeExudeGasGrowth.MutateRandomExudeGasses(entity.Owner, amount);
+        _plantConsumeExudeGas.MutateRandomExudeGasses(entity.Owner, amount);
     }
 }
 
@@ -59,12 +59,12 @@ public sealed partial class PlantMutateExudeGases : EntityEffectBase<PlantMutate
 public sealed partial class PlantMutateConsumeGasesEntityEffectSystem : EntityEffectSystem<PlantComponent, PlantMutateConsumeGases>
 {
     [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly SharedConsumeExudeGasGrowthSystem _consumeExudeGasGrowth = default!;
+    [Dependency] private readonly SharedPlantConsumeExudeGasSystem _plantConsumeExudeGas = default!;
 
     protected override void Effect(Entity<PlantComponent> entity, ref EntityEffectEvent<PlantMutateConsumeGases> args)
     {
         var amount = _random.NextFloat(args.Effect.MinValue, args.Effect.MaxValue);
-        _consumeExudeGasGrowth.MutateRandomConsumeGasses(entity.Owner, amount);
+        _plantConsumeExudeGas.MutateRandomConsumeGasses(entity.Owner, amount);
     }
 }
 

@@ -150,10 +150,10 @@
   - PlantChemicals
   - PlantHarvest
   - PlantTraits
-  - BasicGrowth
-  - AtmosphericGrowth
-  - ConsumeExudeGasGrowth
-  - WeedPestGrowth
+  - PlantGrowth
+  - PlantAtmospheric
+  - PlantConsumeExudeGas
+  - PlantWeedPest
   - PlantToxins
   # traits
   - PlantTraitKudzu

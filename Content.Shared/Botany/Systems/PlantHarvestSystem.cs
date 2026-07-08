@@ -86,7 +86,7 @@ public sealed class PlantHarvestSystem : EntitySystem
             return;
 
         if (TryComp<PlantDataComponent>(ent.Owner, out var plantData) && plantData.HarvestLogImpact != null)
-            _adminLogger.Add(LogType.Botany, plantData.HarvestLogImpact.Value, $"Auto-harvested {Loc.GetString(plantData.DisplayName):seed} at Pos:{Transform(plantEnt.Owner).Coordinates}.");
+            _adminLogger.Add(LogType.Botany, plantData.HarvestLogImpact.Value, $"Auto-harvested {Loc.GetString(plantData.Name):seed} at Pos:{Transform(plantEnt.Owner).Coordinates}.");
 
         DoHarvest(ent, plantEnt, user);
     }
@@ -94,7 +94,7 @@ public sealed class PlantHarvestSystem : EntitySystem
     public void TryHandleHarvest(Entity<PlantHarvestComponent> ent, Entity<PlantComponent> plantEnt, EntityUid user)
     {
         if (TryComp<PlantDataComponent>(ent.Owner, out var plantData) && plantData.HarvestLogImpact != null)
-            _adminLogger.Add(LogType.Botany, plantData.HarvestLogImpact.Value, $"Auto-harvested {Loc.GetString(plantData.DisplayName):seed} at Pos:{Transform(plantEnt.Owner).Coordinates}.");
+            _adminLogger.Add(LogType.Botany, plantData.HarvestLogImpact.Value, $"Auto-harvested {Loc.GetString(plantData.Name):seed} at Pos:{Transform(plantEnt.Owner).Coordinates}.");
 
         DoHarvest(ent, plantEnt, user);
     }
@@ -116,7 +116,7 @@ public sealed class PlantHarvestSystem : EntitySystem
         if (!ent.Comp.ReadyForHarvest || plantData.ProductPrototypes.Count == 0 || plant.Yield == 0)
             return;
 
-        var name = Loc.GetString(plantData.DisplayName);
+        var name = Loc.GetString(plantData.Name);
         _popup.PopupPredictedCursor(Loc.GetString("botany-harvest-success-message", ("name", name)), user, PopupType.Medium);
 
         var totalYield = 0;

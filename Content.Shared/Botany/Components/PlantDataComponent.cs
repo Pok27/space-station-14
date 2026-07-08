@@ -20,8 +20,8 @@ public sealed partial class PlantDataComponent : Component
     /// <summary>
     /// Name displayed when examining the hydroponics tray. Describes the actual plant, not the seed itself.
     /// </summary>
-    [DataField, AutoNetworkedField]
-    public LocId DisplayName;
+    [DataField(required: true), AutoNetworkedField]
+    public LocId Name;
 
     /// <summary>
     /// The entity prototype that is spawned when this type of seed is extracted from produce using a seed extractor.

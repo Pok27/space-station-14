@@ -12,7 +12,7 @@ namespace Content.Shared.Botany.Systems;
 /// Consumes and emits configured gases around plants each growth tick, then merges
 /// the adjusted gas mixture back into the environment.
 /// </summary>
-public abstract class SharedConsumeExudeGasGrowthSystem : EntitySystem
+public abstract class SharedPlantConsumeExudeGasSystem : EntitySystem
 {
     [Dependency] private readonly BotanySystem _botany = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
@@ -20,12 +20,12 @@ public abstract class SharedConsumeExudeGasGrowthSystem : EntitySystem
 
     public override void Initialize()
     {
-        SubscribeLocalEvent<ConsumeExudeGasGrowthComponent, PlantCrossPollinateEvent>(OnCrossPollinate);
+        SubscribeLocalEvent<PlantConsumeExudeGasComponent, PlantCrossPollinateEvent>(OnCrossPollinate);
     }
 
-    private void OnCrossPollinate(Entity<ConsumeExudeGasGrowthComponent> ent, ref PlantCrossPollinateEvent args)
+    private void OnCrossPollinate(Entity<PlantConsumeExudeGasComponent> ent, ref PlantCrossPollinateEvent args)
     {
-        if (!_botany.TryGetPlantComponent<ConsumeExudeGasGrowthComponent>(args.PollenData, args.PollenProtoId, out var pollenData))
+        if (!_botany.TryGetPlantComponent<PlantConsumeExudeGasComponent>(args.PollenData, args.PollenProtoId, out var pollenData))
             return;
 
         _mutation.CrossGasses(ref ent.Comp.ConsumeGasses, pollenData.ConsumeGasses);
@@ -36,7 +36,7 @@ public abstract class SharedConsumeExudeGasGrowthSystem : EntitySystem
     /// Adds a random amount of a random gas to the exude gasses.
     /// </summary>
     [PublicAPI]
-    public void MutateRandomExudeGasses(Entity<ConsumeExudeGasGrowthComponent?> ent, float amount)
+    public void MutateRandomExudeGasses(Entity<PlantConsumeExudeGasComponent?> ent, float amount)
     {
         if (!Resolve(ent, ref ent.Comp, false))
             return;
@@ -58,7 +58,7 @@ public abstract class SharedConsumeExudeGasGrowthSystem : EntitySystem
     /// Adds a random amount of a random gas to the consume gasses.
     /// </summary>
     [PublicAPI]
-    public void MutateRandomConsumeGasses(Entity<ConsumeExudeGasGrowthComponent?> ent, float amount)
+    public void MutateRandomConsumeGasses(Entity<PlantConsumeExudeGasComponent?> ent, float amount)
     {
         if (!Resolve(ent, ref ent.Comp, false))
             return;

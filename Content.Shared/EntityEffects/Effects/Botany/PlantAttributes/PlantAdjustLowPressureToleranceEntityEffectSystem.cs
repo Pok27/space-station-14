@@ -7,17 +7,17 @@ namespace Content.Shared.EntityEffects.Effects.Botany.PlantAttributes;
 /// Entity effect that adjusts the minimum pressure tolerance of a plant.
 /// </summary>
 /// <inheritdoc cref="EntityEffectSystem{T,TEffect}"/>
-public sealed partial class PlantAdjustLowPressureToleranceEntityEffectSystem : EntityEffectSystem<AtmosphericGrowthComponent, PlantAdjustLowPressureTolerance>
+public sealed partial class PlantAdjustLowPressureToleranceEntityEffectSystem : EntityEffectSystem<PlantAtmosphericComponent, PlantAdjustLowPressureTolerance>
 {
-    [Dependency] private readonly SharedAtmosphericGrowthSystem _atmosphericGrowth = default!;
+    [Dependency] private readonly SharedPlantAtmosphericSystem _plantAtmospheric = default!;
     [Dependency] private readonly PlantHolderSystem _plantHolder = default!;
 
-    protected override void Effect(Entity<AtmosphericGrowthComponent> entity, ref EntityEffectEvent<PlantAdjustLowPressureTolerance> args)
+    protected override void Effect(Entity<PlantAtmosphericComponent> entity, ref EntityEffectEvent<PlantAdjustLowPressureTolerance> args)
     {
         if (_plantHolder.IsDead(entity.Owner))
             return;
 
-        _atmosphericGrowth.AdjustLowPressureTolerance(entity.AsNullable(), args.Effect.Amount);
+        _plantAtmospheric.AdjustLowPressureTolerance(entity.AsNullable(), args.Effect.Amount);
     }
 }
 

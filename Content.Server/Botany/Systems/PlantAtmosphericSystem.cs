@@ -6,7 +6,7 @@ using Content.Shared.Botany.Systems;
 
 namespace Content.Server.Botany.Systems;
 
-public sealed class AtmosphericGrowthSystem : SharedAtmosphericGrowthSystem
+public sealed class PlantAtmosphericSystem : SharedPlantAtmosphericSystem
 {
     [Dependency] private readonly AtmosphereSystem _atmosphere = default!;
     [Dependency] private readonly PlantHolderSystem _plantHolder = default!;
@@ -15,10 +15,10 @@ public sealed class AtmosphericGrowthSystem : SharedAtmosphericGrowthSystem
     {
         base.Initialize();
 
-        SubscribeLocalEvent<AtmosphericGrowthComponent, OnPlantGrowEvent>(OnPlantGrow);
+        SubscribeLocalEvent<PlantAtmosphericComponent, OnPlantGrowEvent>(OnPlantGrow);
     }
 
-    private void OnPlantGrow(Entity<AtmosphericGrowthComponent> ent, ref OnPlantGrowEvent args)
+    private void OnPlantGrow(Entity<PlantAtmosphericComponent> ent, ref OnPlantGrowEvent args)
     {
         if (!TryComp<PlantHolderComponent>(ent.Owner, out var holder))
             return;

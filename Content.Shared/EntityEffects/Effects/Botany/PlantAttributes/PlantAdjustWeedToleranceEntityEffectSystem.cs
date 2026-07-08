@@ -7,17 +7,17 @@ namespace Content.Shared.EntityEffects.Effects.Botany.PlantAttributes;
 /// Entity effect that adjusts the weed tolerance of a plant.
 /// </summary>
 /// <inheritdoc cref="EntityEffectSystem{T,TEffect}"/>
-public sealed partial class PlantAdjustWeedToleranceEntityEffectSystem : EntityEffectSystem<WeedPestGrowthComponent, PlantAdjustWeedTolerance>
+public sealed partial class PlantAdjustWeedToleranceEntityEffectSystem : EntityEffectSystem<PlantWeedPestComponent, PlantAdjustWeedTolerance>
 {
     [Dependency] private readonly PlantHolderSystem _plantHolder = default!;
-    [Dependency] private readonly WeedPestGrowthSystem _weedPestGrowth = default!;
+    [Dependency] private readonly PlantWeedPestSystem _plantWeedPest = default!;
 
-    protected override void Effect(Entity<WeedPestGrowthComponent> entity, ref EntityEffectEvent<PlantAdjustWeedTolerance> args)
+    protected override void Effect(Entity<PlantWeedPestComponent> entity, ref EntityEffectEvent<PlantAdjustWeedTolerance> args)
     {
         if (_plantHolder.IsDead(entity.Owner))
             return;
 
-        _weedPestGrowth.AdjustWeedTolerance(entity.AsNullable(), args.Effect.Amount);
+        _plantWeedPest.AdjustWeedTolerance(entity.AsNullable(), args.Effect.Amount);
     }
 }
 

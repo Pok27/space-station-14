@@ -7,8 +7,8 @@ namespace Content.Shared.Botany.Components;
 /// Component for atmospheric-related requirements for proper plant growth.
 /// </summary>
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(fieldDeltas: true)]
-[Access(typeof(SharedAtmosphericGrowthSystem))]
-public sealed partial class AtmosphericGrowthComponent : Component
+[Access(typeof(SharedPlantAtmosphericSystem))]
+public sealed partial class PlantAtmosphericComponent : Component
 {
     /// <summary>
     /// Damage per unit of heat tolerance exceeded.

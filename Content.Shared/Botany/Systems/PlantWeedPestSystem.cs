@@ -9,7 +9,7 @@ namespace Content.Shared.Botany.Systems;
 /// Manages weed growth and pest damage per growth tick, and handles tray-level
 /// weed spawning.
 /// </summary>
-public sealed class WeedPestGrowthSystem : EntitySystem
+public sealed class PlantWeedPestSystem : EntitySystem
 {
     [Dependency] private readonly BotanySystem _botany = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
@@ -18,20 +18,20 @@ public sealed class WeedPestGrowthSystem : EntitySystem
 
     public override void Initialize()
     {
-        SubscribeLocalEvent<WeedPestGrowthComponent, PlantCrossPollinateEvent>(OnCrossPollinate);
-        SubscribeLocalEvent<WeedPestGrowthComponent, OnPlantGrowEvent>(OnPlantGrow);
+        SubscribeLocalEvent<PlantWeedPestComponent, PlantCrossPollinateEvent>(OnCrossPollinate);
+        SubscribeLocalEvent<PlantWeedPestComponent, OnPlantGrowEvent>(OnPlantGrow);
     }
 
-    private void OnCrossPollinate(Entity<WeedPestGrowthComponent> ent, ref PlantCrossPollinateEvent args)
+    private void OnCrossPollinate(Entity<PlantWeedPestComponent> ent, ref PlantCrossPollinateEvent args)
     {
-        if (!_botany.TryGetPlantComponent<WeedPestGrowthComponent>(args.PollenData, args.PollenProtoId, out var pollenData))
+        if (!_botany.TryGetPlantComponent<PlantWeedPestComponent>(args.PollenData, args.PollenProtoId, out var pollenData))
             return;
 
         _mutation.CrossFloat(ref ent.Comp.WeedTolerance, pollenData.WeedTolerance);
         _mutation.CrossFloat(ref ent.Comp.PestTolerance, pollenData.PestTolerance);
     }
 
-    private void OnPlantGrow(Entity<WeedPestGrowthComponent> ent, ref OnPlantGrowEvent args)
+    private void OnPlantGrow(Entity<PlantWeedPestComponent> ent, ref OnPlantGrowEvent args)
     {
         if (!TryComp<PlantHolderComponent>(ent.Owner, out var holder))
             return;
@@ -47,7 +47,7 @@ public sealed class WeedPestGrowthSystem : EntitySystem
     /// Adjusts maximum weed level the plant can tolerate before taking damage.
     /// </summary>
     [PublicAPI]
-    public void AdjustWeedTolerance(Entity<WeedPestGrowthComponent?> ent, float amount)
+    public void AdjustWeedTolerance(Entity<PlantWeedPestComponent?> ent, float amount)
     {
         if (!Resolve(ent.Owner, ref ent.Comp, false))
             return;
@@ -60,7 +60,7 @@ public sealed class WeedPestGrowthSystem : EntitySystem
     /// Adjusts maximum pest level the plant can tolerate before taking damage.
     /// </summary>
     [PublicAPI]
-    public void AdjustPestTolerance(Entity<WeedPestGrowthComponent?> ent, float amount)
+    public void AdjustPestTolerance(Entity<PlantWeedPestComponent?> ent, float amount)
     {
         if (!Resolve(ent.Owner, ref ent.Comp, false))
             return;
@@ -70,7 +70,7 @@ public sealed class WeedPestGrowthSystem : EntitySystem
     }
 
     [PublicAPI]
-    public bool GetPestThreshold(Entity<WeedPestGrowthComponent?> ent)
+    public bool GetPestThreshold(Entity<PlantWeedPestComponent?> ent)
     {
         if (!Resolve(ent.Owner, ref ent.Comp, false)
             || !TryComp<PlantHolderComponent>(ent.Owner, out var holder))

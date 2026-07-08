@@ -59,7 +59,7 @@ public sealed class BotanySeedSystem : EntitySystem
         if (!TryComp<PlantDataComponent>(plantUid, out var plantData))
             return;
 
-        var name = Loc.GetString(plantData.DisplayName);
+        var name = Loc.GetString(plantData.Name);
         var noun = Loc.GetString(plantData.Noun);
         _popup.PopupPredictedCursor(Loc.GetString("plant-component-plant-success-popup",
                 ("seedName", name),
@@ -77,7 +77,7 @@ public sealed class BotanySeedSystem : EntitySystem
         {
             _adminLogger.Add(LogType.Botany,
                 plantData.PlantLogImpact.Value,
-                $"{ToPrettyString(args.User):player} planted {Loc.GetString(plantData.DisplayName):seed} at Pos:{Transform(ent.Owner).Coordinates}.");
+                $"{ToPrettyString(args.User):player} planted {Loc.GetString(plantData.Name):seed} at Pos:{Transform(ent.Owner).Coordinates}.");
         }
     }
 }

@@ -27,7 +27,7 @@
       persists: false
       effect: !type:PlantChangeStat
         targetValue: WaterConsumption
-        targetComponent: BasicGrowth
+        targetComponent: PlantGrowth
         minValue: 0.3
         maxValue: 0.9
         up: !type:PlantAdjustWaterConsumption
@@ -39,7 +39,7 @@
       persists: false
       effect: !type:PlantChangeStat
         targetValue: NutrientConsumption
-        targetComponent: BasicGrowth
+        targetComponent: PlantGrowth
         minValue: 0.05
         maxValue: 1.2
         up: !type:PlantAdjustNutrientConsumption
@@ -63,7 +63,7 @@
       persists: false
       effect: !type:PlantChangeStat
         targetValue: LowPressureTolerance
-        targetComponent: AtmosphericGrowth
+        targetComponent: PlantAtmospheric
         minValue: 60
         maxValue: 100
         up: !type:PlantAdjustLowPressureTolerance
@@ -75,7 +75,7 @@
       persists: false
       effect: !type:PlantChangeStat
         targetValue: HighPressureTolerance
-        targetComponent: AtmosphericGrowth
+        targetComponent: PlantAtmospheric
         minValue: 100
         maxValue: 140
         up: !type:PlantAdjustHighPressureTolerance
@@ -87,7 +87,7 @@
       persists: false
       effect: !type:PlantChangeStat
         targetValue: LowHeatTolerance
-        targetComponent: AtmosphericGrowth
+        targetComponent: PlantAtmospheric
         minValue: 2
         maxValue: 25
         up: !type:PlantAdjustLowHeatTolerance
@@ -99,7 +99,7 @@
       persists: false
       effect: !type:PlantChangeStat
         targetValue: HighHeatTolerance
-        targetComponent: AtmosphericGrowth
+        targetComponent: PlantAtmospheric
         minValue: 2
         maxValue: 25
         up: !type:PlantAdjustHighHeatTolerance
@@ -111,7 +111,7 @@
       persists: false
       effect: !type:PlantChangeStat
         targetValue: PestTolerance
-        targetComponent: WeedPestGrowth
+        targetComponent: PlantWeedPest
         minValue: 0
         maxValue: 15
         up: !type:PlantAdjustPestTolerance
@@ -123,7 +123,7 @@
       persists: false
       effect: !type:PlantChangeStat
         targetValue: WeedTolerance
-        targetComponent: WeedPestGrowth
+        targetComponent: PlantWeedPest
         minValue: 0
         maxValue: 15
         up: !type:PlantAdjustWeedTolerance

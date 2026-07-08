@@ -7,8 +7,8 @@ namespace Content.Shared.Botany.Components;
 /// Component for weed and pest problems which can happen to plants - how well plant tolerates them.
 /// </summary>
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(fieldDeltas: true)]
-[Access(typeof(WeedPestGrowthSystem))]
-public sealed partial class WeedPestGrowthComponent : Component
+[Access(typeof(PlantWeedPestSystem))]
+public sealed partial class PlantWeedPestComponent : Component
 {
     /// <summary>
     /// Maximum weed level the plant can tolerate before taking damage.

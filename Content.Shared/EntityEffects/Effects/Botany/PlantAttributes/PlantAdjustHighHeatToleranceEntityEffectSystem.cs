@@ -7,17 +7,17 @@ namespace Content.Shared.EntityEffects.Effects.Botany.PlantAttributes;
 /// Entity effect that adjusts the maximum temperature tolerance of a plant.
 /// </summary>
 /// <inheritdoc cref="EntityEffectSystem{T,TEffect}"/>
-public sealed partial class PlantAdjustHighHeatToleranceEntityEffectSystem : EntityEffectSystem<AtmosphericGrowthComponent, PlantAdjustHighHeatTolerance>
+public sealed partial class PlantAdjustHighHeatToleranceEntityEffectSystem : EntityEffectSystem<PlantAtmosphericComponent, PlantAdjustHighHeatTolerance>
 {
-    [Dependency] private readonly SharedAtmosphericGrowthSystem _atmosphericGrowth = default!;
+    [Dependency] private readonly SharedPlantAtmosphericSystem _plantAtmospheric = default!;
     [Dependency] private readonly PlantHolderSystem _plantHolder = default!;
 
-    protected override void Effect(Entity<AtmosphericGrowthComponent> entity, ref EntityEffectEvent<PlantAdjustHighHeatTolerance> args)
+    protected override void Effect(Entity<PlantAtmosphericComponent> entity, ref EntityEffectEvent<PlantAdjustHighHeatTolerance> args)
     {
         if (_plantHolder.IsDead(entity.Owner))
             return;
 
-        _atmosphericGrowth.AdjustHighHeatTolerance(entity.AsNullable(), args.Effect.Amount);
+        _plantAtmospheric.AdjustHighHeatTolerance(entity.AsNullable(), args.Effect.Amount);
     }
 }
 

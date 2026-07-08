@@ -17,7 +17,7 @@ public sealed class PlantSystem : EntitySystem
     [Dependency] private readonly MutationSystem _mutation = default!;
     [Dependency] private readonly PlantHarvestSystem _plantHarvest = default!;
     [Dependency] private readonly PlantHolderSystem _plantHolder = default!;
-    [Dependency] private readonly WeedPestGrowthSystem _weedPestGrowth = default!;
+    [Dependency] private readonly PlantWeedPestSystem _plantWeedPest = default!;
 
     public override void Initialize()
     {
@@ -353,12 +353,15 @@ public sealed class PlantSystem : EntitySystem
         if (ent.Comp.MissingGas)
             markup.Add(Loc.GetString("plant-component-gas-missing-warning"));
 
-        if (_weedPestGrowth.GetPestThreshold(ent.Owner))
+        if (_plantWeedPest.GetPestThreshold(ent.Owner))
             markup.Add(Loc.GetString("plant-component-pest-high-level-message"));
 
         return string.Join("\n", markup);
     }
 
+    /// <summary>
+    /// Gets the states markup of the plant.
+    /// </summary>
     [PublicAPI]
     public string GetPlantStateMarkup(EntityUid uid, PlantComponent? component = null)
     {

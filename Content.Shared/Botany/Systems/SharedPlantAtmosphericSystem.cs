@@ -8,19 +8,19 @@ namespace Content.Shared.Botany.Systems;
 /// Applies atmospheric temperature and pressure effects to plants during growth ticks.
 /// Uses current tile gas mixture to penalize or clear warnings based on tolerances.
 /// </summary>
-public abstract class SharedAtmosphericGrowthSystem : EntitySystem
+public abstract class SharedPlantAtmosphericSystem : EntitySystem
 {
     [Dependency] private readonly BotanySystem _botany = default!;
     [Dependency] private readonly MutationSystem _mutation = default!;
 
     public override void Initialize()
     {
-        SubscribeLocalEvent<AtmosphericGrowthComponent, PlantCrossPollinateEvent>(OnCrossPollinate);
+        SubscribeLocalEvent<PlantAtmosphericComponent, PlantCrossPollinateEvent>(OnCrossPollinate);
     }
 
-    private void OnCrossPollinate(Entity<AtmosphericGrowthComponent> ent, ref PlantCrossPollinateEvent args)
+    private void OnCrossPollinate(Entity<PlantAtmosphericComponent> ent, ref PlantCrossPollinateEvent args)
     {
-        if (!_botany.TryGetPlantComponent<AtmosphericGrowthComponent>(args.PollenData, args.PollenProtoId, out var pollenData))
+        if (!_botany.TryGetPlantComponent<PlantAtmosphericComponent>(args.PollenData, args.PollenProtoId, out var pollenData))
             return;
 
         _mutation.CrossFloat(ref ent.Comp.LowHeatTolerance, pollenData.LowHeatTolerance);
@@ -34,7 +34,7 @@ public abstract class SharedAtmosphericGrowthSystem : EntitySystem
     /// Adjusts minimum temperature tolerance for plant growth.
     /// Ensures low temperature is not greater than high.
     /// </summary>
-    public void AdjustLowHeatTolerance(Entity<AtmosphericGrowthComponent?> ent, float amount)
+    public void AdjustLowHeatTolerance(Entity<PlantAtmosphericComponent?> ent, float amount)
     {
         if (!Resolve(ent.Owner, ref ent.Comp, false))
             return;
@@ -50,7 +50,7 @@ public abstract class SharedAtmosphericGrowthSystem : EntitySystem
     /// Adjusts maximum temperature tolerance for plant growth.
     /// Ensures low temperature is not less than high.
     /// </summary>
-    public void AdjustHighHeatTolerance(Entity<AtmosphericGrowthComponent?> ent, float amount)
+    public void AdjustHighHeatTolerance(Entity<PlantAtmosphericComponent?> ent, float amount)
     {
         if (!Resolve(ent.Owner, ref ent.Comp, false))
             return;
@@ -67,7 +67,7 @@ public abstract class SharedAtmosphericGrowthSystem : EntitySystem
     /// Ensures pressure low is not greater than high.
     /// </summary>
     [PublicAPI]
-    public void AdjustLowPressureTolerance(Entity<AtmosphericGrowthComponent?> ent, float amount)
+    public void AdjustLowPressureTolerance(Entity<PlantAtmosphericComponent?> ent, float amount)
     {
         if (!Resolve(ent.Owner, ref ent.Comp, false))
             return;
@@ -84,7 +84,7 @@ public abstract class SharedAtmosphericGrowthSystem : EntitySystem
     /// Ensures pressure high is not less than low.
     /// </summary>
     [PublicAPI]
-    public void AdjustHighPressureTolerance(Entity<AtmosphericGrowthComponent?> ent, float amount)
+    public void AdjustHighPressureTolerance(Entity<PlantAtmosphericComponent?> ent, float amount)
     {
         if (!Resolve(ent.Owner, ref ent.Comp, false))
             return;

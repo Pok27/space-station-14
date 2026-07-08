@@ -20,7 +20,7 @@ public sealed partial class SeedComponent : Component
     /// <summary>
     /// Serialized snapshot of plant components used to override defaults when planting.
     /// </summary>
-    [DataField]
+    [DataField, AutoNetworkedField]
     public ComponentRegistry? PlantData;
 
     /// <summary>

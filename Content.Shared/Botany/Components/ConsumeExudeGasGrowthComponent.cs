@@ -8,8 +8,8 @@ namespace Content.Shared.Botany.Components;
 /// Component for gas to consume/exude on plant growth.
 /// </summary>
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(fieldDeltas: true)]
-[Access(typeof(SharedConsumeExudeGasGrowthSystem))]
-public sealed partial class ConsumeExudeGasGrowthComponent : Component
+[Access(typeof(SharedPlantConsumeExudeGasSystem))]
+public sealed partial class PlantConsumeExudeGasComponent : Component
 {
     /// <summary>
     /// Dictionary of gases and their consumption rates per growth tick.

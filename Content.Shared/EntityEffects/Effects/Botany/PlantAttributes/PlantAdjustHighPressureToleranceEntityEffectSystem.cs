@@ -7,17 +7,17 @@ namespace Content.Shared.EntityEffects.Effects.Botany.PlantAttributes;
 /// Entity effect that adjusts the maximum pressure tolerance of a plant.
 /// </summary>
 /// <inheritdoc cref="EntityEffectSystem{T,TEffect}"/>
-public sealed partial class PlantAdjustHighPressureToleranceEntityEffectSystem : EntityEffectSystem<AtmosphericGrowthComponent, PlantAdjustHighPressureTolerance>
+public sealed partial class PlantAdjustHighPressureToleranceEntityEffectSystem : EntityEffectSystem<PlantAtmosphericComponent, PlantAdjustHighPressureTolerance>
 {
-    [Dependency] private readonly SharedAtmosphericGrowthSystem _atmosphericGrowth = default!;
+    [Dependency] private readonly SharedPlantAtmosphericSystem _plantAtmospheric = default!;
     [Dependency] private readonly PlantHolderSystem _plantHolder = default!;
 
-    protected override void Effect(Entity<AtmosphericGrowthComponent> entity, ref EntityEffectEvent<PlantAdjustHighPressureTolerance> args)
+    protected override void Effect(Entity<PlantAtmosphericComponent> entity, ref EntityEffectEvent<PlantAdjustHighPressureTolerance> args)
     {
         if (_plantHolder.IsDead(entity.Owner))
             return;
 
-        _atmosphericGrowth.AdjustHighPressureTolerance(entity.AsNullable(), args.Effect.Amount);
+        _plantAtmospheric.AdjustHighPressureTolerance(entity.AsNullable(), args.Effect.Amount);
     }
 }
 
