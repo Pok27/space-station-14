@@ -11,6 +11,7 @@ using Robust.Shared.GameStates;
 using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
+using Robust.Shared.Timing;
 
 namespace Content.Shared.Botany.Systems;
 
@@ -19,6 +20,7 @@ public sealed partial class BotanySystem : EntitySystem
     [Dependency] private readonly IComponentFactory _componentFactory = default!;
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly MetaDataSystem _metaData = default!;
     [Dependency] private readonly PlantSystem _plant = default!;
     [Dependency] private readonly RandomHelperSystem _randomHelper = default!;
@@ -43,20 +45,20 @@ public sealed partial class BotanySystem : EntitySystem
         SubscribeLocalEvent<BotanySwabComponent, ComponentShutdown>(OnSwabShutdown);
     }
 
-    private void OnExamined(EntityUid uid, SeedComponent component, ExaminedEvent args)
+    private void OnExamined(Entity<SeedComponent> ent, ref ExaminedEvent args)
     {
         if (!args.IsInDetailsRange)
             return;
 
-        if (!TryGetPlantComponent<PlantComponent>(component.PlantData, component.PlantProtoId, out var plant)
-            || !TryGetPlantComponent<PlantDataComponent>(component.PlantData, component.PlantProtoId, out var plantData))
+        if (!TryGetPlantComponent<PlantComponent>(ent.Comp.PlantData, ent.Comp.PlantProtoId, out var plant)
+            || !TryGetPlantComponent<PlantDataComponent>(ent.Comp.PlantData, ent.Comp.PlantProtoId, out var plantData))
             return;
 
         using (args.PushGroup(nameof(SeedComponent), 1))
         {
             var name = Loc.GetString(plantData.Name);
             args.PushMarkup(Loc.GetString("seed-component-description", ("seedName", name)));
-            args.PushMarkup(_plant.GetPlantStateMarkup(uid, plant));
+            args.PushMarkup(_plant.GetPlantStateMarkup(ent.Owner, plant));
         }
     }
 
@@ -136,33 +138,6 @@ public sealed partial class BotanySystem : EntitySystem
     }
 
     /// <summary>
-    /// Spawns a seed packet that stores a component snapshot of <paramref name="sourcePlant"/>.
-    /// </summary>
-    [PublicAPI]
-    public EntityUid SpawnSeedPacketFromPlant(EntityUid sourcePlant, EntityCoordinates coords, EntityUid user, float? healthOverride = null)
-    {
-        if (!TryComp<PlantDataComponent>(sourcePlant, out var plantData))
-            return EntityUid.Invalid;
-
-        var protoId = MetaData(sourcePlant).EntityPrototype!.ID;
-        var snapshot = ClonePlantSnapshotData(sourcePlant);
-
-        return SpawnSeedPacketInternal(plantData, protoId, snapshot, coords, user, healthOverride);
-    }
-
-    /// <summary>
-    /// Spawns a seed packet that stores a component snapshot of <paramref name="snapshot"/>.
-    /// </summary>
-    [PublicAPI]
-    public EntityUid SpawnSeedPacketFromSnapshot(EntityUid? snapshot, EntProtoId plantProtoId, EntityCoordinates coords, EntityUid user, float? healthOverride = null)
-    {
-        if (!TryGetPlantComponent<PlantDataComponent>(snapshot, plantProtoId, out var plantData))
-            return EntityUid.Invalid;
-
-        return SpawnSeedPacketInternal(plantData, plantProtoId, snapshot, coords, user, healthOverride);
-    }
-
-    /// <summary>
     /// Internal method to spawn a seed packet from a plant component.
     /// </summary>
     /// <param name="plantData">The plant component to spawn.</param>
@@ -172,13 +147,14 @@ public sealed partial class BotanySystem : EntitySystem
     /// <param name="user">The user who is spawning the seed packet.</param>
     /// <param name="healthOverride">The health override to store in the seed component.</param>
     /// <returns>The spawned seed packet entity.</returns>
-    private EntityUid SpawnSeedPacketInternal(
+    [PublicAPI]
+    public EntityUid SpawnSeedPacket(
         PlantDataComponent plantData,
         EntProtoId plantProtoId,
         EntityUid? snapshot,
         EntityCoordinates coords,
         EntityUid user,
-        float? healthOverride)
+        float? healthOverride = null)
     {
         var seedItem = PredictedSpawnAtPosition(plantData.PacketPrototype, coords);
         var seedComp = EnsureComp<SeedComponent>(seedItem);

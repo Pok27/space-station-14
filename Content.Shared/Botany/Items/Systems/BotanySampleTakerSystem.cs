@@ -74,7 +74,9 @@ public sealed class BotanySampleTakerSystem : EntitySystem
 
         // Produce a seed packet snapshot.
         float? healthOverride = harvest.ReadyForHarvest ? null : holder.Health;
-        _botany.SpawnSeedPacketFromPlant(ent.Owner, Transform(args.User).Coordinates, args.User, healthOverride);
+        var protoId = MetaData(ent.Owner).EntityPrototype!.ID;
+        var snapshot = _botany.ClonePlantSnapshotData(ent.Owner);
+        _botany.SpawnSeedPacket(plantData, protoId, snapshot, Transform(args.User).Coordinates, args.User, healthOverride);
 
         var name = Loc.GetString(plantData.Name);
         _popup.PopupPredictedCursor(Loc.GetString("plant-sample-component-take-sample-popup", ("seedName", name)), args.User);

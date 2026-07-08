@@ -4,6 +4,7 @@ using Content.Shared.Botany.Items.Components;
 using Content.Shared.EntityEffects;
 using Content.Shared.Examine;
 using Content.Shared.FixedPoint;
+using Content.Shared.Random.Helpers;
 using Robust.Shared.Map;
 using Robust.Shared.Random;
 
@@ -74,7 +75,10 @@ public sealed partial class BotanySystem
         if (!Resolve(ent.Owner, ref ent.Comp1, ref ent.Comp2, false))
             return;
 
-        var product = _random.Pick(ent.Comp1.ProductPrototypes);
+        // TODO: Replace with RandomPredicted once the engine PR is merged
+        var seed = SharedRandomExtensions.HashCodeCombine((int)_timing.CurTick.Value, GetNetEntity(ent).Id);
+        var rand = new System.Random(seed);
+        var product = rand.Pick(ent.Comp1.ProductPrototypes);
         var entity = PredictedSpawnAtPosition(product, position);
         _randomHelper.RandomOffset(entity, 0.25f);
 
