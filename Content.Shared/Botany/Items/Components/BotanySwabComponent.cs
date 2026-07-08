@@ -24,8 +24,8 @@ public sealed partial class BotanySwabComponent : Component
     public EntProtoId? PlantProtoId;
 
     /// <summary>
-    /// Serialized snapshot of plant components from the last swabbed plant.
+    /// Hidden entity with cloned plant components from the last swabbed plant.
     /// </summary>
-    [DataField]
-    public ComponentRegistry? PlantData;
+    [DataField, AutoNetworkedField]
+    public EntityUid? PlantData;
 }

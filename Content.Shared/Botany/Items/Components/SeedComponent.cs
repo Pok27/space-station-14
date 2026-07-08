@@ -18,10 +18,10 @@ public sealed partial class SeedComponent : Component
     public EntProtoId PlantProtoId;
 
     /// <summary>
-    /// Serialized snapshot of plant components used to override defaults when planting.
+    /// Hidden entity with cloned plant components used to override defaults when planting.
     /// </summary>
-    [DataField]
-    public ComponentRegistry? PlantData;
+    [DataField, AutoNetworkedField]
+    public EntityUid? PlantData;
 
     /// <summary>
     /// If not null, overrides the plant's initial health. Otherwise, the plant's initial health is set to the Endurance value.

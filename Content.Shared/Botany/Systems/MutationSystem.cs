@@ -10,6 +10,7 @@ using Content.Shared.Random.Helpers;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
+using Robust.Shared.Serialization.Manager;
 
 namespace Content.Shared.Botany.Systems;
 
@@ -21,10 +22,10 @@ public sealed class MutationSystem : EntitySystem
     [Dependency] private readonly BotanySystem _botany = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
+    [Dependency] private readonly ISerializationManager _serialization = default!;
     [Dependency] private readonly PlantSystem _plant = default!;
     [Dependency] private readonly PlantTraySystem _plantTray = default!;
     [Dependency] private readonly SharedEntityEffectsSystem _entityEffects = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly IComponentFactory _componentFactory = default!;
 
     public override void Initialize()
@@ -70,7 +71,10 @@ public sealed class MutationSystem : EntitySystem
 
         // Clone state via snapshot and apply to new plant.
         var snapshot = _botany.ClonePlantSnapshotData(oldPlant.Owner, cloneLifecycle: true);
-        var newPlantUid = EntityManager.PredictedSpawn(newPlantProto, _transform.GetMapCoordinates(oldPlant.Owner), snapshot);
+        var newPlantUid = PredictedSpawnAtPosition(newPlantProto, Transform(oldPlant.Owner).Coordinates);
+        _botany.ApplyPlantSnapshotData(snapshot, newPlantUid, cloneLifecycle: true);
+        _botany.DeletePlantSnapshot(snapshot);
+
         ChemicalsSpeciesChange(newPlantUid, newPlantProto);
 
         if (_plant.TryGetTray(oldPlant.Owner, out var trayEnt))
@@ -106,7 +110,7 @@ public sealed class MutationSystem : EntitySystem
     }
 
     [PublicAPI]
-    public void CrossMutations(ComponentRegistry pollenPlant, EntProtoId? pollenProtoId, EntityUid targetPlant)
+    public void CrossMutations(EntityUid pollenPlant, EntProtoId? pollenProtoId, EntityUid targetPlant)
     {
         if (!_botany.TryGetPlantComponent<PlantComponent>(pollenPlant, pollenProtoId, out var pollenCore) ||
             !TryComp<PlantComponent>(targetPlant, out var targetCore))
@@ -218,19 +222,18 @@ public sealed class MutationSystem : EntitySystem
     }
 
     [PublicAPI]
-    public void CrossTrait(EntityUid val, ComponentRegistry pollenData)
+    public void CrossTrait(EntityUid val, EntityUid pollenData)
     {
-        foreach (var (componentName, _) in pollenData)
+        foreach (var component in EntityManager.GetComponents(pollenData))
         {
-            var newComponent = _componentFactory.GetComponent(componentName);
-            if (newComponent is not PlantTraitsComponent)
+            if (component is not PlantTraitsComponent)
                 continue;
 
-            if (HasComp(val, newComponent.GetType()))
+            if (HasComp(val, component.GetType()))
                 continue;
 
             if (Random(0.5f))
-                AddComp(val, newComponent);
+                AddComp(val, _serialization.CreateCopy(component, notNullableOverride: true));
         }
     }
 

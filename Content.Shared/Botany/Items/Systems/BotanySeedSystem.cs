@@ -17,10 +17,10 @@ namespace Content.Shared.Botany.Items.Systems;
 public sealed class BotanySeedSystem : EntitySystem
 {
     [Dependency] private readonly ISharedAdminLogManager _adminLogger = default!;
+    [Dependency] private readonly BotanySystem _botany = default!;
     [Dependency] private readonly ItemSlotsSystem _itemSlots = default!;
     [Dependency] private readonly PlantTraySystem _plantTray = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
 
     public override void Initialize()
     {
@@ -55,7 +55,9 @@ public sealed class BotanySeedSystem : EntitySystem
             return;
         }
 
-        var plantUid = EntityManager.PredictedSpawn(args.Seed.Comp.PlantProtoId, _transform.GetMapCoordinates(ent.Owner), args.Seed.Comp.PlantData);
+        var plantUid = PredictedSpawnAtPosition(args.Seed.Comp.PlantProtoId, Transform(ent.Owner).Coordinates);
+        _botany.ApplyPlantSnapshotData(args.Seed.Comp.PlantData, plantUid);
+
         if (!TryComp<PlantDataComponent>(plantUid, out var plantData))
             return;
 

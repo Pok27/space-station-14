@@ -18,11 +18,11 @@ public sealed partial class ProduceComponent : Component
     public EntProtoId? PlantProtoId;
 
     /// <summary>
-    /// Serialized snapshot of plant components.
+    /// Hidden entity with cloned plant components.
     /// Used to create a <see cref="SeedComponent"/> when this produce has its seeds extracted.
     /// </summary>
-    [DataField]
-    public ComponentRegistry? PlantData;
+    [DataField, AutoNetworkedField]
+    public EntityUid? PlantData;
 
     /// <summary>
     /// Name of the solution container that holds the produce's contents.

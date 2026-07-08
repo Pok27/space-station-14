@@ -35,7 +35,7 @@ public sealed class SeedExtractorSystem : EntitySystem
         if (produce.PlantProtoId == null)
             return;
 
-        ComponentRegistry? snapshot = null;
+        EntityUid? snapshot = null;
         if (produce.PlantData != null)
             snapshot = produce.PlantData;
 

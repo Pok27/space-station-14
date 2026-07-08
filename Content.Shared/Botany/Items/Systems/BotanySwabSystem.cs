@@ -77,10 +77,11 @@ public sealed class BotanySwabSystem : EntitySystem
         }
         else
         {
-            _mutation.CrossMutations(ent.Comp.PlantData, ent.Comp.PlantProtoId, targetPlant);
+            var pollenData = ent.Comp.PlantData.Value;
+            _mutation.CrossMutations(pollenData, ent.Comp.PlantProtoId, targetPlant);
 
             // Notify growth systems to apply their per-component cross logic.
-            var crossEv = new PlantCrossPollinateEvent(ent.Comp.PlantData, ent.Comp.PlantProtoId);
+            var crossEv = new PlantCrossPollinateEvent(pollenData, ent.Comp.PlantProtoId);
             RaiseLocalEvent(targetPlant, ref crossEv);
 
             // Swap: store old target pollen on the swab, apply cross to the target using swab pollen.
