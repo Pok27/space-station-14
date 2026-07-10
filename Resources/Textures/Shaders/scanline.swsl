@@ -43,5 +43,5 @@ void fragment()
         discard;
 
     highp float scanline = mod(FRAGCOORD.y, SCANLINES);
-    COLOR = vec4(tex.rgb * OVERLAY_COLOR.rgb, tex.a * OVERLAY_COLOR.a * scanline);
+    COLOR = vec4(tex.rgb * OVERLAY_COLOR.rgb, tex.a * OVERLAY_COLOR.a * max(SCANLINES, 1.0));
 }
