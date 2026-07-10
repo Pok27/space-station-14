@@ -428,7 +428,21 @@
       sprite: Interface/Actions/night_vision.rsi
       state: icon
   - type: InstantAction
-    event: !type:ToggleNightVisionEvent {}
+    event: !type:ToggleNightVisionEvent
+
+- type: entity
+  parent: BaseAction
+  id: ActionToggleMesons
+  name: Toggle mesons
+  description: Toggles the mesons scanner on and off.
+  components:
+  - type: Action
+    useDelay: 2
+    icon:
+      sprite: Interface/Actions/night_vision.rsi
+      state: icon
+  - type: InstantAction
+    event: !type:ToggleXRayVisionEvent
 
 - type: entity
   parent: ActionToggleWagging
