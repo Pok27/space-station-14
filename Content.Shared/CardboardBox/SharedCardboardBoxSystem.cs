@@ -19,30 +19,16 @@ namespace Content.Shared.CardboardBox;
 
 public abstract partial class SharedCardboardBoxSystem : EntitySystem
 {
-    [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private INetManager _net = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedEntityStorageSystem _storage = default!;
     [Dependency] private SharedMoverController _mover = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private SharedStealthSystem _stealth = default!;
 
-    public override void Initialize()
-    {
-        base.Initialize();
-
-        SubscribeLocalEvent<CardboardBoxComponent, StorageAfterOpenEvent>(AfterStorageOpen);
-        SubscribeLocalEvent<CardboardBoxComponent, StorageBeforeOpenEvent>(BeforeStorageOpen);
-        SubscribeLocalEvent<CardboardBoxComponent, StorageAfterCloseEvent>(AfterStorageClosed);
-        SubscribeLocalEvent<CardboardBoxComponent, GetAdditionalAccessEvent>(OnGetAdditionalAccess);
-        SubscribeLocalEvent<CardboardBoxComponent, ActivateInWorldEvent>(OnInteracted);
-        SubscribeLocalEvent<CardboardBoxComponent, EntInsertedIntoContainerMessage>(OnEntInserted);
-        SubscribeLocalEvent<CardboardBoxComponent, EntRemovedFromContainerMessage>(OnEntRemoved);
-
-        SubscribeLocalEvent<CardboardBoxComponent, DamageDealtEvent>(OnDamage);
-    }
-
+    [SubscribeLocalEvent]
     private void OnInteracted(Entity<CardboardBoxComponent> ent, ref ActivateInWorldEvent args)
     {
         if (args.Handled)
@@ -68,6 +54,7 @@ public abstract partial class SharedCardboardBoxSystem : EntitySystem
         Dirty(ent);
     }
 
+    [SubscribeLocalEvent]
     private void OnGetAdditionalAccess(Entity<CardboardBoxComponent> ent, ref GetAdditionalAccessEvent args)
     {
         if (ent.Comp.Mover == null)
@@ -76,6 +63,7 @@ public abstract partial class SharedCardboardBoxSystem : EntitySystem
         args.Entities.Add(ent.Comp.Mover.Value);
     }
 
+    [SubscribeLocalEvent]
     private void BeforeStorageOpen(Entity<CardboardBoxComponent> ent, ref StorageBeforeOpenEvent args)
     {
         if (ent.Comp.Quiet)
@@ -96,6 +84,7 @@ public abstract partial class SharedCardboardBoxSystem : EntitySystem
         Dirty(ent);
     }
 
+    [SubscribeLocalEvent]
     private void AfterStorageOpen(Entity<CardboardBoxComponent> ent, ref StorageAfterOpenEvent args)
     {
         // If this box has a stealth/chameleon effect, disable the stealth effect while the box is open.
@@ -105,6 +94,7 @@ public abstract partial class SharedCardboardBoxSystem : EntitySystem
         _stealth.SetEnabled(ent, false, stealth);
     }
 
+    [SubscribeLocalEvent]
     private void AfterStorageClosed(Entity<CardboardBoxComponent> ent, ref StorageAfterCloseEvent args)
     {
         // If this box has a stealth/chameleon effect, enable the stealth effect.
@@ -115,7 +105,10 @@ public abstract partial class SharedCardboardBoxSystem : EntitySystem
         _stealth.SetEnabled(ent, true, stealth);
     }
 
-    // Relay damage to the mover.
+    /// <summary>
+    /// Relay damage to the mover.
+    /// </summary>
+    [SubscribeLocalEvent]
     private void OnDamage(Entity<CardboardBoxComponent> ent, ref DamageDealtEvent args)
     {
         if (_timing.ApplyingState)
@@ -127,6 +120,7 @@ public abstract partial class SharedCardboardBoxSystem : EntitySystem
         _damageable.ChangeDamage(mover, args.Damage, origin: args.Origin);
     }
 
+    [SubscribeLocalEvent]
     private void OnEntInserted(Entity<CardboardBoxComponent> ent, ref EntInsertedIntoContainerMessage args)
     {
         if (_timing.ApplyingState)
@@ -147,6 +141,7 @@ public abstract partial class SharedCardboardBoxSystem : EntitySystem
     /// Through e.g. teleporting, it's possible for the mover to exit the box without opening it.
     /// Handle those situations but don't play the sound.
     /// </summary>
+    [SubscribeLocalEvent]
     private void OnEntRemoved(Entity<CardboardBoxComponent> ent, ref EntRemovedFromContainerMessage args)
     {
         if (_timing.ApplyingState)

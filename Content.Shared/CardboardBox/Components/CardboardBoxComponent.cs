@@ -5,6 +5,7 @@ using Robust.Shared.Serialization;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
 
 namespace Content.Shared.CardboardBox.Components;
+
 /// <summary>
 /// Allows a user to control an EntityStorage entity while inside of it.
 /// Used for big cardboard box entities.
