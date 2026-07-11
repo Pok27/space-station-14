@@ -132,6 +132,6 @@
   path: "/Textures/Shaders/nightvision.swsl"
 
 - type: shader
-  id: Scanline
+  id: XRayVision
   kind: source
-  path: "/Textures/Shaders/scanline.swsl"
+  path: "/Textures/Shaders/xrayvision.swsl"

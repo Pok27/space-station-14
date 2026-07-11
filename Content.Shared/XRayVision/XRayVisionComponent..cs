@@ -61,9 +61,10 @@ public sealed partial class XRayVisionComponent : Component
 
     /// <summary>
     /// Scanline effect intensity.
+    /// The higher the intensity, the more visible the scanlines are.
     /// </summary>
     [DataField, AutoNetworkedField]
-    public float Scanlines;
+    public float ScanlinesIntensity;
 
     /// <summary>
     /// Whitelist of entities to show behind walls.

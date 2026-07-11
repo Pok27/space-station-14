@@ -29,7 +29,7 @@ public sealed partial class XRayVisionOverlay : Overlay
 
     private readonly EntityQuery<OccluderComponent> _occluderQuery;
 
-    private static readonly ProtoId<ShaderPrototype> Shader = "Scanline";
+    private static readonly ProtoId<ShaderPrototype> Shader = "XRayVision";
     private readonly ShaderInstance _tileShader;
     private readonly ShaderInstance _entityShader;
 

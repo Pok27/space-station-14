@@ -59,7 +59,7 @@
   - type: XRayVision
     enabled: false # Disabled by default
     relayOverlay: true
-    scanlines: 2.0
+    scanlinesIntensity: 4
     showTiles: true
     action: ActionToggleMesons
     tileOverlayColor: "#CEF5D15A"
