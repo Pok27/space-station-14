@@ -69,7 +69,7 @@ public abstract partial class SharedCardboardBoxSystem : EntitySystem
         if (ent.Comp.Quiet)
             return;
 
-        //  Play effect & sound.
+        // Play effect & sound.
         if (ent.Comp.Mover == null)
             return;
 
@@ -79,7 +79,7 @@ public abstract partial class SharedCardboardBoxSystem : EntitySystem
         if (_net.IsServer)
             RaiseNetworkEvent(new PlayBoxEffectMessage(GetNetEntity(ent), GetNetEntity(ent.Comp.Mover.Value)));
 
-        _audio.PlayPredicted(ent.Comp.EffectSound, ent, ent.Comp.Mover.Value);
+        _audio.PlayPredicted(ent.Comp.EffectSound, ent, args.User);
         ent.Comp.EffectCooldown = _timing.CurTime + ent.Comp.CooldownDuration;
         Dirty(ent);
     }
@@ -111,9 +111,6 @@ public abstract partial class SharedCardboardBoxSystem : EntitySystem
     [SubscribeLocalEvent]
     private void OnDamage(Entity<CardboardBoxComponent> ent, ref DamageDealtEvent args)
     {
-        if (_timing.ApplyingState)
-            return;
-
         if (ent.Comp.Mover is not { } mover)
             return;
 
