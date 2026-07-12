@@ -34,7 +34,7 @@ public sealed partial class DisposalTraversalSystem : EntitySystem
     {
         base.Initialize();
 
-        SubscribeLocalEvent<DisposalTraversalHolderComponent, MoveInputEvent>(OnMoveInput);
+        SubscribeLocalEvent<BeingDisposedComponent, MoveInputEvent>(OnMoveInput);
         SubscribeLocalEvent<DisposalTraversalHolderComponent, EntityTerminatingEvent>(OnHolderTerminating);
     }
 
@@ -43,11 +43,16 @@ public sealed partial class DisposalTraversalSystem : EntitySystem
         ExitTraversal(ent.AsNullable());
     }
 
-    private void OnMoveInput(Entity<DisposalTraversalHolderComponent> ent, ref MoveInputEvent args)
+    private void OnMoveInput(Entity<BeingDisposedComponent> ent, ref MoveInputEvent args)
     {
-        if (!Exists(ent.Comp.CurrentTube))
+        if (!TryComp<DisposalTraversalHolderComponent>(ent.Comp.Holder, out var holderComp))
+            return;
+
+        var holder = ent.Comp.Holder;
+
+        if (!Exists(holderComp.CurrentTube))
         {
-            ExitTraversal(ent.AsNullable());
+            ExitTraversal(holder);
             return;
         }
 
@@ -56,18 +61,18 @@ public sealed partial class DisposalTraversalSystem : EntitySystem
         if (moveVec != Vector2.Zero && args.Entity.Comp.TargetRelativeRotation != Angle.Zero)
             moveVec = args.Entity.Comp.TargetRelativeRotation.RotateVec(moveVec);
 
-        var previousDirection = ent.Comp.CurrentMoveVec == Vector2.Zero
+        var previousDirection = holderComp.CurrentMoveVec == Vector2.Zero
             ? Direction.Invalid
-            : ent.Comp.CurrentMoveVec.GetDir();
+            : holderComp.CurrentMoveVec.GetDir();
         var direction = moveVec == Vector2.Zero ? Direction.Invalid : moveVec.GetDir();
         if (previousDirection != direction)
         {
-            ent.Comp.NextTube = null;
-            _physics.SetLinearVelocity(ent, Vector2.Zero);
+            holderComp.NextTube = null;
+            _physics.SetLinearVelocity(holder, Vector2.Zero);
         }
 
-        ent.Comp.CurrentMoveVec = moveVec;
-        Dirty(ent);
+        holderComp.CurrentMoveVec = moveVec;
+        Dirty(holder, holderComp);
     }
 
     /// <summary>
