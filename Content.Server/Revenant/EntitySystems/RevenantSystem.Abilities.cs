@@ -267,7 +267,7 @@ public sealed partial class RevenantSystem
                 continue;
 
             //randomly opens some lockers and such.
-            _entityStorage.OpenStorage(ent);
+            _entityStorage.OpenStorage(ent, args.Performer);
 
             //chucks shit
             if (_itemQuery.HasComponent(ent) &&
