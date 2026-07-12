@@ -34,7 +34,7 @@ public sealed partial class DisposalTraversalSystem : EntitySystem
     {
         base.Initialize();
 
-        SubscribeLocalEvent<BeingDisposedComponent, MoveInputEvent>(OnMoveInput);
+        SubscribeLocalEvent<DisposalTraversalHolderComponent, MoveInputEvent>(OnMoveInput);
         SubscribeLocalEvent<DisposalTraversalHolderComponent, EntityTerminatingEvent>(OnHolderTerminating);
     }
 
@@ -43,16 +43,11 @@ public sealed partial class DisposalTraversalSystem : EntitySystem
         ExitTraversal(ent.AsNullable());
     }
 
-    private void OnMoveInput(Entity<BeingDisposedComponent> ent, ref MoveInputEvent args)
+    private void OnMoveInput(Entity<DisposalTraversalHolderComponent> ent, ref MoveInputEvent args)
     {
-        if (!TryComp<DisposalTraversalHolderComponent>(ent.Comp.Holder, out var holderComp))
-            return;
-
-        var holder = ent.Comp.Holder;
-
-        if (!Exists(holderComp.CurrentTube))
+        if (!Exists(ent.Comp.CurrentTube))
         {
-            ExitTraversal(holder);
+            ExitTraversal(ent.AsNullable());
             return;
         }
 
@@ -61,18 +56,18 @@ public sealed partial class DisposalTraversalSystem : EntitySystem
         if (moveVec != Vector2.Zero && args.Entity.Comp.TargetRelativeRotation != Angle.Zero)
             moveVec = args.Entity.Comp.TargetRelativeRotation.RotateVec(moveVec);
 
-        var previousDirection = holderComp.CurrentMoveVec == Vector2.Zero
+        var previousDirection = ent.Comp.CurrentMoveVec == Vector2.Zero
             ? Direction.Invalid
-            : holderComp.CurrentMoveVec.GetDir();
+            : ent.Comp.CurrentMoveVec.GetDir();
         var direction = moveVec == Vector2.Zero ? Direction.Invalid : moveVec.GetDir();
         if (previousDirection != direction)
         {
-            holderComp.NextTube = null;
-            _physics.SetLinearVelocity(holder, Vector2.Zero);
+            ent.Comp.NextTube = null;
+            _physics.SetLinearVelocity(ent, Vector2.Zero);
         }
 
-        holderComp.CurrentMoveVec = moveVec;
-        Dirty(holder, holderComp);
+        ent.Comp.CurrentMoveVec = moveVec;
+        Dirty(ent);
     }
 
     /// <summary>
@@ -147,12 +142,7 @@ public sealed partial class DisposalTraversalSystem : EntitySystem
         if (TryComp<PhysicsComponent>(holder, out var physBody))
             _physics.SetCanCollide(holder, false, body: physBody);
 
-        holder.Comp.CurrentTube = to;
-        holder.Comp.NextTube = null;
-        Dirty(holder);
-
-        RaiseArrived((holder.Owner, holder.Comp), to);
-        SnapToTube((holder.Owner, holder.Comp), to);
+        ArriveAtTube((holder.Owner, holder.Comp), to);
         return true;
     }
 
@@ -164,7 +154,9 @@ public sealed partial class DisposalTraversalSystem : EntitySystem
         if (!Resolve(ent, ref ent.Comp))
             return;
 
-        var container = GetOrEnsureContainer(ent.Owner);
+        if (!_container.TryGetContainer(ent.Owner, nameof(DisposalTraversalHolderComponent), out var container))
+            return;
+
         var containedList = new List<EntityUid>(container.ContainedEntities);
         foreach (var entity in containedList)
         {
@@ -254,24 +246,21 @@ public sealed partial class DisposalTraversalSystem : EntitySystem
             _audio.PlayPredicted(holder.Comp.TraversalSound, holder, holder);
         }
 
-        holder.Comp.CurrentTube = to;
+        ArriveAtTube(holder, to);
+    }
+
+    private void ArriveAtTube(Entity<DisposalTraversalHolderComponent> holder, EntityUid tube)
+    {
+        holder.Comp.CurrentTube = tube;
         holder.Comp.NextTube = null;
         Dirty(holder);
 
-        RaiseArrived(holder, to);
-        SnapToTube(holder, to);
-    }
-
-    private void RaiseArrived(Entity<DisposalTraversalHolderComponent> holder, EntityUid tube)
-    {
         var ev = new DisposalTraversalArrivedEvent(holder);
         RaiseLocalEvent(tube, ref ev);
-    }
 
-    private void SnapToTube(Entity<DisposalTraversalHolderComponent> holder, EntityUid to)
-    {
-        var tubePos = Transform(to).Coordinates;
-        _xform.SetCoordinates(holder, _xform.WithEntityId(tubePos.Offset(GetTubeOffset(holder, to)), to));
+        _physics.SetLinearVelocity(holder, Vector2.Zero);
+        var tubePos = Transform(tube).Coordinates;
+        _xform.SetCoordinates(holder, _xform.WithEntityId(tubePos.Offset(GetTubeOffset(holder, tube)), tube));
     }
 
     private Vector2 GetTubeOffset(Entity<DisposalTraversalHolderComponent> holder, EntityUid tube)
