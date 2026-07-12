@@ -1,3 +1,4 @@
+using System.Numerics;
 using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
@@ -17,12 +18,6 @@ public sealed partial class DisposalTraversalHolderComponent : Component
     public float TraversalSpeed = 6f;
 
     /// <summary>
-    /// Whether movement input is currently held.
-    /// </summary>
-    [ViewVariables, AutoNetworkedField]
-    public bool IsMoving;
-
-    /// <summary>
     /// Segment the holder is currently in.
     /// </summary>
     [ViewVariables, AutoNetworkedField]
@@ -35,10 +30,10 @@ public sealed partial class DisposalTraversalHolderComponent : Component
     public EntityUid? NextTube { get; set; }
 
     /// <summary>
-    /// Current movement direction requested by input.
+    /// Current movement vector requested by input.
     /// </summary>
     [ViewVariables, AutoNetworkedField]
-    public Direction CurrentDirection { get; set; } = Direction.Invalid;
+    public Vector2 CurrentMoveVec;
 
     /// <summary>
     /// Current traversal layer. Interpretation belongs to the network-specific adapter.

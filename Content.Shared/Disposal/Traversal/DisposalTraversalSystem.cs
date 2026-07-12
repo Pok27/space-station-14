@@ -56,24 +56,22 @@ public sealed partial class DisposalTraversalSystem : EntitySystem
             return;
         }
 
-        var dir = args.Dir;
-        if (dir != Direction.Invalid)
+        // Convert input to the holder's movement direction and reset the pending tube when it changes.
+        var moveVec = args.MoveVec;
+        if (moveVec != Vector2.Zero && args.Entity.Comp.TargetRelativeRotation != Angle.Zero)
+            moveVec = args.Entity.Comp.TargetRelativeRotation.RotateVec(moveVec);
+
+        var previousDirection = holderComp.CurrentMoveVec == Vector2.Zero
+            ? Direction.Invalid
+            : holderComp.CurrentMoveVec.GetDir();
+        var direction = moveVec == Vector2.Zero ? Direction.Invalid : moveVec.GetDir();
+        if (previousDirection != direction)
         {
-            var cameraAngle = args.Entity.Comp.TargetRelativeRotation;
-            if (cameraAngle != Angle.Zero)
-                dir = (dir.ToAngle() + cameraAngle).GetCardinalDir();
+            holderComp.NextTube = null;
+            _physics.SetLinearVelocity(holder, Vector2.Zero);
         }
 
-        if (dir != Direction.Invalid && holderComp.CurrentDirection != dir)
-            holderComp.NextTube = null;
-
-        holderComp.IsMoving = args.HasDirectionalMovement;
-
-        if (dir != Direction.Invalid)
-            holderComp.CurrentDirection = dir;
-        else if (!holderComp.IsMoving)
-            holderComp.CurrentDirection = Direction.Invalid;
-
+        holderComp.CurrentMoveVec = moveVec;
         Dirty(holder, holderComp);
     }
 
@@ -82,9 +80,6 @@ public sealed partial class DisposalTraversalSystem : EntitySystem
     /// </summary>
     public void Insert(EntityUid entry, EntityUid toInsert, string holderPrototypeId)
     {
-        if (_net.IsClient)
-            return;
-
         var tubeCoords = Transform(entry).Coordinates;
         var holder = PredictedSpawnAttachedTo(holderPrototypeId, tubeCoords);
 
@@ -103,9 +98,6 @@ public sealed partial class DisposalTraversalSystem : EntitySystem
     /// </summary>
     public bool TryInsert(EntityUid uid, EntityUid toInsert)
     {
-        if (_net.IsClient)
-            return false;
-
         if (!CanInsert(uid, toInsert))
             return false;
 
@@ -169,9 +161,6 @@ public sealed partial class DisposalTraversalSystem : EntitySystem
     /// </summary>
     public void ExitTraversal(Entity<DisposalTraversalHolderComponent?> ent)
     {
-        if (_net.IsClient)
-            return;
-
         if (!Resolve(ent, ref ent.Comp))
             return;
 
@@ -191,7 +180,9 @@ public sealed partial class DisposalTraversalSystem : EntitySystem
                 _physics.WakeBody(entity, body: physics);
         }
 
-        QueueDel(ent);
+        // Deletion isn't predicted because client queued deletion doesn't interact well with container stuff.
+        if (_net.IsServer)
+            QueueDel(ent);
     }
 
     public override void Update(float frameTime)
@@ -211,7 +202,7 @@ public sealed partial class DisposalTraversalSystem : EntitySystem
         var currentTube = holder.Comp.CurrentTube!.Value;
         var holderEnt = holder.Owner;
 
-        if (holder.Comp.CurrentDirection == Direction.Invalid || !holder.Comp.IsMoving)
+        if (holder.Comp.CurrentMoveVec == Vector2.Zero)
         {
             _physics.SetLinearVelocity(holderEnt, Vector2.Zero);
             return;
@@ -222,36 +213,37 @@ public sealed partial class DisposalTraversalSystem : EntitySystem
         if (beforeMove.Handled)
             return;
 
-        var nextTube = holder.Comp.NextTube ?? FindNextTube(holder, currentTube, holder.Comp.CurrentDirection);
+        var nextTube = holder.Comp.NextTube ??
+            NextTubeForInput(holder.AsNullable(), currentTube, holder.Comp.CurrentMoveVec);
         if (nextTube == null)
         {
+            // The tube has an exit in this direction, but no connected tube to enter.
+            if (_tube.CanConnect((currentTube, Comp<DisposalTubeComponent>(currentTube)), holder.Comp.CurrentMoveVec.GetDir()))
+            {
+                ExitTraversal(holder.AsNullable());
+                return;
+            }
+
             _physics.SetLinearVelocity(holderEnt, Vector2.Zero);
             return;
         }
 
-        var destPos = GetTubeWorldPosition(holder, nextTube.Value);
-        var entPos = _xform.GetWorldPosition(holderEnt);
-        var diff = destPos - entPos;
-        var step = holder.Comp.TraversalSpeed * frameTime;
+        if (holder.Comp.NextTube == null)
+        {
+            holder.Comp.NextTube = nextTube;
+            Dirty(holder);
+        }
 
-        if (diff.LengthSquared() <= step * step)
+        var offset = GetTubeOffset(holder, nextTube.Value);
+        var delta = _xform.GetWorldPosition(nextTube.Value) + offset - _xform.GetWorldPosition(holderEnt);
+        var step = holder.Comp.TraversalSpeed * frameTime;
+        if (delta.LengthSquared() <= step * step)
         {
             AdvanceTube(holder, nextTube.Value);
             return;
         }
 
-        _physics.SetLinearVelocity(holderEnt, diff.Normalized() * holder.Comp.TraversalSpeed);
-    }
-
-    private EntityUid? FindNextTube(Entity<DisposalTraversalHolderComponent> holder, EntityUid currentTube, Direction direction)
-    {
-        var next = NextTubeFor(holder.AsNullable(), currentTube, direction);
-        if (next == null)
-            return null;
-
-        holder.Comp.NextTube = next;
-        Dirty(holder);
-        return next;
+        _physics.SetLinearVelocity(holderEnt, delta.Normalized() * holder.Comp.TraversalSpeed);
     }
 
     private void AdvanceTube(Entity<DisposalTraversalHolderComponent> holder, EntityUid to)
@@ -268,7 +260,6 @@ public sealed partial class DisposalTraversalSystem : EntitySystem
 
         RaiseArrived(holder, to);
         SnapToTube(holder, to);
-        _physics.SetLinearVelocity(holder, Vector2.Zero);
     }
 
     private void RaiseArrived(Entity<DisposalTraversalHolderComponent> holder, EntityUid tube)
@@ -283,16 +274,43 @@ public sealed partial class DisposalTraversalSystem : EntitySystem
         _xform.SetCoordinates(holder, _xform.WithEntityId(tubePos.Offset(GetTubeOffset(holder, to)), to));
     }
 
-    private Vector2 GetTubeWorldPosition(Entity<DisposalTraversalHolderComponent> holder, EntityUid tube)
-    {
-        return _xform.GetWorldPosition(tube) + GetTubeOffset(holder, tube);
-    }
-
     private Vector2 GetTubeOffset(Entity<DisposalTraversalHolderComponent> holder, EntityUid tube)
     {
         var ev = new GetDisposalTraversalOffsetEvent(holder);
         RaiseLocalEvent(tube, ref ev);
         return ev.Offset;
+    }
+
+    /// <summary>
+    /// Selects the connected tube that best matches the requested movement direction.
+    /// </summary>
+    private EntityUid? NextTubeForInput(
+        Entity<DisposalTraversalHolderComponent?> holder,
+        Entity<DisposalTubeComponent?> currentTube,
+        Vector2 moveVec)
+    {
+        if (!Resolve(holder, ref holder.Comp) || !Resolve(currentTube, ref currentTube.Comp))
+            return null;
+
+        var fallbackDirection = moveVec.GetDir();
+
+        EntityUid? selectedTube = null;
+        var largestDot = 0f;
+        foreach (var direction in _tube.GetTubeConnectableDirections((currentTube.Owner, currentTube.Comp)))
+        {
+            var dot = Vector2.Dot(direction.ToVec(), moveVec);
+            if (dot <= largestDot)
+                continue;
+
+            var tube = NextTubeFor(holder, currentTube, direction);
+            if (tube == null)
+                continue;
+
+            selectedTube = tube;
+            largestDot = dot;
+        }
+
+        return selectedTube ?? NextTubeFor(holder, currentTube, fallbackDirection);
     }
 
     /// <summary>

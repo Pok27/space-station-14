@@ -94,9 +94,9 @@ namespace Content.Shared.Movement.Systems
 
             // Relay the fact we had any movement event.
             var oldMovement = entity.Comp.HeldMoveButtons;
-            var dir = DirForButtons(buttons);
+            var moveVec = DirVecForButtons(buttons);
 
-            var moveEvent = new MoveInputEvent(entity, oldMovement, dir, buttons != 0);
+            var moveEvent = new MoveInputEvent(entity, oldMovement, moveVec, buttons != 0);
             entity.Comp.HeldMoveButtons = buttons;
             RaiseLocalEvent(entity, ref moveEvent);
             Dirty(entity, entity.Comp);
@@ -123,8 +123,8 @@ namespace Content.Shared.Movement.Systems
 
             if (entity.Comp.HeldMoveButtons != state.HeldMoveButtons)
             {
-                var dir = DirForButtons(state.HeldMoveButtons);
-                var moveEvent = new MoveInputEvent(entity, entity.Comp.HeldMoveButtons, dir, state.HeldMoveButtons != 0);
+                var moveVec = DirVecForButtons(state.HeldMoveButtons);
+                var moveEvent = new MoveInputEvent(entity, entity.Comp.HeldMoveButtons, moveVec, state.HeldMoveButtons != 0);
                 entity.Comp.HeldMoveButtons = state.HeldMoveButtons;
                 RaiseLocalEvent(entity.Owner, ref moveEvent);
 
@@ -518,28 +518,6 @@ namespace Content.Shared.Movement.Systems
         private static bool HasFlag(MoveButtons buttons, MoveButtons flag)
         {
             return (buttons & flag) == flag;
-        }
-
-        /// <summary>
-        /// Gets the discrete movement direction for held buttons without losing diagonal inputs to vector normalization.
-        /// </summary>
-        private Direction DirForButtons(MoveButtons buttons)
-        {
-            var movement = GetNormalizedMovement(buttons);
-
-            var x = 0;
-            x -= HasFlag(movement, MoveButtons.Left) ? 1 : 0;
-            x += HasFlag(movement, MoveButtons.Right) ? 1 : 0;
-
-            var y = 0;
-            if (DiagonalMovementEnabled || x == 0)
-            {
-                y -= HasFlag(movement, MoveButtons.Down) ? 1 : 0;
-                y += HasFlag(movement, MoveButtons.Up) ? 1 : 0;
-            }
-
-            var dir = new Vector2i(x, y);
-            return dir == Vector2i.Zero ? Direction.Invalid : dir.AsDirection();
         }
 
         private sealed class CameraRotateInputCmdHandler : InputCmdHandler

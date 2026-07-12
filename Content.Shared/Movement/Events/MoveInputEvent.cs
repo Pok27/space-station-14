@@ -1,3 +1,4 @@
+using System.Numerics;
 using Content.Shared.Movement.Components;
 using Content.Shared.Movement.Systems;
 
@@ -7,7 +8,7 @@ namespace Content.Shared.Movement.Events;
 /// Raised on an entity whenever it has a movement input change.
 /// </summary>
 [ByRefEvent]
-public readonly struct MoveInputEvent(Entity<InputMoverComponent> entity, MoveButtons oldMovement, Direction dir, bool state)
+public readonly struct MoveInputEvent(Entity<InputMoverComponent> entity, MoveButtons oldMovement, Vector2 moveVec, bool state)
 {
     /// <summary>
     /// Mover whose input changed.
@@ -20,9 +21,9 @@ public readonly struct MoveInputEvent(Entity<InputMoverComponent> entity, MoveBu
     public readonly MoveButtons OldMovement = oldMovement;
 
     /// <summary>
-    /// Discrete direction requested by the current movement buttons.
+    /// Normalized direction vector requested by the current movement buttons.
     /// </summary>
-    public readonly Direction Dir = dir;
+    public readonly Vector2 MoveVec = moveVec;
 
     /// <summary>
     /// Whether any movement button is held after this input change.

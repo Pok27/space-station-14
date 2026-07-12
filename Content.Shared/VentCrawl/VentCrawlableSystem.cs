@@ -1,3 +1,4 @@
+using System.Numerics;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Atmos.Piping.Components;
 using Content.Shared.Disposal.Tube;
@@ -48,11 +49,11 @@ public sealed partial class VentCrawlableSystem : EntitySystem
             || !TryComp<VentCrawlHolderComponent>(args.Holder, out var ventHolder))
             return;
 
-        if (!args.Holder.Comp.IsMoving || args.Holder.Comp.CurrentDirection == Direction.Invalid)
+        if (args.Holder.Comp.CurrentMoveVec == Vector2.Zero)
             return;
 
         var manifoldRotation = Transform(ent).LocalRotation;
-        var localDir = (args.Holder.Comp.CurrentDirection.ToAngle() - manifoldRotation).GetCardinalDir();
+        var localDir = (args.Holder.Comp.CurrentMoveVec.GetDir().ToAngle() - manifoldRotation).GetCardinalDir();
 
         if (!TryGetManifoldLayer(args.Holder.Comp.CurrentLayer, traversable.Exits, localDir, out var newLayer))
             return;
