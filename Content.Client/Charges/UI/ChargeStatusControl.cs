@@ -1,5 +1,4 @@
 using Content.Client.Charges.EntitySystems;
-using Content.Client.Charges.Components;
 using Content.Client.Items.UI;
 using Content.Client.Message;
 using Content.Client.Stylesheets;
@@ -10,18 +9,18 @@ using Robust.Client.UserInterface.Controls;
 namespace Content.Client.Charges.UI;
 
 /// <summary>
-/// Displays limited charges information for <see cref="ChargeItemStatusComponent"/>.
+/// Displays limited charges information for <see cref="LimitedChargesComponent"/>.
 /// </summary>
 /// <seealso cref="ChargeItemStatusSystem"/>
 public sealed partial class ChargeStatusControl : PollingItemStatusControl<ChargeStatusControl.Data>
 {
-    private readonly Entity<ChargeItemStatusComponent> _parent;
+    private readonly Entity<LimitedChargesComponent> _parent;
     private readonly IEntityManager _entityManager;
     private readonly SharedChargesSystem _chargesSystem;
     private readonly RichTextLabel _label;
 
     public ChargeStatusControl(
-        Entity<ChargeItemStatusComponent> parent,
+        Entity<LimitedChargesComponent> parent,
         IEntityManager entityManager,
         SharedChargesSystem chargesSystem)
     {
@@ -41,8 +40,7 @@ public sealed partial class ChargeStatusControl : PollingItemStatusControl<Charg
         var maxCharges = charges.MaxCharges;
 
         TimeSpan? nextRecharge = null;
-        if (_parent.Comp.ShowRechargeTimer &&
-            _entityManager.TryGetComponent<AutoRechargeComponent>(_parent.Owner, out var autoRecharge))
+        if (_entityManager.TryGetComponent<AutoRechargeComponent>(_parent.Owner, out var autoRecharge))
         {
             var nextRechargeTime = _chargesSystem.GetNextRechargeTime((_parent.Owner, charges, autoRecharge));
             if (nextRechargeTime > TimeSpan.Zero)

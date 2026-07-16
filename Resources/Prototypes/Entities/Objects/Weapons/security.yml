@@ -147,7 +147,6 @@
     - type: RevolutionaryConverter
     - type: LimitedCharges
       maxCharges: 5
-    - type: ChargeItemStatus
     - type: MeleeWeapon
       wideAnimationRotation: 180
       damage:

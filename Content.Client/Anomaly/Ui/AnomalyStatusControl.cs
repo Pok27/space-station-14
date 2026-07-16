@@ -45,13 +45,9 @@ public sealed partial class AnomalyStatusControl : PollingItemStatusControl<Anom
     {
         string markup;
         if (!data.IsDecayed)
-        {
             markup = Loc.GetString("anomaly-status-infinite");
-        }
         else
-        {
             markup = Loc.GetString("anomaly-status-charges", ("charges", data.Charges));
-        }
 
         _label.SetMarkup(markup);
     }

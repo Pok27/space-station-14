@@ -37,7 +37,6 @@
     magState: mag
     steps: 5
     zeroVisible: false
-  - type: MagazineItemStatus
   - type: Appearance
 
 - type: entity

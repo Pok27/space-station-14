@@ -1,4 +1,3 @@
-using Content.Client.Atmos.Components;
 using Content.Client.Items.UI;
 using Content.Client.Message;
 using Content.Client.Stylesheets;
@@ -9,17 +8,17 @@ using Robust.Client.UserInterface.Controls;
 namespace Content.Client.Atmos.UI;
 
 /// <summary>
-/// Displays gas tank pressure information for <see cref="TankPressureItemStatusComponent"/>.
+/// Displays gas tank pressure information for <see cref="GasTankComponent"/>.
 /// </summary>
 /// <seealso cref="TankPressureItemStatusSystem"/>
 public sealed partial class TankPressureStatusControl : PollingItemStatusControl<TankPressureStatusControl.Data>
 {
-    private readonly Entity<TankPressureItemStatusComponent> _parent;
+    private readonly Entity<GasTankComponent> _parent;
     private readonly IEntityManager _entityManager;
     private readonly RichTextLabel _label;
 
     public TankPressureStatusControl(
-        Entity<TankPressureItemStatusComponent> parent,
+        Entity<GasTankComponent> parent,
         IEntityManager entityManager)
     {
         _parent = parent;
@@ -29,7 +28,9 @@ public sealed partial class TankPressureStatusControl : PollingItemStatusControl
 
         // Default placeholder.
         var markup = Loc.GetString("tank-pressure-status", ("pressure", 0));
-        markup += "\n" + Loc.GetString("tank-status-closed");
+        var stateColor = Loc.GetString("tank-status-switchable-state", ("state", "closed"));
+        var stateLine = Loc.GetString("tank-status-state", ("state", stateColor));
+        markup += "\n" + stateLine;
         _label.SetMarkup(markup);
     }
 
@@ -48,10 +49,10 @@ public sealed partial class TankPressureStatusControl : PollingItemStatusControl
     {
         var markup = Loc.GetString("tank-pressure-status", ("pressure", $"{data.PressureKpa:F1}"));
 
-        var valveText = data.IsValveOpen
-            ? Loc.GetString("tank-status-open")
-            : Loc.GetString("tank-status-closed");
-        markup += "\n" + valveText;
+        var stateValue = data.IsValveOpen ? "open" : "closed";
+        var stateColor = Loc.GetString("tank-status-switchable-state", ("state", stateValue));
+        var stateLine = Loc.GetString("tank-status-state", ("state", stateColor));
+        markup += "\n" + stateLine;
 
         _label.SetMarkup(markup);
     }

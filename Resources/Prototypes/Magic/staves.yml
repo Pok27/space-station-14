@@ -9,7 +9,6 @@
   components:
   - type: LimitedCharges
     maxCharges: 25
-  - type: ChargeItemStatus
   - type: AutoRecharge
     rechargeDuration: 30
   - type: Sprite
@@ -46,7 +45,6 @@
   components:
   - type: LimitedCharges
     maxCharges: 5
-  - type: ChargeItemStatus
   - type: AutoRecharge
     rechargeDuration: 30
   - type: Sprite

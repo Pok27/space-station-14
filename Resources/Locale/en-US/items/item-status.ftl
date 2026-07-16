@@ -13,8 +13,12 @@ charge-status-recharge = Recharge: [color=yellow]{$seconds}s[/color]
 
 # Tank Pressure Status
 tank-pressure-status = Press.: [color=orange]{$pressure} kPa[/color]
-tank-status-open = [color=red]Open[/color]
-tank-status-closed = [color=green]Closed[/color]
+tank-status-switchable-state = { $state ->
+        [open] [color=red]Open[/color]
+        [closed] [color=green]Closed[/color]
+        *[other] Unknown
+}
+tank-status-state = State: {$state}
 
 # Magazine Status
 magazine-status-rounds = Rounds: [color=yellow]{$current}/{$max}[/color]
