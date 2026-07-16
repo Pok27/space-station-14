@@ -1,4 +1,6 @@
+using Content.Shared.DeviceLinking;
 using Robust.Shared.GameStates;
+using Robust.Shared.Prototypes;
 
 namespace Content.Shared.Cloning;
 
@@ -11,12 +13,14 @@ public sealed partial class CloningConsoleComponent : Component
     /// <summary>
     /// DeviceLink source port name for medical scanner.
     /// </summary>
-    public const string ScannerPort = "MedicalScannerSender";
+    [DataField]
+    public ProtoId<SourcePortPrototype> ScannerPort = "MedicalScannerSender";
 
     /// <summary>
     /// DeviceLink source port name for cloning pod.
     /// </summary>
-    public const string PodPort = "CloningPodSender";
+    [DataField]
+    public ProtoId<SourcePortPrototype> PodPort = "CloningPodSender";
 
     /// <summary>
     /// EntityUid of connected genetic scanner (if any).

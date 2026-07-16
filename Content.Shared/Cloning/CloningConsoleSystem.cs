@@ -31,25 +31,13 @@ public sealed partial class CloningConsoleSystem : EntitySystem
     [Dependency] private SharedPowerReceiverSystem _powerReceiver = default!;
     [Dependency] private SharedUserInterfaceSystem _ui = default!;
 
-    public override void Initialize()
-    {
-        base.Initialize();
-
-        SubscribeLocalEvent<CloningConsoleComponent, ComponentInit>(OnInit);
-        SubscribeLocalEvent<CloningConsoleComponent, UiButtonPressedMessage>(OnButtonPressed);
-        SubscribeLocalEvent<CloningConsoleComponent, AfterActivatableUIOpenEvent>(OnUIOpen);
-        SubscribeLocalEvent<CloningConsoleComponent, PowerChangedEvent>(OnPowerChanged);
-        SubscribeLocalEvent<CloningConsoleComponent, MapInitEvent>(OnMapInit);
-        SubscribeLocalEvent<CloningConsoleComponent, NewLinkEvent>(OnNewLink);
-        SubscribeLocalEvent<CloningConsoleComponent, PortDisconnectedEvent>(OnPortDisconnected);
-        SubscribeLocalEvent<CloningConsoleComponent, AnchorStateChangedEvent>(OnAnchorChanged);
-    }
-
+    [SubscribeLocalEvent]
     private void OnInit(Entity<CloningConsoleComponent> ent, ref ComponentInit args)
     {
-        _deviceLink.EnsureSourcePorts(ent.Owner, CloningConsoleComponent.ScannerPort, CloningConsoleComponent.PodPort);
+        _deviceLink.EnsureSourcePorts(ent.Owner, ent.Comp.ScannerPort, ent.Comp.PodPort);
     }
 
+    [SubscribeLocalEvent]
     private void OnButtonPressed(Entity<CloningConsoleComponent> ent, ref UiButtonPressedMessage args)
     {
         if (!_powerReceiver.IsPowered(ent.Owner))
@@ -66,11 +54,13 @@ public sealed partial class CloningConsoleSystem : EntitySystem
         UpdateUserInterface(ent);
     }
 
+    [SubscribeLocalEvent]
     private void OnPowerChanged(Entity<CloningConsoleComponent> ent, ref PowerChangedEvent args)
     {
         UpdateUserInterface(ent);
     }
 
+    [SubscribeLocalEvent]
     private void OnMapInit(Entity<CloningConsoleComponent> ent, ref MapInitEvent args)
     {
         if (!TryComp<DeviceLinkSourceComponent>(ent.Owner, out var receiver))
@@ -94,16 +84,17 @@ public sealed partial class CloningConsoleSystem : EntitySystem
         }
     }
 
+    [SubscribeLocalEvent]
     private void OnNewLink(Entity<CloningConsoleComponent> ent, ref NewLinkEvent args)
     {
-        if (TryComp<MedicalScannerComponent>(args.Sink, out var scanner) && args.SourcePort == CloningConsoleComponent.ScannerPort)
+        if (TryComp<MedicalScannerComponent>(args.Sink, out var scanner) && args.SourcePort == ent.Comp.ScannerPort)
         {
             ent.Comp.GeneticScanner = args.Sink;
             scanner.ConnectedConsole = ent.Owner;
             Dirty(args.Sink, scanner);
         }
 
-        if (TryComp<CloningPodComponent>(args.Sink, out var pod) && args.SourcePort == CloningConsoleComponent.PodPort)
+        if (TryComp<CloningPodComponent>(args.Sink, out var pod) && args.SourcePort == ent.Comp.PodPort)
         {
             ent.Comp.CloningPod = args.Sink;
             pod.ConnectedConsole = ent.Owner;
@@ -114,23 +105,26 @@ public sealed partial class CloningConsoleSystem : EntitySystem
         RecheckConnections(ent.Owner, ent.Comp.CloningPod, ent.Comp.GeneticScanner);
     }
 
+    [SubscribeLocalEvent]
     private void OnPortDisconnected(Entity<CloningConsoleComponent> ent, ref PortDisconnectedEvent args)
     {
-        if (args.Port == CloningConsoleComponent.ScannerPort)
+        if (args.Port == ent.Comp.ScannerPort)
             ent.Comp.GeneticScanner = null;
 
-        if (args.Port == CloningConsoleComponent.PodPort)
+        if (args.Port == ent.Comp.PodPort)
             ent.Comp.CloningPod = null;
 
         Dirty(ent);
         UpdateUserInterface(ent);
     }
 
+    [SubscribeLocalEvent]
     private void OnUIOpen(Entity<CloningConsoleComponent> ent, ref AfterActivatableUIOpenEvent args)
     {
         UpdateUserInterface(ent);
     }
 
+    [SubscribeLocalEvent]
     private void OnAnchorChanged(Entity<CloningConsoleComponent> ent, ref AnchorStateChangedEvent args)
     {
         if (args.Anchored)
@@ -182,7 +176,7 @@ public sealed partial class CloningConsoleSystem : EntitySystem
         if (!_mind.TryGetMind(body.Value, out var mindId, out var mind))
             return;
 
-        if (mind.UserId.HasValue == false || !_playerManager.ValidSessionId(mind.UserId.Value))
+        if (!mind.UserId.HasValue || !_playerManager.ValidSessionId(mind.UserId.Value))
             return;
 
         if (_cloningPod.TryCloning(entPod, body.Value, (mindId, mind), entScanner.Comp.CloningFailChanceMultiplier))
@@ -290,5 +284,4 @@ public sealed partial class CloningConsoleSystem : EntitySystem
             clonerInRange
             );
     }
-
 }

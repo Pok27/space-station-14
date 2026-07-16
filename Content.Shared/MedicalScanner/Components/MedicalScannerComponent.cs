@@ -1,5 +1,7 @@
+using Content.Shared.DeviceLinking;
 using Robust.Shared.Containers;
 using Robust.Shared.GameStates;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared.MedicalScanner.Components;
@@ -13,13 +15,14 @@ public sealed partial class MedicalScannerComponent : Component
     /// <summary>
     /// DeviceLink sink port identifier for this scanner.
     /// </summary>
-    public const string ScannerPort = "MedicalScannerReceiver";
+    [DataField]
+    public ProtoId<SinkPortPrototype> ScannerPort = "MedicalScannerReceiver";
 
     /// <summary>
     /// Slot containing the body being scanned.
     /// </summary>
     [ViewVariables]
-    public ContainerSlot BodyContainer = default!;
+    public ContainerSlot BodyContainer;
 
     /// <summary>
     /// Reference to the connected console, if any.

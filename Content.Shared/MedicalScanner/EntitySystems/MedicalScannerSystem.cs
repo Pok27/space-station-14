@@ -33,21 +33,7 @@ public sealed partial class MedicalScannerSystem : EntitySystem
     private const float UpdateRate = 1f;
     private float _updateDif;
 
-    public override void Initialize()
-    {
-        base.Initialize();
-
-        SubscribeLocalEvent<MedicalScannerComponent, ComponentInit>(OnComponentInit);
-        SubscribeLocalEvent<MedicalScannerComponent, ContainerRelayMovementEntityEvent>(OnRelayMovement);
-        SubscribeLocalEvent<MedicalScannerComponent, GetVerbsEvent<InteractionVerb>>(AddInsertOtherVerb);
-        SubscribeLocalEvent<MedicalScannerComponent, GetVerbsEvent<AlternativeVerb>>(AddAlternativeVerbs);
-        SubscribeLocalEvent<MedicalScannerComponent, DestructionEventArgs>(OnDestroyed);
-        SubscribeLocalEvent<MedicalScannerComponent, DragDropTargetEvent>(OnDragDropOn);
-        SubscribeLocalEvent<MedicalScannerComponent, PortDisconnectedEvent>(OnPortDisconnected);
-        SubscribeLocalEvent<MedicalScannerComponent, AnchorStateChangedEvent>(OnAnchorChanged);
-        SubscribeLocalEvent<MedicalScannerComponent, CanDropTargetEvent>(OnCanDragDropOn);
-    }
-
+    [SubscribeLocalEvent]
     private void OnCanDragDropOn(Entity<MedicalScannerComponent> ent, ref CanDropTargetEvent args)
     {
         args.Handled = true;
@@ -65,13 +51,14 @@ public sealed partial class MedicalScannerSystem : EntitySystem
         return HasComp<BodyComponent>(target);
     }
 
+    [SubscribeLocalEvent]
     private void OnComponentInit(Entity<MedicalScannerComponent> ent, ref ComponentInit args)
     {
-        base.Initialize();
-        ent.Comp.BodyContainer = _container.EnsureContainer<ContainerSlot>(ent.Owner, $"scanner-bodyContainer");
-        _deviceLink.EnsureSinkPorts(ent.Owner, MedicalScannerComponent.ScannerPort);
+        ent.Comp.BodyContainer = _container.EnsureContainer<ContainerSlot>(ent.Owner, "scanner-bodyContainer");
+        _deviceLink.EnsureSinkPorts(ent.Owner, ent.Comp.ScannerPort);
     }
 
+    [SubscribeLocalEvent]
     private void OnRelayMovement(Entity<MedicalScannerComponent> ent, ref ContainerRelayMovementEntityEvent args)
     {
         if (!_blocker.CanInteract(args.Entity, ent.Owner))
@@ -80,6 +67,7 @@ public sealed partial class MedicalScannerSystem : EntitySystem
         EjectBody(ent.AsNullable());
     }
 
+    [SubscribeLocalEvent]
     private void AddInsertOtherVerb(Entity<MedicalScannerComponent> ent, ref GetVerbsEvent<InteractionVerb> args)
     {
         if (args.Using == null ||
@@ -103,6 +91,7 @@ public sealed partial class MedicalScannerSystem : EntitySystem
         args.Verbs.Add(verb);
     }
 
+    [SubscribeLocalEvent]
     private void AddAlternativeVerbs(Entity<MedicalScannerComponent> ent, ref GetVerbsEvent<AlternativeVerb> args)
     {
         if (!args.CanAccess || !args.CanInteract)
@@ -136,22 +125,26 @@ public sealed partial class MedicalScannerSystem : EntitySystem
         }
     }
 
+    [SubscribeLocalEvent]
     private void OnDestroyed(Entity<MedicalScannerComponent> ent, ref DestructionEventArgs args)
     {
         EjectBody(ent.AsNullable());
     }
 
+    [SubscribeLocalEvent]
     private void OnDragDropOn(Entity<MedicalScannerComponent> ent, ref DragDropTargetEvent args)
     {
         InsertBody(ent.AsNullable(), args.Dragged);
     }
 
+    [SubscribeLocalEvent]
     private void OnPortDisconnected(Entity<MedicalScannerComponent> ent, ref PortDisconnectedEvent args)
     {
         ent.Comp.ConnectedConsole = null;
         Dirty(ent);
     }
 
+    [SubscribeLocalEvent]
     private void OnAnchorChanged(Entity<MedicalScannerComponent> ent, ref AnchorStateChangedEvent args)
     {
         if (ent.Comp.ConnectedConsole == null || !TryComp<CloningConsoleComponent>(ent.Comp.ConnectedConsole, out var console))

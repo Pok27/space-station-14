@@ -19,7 +19,6 @@ using Robust.Shared.Containers;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
-using Robust.Shared.Random;
 using Robust.Shared.Timing;
 
 namespace Content.Shared.Cloning;
@@ -53,20 +52,6 @@ public abstract partial class SharedCloningPodSystem : EntitySystem
     private readonly ProtoId<CloningSettingsPrototype> _settingsId = "CloningPod";
 
     private const float EasyModeCloningCost = 0.7f;
-
-    /// <inheritdoc/>
-    public override void Initialize()
-    {
-        base.Initialize();
-
-        SubscribeLocalEvent<RoundRestartCleanupEvent>(Reset);
-        SubscribeLocalEvent<BeingClonedComponent, MindAddedMessage>(HandleMindAdded);
-        SubscribeLocalEvent<CloningPodComponent, ComponentInit>(OnComponentInit);
-        SubscribeLocalEvent<CloningPodComponent, PortDisconnectedEvent>(OnPortDisconnected);
-        SubscribeLocalEvent<CloningPodComponent, AnchorStateChangedEvent>(OnAnchor);
-        SubscribeLocalEvent<CloningPodComponent, ExaminedEvent>(OnExamined);
-        SubscribeLocalEvent<CloningPodComponent, GotEmaggedEvent>(OnEmagged);
-    }
 
     /// <summary>
     /// Tries to start the cloning process for the specified mind and pod.
@@ -132,10 +117,7 @@ public abstract partial class SharedCloningPodSystem : EntitySystem
             if (cellularDmg > 0 && ent.Comp.ConnectedConsole != null)
                 _chat.TrySendInGameICMessage(ent.Comp.ConnectedConsole.Value, Loc.GetString("cloning-console-cellular-warning", ("percent", Math.Round(100 - chance * 100))), InGameICChatType.Speak, false);
 
-            // TODO: Replace with RandomPredicted once the engine PR is merged
-            var seed = SharedRandomExtensions.HashCodeCombine((int)_timing.CurTick.Value, GetNetEntity(ent).Id);
-            var rand = new System.Random(seed);
-            if (rand.Prob(chance))
+            if (SharedRandomExtensions.PredictedProb(_timing, chance, GetNetEntity(ent)))
             {
                 ent.Comp.FailedClone = true;
                 UpdateStatus((ent.Owner, ent.Comp), CloningPodStatus.Gore);
@@ -179,9 +161,11 @@ public abstract partial class SharedCloningPodSystem : EntitySystem
     public void UpdateStatus(Entity<CloningPodComponent> ent, CloningPodStatus status)
     {
         ent.Comp.Status = status;
+        Dirty(ent);
         _appearance.SetData(ent.Owner, CloningPodVisuals.Status, ent.Comp.Status);
     }
 
+    [SubscribeLocalEvent]
     private void OnComponentInit(Entity<CloningPodComponent> ent, ref ComponentInit args)
     {
         ent.Comp.BodyContainer = _container.EnsureContainer<ContainerSlot>(ent.Owner, "clonepod-bodyContainer");
@@ -204,6 +188,7 @@ public abstract partial class SharedCloningPodSystem : EntitySystem
         ClonesWaitingForMind.Remove(mind);
     }
 
+    [SubscribeLocalEvent]
     private void HandleMindAdded(Entity<BeingClonedComponent> ent, ref MindAddedMessage message)
     {
         if (ent.Comp.Parent == EntityUid.Invalid ||
@@ -218,12 +203,14 @@ public abstract partial class SharedCloningPodSystem : EntitySystem
         UpdateStatus((ent.Comp.Parent, cloningPodComponent), CloningPodStatus.Cloning);
     }
 
+    [SubscribeLocalEvent]
     private void OnPortDisconnected(Entity<CloningPodComponent> ent, ref PortDisconnectedEvent args)
     {
         ent.Comp.ConnectedConsole = null;
         Dirty(ent);
     }
 
+    [SubscribeLocalEvent]
     private void OnAnchor(Entity<CloningPodComponent> ent, ref AnchorStateChangedEvent args)
     {
         if (ent.Comp.ConnectedConsole == null || !TryComp<CloningConsoleComponent>(ent.Comp.ConnectedConsole, out var console))
@@ -238,6 +225,7 @@ public abstract partial class SharedCloningPodSystem : EntitySystem
         _cloningConsole.UpdateUserInterface((ent.Comp.ConnectedConsole.Value, console));
     }
 
+    [SubscribeLocalEvent]
     private void OnExamined(Entity<CloningPodComponent> ent, ref ExaminedEvent args)
     {
         if (!args.IsInDetailsRange || !_powerReceiver.IsPowered(ent.Owner))
@@ -249,6 +237,7 @@ public abstract partial class SharedCloningPodSystem : EntitySystem
     /// <summary>
     /// On emag, spawns a failed clone when cloning process fails which attacks nearby crew.
     /// </summary>
+    [SubscribeLocalEvent]
     private void OnEmagged(Entity<CloningPodComponent> ent, ref GotEmaggedEvent args)
     {
         if (!_emag.CompareFlag(args.Type, EmagType.Interaction))
@@ -260,13 +249,14 @@ public abstract partial class SharedCloningPodSystem : EntitySystem
         if (!_powerReceiver.IsPowered(ent.Owner))
             return;
 
-        _popup.PopupPredicted(Loc.GetString("cloning-pod-component-upgrade-emag-requirement"), ent.Owner, args.UserUid);
+        _popup.PopupEntity(Loc.GetString("cloning-pod-component-upgrade-emag-requirement"), ent.Owner);
         args.Handled = true;
     }
 
     /// <summary>
     /// Clears mind transfer records on round reset.
     /// </summary>
+    [SubscribeLocalEvent]
     public void Reset(RoundRestartCleanupEvent ev)
     {
         ClonesWaitingForMind.Clear();

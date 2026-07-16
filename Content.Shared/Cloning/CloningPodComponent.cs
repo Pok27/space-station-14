@@ -25,7 +25,7 @@ public sealed partial class CloningPodComponent : Component
     /// Container slot for a body being cloned.
     /// </summary>
     [ViewVariables]
-    public ContainerSlot BodyContainer = default!;
+    public ContainerSlot BodyContainer;
 
     /// <summary>
     /// How long the cloning has been going on for.
@@ -75,7 +75,7 @@ public sealed partial class CloningPodComponent : Component
     /// <summary>
     /// Status of the cloning pod.
     /// </summary>
-    [ViewVariables(VVAccess.ReadWrite)]
+    [ViewVariables(VVAccess.ReadWrite), AutoNetworkedField]
     public CloningPodStatus Status;
 
     /// <summary>
