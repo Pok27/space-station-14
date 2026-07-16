@@ -1,41 +1,38 @@
-using Content.Client.Charges.EntitySystems;
 using Content.Client.Items.UI;
 using Content.Client.Message;
 using Content.Client.Stylesheets;
 using Content.Shared.Charges.Components;
 using Content.Shared.Charges.Systems;
 using Robust.Client.UserInterface.Controls;
+using Robust.Shared.IoC;
 
 namespace Content.Client.Charges.UI;
 
 /// <summary>
 /// Displays limited charges information for <see cref="LimitedChargesComponent"/>.
 /// </summary>
-/// <seealso cref="ChargeItemStatusSystem"/>
+/// <seealso cref="ChargesSystem"/>
 public sealed partial class ChargeStatusControl : PollingItemStatusControl<ChargeStatusControl.Data>
 {
+    [Dependency] private readonly IEntityManager _entityManager = default!;
+
     private readonly Entity<LimitedChargesComponent> _parent;
-    private readonly IEntityManager _entityManager;
     private readonly SharedChargesSystem _chargesSystem;
     private readonly RichTextLabel _label;
 
-    public ChargeStatusControl(
-        Entity<LimitedChargesComponent> parent,
-        IEntityManager entityManager,
-        SharedChargesSystem chargesSystem)
+    public ChargeStatusControl(Entity<LimitedChargesComponent> parent)
     {
+        IoCManager.InjectDependencies(this);
+
         _parent = parent;
-        _entityManager = entityManager;
-        _chargesSystem = chargesSystem;
+        _chargesSystem = _entityManager.System<SharedChargesSystem>();
         _label = new RichTextLabel { StyleClasses = { StyleClass.ItemStatus } };
         AddChild(_label);
     }
 
     protected override Data PollData()
     {
-        if (!_entityManager.TryGetComponent<LimitedChargesComponent>(_parent.Owner, out var charges))
-            return default;
-
+        var charges = _parent.Comp;
         var currentCharges = _chargesSystem.GetCurrentCharges((_parent.Owner, charges, null));
         var maxCharges = charges.MaxCharges;
 

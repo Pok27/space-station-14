@@ -1,7 +1,6 @@
 using Content.Client.Items.UI;
 using Content.Client.Message;
 using Content.Client.Stylesheets;
-using Content.Client.Atmos.EntitySystems;
 using Content.Shared.Atmos.Components;
 using Robust.Client.UserInterface.Controls;
 
@@ -10,19 +9,15 @@ namespace Content.Client.Atmos.UI;
 /// <summary>
 /// Displays gas tank pressure information for <see cref="GasTankComponent"/>.
 /// </summary>
-/// <seealso cref="TankPressureItemStatusSystem"/>
+/// <seealso cref="GasTankSystem"/>
 public sealed partial class TankPressureStatusControl : PollingItemStatusControl<TankPressureStatusControl.Data>
 {
     private readonly Entity<GasTankComponent> _parent;
-    private readonly IEntityManager _entityManager;
     private readonly RichTextLabel _label;
 
-    public TankPressureStatusControl(
-        Entity<GasTankComponent> parent,
-        IEntityManager entityManager)
+    public TankPressureStatusControl(Entity<GasTankComponent> parent)
     {
         _parent = parent;
-        _entityManager = entityManager;
         _label = new RichTextLabel { StyleClasses = { StyleClass.ItemStatus } };
         AddChild(_label);
 
@@ -36,9 +31,7 @@ public sealed partial class TankPressureStatusControl : PollingItemStatusControl
 
     protected override Data PollData()
     {
-        if (!_entityManager.TryGetComponent<GasTankComponent>(_parent.Owner, out var tank))
-            return default;
-
+        var tank = _parent.Comp;
         var pressureKpa = tank.InternalPressure;
         var isValveOpen = tank.ReleaseValveOpen;
 

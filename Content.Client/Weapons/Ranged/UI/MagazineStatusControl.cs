@@ -9,28 +9,22 @@ namespace Content.Client.Weapons.Ranged.UI;
 /// <summary>
 /// Displays magazine ammunition information for <see cref="BallisticAmmoProviderComponent"/>.
 /// </summary>
-/// <seealso cref="MagazineItemStatusSystem"/>
+/// <seealso cref="GunSystem"/>
 public sealed partial class MagazineStatusControl : PollingItemStatusControl<MagazineStatusControl.Data>
 {
     private readonly Entity<BallisticAmmoProviderComponent> _parent;
-    private readonly IEntityManager _entityManager;
     private readonly RichTextLabel _label;
 
-    public MagazineStatusControl(
-        Entity<BallisticAmmoProviderComponent> parent,
-        IEntityManager entityManager)
+    public MagazineStatusControl(Entity<BallisticAmmoProviderComponent> parent)
     {
         _parent = parent;
-        _entityManager = entityManager;
         _label = new RichTextLabel { StyleClasses = { StyleClass.ItemStatus } };
         AddChild(_label);
     }
 
     protected override Data PollData()
     {
-        if (!_entityManager.TryGetComponent<BallisticAmmoProviderComponent>(_parent.Owner, out var ammoProvider))
-            return default;
-
+        var ammoProvider = _parent.Comp;
         var currentRounds = ammoProvider.Count;
         var maxRounds = ammoProvider.Capacity;
 
