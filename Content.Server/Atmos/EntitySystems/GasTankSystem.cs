@@ -3,8 +3,6 @@ using Content.Shared.Atmos;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Atmos.EntitySystems;
 using Content.Shared.Cargo;
-using Content.Shared.Hands.Components;
-using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Popups;
 using Content.Shared.Throwing;
 using JetBrains.Annotations;
@@ -18,10 +16,9 @@ public sealed partial class GasTankSystem : SharedGasTankSystem
 {
     [Dependency] private AtmosphereSystem _atmosphereSystem = default!;
     [Dependency] private IRobustRandom _random = default!;
-    [Dependency] private SharedHandsSystem _hands = default!;
-    [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedTransformSystem _xform = default!;
+    [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private ThrowingSystem _throwing = default!;
 
     private const float MinimumSoundValvePressure = 21.3f; // Arbitrary number
@@ -30,6 +27,7 @@ public sealed partial class GasTankSystem : SharedGasTankSystem
 
     // A vector bias for throwing our gas tanks in radians. Averages about -43 degrees since the sprite is at a 45-degree angle.
     private static readonly Vector2 ThrowVector = new (-1.0f, -0.5f);
+    private static readonly TimeSpan GasDirtyInterval = TimeSpan.FromSeconds(5);
 
     public override void Initialize()
     {
@@ -57,12 +55,14 @@ public sealed partial class GasTankSystem : SharedGasTankSystem
             }
         }
 
-        Atmos.React(entity.Comp.Air, entity.Comp);
+        entity.Comp.GasDirtyAccumulator += TimeSpan.FromSeconds(args.dt);
+        if (entity.Comp.GasDirtyAccumulator >= GasDirtyInterval)
+        {
+            entity.Comp.GasDirtyAccumulator -= GasDirtyInterval;
+            Dirty(entity);
+        }
 
-        // Update and network internal pressure for client UI, but only while the tank in hands.
-        if (TryComp<HandsComponent>(Transform(entity.Owner).ParentUid, out var hands)
-            && _hands.IsHolding((Transform(entity.Owner).ParentUid, hands), entity.Owner))
-            SyncPressure(entity);
+        Atmos.React(entity.Comp.Air, entity.Comp);
 
         if ((entity.Comp.IsConnected || entity.Comp.ReleaseValveOpen) && UI.IsUiOpen(entity.Owner, SharedGasTankUiKey.Key))
             UpdateUserInterface(entity);
@@ -71,12 +71,11 @@ public sealed partial class GasTankSystem : SharedGasTankSystem
     public override void UpdateUserInterface(Entity<GasTankComponent> ent)
     {
         var (owner, component) = ent;
-        SyncPressure(ent);
         UI.SetUiState(owner,
             SharedGasTankUiKey.Key,
             new GasTankBoundUserInterfaceState
             {
-                TankPressure = component.InternalPressure
+                TankPressure = component.Air.Pressure
             });
     }
 

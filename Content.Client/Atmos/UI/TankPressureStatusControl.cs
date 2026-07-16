@@ -32,7 +32,7 @@ public sealed partial class TankPressureStatusControl : PollingItemStatusControl
     protected override Data PollData()
     {
         var tank = _parent.Comp;
-        var pressureKpa = tank.InternalPressure;
+        var pressureKpa = tank.Air.Pressure;
         var isValveOpen = tank.ReleaseValveOpen;
 
         return new Data(pressureKpa, isValveOpen);
