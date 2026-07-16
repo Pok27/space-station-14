@@ -15,7 +15,7 @@ namespace Content.Client.Anomaly.UI;
 /// <seealso cref="AnomalySystem"/>
 public sealed partial class AnomalyStatusControl : PollingItemStatusControl<AnomalyStatusControl.Data>
 {
-    [Dependency] private readonly IEntityManager _entityManager = default!;
+    [Dependency] private IEntityManager _entityManager = default!;
 
     private readonly Entity<CorePoweredThrowerComponent> _parent;
     private readonly ItemSlotsSystem _itemSlots;

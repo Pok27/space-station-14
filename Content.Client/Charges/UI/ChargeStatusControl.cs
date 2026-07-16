@@ -14,7 +14,7 @@ namespace Content.Client.Charges.UI;
 /// <seealso cref="ChargesSystem"/>
 public sealed partial class ChargeStatusControl : PollingItemStatusControl<ChargeStatusControl.Data>
 {
-    [Dependency] private readonly IEntityManager _entityManager = default!;
+    [Dependency] private IEntityManager _entityManager = default!;
 
     private readonly Entity<LimitedChargesComponent> _parent;
     private readonly SharedChargesSystem _chargesSystem;
