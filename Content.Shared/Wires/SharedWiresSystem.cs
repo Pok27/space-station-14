@@ -21,14 +21,13 @@ using Robust.Shared.Network;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
-using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 
 namespace Content.Shared.Wires;
 
 /// <summary>
-///     System that handles the wires on an entity. It is responsible for creating, updating, and destroying wires.
+/// System that handles the wires on an entity. It is responsible for creating, updating, and destroying wires.
 /// </summary>
 public abstract partial class SharedWiresSystem : EntitySystem
 {
@@ -53,37 +52,13 @@ public abstract partial class SharedWiresSystem : EntitySystem
 
     private readonly float _toolTime = 0f;
 
-    public override void Initialize()
-    {
-        base.Initialize();
-
-        SubscribeLocalEvent<RoundRestartCleanupEvent>(Reset);
-
-        // this is a broadcast event
-        SubscribeLocalEvent<WiresComponent, PanelChangedEvent>(OnPanelChanged);
-        SubscribeLocalEvent<WiresComponent, WiresActionMessage>(OnWiresActionMessage);
-        SubscribeLocalEvent<WiresComponent, InteractUsingEvent>(OnInteractUsing);
-        SubscribeLocalEvent<WiresComponent, TimedWireEvent>(OnTimedWire);
-        SubscribeLocalEvent<WiresComponent, PowerChangedEvent>(OnWiresPowered);
-        SubscribeLocalEvent<WiresComponent, WireDoAfterEvent>(OnDoAfter);
-        SubscribeLocalEvent<WiresComponent, RejuvenateEvent>(OnRejuvenate);
-        SubscribeLocalEvent<WiresPanelSecurityComponent, WiresPanelSecurityEvent>(SetWiresPanelSecurity);
-
-        SubscribeLocalEvent<WiresPanelComponent, ComponentStartup>(OnStartup);
-        SubscribeLocalEvent<WiresPanelComponent, WirePanelDoAfterEvent>(OnPanelDoAfter);
-        SubscribeLocalEvent<WiresPanelComponent, InteractUsingEvent>(OnInteractUsing);
-        SubscribeLocalEvent<WiresPanelComponent, ExaminedEvent>(OnExamine);
-        SubscribeLocalEvent<WiresPanelComponent, GetVerbsEvent<AlternativeVerb>>(OnGetVerbs);
-
-        SubscribeLocalEvent<ActivatableUIRequiresPanelComponent, ActivatableUIOpenAttemptEvent>(OnAttemptOpenActivatableUI);
-        SubscribeLocalEvent<ActivatableUIRequiresPanelComponent, PanelChangedEvent>(OnActivatableUIPanelChanged);
-    }
-
+    [SubscribeLocalEvent]
     private void OnStartup(Entity<WiresPanelComponent> ent, ref ComponentStartup args)
     {
         UpdateAppearance(ent);
     }
 
+    [SubscribeLocalEvent]
     private void OnPanelDoAfter(Entity<WiresPanelComponent> ent, ref WirePanelDoAfterEvent args)
     {
         if (args.Cancelled)
@@ -99,6 +74,7 @@ public abstract partial class SharedWiresSystem : EntitySystem
         args.Handled = true;
     }
 
+    [SubscribeLocalEvent]
     private void OnInteractUsing(Entity<WiresPanelComponent> ent, ref InteractUsingEvent args)
     {
         if (!_tool.HasQuality(args.Used, ent.Comp.OpeningTool))
@@ -124,6 +100,7 @@ public abstract partial class SharedWiresSystem : EntitySystem
         args.Handled = true;
     }
 
+    [SubscribeLocalEvent]
     private void OnExamine(Entity<WiresPanelComponent> ent, ref ExaminedEvent args)
     {
         using (args.PushGroup(nameof(WiresPanelComponent)))
@@ -147,6 +124,7 @@ public abstract partial class SharedWiresSystem : EntitySystem
         }
     }
 
+    [SubscribeLocalEvent]
     private void OnGetVerbs(Entity<WiresPanelComponent> ent, ref GetVerbsEvent<AlternativeVerb> args)
     {
         if (!IsPanelOpen(ent.Owner))
@@ -163,6 +141,11 @@ public abstract partial class SharedWiresSystem : EntitySystem
         args.Verbs.Add(verb);
     }
 
+    /// <summary>
+    /// Changes whether the entity's maintenance panel is shown.
+    /// </summary>
+    /// <param name="ent">The entity whose panel visibility to change.</param>
+    /// <param name="visible">Whether the panel should be visible.</param>
     public void ChangePanelVisibility(Entity<WiresPanelComponent> ent, bool visible)
     {
         ent.Comp.Visible = visible;
@@ -176,6 +159,13 @@ public abstract partial class SharedWiresSystem : EntitySystem
             _appearance.SetData(ent.Owner, WiresVisuals.MaintenancePanelState, ent.Comp is { Open: true, Visible: true }, appearance);
     }
 
+    /// <summary>
+    /// Attempts to open or close the entity's maintenance panel.
+    /// </summary>
+    /// <param name="ent">The entity whose panel to toggle.</param>
+    /// <param name="open">Whether the panel should be open.</param>
+    /// <param name="user">The entity opening or closing the panel, if any.</param>
+    /// <returns>True if the panel state was changed.</returns>
     public bool TogglePanel(Entity<WiresPanelComponent> ent, bool open, EntityUid? user = null)
     {
         if (!CanTogglePanel(ent, user))
@@ -190,6 +180,12 @@ public abstract partial class SharedWiresSystem : EntitySystem
         return true;
     }
 
+    /// <summary>
+    /// Checks whether the entity's maintenance panel can be opened or closed.
+    /// </summary>
+    /// <param name="ent">The entity whose panel to check.</param>
+    /// <param name="user">The entity opening or closing the panel, if any.</param>
+    /// <returns>True if no event handler prevents the panel state change.</returns>
     public bool CanTogglePanel(Entity<WiresPanelComponent> ent, EntityUid? user)
     {
         var attempt = new AttemptChangePanelEvent(ent.Comp.Open, user);
@@ -197,6 +193,12 @@ public abstract partial class SharedWiresSystem : EntitySystem
         return !attempt.Cancelled;
     }
 
+    /// <summary>
+    /// Determines whether the entity's wires can currently be accessed.
+    /// </summary>
+    /// <param name="ent">The entity whose panel to check.</param>
+    /// <param name="tool">A tool that may override the panel state, if any.</param>
+    /// <returns>True if the panel is open, absent, or overridden.</returns>
     public bool IsPanelOpen(Entity<WiresPanelComponent?> ent, EntityUid? tool = null)
     {
         if (!Resolve(ent, ref ent.Comp, false))
@@ -220,6 +222,7 @@ public abstract partial class SharedWiresSystem : EntitySystem
         return ent.Comp.Open;
     }
 
+    [SubscribeLocalEvent]
     private void OnAttemptOpenActivatableUI(Entity<ActivatableUIRequiresPanelComponent> ent, ref ActivatableUIOpenAttemptEvent args)
     {
         if (args.Cancelled || !TryComp<WiresPanelComponent>(ent, out var wires))
@@ -229,6 +232,7 @@ public abstract partial class SharedWiresSystem : EntitySystem
             args.Cancel();
     }
 
+    [SubscribeLocalEvent]
     private void OnActivatableUIPanelChanged(Entity<ActivatableUIRequiresPanelComponent> ent, ref PanelChangedEvent args)
     {
         if (args.Open == ent.Comp.RequireOpen)
@@ -238,6 +242,7 @@ public abstract partial class SharedWiresSystem : EntitySystem
     }
 
     #region DoAfters
+    [SubscribeLocalEvent]
     private void OnTimedWire(Entity<WiresComponent> ent, ref TimedWireEvent args)
     {
         args.Delegate(args.Wire);
@@ -245,7 +250,7 @@ public abstract partial class SharedWiresSystem : EntitySystem
     }
 
     /// <summary>
-    ///     Tries to cancel an active wire action via the given key that it's stored in.
+    /// Tries to cancel an active wire action via the given key that it's stored in.
     /// </summary>
     /// <param name="owner">The entity that the action is stored in.</param>
     /// <param name="key">The key used to cancel the action.</param>
@@ -262,7 +267,7 @@ public abstract partial class SharedWiresSystem : EntitySystem
     }
 
     /// <summary>
-    ///     Starts a timed action for this entity. Actions are keyed so callers can cancel or prevent duplicates.
+    /// Starts a timed action for this entity. Actions are keyed so callers can cancel or prevent duplicates.
     /// </summary>
     /// <param name="owner">The entity that the action is stored in.</param>
     /// <param name="delay">How long this takes to finish.</param>
@@ -332,22 +337,16 @@ public abstract partial class SharedWiresSystem : EntitySystem
             foreach (var (owner, key) in _finishedWireActions)
             {
                 if (!_activeWireActions.TryGetValue(owner, out var activeActions))
-                {
                     continue;
-                }
 
                 if (!activeActions.Remove(key))
-                {
                     continue;
-                }
 
                 RemoveData(owner, key);
                 UpdateUserInterface(owner);
 
                 if (activeActions.Count == 0)
-                {
                     _ownersToRemove.Add(owner);
-                }
             }
 
             _finishedWireActions.Clear();
@@ -367,23 +366,17 @@ public abstract partial class SharedWiresSystem : EntitySystem
     private sealed class ActiveWireAction(object id, TimeSpan endTime, TimedWireEvent onFinish)
     {
         /// <summary>
-        ///     The wire action's ID. This is so that once the action is finished,
-        ///     any related data can be removed from the state dictionary.
-        /// </summary>
-        public object Id { get; } = id;
-
-        /// <summary>
-        ///     When this action should fire.
+        /// When this action should fire.
         /// </summary>
         public TimeSpan EndTime { get; } = endTime;
 
         /// <summary>
-        ///     Whether this action was cancelled by the owning system.
+        /// Whether this action was cancelled by the owning system.
         /// </summary>
         public bool Cancelled { get; set; }
 
         /// <summary>
-        ///     The event called once the action finishes.
+        /// The event called once the action finishes.
         /// </summary>
         public TimedWireEvent OnFinish { get; } = onFinish;
     }
@@ -391,6 +384,7 @@ public abstract partial class SharedWiresSystem : EntitySystem
     #endregion
 
     #region Event Handling
+    [SubscribeLocalEvent]
     private void OnWiresPowered(Entity<WiresComponent> ent, ref PowerChangedEvent args)
     {
         UpdateUserInterface(ent.Owner);
@@ -400,19 +394,20 @@ public abstract partial class SharedWiresSystem : EntitySystem
         }
     }
 
+    [SubscribeLocalEvent]
     private void OnWiresActionMessage(Entity<WiresComponent> ent, ref WiresActionMessage args)
     {
         var player = args.Actor;
 
         if (!TryComp(player, out HandsComponent? handsComponent))
         {
-            _popup.PopupClient(Loc.GetString("wires-component-ui-on-receive-message-no-hands"), ent.Owner, player);
+            _popup.PopupEntity(Loc.GetString("wires-component-ui-on-receive-message-no-hands"), ent.Owner, player);
             return;
         }
 
         if (!_interaction.InRangeUnobstructed(player, ent.Owner))
         {
-            _popup.PopupClient(Loc.GetString("wires-component-ui-on-receive-message-cannot-reach"), ent.Owner, player);
+            _popup.PopupEntity(Loc.GetString("wires-component-ui-on-receive-message-cannot-reach"), ent.Owner, player);
             return;
         }
 
@@ -425,6 +420,7 @@ public abstract partial class SharedWiresSystem : EntitySystem
         TryDoWireAction(ent.AsNullable(), player, heldEntity.Value, args.Id, args.Action, tool);
     }
 
+    [SubscribeLocalEvent]
     private void OnDoAfter(Entity<WiresComponent> ent, ref WireDoAfterEvent args)
     {
         if (args.Cancelled)
@@ -442,6 +438,7 @@ public abstract partial class SharedWiresSystem : EntitySystem
         args.Handled = true;
     }
 
+    [SubscribeLocalEvent]
     private void OnInteractUsing(Entity<WiresComponent> ent, ref InteractUsingEvent args)
     {
         if (args.Handled)
@@ -464,6 +461,7 @@ public abstract partial class SharedWiresSystem : EntitySystem
         }
     }
 
+    [SubscribeLocalEvent]
     private void OnPanelChanged(Entity<WiresComponent> ent, ref PanelChangedEvent args)
     {
         if (args.Open)
@@ -472,15 +470,16 @@ public abstract partial class SharedWiresSystem : EntitySystem
         _ui.CloseUi(ent.Owner, WiresUiKey.Key);
     }
 
+    [SubscribeLocalEvent]
     private void OnRejuvenate(Entity<WiresComponent> ent, ref RejuvenateEvent args)
     {
         foreach (var wire in ent.Comp.WiresList)
         {
             // Rejuvenate has no user so we mend as the entity having the wire.
             if (wire.Action == null || wire.Action.Mend(ent, wire))
-            {
                 wire.IsCut = false;
-            }
+
+            wire.Action?.Update(wire);
         }
 
         // If we don't update the interface wires will be desynced on client.
@@ -529,18 +528,28 @@ public abstract partial class SharedWiresSystem : EntitySystem
             ent.Comp.WireSeed));
     }
 
+    /// <summary>
+    /// Opens the wires user interface for an entity actor.
+    /// </summary>
+    /// <param name="uid">The entity whose interface to open.</param>
+    /// <param name="actor">The actor opening the interface.</param>
     public void OpenUserInterface(EntityUid uid, EntityUid actor)
     {
         _ui.OpenUi(uid, WiresUiKey.Key, actor);
     }
 
+    /// <summary>
+    /// Opens the wires user interface for a connected player.
+    /// </summary>
+    /// <param name="uid">The entity whose interface to open.</param>
+    /// <param name="player">The player for whom to open the interface.</param>
     public void OpenUserInterface(EntityUid uid, ICommonSession player)
     {
         _ui.OpenUi(uid, WiresUiKey.Key, player);
     }
 
     /// <summary>
-    ///     Tries to get a wire on this entity by its integer id.
+    /// Tries to get a wire on this entity by its integer id.
     /// </summary>
     /// <returns>The wire if found, otherwise null</returns>
     public Wire? TryGetWire(Entity<WiresComponent?> ent, int id)
@@ -554,7 +563,7 @@ public abstract partial class SharedWiresSystem : EntitySystem
     }
 
     /// <summary>
-    ///     Tries to get all the wires on this entity by the wire action type.
+    /// Tries to get all wires on an entity whose action has the specified type.
     /// </summary>
     /// <returns>Enumerator of all wires in this entity according to the given type.</returns>
     public IEnumerable<Wire> TryGetWires<T>(EntityUid uid, WiresComponent? wires = null) where T : IWireAction
@@ -565,23 +574,19 @@ public abstract partial class SharedWiresSystem : EntitySystem
         foreach (var wire in wires.WiresList)
         {
             if (wire.Action?.GetType() == typeof(T))
-            {
                 yield return wire;
-            }
         }
     }
 
-    public void SetWiresPanelSecurity(EntityUid uid, WiresPanelSecurityComponent component, WiresPanelSecurityEvent args)
+    [SubscribeLocalEvent]
+    private void SetWiresPanelSecurity(Entity<WiresPanelSecurityComponent> ent, ref WiresPanelSecurityEvent args)
     {
-        component.Examine = args.Examine;
-        component.WiresAccessible = args.WiresAccessible;
-
-        Dirty(uid, component);
+        ent.Comp.Examine = args.Examine;
+        ent.Comp.WiresAccessible = args.WiresAccessible;
+        Dirty(ent);
 
         if (!args.WiresAccessible)
-        {
-            _ui.CloseUi(uid, WiresUiKey.Key);
-        }
+            _ui.CloseUi(ent.Owner, WiresUiKey.Key);
     }
 
     private void TryDoWireAction(Entity<WiresComponent?> ent, EntityUid user, EntityUid toolEntity, int id, WiresAction action, ToolComponent? tool = null)
@@ -603,13 +608,13 @@ public abstract partial class SharedWiresSystem : EntitySystem
             case WiresAction.Cut:
                 if (!_tool.HasQuality(toolEntity, CuttingQuality, tool))
                 {
-                    _popup.PopupPredictedCursor(Loc.GetString("wires-component-ui-on-receive-message-need-wirecutters"), user);
+                    _popup.PopupCursor(Loc.GetString("wires-component-ui-on-receive-message-need-wirecutters"), user);
                     return;
                 }
 
                 if (wire.IsCut)
                 {
-                    _popup.PopupPredictedCursor(Loc.GetString("wires-component-ui-on-receive-message-cannot-cut-cut-wire"), user);
+                    _popup.PopupCursor(Loc.GetString("wires-component-ui-on-receive-message-cannot-cut-cut-wire"), user);
                     return;
                 }
 
@@ -617,13 +622,13 @@ public abstract partial class SharedWiresSystem : EntitySystem
             case WiresAction.Mend:
                 if (!_tool.HasQuality(toolEntity, CuttingQuality, tool))
                 {
-                    _popup.PopupPredictedCursor(Loc.GetString("wires-component-ui-on-receive-message-need-wirecutters"), user);
+                    _popup.PopupCursor(Loc.GetString("wires-component-ui-on-receive-message-need-wirecutters"), user);
                     return;
                 }
 
                 if (!wire.IsCut)
                 {
-                    _popup.PopupPredictedCursor(Loc.GetString("wires-component-ui-on-receive-message-cannot-mend-uncut-wire"), user);
+                    _popup.PopupCursor(Loc.GetString("wires-component-ui-on-receive-message-cannot-mend-uncut-wire"), user);
                     return;
                 }
 
@@ -631,13 +636,13 @@ public abstract partial class SharedWiresSystem : EntitySystem
             case WiresAction.Pulse:
                 if (!_tool.HasQuality(toolEntity, PulsingQuality, tool))
                 {
-                    _popup.PopupPredictedCursor(Loc.GetString("wires-component-ui-on-receive-message-need-multitool"), user);
+                    _popup.PopupCursor(Loc.GetString("wires-component-ui-on-receive-message-need-multitool"), user);
                     return;
                 }
 
                 if (wire.IsCut)
                 {
-                    _popup.PopupPredictedCursor(Loc.GetString("wires-component-ui-on-receive-message-cannot-pulse-cut-wire"), user);
+                    _popup.PopupCursor(Loc.GetString("wires-component-ui-on-receive-message-cannot-pulse-cut-wire"), user);
                     return;
                 }
 
@@ -693,13 +698,13 @@ public abstract partial class SharedWiresSystem : EntitySystem
             case WiresAction.Cut:
                 if (!_tool.HasQuality(toolEntity, CuttingQuality, tool))
                 {
-                    _popup.PopupPredictedCursor(Loc.GetString("wires-component-ui-on-receive-message-need-wirecutters"), user);
+                    _popup.PopupCursor(Loc.GetString("wires-component-ui-on-receive-message-need-wirecutters"), user);
                     break;
                 }
 
                 if (wire.IsCut)
                 {
-                    _popup.PopupPredictedCursor(Loc.GetString("wires-component-ui-on-receive-message-cannot-cut-cut-wire"), user);
+                    _popup.PopupCursor(Loc.GetString("wires-component-ui-on-receive-message-cannot-cut-cut-wire"), user);
                     break;
                 }
 
@@ -714,13 +719,13 @@ public abstract partial class SharedWiresSystem : EntitySystem
             case WiresAction.Mend:
                 if (!_tool.HasQuality(toolEntity, CuttingQuality, tool))
                 {
-                    _popup.PopupPredictedCursor(Loc.GetString("wires-component-ui-on-receive-message-need-wirecutters"), user);
+                    _popup.PopupCursor(Loc.GetString("wires-component-ui-on-receive-message-need-wirecutters"), user);
                     break;
                 }
 
                 if (!wire.IsCut)
                 {
-                    _popup.PopupPredictedCursor(Loc.GetString("wires-component-ui-on-receive-message-cannot-mend-uncut-wire"), user);
+                    _popup.PopupCursor(Loc.GetString("wires-component-ui-on-receive-message-cannot-mend-uncut-wire"), user);
                     break;
                 }
 
@@ -735,13 +740,13 @@ public abstract partial class SharedWiresSystem : EntitySystem
             case WiresAction.Pulse:
                 if (!_tool.HasQuality(toolEntity, PulsingQuality, tool))
                 {
-                    _popup.PopupPredictedCursor(Loc.GetString("wires-component-ui-on-receive-message-need-multitool"), user);
+                    _popup.PopupCursor(Loc.GetString("wires-component-ui-on-receive-message-need-multitool"), user);
                     break;
                 }
 
                 if (wire.IsCut)
                 {
-                    _popup.PopupPredictedCursor(Loc.GetString("wires-component-ui-on-receive-message-cannot-pulse-cut-wire"), user);
+                    _popup.PopupCursor(Loc.GetString("wires-component-ui-on-receive-message-cannot-pulse-cut-wire"), user);
                     break;
                 }
 
@@ -758,7 +763,7 @@ public abstract partial class SharedWiresSystem : EntitySystem
     }
 
     /// <summary>
-    ///     Tries to get the stateful data stored in this entity's <see cref="WiresComponent"/>.
+    /// Tries to get the stateful data stored in this entity's <see cref="WiresComponent"/>.
     /// </summary>
     /// <param name="uid">The entity to get the data from.</param>
     /// <param name="identifier">The key that stores the data in the WiresComponent.</param>
@@ -781,7 +786,7 @@ public abstract partial class SharedWiresSystem : EntitySystem
     }
 
     /// <summary>
-    ///     Sets data in the entity's WiresComponent state dictionary by key.
+    /// Sets data in the entity's WiresComponent state dictionary by key.
     /// </summary>
     /// <param name="ent">The entity.</param>
     /// <param name="identifier">The key that stores the data in the WiresComponent.</param>
@@ -794,9 +799,7 @@ public abstract partial class SharedWiresSystem : EntitySystem
         if (ent.Comp.StateData.TryGetValue(identifier, out var storedMessage))
         {
             if (storedMessage == data)
-            {
                 return;
-            }
         }
 
         ent.Comp.StateData[identifier] = data;
@@ -804,8 +807,11 @@ public abstract partial class SharedWiresSystem : EntitySystem
     }
 
     /// <summary>
-    ///     If this entity has data stored via this key in the WiresComponent it has.
+    /// Checks whether this entity has data stored under the given key.
     /// </summary>
+    /// <param name="ent">The entity whose data to check.</param>
+    /// <param name="identifier">The key to look up in the WiresComponent.</param>
+    /// <returns>True if data is stored under the given key.</returns>
     public bool HasData(Entity<WiresComponent?> ent, object identifier)
     {
         if (!Resolve(ent, ref ent.Comp))
@@ -815,10 +821,10 @@ public abstract partial class SharedWiresSystem : EntitySystem
     }
 
     /// <summary>
-    ///     Removes data from this entity stored in the given key from the entity's <see cref="WiresComponent"/>.
+    /// Removes data from this entity stored in the given key from the entity's <see cref="WiresComponent"/>.
     /// </summary>
     /// <param name="ent">The entity.</param>
-    /// <param name="identifier">The key that stores the data in the WiresComponent.</param>
+    /// <param name="identifier">The key used to identify the data to remove from the WiresComponent.</param>
     public void RemoveData(Entity<WiresComponent?> ent, object identifier)
     {
         if (!Resolve(ent, ref ent.Comp))
@@ -885,7 +891,7 @@ public sealed class Wire(EntityUid owner, bool isCut, WireColor color, WireLette
     public WireLetter Letter { get; } = letter;
 
     /// <summary>
-    ///     The action that this wire performs when mended, cut or puled. This also determines the status lights that this wire adds.
+    /// The action that this wire performs when mended, cut or puled. This also determines the status lights that this wire adds.
     /// </summary>
     [field: NonSerialized]
     public IWireAction? Action { get; set; } = action;
@@ -902,13 +908,13 @@ public delegate void WireActionDelegate(Wire wire);
 public sealed class TimedWireEvent(WireActionDelegate @delegate, Wire wire) : EntityEventArgs
 {
     /// <summary>
-    ///     The function to be called once
-    ///     the timed event is complete.
+    /// The function to be called once
+    /// the timed event is complete.
     /// </summary>
     public WireActionDelegate Delegate { get; } = @delegate;
 
     /// <summary>
-    ///     The wire tied to this timed wire event.
+    /// The wire tied to this timed wire event.
     /// </summary>
     public Wire Wire { get; } = wire;
 }
@@ -930,10 +936,13 @@ public sealed class WireLayout(IReadOnlyDictionary<int, WireLayout.WireData> spe
 }
 
 /// <summary>
-/// Raised directed on a tool to try and override panel visibility.
+/// Raised on a tool to determine whether it can override panel visibility.
 /// </summary>
 [ByRefEvent]
 public record struct PanelOverrideEvent()
 {
+    /// <summary>
+    /// Whether the tool is allowed to override the panel state.
+    /// </summary>
     public bool Allowed = true;
 }
