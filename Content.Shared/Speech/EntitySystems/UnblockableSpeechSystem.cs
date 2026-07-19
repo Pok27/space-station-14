@@ -3,7 +3,7 @@ using Content.Shared.Chat;
 
 namespace Content.Shared.Speech.EntitySystems;
 
-public sealed partial class SpeakOnActionSystem : EntitySystem
+public sealed partial class UnblockableSpeechSystem : EntitySystem
 {
     [SubscribeLocalEvent]
     private void OnCheck(Entity<UnblockableSpeechComponent> ent, ref CheckIgnoreSpeechBlockerEvent args)
