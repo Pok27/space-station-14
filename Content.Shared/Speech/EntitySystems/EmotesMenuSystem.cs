@@ -6,7 +6,13 @@ public sealed partial class EmotesMenuSystem : EntitySystem
 {
     [Dependency] private SharedChatSystem _chat = default!;
 
-    [SubscribeLocalEvent]
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeAllEvent<PlayEmoteMessage>(OnPlayEmote);
+    }
+
     private void OnPlayEmote(PlayEmoteMessage msg, EntitySessionEventArgs args)
     {
         var player = args.SenderSession.AttachedEntity;
