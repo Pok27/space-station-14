@@ -12,6 +12,7 @@ public sealed partial class ListeningSystem : EntitySystem
 
     public override void Initialize()
     {
+        base.Initialize();
         SubscribeLocalEvent<EntitySpokeEvent>(OnSpeak);
     }
 
