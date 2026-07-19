@@ -1,7 +1,6 @@
 using Content.Server.Construction;
 using Content.Server.Construction.Components;
 using Content.Shared.Wires;
-using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 
 namespace Content.Server.Wires;
@@ -9,16 +8,9 @@ namespace Content.Server.Wires;
 public sealed partial class WiresSystem : SharedWiresSystem
 {
     [Dependency] private ConstructionSystem _construction = default!;
-    [Dependency] private IPrototypeManager _protoMan = default!;
     [Dependency] private IRobustRandom _random = default!;
 
-    public override void Initialize()
-    {
-        base.Initialize();
-
-        SubscribeLocalEvent<WiresComponent, MapInitEvent>(OnMapInit);
-    }
-
+    [SubscribeLocalEvent]
     private void OnMapInit(Entity<WiresComponent> ent, ref MapInitEvent args)
     {
         if (!string.IsNullOrEmpty(ent.Comp.LayoutId))
@@ -54,7 +46,7 @@ public sealed partial class WiresSystem : SharedWiresSystem
         List<IWireAction> wireActions = [];
         var dummyWires = 0;
 
-        if (!_protoMan.Resolve(ent.Comp.LayoutId, out var layoutPrototype))
+        if (!ProtoMan.Resolve(ent.Comp.LayoutId, out var layoutPrototype))
             return;
 
         dummyWires += layoutPrototype.DummyWires;
@@ -64,7 +56,7 @@ public sealed partial class WiresSystem : SharedWiresSystem
 
         // does the prototype have a parent (and are the wires empty?) if so, we just create
         // a new layout based on that
-        foreach (var parentLayout in _protoMan.EnumerateParents<WireLayoutPrototype>(ent.Comp.LayoutId))
+        foreach (var parentLayout in ProtoMan.EnumerateParents<WireLayoutPrototype>(ent.Comp.LayoutId))
         {
             if (parentLayout.Wires != null)
             {
