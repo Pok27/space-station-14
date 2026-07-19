@@ -10,7 +10,11 @@ public sealed partial class ListeningSystem : EntitySystem
 {
     [Dependency] private SharedTransformSystem _xforms = default!;
 
-    [SubscribeLocalEvent]
+    public override void Initialize()
+    {
+        SubscribeLocalEvent<EntitySpokeEvent>(OnSpeak);
+    }
+
     private void OnSpeak(EntitySpokeEvent ev)
     {
         PingListeners(ev.Source, ev.Message, ev.ObfuscatedMessage);
