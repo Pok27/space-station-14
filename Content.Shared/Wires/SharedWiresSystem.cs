@@ -52,6 +52,13 @@ public abstract partial class SharedWiresSystem : EntitySystem
 
     private readonly float _toolTime = 0f;
 
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(Reset);
+    }
+
     [SubscribeLocalEvent]
     private void OnStartup(Entity<WiresPanelComponent> ent, ref ComponentStartup args)
     {
