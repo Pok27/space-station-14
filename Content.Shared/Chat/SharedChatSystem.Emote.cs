@@ -251,7 +251,7 @@ public abstract partial class SharedChatSystem
             return false;
         }
 
-        var ev = new EmoteEvent(proto);
+        var ev = new EmoteEvent(uid, proto);
         RaiseLocalEvent(uid, ref ev);
 
         return true;

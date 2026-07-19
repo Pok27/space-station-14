@@ -13,7 +13,7 @@ using Content.Server.NPC;
 using Content.Server.NPC.HTN;
 using Content.Server.NPC.Systems;
 using Content.Server.StationEvents.Components;
-using Content.Server.Speech.Components;
+using Content.Shared.Speech.Components;
 using Content.Shared.Body;
 using Content.Shared.Body.Components;
 using Content.Shared.CombatMode;

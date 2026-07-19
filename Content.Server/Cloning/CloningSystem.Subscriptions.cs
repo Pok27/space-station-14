@@ -1,5 +1,4 @@
 using Content.Server.Forensics;
-using Content.Server.Speech.EntitySystems;
 using Content.Shared.Cloning.Events;
 using Content.Shared.Clothing.Components;
 using Content.Shared.Clothing.EntitySystems;
@@ -13,6 +12,7 @@ using Content.Shared.Movement.Pulling.Systems;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Paper;
 using Content.Shared.Speech.Components;
+using Content.Shared.Speech.EntitySystems;
 using Content.Shared.Stacks;
 using Content.Shared.Storage;
 using Content.Shared.Store;

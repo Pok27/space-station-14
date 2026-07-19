@@ -6,34 +6,28 @@ namespace Content.Shared.Speech.EntitySystems;
 
 public sealed class EmoteBlockerSystem : EntitySystem
 {
-    public override void Initialize()
+    [SubscribeLocalEvent]
+    private static void OnRelayedEmoteEvent(Entity<EmoteBlockerComponent> ent, ref InventoryRelayedEvent<BeforeEmoteEvent> args)
     {
-        base.Initialize();
-
-        SubscribeLocalEvent<EmoteBlockerComponent, BeforeEmoteEvent>(OnEmoteEvent);
-        SubscribeLocalEvent<EmoteBlockerComponent, InventoryRelayedEvent<BeforeEmoteEvent>>(OnRelayedEmoteEvent);
+        OnEmoteEvent(ent, ref args.Args);
     }
 
-    private static void OnRelayedEmoteEvent(Entity<EmoteBlockerComponent> entity, ref InventoryRelayedEvent<BeforeEmoteEvent> args)
+    [SubscribeLocalEvent]
+    private static void OnEmoteEvent(Entity<EmoteBlockerComponent> ent, ref BeforeEmoteEvent args)
     {
-        OnEmoteEvent(entity, ref args.Args);
-    }
-
-    private static void OnEmoteEvent(Entity<EmoteBlockerComponent> entity, ref BeforeEmoteEvent args)
-    {
-        if (entity.Comp.BlocksEmotes.Contains(args.Emote))
+        if (ent.Comp.BlocksEmotes.Contains(args.Emote))
         {
             args.Cancel();
-            args.Blocker = entity;
+            args.Blocker = ent;
             return;
         }
 
-        foreach (var blockedCat in entity.Comp.BlocksCategories)
+        foreach (var blockedCat in ent.Comp.BlocksCategories)
         {
             if (blockedCat == args.Emote.Category)
             {
                 args.Cancel();
-                args.Blocker = entity;
+                args.Blocker = ent;
                 return;
             }
         }

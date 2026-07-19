@@ -28,8 +28,13 @@ public sealed class BeforeEmoteEvent(EntityUid source, EmotePrototype emote)
 /// Use it to play sound, change sprite or something else.
 /// </summary>
 [ByRefEvent]
-public record struct EmoteEvent(EmotePrototype Emote)
+public record struct EmoteEvent(EntityUid Source, EmotePrototype Emote)
 {
+    /// <summary>
+    /// The entity that performed the emote.
+    /// </summary>
+    public EntityUid Source = Source;
+
     /// <summary>
     /// The used emote.
     /// </summary>

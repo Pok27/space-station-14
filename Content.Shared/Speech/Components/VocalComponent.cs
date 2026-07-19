@@ -1,5 +1,4 @@
 using Content.Shared.Chat.Prototypes;
-using Content.Shared.Humanoid;
 using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
@@ -53,5 +52,5 @@ public sealed partial class VocalComponent : Component
     /// </summary>
     [DataField]
     [AutoNetworkedField]
-    public ProtoId<EmoteSoundsPrototype>? EmoteSounds = null;
+    public ProtoId<EmoteSoundsPrototype>? EmoteSounds;
 }
