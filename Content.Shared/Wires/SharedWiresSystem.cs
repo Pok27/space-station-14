@@ -52,13 +52,6 @@ public abstract partial class SharedWiresSystem : EntitySystem
 
     private readonly float _toolTime = 0f;
 
-
-    public override void Initialize()
-    {
-        base.Initialize();
-        SubscribeLocalEvent<RoundRestartCleanupEvent>(Reset);
-    }
-
     [SubscribeLocalEvent]
     private void OnStartup(Entity<WiresPanelComponent> ent, ref ComponentStartup args)
     {
@@ -302,7 +295,6 @@ public abstract partial class SharedWiresSystem : EntitySystem
 
         actions.Add(key,
             new ActiveWireAction (
-            key,
             endTime,
             onFinish
         ));
@@ -370,7 +362,7 @@ public abstract partial class SharedWiresSystem : EntitySystem
         }
     }
 
-    private sealed class ActiveWireAction(object id, TimeSpan endTime, TimedWireEvent onFinish)
+    private sealed class ActiveWireAction(TimeSpan endTime, TimedWireEvent onFinish)
     {
         /// <summary>
         /// When this action should fire.
@@ -529,7 +521,7 @@ public abstract partial class SharedWiresSystem : EntitySystem
             WiresUiKey.Key,
             new WiresBoundUserInterfaceState(
             [.. clientList],
-            statuses.Select(p => new StatusEntry(p.key, p.value)).ToArray(),
+            [.. statuses.Select(p => new StatusEntry(p.key, p.value))],
             Loc.GetString(ent.Comp.BoardName),
             ent.Comp.SerialNumber,
             ent.Comp.WireSeed));
@@ -852,6 +844,7 @@ public abstract partial class SharedWiresSystem : EntitySystem
         _layouts.Add(id, layout);
     }
 
+    [SubscribeLocalEvent]
     protected void Reset(RoundRestartCleanupEvent args)
     {
         _layouts.Clear();
