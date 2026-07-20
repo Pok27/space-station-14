@@ -15,7 +15,7 @@ public sealed partial class PirateAccentSystem : RelayAccentSystem<PirateAccentC
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private ReplacementAccentSystem _replacement = default!;
 
-    // converts left word when typed into the right word. For example typing you becomes ye.
+    // Converts left word when typed into the right word. For example typing you becomes ye.
     public override string Accentuate(string message, Entity<PirateAccentComponent>? ent = null)
     {
         var random = ent.HasValue
@@ -26,8 +26,9 @@ public sealed partial class PirateAccentSystem : RelayAccentSystem<PirateAccentC
 
         if (!random.Prob(ent.HasValue ? ent.Value.Comp.YarrChance : 0.5f))
             return msg;
-        //Checks if the first word of the sentence is all caps
-        //So the prefix can be allcapped and to not resanitize the captial
+
+        // Checks if the first word of the sentence is all caps
+        // So the prefix can be allcapped and to not resanitize the captial
         var firstWordAllCaps = !FirstWordAllCapsRegex.Match(msg).Value.Any(char.IsLower);
 
         if (ent.HasValue)
