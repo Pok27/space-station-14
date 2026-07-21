@@ -5,8 +5,7 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared.Speech.Components;
 
-[RegisterComponent, NetworkedComponent]
-[AutoGenerateComponentState]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class MeleeSpeechComponent : Component
 {
     /// <summary>

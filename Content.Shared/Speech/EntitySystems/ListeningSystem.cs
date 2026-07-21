@@ -16,6 +16,9 @@ public sealed partial class ListeningSystem : EntitySystem
         PingListeners(ev.Source, ev.Message, ev.ObfuscatedMessage);
     }
 
+    /// <summary>
+    /// Sends a speech message to entities listening within range.
+    /// </summary>
     public void PingListeners(EntityUid source, string message, string? obfuscatedMessage)
     {
         // TODO whispering / audio volume? Microphone sensitivity?

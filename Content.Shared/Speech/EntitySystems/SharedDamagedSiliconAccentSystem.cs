@@ -61,6 +61,14 @@ public abstract partial class SharedDamagedSiliconAccentSystem : RelayAccentSyst
         return message;
     }
 
+    protected virtual string CorruptDamage(string message, FixedPoint2 totalDamage, Entity<DamagedSiliconAccentComponent> ent)
+    {
+        return message;
+    }
+
+    /// <summary>
+    /// Corrupts a message based on the entity's charge level.
+    /// </summary>
     public string CorruptPower(string message, float chargeLevel, Entity<DamagedSiliconAccentComponent> ent)
     {
         // The first idxMin characters are SAFE
@@ -110,10 +118,5 @@ public abstract partial class SharedDamagedSiliconAccentSystem : RelayAccentSyst
             }
         }
         return outMsg.ToString();
-    }
-
-    protected virtual string CorruptDamage(string message, FixedPoint2 totalDamage, Entity<DamagedSiliconAccentComponent> ent)
-    {
-        return message;
     }
 }

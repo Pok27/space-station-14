@@ -1,4 +1,5 @@
 using Robust.Shared.Audio;
+using Content.Shared.Speech.EntitySystems;
 using Robust.Shared.GameStates;
 
 namespace Content.Shared.Speech.Components;
@@ -7,6 +8,7 @@ namespace Content.Shared.Speech.Components;
 /// Hmmfff!
 /// </summary>
 [RegisterComponent, NetworkedComponent]
+[Access(typeof(MumbleAccentSystem))]
 public sealed partial class MumbleAccentComponent : BaseAccentComponent
 {
     /// <summary>

@@ -25,7 +25,7 @@ public sealed partial class OwOAccentSystem : RelayAccentSystem<OwOAccentCompone
     public override string Accentuate(string message, Entity<OwOAccentComponent>? ent = null)
     {
         var random = ent.HasValue
-            ? SharedRandomExtensions.PredictedRandom(_timing, GetNetEntity(ent.Value.Owner))
+            ? SharedRandomExtensions.PredictedRandom(_timing, GetNetEntity(ent.Value))
             : _random;
 
         foreach (var (word, repl) in SpecialWords)

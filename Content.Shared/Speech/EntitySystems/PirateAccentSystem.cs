@@ -19,7 +19,7 @@ public sealed partial class PirateAccentSystem : RelayAccentSystem<PirateAccentC
     public override string Accentuate(string message, Entity<PirateAccentComponent>? ent = null)
     {
         var random = ent.HasValue
-            ? SharedRandomExtensions.PredictedRandom(_timing, GetNetEntity(ent.Value.Owner))
+            ? SharedRandomExtensions.PredictedRandom(_timing, GetNetEntity(ent.Value))
             : _random;
 
         var msg = _replacement.ApplyReplacements(message, "pirate", ent?.Owner);

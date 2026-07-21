@@ -43,6 +43,9 @@ public sealed partial class MeleeSpeechSystem : EntitySystem
         TryOpenUi(args.Performer, ent.AsNullable());
     }
 
+    /// <summary>
+    /// Attempts to open the Battlecry UI for a user.
+    /// </summary>
     public void TryOpenUi(EntityUid user, Entity<MeleeSpeechComponent?> source)
     {
         if (!Resolve(source, ref source.Comp))

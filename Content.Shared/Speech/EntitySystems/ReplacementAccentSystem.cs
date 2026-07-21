@@ -45,6 +45,17 @@ public sealed partial class ReplacementAccentSystem : RelayAccentSystem<Replacem
     }
 
     /// <summary>
+    /// Applies a replacement accent to an entity.
+    /// </summary>
+    [PublicAPI]
+    public void ApplyAccent(EntityUid uid, string accent)
+    {
+        var component = EnsureComp<ReplacementAccentComponent>(uid);
+        component.Accent = accent;
+        Dirty(uid, component);
+    }
+
+    /// <summary>
     /// Attempts to apply a given replacement accent prototype to a message.
     /// </summary>
     [PublicAPI]

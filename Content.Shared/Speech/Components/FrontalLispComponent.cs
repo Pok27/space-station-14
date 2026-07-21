@@ -1,3 +1,4 @@
+using Content.Shared.Speech.EntitySystems;
 using Robust.Shared.GameStates;
 
 namespace Content.Shared.Speech.Components;
@@ -6,4 +7,5 @@ namespace Content.Shared.Speech.Components;
 /// Lithping!
 /// </summary>
 [RegisterComponent, NetworkedComponent]
+[Access(typeof(FrontalLispSystem))]
 public sealed partial class FrontalLispComponent : BaseAccentComponent;

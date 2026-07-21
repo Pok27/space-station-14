@@ -1,3 +1,4 @@
+using Content.Shared.Speech.EntitySystems;
 using Robust.Shared.GameStates;
 
 namespace Content.Shared.Speech.Components;
@@ -6,6 +7,7 @@ namespace Content.Shared.Speech.Components;
 /// S-s-s-stuttering!
 /// </summary>
 [RegisterComponent, NetworkedComponent]
+[Access(typeof(StutteringSystem))]
 public sealed partial class StutteringAccentComponent : BaseAccentComponent
 {
     /// <summary>

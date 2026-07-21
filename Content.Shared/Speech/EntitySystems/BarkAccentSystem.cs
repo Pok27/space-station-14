@@ -28,7 +28,7 @@ public sealed partial class BarkAccentSystem : RelayAccentSystem<BarkAccentCompo
     public override string Accentuate(string message, Entity<BarkAccentComponent>? ent = null)
     {
         var random = ent.HasValue
-            ? SharedRandomExtensions.PredictedRandom(_timing, GetNetEntity(ent.Value.Owner))
+            ? SharedRandomExtensions.PredictedRandom(_timing, GetNetEntity(ent.Value))
             : _random;
 
         foreach (var (word, repl) in SpecialWords)

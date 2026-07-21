@@ -16,45 +16,13 @@ public sealed partial class SlurredSystem : RelayAccentSystem<SlurredAccentCompo
     [Dependency] private StatusEffectsSystem _status = default!;
     [Dependency] private IGameTiming _timing = default!;
 
-    /// <summary>
-    /// Divisor applied to total seconds used to get the odds of slurred speech occuring.
-    /// </summary>
-    private const float SlurredModifier = 1100f;
-
-    /// <summary>
-    /// Minimum amount of time on the slurred accent for it to start taking effect.
-    /// </summary>
-    private const float SlurredThreshold = 80f;
-
-    /// <summary>
-    ///     Slur chance scales with the time remaining on any status effect with the SlurredAccentComponent.
-    ///     Typically, this is equivalent to "drunkenness" on the DrunkStatusEffect
-    /// </summary>
-    private float GetProbabilityScale(EntityUid uid)
+    public override string Accentuate(string message, Entity<SlurredAccentComponent>? ent = null)
     {
-        if (!TryComp<StatusEffectComponent>(uid, out var component) || component.AppliedTo == null)
-            return 0;
+        if (ent == null)
+            return message;
 
-        if (!_status.TryGetMaxTime<SlurredAccentComponent>(component.AppliedTo.Value, out var time))
-            return 0;
-
-        // This is a magic number. Why this value? No clue it was made 3 years before I refactored this.
-        var magic = time.Item2 == null
-            ? SlurredModifier
-            : (float)(time.Item2 - _timing.CurTime).Value.TotalSeconds - SlurredThreshold;
-
-        return Math.Clamp(magic / SlurredModifier, 0f, 1f);
-    }
-
-    protected override void OnAccent(Entity<SlurredAccentComponent> ent, ref AccentGetEvent args)
-    {
-        var scale = GetProbabilityScale(ent);
-        args.Message = Accentuate(ent, args.Message, scale);
-    }
-
-    private string Accentuate(Entity<SlurredAccentComponent> ent, string message, float scale)
-    {
-        var random = SharedRandomExtensions.PredictedRandom(_timing, GetNetEntity(ent));
+        var scale = GetProbabilityScale(ent.Value);
+        var random = SharedRandomExtensions.PredictedRandom(_timing, GetNetEntity(ent.Value));
         var sb = new StringBuilder();
 
         // This is pretty much ported from TG.
@@ -106,5 +74,25 @@ public sealed partial class SlurredSystem : RelayAccentSystem<SlurredAccentCompo
         }
 
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Slur chance scales with the time remaining on any status effect with the SlurredAccentComponent.
+    /// Typically, this is equivalent to "drunkenness" on the DrunkStatusEffect
+    /// </summary>
+    private float GetProbabilityScale(Entity<SlurredAccentComponent> ent)
+    {
+        if (!TryComp<StatusEffectComponent>(ent, out var component) || component.AppliedTo == null)
+            return 1f;
+
+        if (!_status.TryGetMaxTime<SlurredAccentComponent>(component.AppliedTo.Value, out var time))
+            return 1f;
+
+        // This is a magic number. Why this value? No clue it was made 3 years before I refactored this.
+        var magic = time.Item2 == null
+            ? ent.Comp.SlurredModifier
+            : (float)(time.Item2 - _timing.CurTime).Value.TotalSeconds - ent.Comp.SlurredThreshold;
+
+        return Math.Clamp(magic / ent.Comp.SlurredModifier, 0f, 1f);
     }
 }

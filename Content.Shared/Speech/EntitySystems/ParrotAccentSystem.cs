@@ -15,11 +15,10 @@ public sealed partial class ParrotAccentSystem : RelayAccentSystem<ParrotAccentC
 
     public override string Accentuate(string message, Entity<ParrotAccentComponent>? ent = null)
     {
-        // TODO: Make this accent possible to apply without an entity with the component.
         if (ent == null)
             return message;
 
-        var random = SharedRandomExtensions.PredictedRandom(_timing, GetNetEntity(ent.Value.Owner));
+        var random = SharedRandomExtensions.PredictedRandom(_timing, GetNetEntity(ent.Value));
 
         // Sometimes repeat the longest word at the end of the message, after a squawk! SQUAWK! Sometimes!
         if (random.Prob(ent.Value.Comp.LongestWordRepeatChance))

@@ -1,3 +1,4 @@
+using Content.Shared.Speech.EntitySystems;
 using Robust.Shared.GameStates;
 
 namespace Content.Shared.Speech.Components;
@@ -6,4 +7,5 @@ namespace Content.Shared.Speech.Components;
 /// ЯussiДи! Becomes incomprehensible to read for anyone who actually knows cyrillic.
 /// </summary>
 [RegisterComponent, NetworkedComponent]
+[Access(typeof(RussianAccentSystem))]
 public sealed partial class RussianAccentComponent : BaseAccentComponent;

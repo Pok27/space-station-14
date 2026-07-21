@@ -1,4 +1,5 @@
 using Content.Shared.Chat.Prototypes;
+using Content.Shared.Speech.EntitySystems;
 using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
@@ -8,8 +9,8 @@ namespace Content.Shared.Speech.Components;
 /// <summary>
 ///     Component required for entities to be able to do vocal emotions.
 /// </summary>
-[RegisterComponent, NetworkedComponent]
-[AutoGenerateComponentState]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[Access(typeof(VocalSystem))]
 public sealed partial class VocalComponent : Component
 {
     //TODO: Wilhelm scream logic needs to be more generic

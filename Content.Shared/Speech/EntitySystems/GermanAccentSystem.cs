@@ -21,7 +21,7 @@ public sealed partial class GermanAccentSystem : RelayAccentSystem<GermanAccentC
         var msg = message;
 
         var random = ent.HasValue
-            ? SharedRandomExtensions.PredictedRandom(_timing, GetNetEntity(ent.Value.Owner))
+            ? SharedRandomExtensions.PredictedRandom(_timing, GetNetEntity(ent.Value))
             : _random;
 
         // rarely, "the" should become "das" instead of "ze"

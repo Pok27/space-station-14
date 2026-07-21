@@ -19,25 +19,6 @@ public sealed partial class VocalSystem : EntitySystem
     [Dependency] private SharedChatSystem _chat = default!;
     [Dependency] private SharedActionsSystem _actions = default!;
 
-    /// <summary>
-    /// Copy this component's datafields from one entity to another.
-    /// This can't use CopyComp because of the ScreamActionEntity DataField, which should not be copied.
-    /// </summary>
-    [PublicAPI]
-    public void CopyComponent(Entity<VocalComponent?> source, EntityUid target)
-    {
-        if (!Resolve(source, ref source.Comp))
-            return;
-
-        var targetComp = EnsureComp<VocalComponent>(target);
-        targetComp.ScreamId = source.Comp.ScreamId;
-        targetComp.Wilhelm = source.Comp.Wilhelm;
-        targetComp.WilhelmProbability = source.Comp.WilhelmProbability;
-        LoadSounds((target, targetComp));
-
-        Dirty(target, targetComp);
-    }
-
     [SubscribeLocalEvent]
     private void OnMapInit(Entity<VocalComponent> ent, ref MapInitEvent args)
     {
@@ -67,7 +48,7 @@ public sealed partial class VocalSystem : EntitySystem
         // snowflake case for wilhelm scream easter egg
         if (args.Emote == ent.Comp.ScreamId)
         {
-            args.Handled = TryPlayScreamSound(ent, args.Source);
+            args.Handled = TryPlayScreamSound(ent, GetEntity(args.Source));
             return;
         }
 
@@ -86,6 +67,25 @@ public sealed partial class VocalSystem : EntitySystem
 
         _chat.TryEmoteWithChat(ent.Owner, args.Emote);
         args.Handled = true;
+    }
+
+    /// <summary>
+    /// Copy this component's datafields from one entity to another.
+    /// This can't use CopyComp because of the ScreamActionEntity DataField, which should not be copied.
+    /// </summary>
+    [PublicAPI]
+    public void CopyComponent(Entity<VocalComponent?> source, EntityUid target)
+    {
+        if (!Resolve(source, ref source.Comp))
+            return;
+
+        var targetComp = EnsureComp<VocalComponent>(target);
+        targetComp.ScreamId = source.Comp.ScreamId;
+        targetComp.Wilhelm = source.Comp.Wilhelm;
+        targetComp.WilhelmProbability = source.Comp.WilhelmProbability;
+        LoadSounds((target, targetComp));
+
+        Dirty(target, targetComp);
     }
 
     private bool TryPlayScreamSound(Entity<VocalComponent> ent, EntityUid user)

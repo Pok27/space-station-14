@@ -21,21 +21,12 @@ public sealed partial class StutteringSystem : RelayAccentSystem<StutteringAccen
     private static readonly Regex Stutter = new("[b-df-hj-np-tv-wxyz]",
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-    [PublicAPI]
-    public void DoStutter(EntityUid uid, TimeSpan time, bool refresh)
-    {
-        if (refresh)
-            _statusEffects.TryUpdateStatusEffectDuration(uid, StutterEffect, time);
-        else
-            _statusEffects.TryAddStatusEffectDuration(uid, StutterEffect, time);
-    }
-
     public override string Accentuate(string message, Entity<StutteringAccentComponent>? ent = null)
     {
         if (ent == null)
             return message;
 
-        var random = SharedRandomExtensions.PredictedRandom(_timing, GetNetEntity(ent.Value.Owner));
+        var random = SharedRandomExtensions.PredictedRandom(_timing, GetNetEntity(ent.Value));
         var length = message.Length;
         var finalMessage = new StringBuilder();
 
@@ -66,5 +57,17 @@ public sealed partial class StutteringSystem : RelayAccentSystem<StutteringAccen
         }
 
         return finalMessage.ToString();
+    }
+
+    /// <summary>
+    /// Applies or refreshes the stuttering speech status effect on an entity.
+    /// </summary>
+    [PublicAPI]
+    public void DoStutter(EntityUid uid, TimeSpan time, bool refresh)
+    {
+        if (refresh)
+            _statusEffects.TryUpdateStatusEffectDuration(uid, StutterEffect, time);
+        else
+            _statusEffects.TryAddStatusEffectDuration(uid, StutterEffect, time);
     }
 }

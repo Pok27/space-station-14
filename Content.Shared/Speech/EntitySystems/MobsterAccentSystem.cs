@@ -29,7 +29,7 @@ public sealed partial class MobsterAccentSystem : RelayAccentSystem<MobsterAccen
         // Then prefix/suffix funnyies
 
         var random = ent.HasValue
-            ? SharedRandomExtensions.PredictedRandom(_timing, GetNetEntity(ent.Value.Owner))
+            ? SharedRandomExtensions.PredictedRandom(_timing, GetNetEntity(ent.Value))
             : _random;
 
         // direct word replacements

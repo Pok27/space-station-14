@@ -1,4 +1,5 @@
-﻿using Robust.Shared.GameStates;
+using Content.Shared.Speech.EntitySystems;
+using Robust.Shared.GameStates;
 
 namespace Content.Shared.Speech.Components;
 
@@ -6,4 +7,5 @@ namespace Content.Shared.Speech.Components;
 /// I am not typing out an example for this one.
 /// </summary>
 [RegisterComponent, NetworkedComponent]
+[Access(typeof(OwOAccentSystem))]
 public sealed partial class OwOAccentComponent : BaseAccentComponent;

@@ -17,7 +17,7 @@ public sealed partial class ScrambledAccentSystem : RelayAccentSystem<ScrambledA
     public override string Accentuate(string message, Entity<ScrambledAccentComponent>? ent = null)
     {
         var random = ent.HasValue
-            ? SharedRandomExtensions.PredictedRandom(_timing, GetNetEntity(ent.Value.Owner))
+            ? SharedRandomExtensions.PredictedRandom(_timing, GetNetEntity(ent.Value))
             : _random;
 
         var words = message.ToLower().Split();

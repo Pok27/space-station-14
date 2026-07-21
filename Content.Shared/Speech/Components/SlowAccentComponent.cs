@@ -1,3 +1,4 @@
+using Content.Shared.Speech.EntitySystems;
 using Robust.Shared.GameStates;
 
 namespace Content.Shared.Speech.Components;
@@ -6,4 +7,5 @@ namespace Content.Shared.Speech.Components;
 /// Makes... the... entity... talk... like... this...
 /// </summary>
 [RegisterComponent, NetworkedComponent]
+[Access(typeof(SlowAccentSystem))]
 public sealed partial class SlowAccentComponent : BaseAccentComponent;

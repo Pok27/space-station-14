@@ -1,4 +1,5 @@
-﻿using Robust.Shared.GameStates;
+using Content.Shared.Speech.EntitySystems;
+using Robust.Shared.GameStates;
 
 namespace Content.Shared.Speech.Components;
 
@@ -6,6 +7,7 @@ namespace Content.Shared.Speech.Components;
 /// Rattle me bones!
 /// </summary>
 [RegisterComponent, NetworkedComponent]
+[Access(typeof(SkeletonAccentSystem))]
 public sealed partial class SkeletonAccentComponent : BaseAccentComponent
 {
     /// <summary>

@@ -14,7 +14,7 @@ public sealed partial class MonkeyAccentSystem : RelayAccentSystem<MonkeyAccentC
     public override string Accentuate(string message, Entity<MonkeyAccentComponent>? ent = null)
     {
         var random = ent.HasValue
-            ? SharedRandomExtensions.PredictedRandom(_timing, GetNetEntity(ent.Value.Owner))
+            ? SharedRandomExtensions.PredictedRandom(_timing, GetNetEntity(ent.Value))
             : _random;
 
         var words = message.Split();

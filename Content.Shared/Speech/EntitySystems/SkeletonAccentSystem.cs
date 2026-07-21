@@ -17,7 +17,7 @@ public sealed partial class SkeletonAccentSystem : RelayAccentSystem<SkeletonAcc
     public override string Accentuate(string message, Entity<SkeletonAccentComponent>? ent = null)
     {
         var random = ent.HasValue
-            ? SharedRandomExtensions.PredictedRandom(_timing, GetNetEntity(ent.Value.Owner))
+            ? SharedRandomExtensions.PredictedRandom(_timing, GetNetEntity(ent.Value))
             : _random;
 
         // Order:

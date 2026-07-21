@@ -40,18 +40,6 @@ public sealed partial class RatvarianLanguageSystem : RelayAccentSystem<Ratvaria
     private static readonly Regex TomyPattern = new(@"(to|my)\s", RegexOptions.Compiled | RegexOptions.IgnoreCase);
     private static readonly Regex ProperNouns = new("(ratvar)|(nezbere)|(sevtuq)|(nzcrentr)|(inath-neq)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-    /// <summary>
-    /// Applies or refreshes the Ratvarian speech status effect on an entity.
-    /// </summary>
-    [PublicAPI]
-    public void DoRatvarian(EntityUid uid, TimeSpan time, bool refresh)
-    {
-        if (refresh)
-            _statusEffect.TryUpdateStatusEffectDuration(uid, Ratvarian, time);
-        else
-            _statusEffect.TryAddStatusEffectDuration(uid, Ratvarian, time);
-    }
-
     public override string Accentuate(string message, Entity<RatvarianLanguageComponent>? ent = null)
     {
         var ruleTranslation = message;
@@ -108,5 +96,17 @@ public sealed partial class RatvarianLanguageSystem : RelayAccentSystem<Ratvaria
         }
 
         return finalMessage.ToString().Trim();
+    }
+
+    /// <summary>
+    /// Applies or refreshes the Ratvarian speech status effect on an entity.
+    /// </summary>
+    [PublicAPI]
+    public void DoRatvarian(EntityUid uid, TimeSpan time, bool refresh)
+    {
+        if (refresh)
+            _statusEffect.TryUpdateStatusEffectDuration(uid, Ratvarian, time);
+        else
+            _statusEffect.TryAddStatusEffectDuration(uid, Ratvarian, time);
     }
 }
