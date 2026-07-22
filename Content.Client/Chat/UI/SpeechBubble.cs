@@ -262,7 +262,7 @@ namespace Content.Client.Chat.UI
             var bubbleHeader = new RichTextLabel
             {
                 ModulateSelfOverride = Color.White.WithAlpha(ConfigManager.GetCVar(CCVars.SpeechBubbleSpeakerOpacity)),
-                Margin = new Thickness(1, 1, 1, 1),
+                Margin = new Thickness(2, 0, 2, 0),
                 OutlineColorOverride = TextOutline.Default.Color,
             };
 
@@ -287,7 +287,7 @@ namespace Content.Client.Chat.UI
                 ModulateSelfOverride = Color.White.WithAlpha(ConfigManager.GetCVar(CCVars.SpeechBubbleBackgroundOpacity)),
                 HorizontalAlignment = HAlignment.Center,
                 VerticalAlignment = VAlignment.Bottom,
-                Margin = new Thickness(4, 18, 4, 2)
+                Margin = new Thickness(4, 20, 4, 2)
             };
 
             var headerPanel = new PanelContainer
